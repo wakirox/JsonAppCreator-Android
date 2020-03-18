@@ -4,6 +4,9 @@ import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.event.CallService
 import it.sapienza.appinterpreter.model.screen.Screen
 
+/**
+ * ModelApplication comment
+ */
 class ModelApplication (
     var name : String,
     var author : String?,
