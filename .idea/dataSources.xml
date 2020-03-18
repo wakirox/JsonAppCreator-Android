@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="database@AVS" uuid="2e20b3ca-a9ab-4ed2-a0f7-166c07885b3f">
+      <driver-ref>mariadb</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mariadb://database.chhjju0aqodu.us-west-2.rds.amazonaws.com:3306</jdbc-url>
+    </data-source>
+  </component>
+</project>

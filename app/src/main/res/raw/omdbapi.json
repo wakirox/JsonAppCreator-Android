@@ -1,0 +1,231 @@
+{
+  "name": "Omdb app",
+  "version": "1.0",
+  "main": {
+    "id": "search_screen",
+    "inheritedData": false,
+    "layouts": [
+      {
+        "id": "search_layout",
+        "inheritedData": true,
+        "views": [
+          {
+            "type": "text",
+            "textStyle": "bold",
+            "textSize": 10,
+            "title": "Search a movie"
+          },
+          {
+            "type": "form",
+            "action": {
+              "id": "action01",
+              "type": "click",
+              "inheritedData": true,
+              "event": {
+                "type": "call",
+                "url": "http://www.omdbapi.com/?s=${title}&type=${type}&y=${year}&apikey=7afbe59a",
+                "method": "get",
+                "thenDo": {
+                  "type": "screen",
+                  "screen": {
+                    "id": "result_screen",
+                    "layouts": [
+                      {
+                        "id": "layout_list_result",
+                        "views": [
+                          {
+                            "type": "list",
+                            "mapping": "Search",
+                            "action": {
+                              "id": "action_open_detal",
+                              "type": "click",
+                              "event": {
+                                "type": "call",
+                                "url": "http://www.omdbapi.com/?i=${imdbID}&plot=short&apikey=7afbe59a",
+                                "thenDo": {
+                                  "type": "screen",
+                                  "screen": {
+                                    "id": "detail_screen"
+                                  }
+                                }
+                              }
+                            },
+                            "layout": {
+                              "id": "list_item_result",
+                              "orientation": "horizontal",
+                              "views": [
+                                {
+                                  "type": "image",
+                                  "mapping": "Poster",
+                                  "size": {
+                                    "width": 94,
+                                    "height": 140
+                                  }
+                                },
+                                {
+                                  "type": "text",
+                                  "label": "Detail - ${Title}",
+                                  "title": "Year - ${Year}\nType - ${Type}\nImdbID - ${imdbID}"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "formElements": [
+              {
+                "type": "text",
+                "mapping": "title",
+                "mandatory": true,
+                "description": "Write the title of the movie you want to search",
+                "title": "Title"
+              },
+              {
+                "type": "text",
+                "mapping": "year",
+                "mandatory": false,
+                "title": "Year"
+              },
+              {
+                "type": "selector",
+                "mapping": "type",
+                "mandatory": false,
+                "title": "Type",
+                "options": [
+                  "movie",
+                  "series",
+                  "episode"
+                ]
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "textStyle": "italic",
+            "title": "This app was made using the endpoints and data from http://www.omdbapi.com/"
+          }
+        ]
+      }
+    ]
+  },
+  "screens": [
+    {
+      "id": "detail_screen",
+      "inheritedData": true,
+      "layouts": [
+        {
+          "id": "l0",
+          "views": [
+            {
+              "type": "text",
+              "mapping": "Title",
+              "textStyle": "bold",
+              "textSize": 10
+            }
+          ]
+        },
+        {
+          "id": "l1",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "image",
+              "mapping": "Poster",
+              "size": {
+                "width": 141,
+                "height": 210
+              }
+            },
+            {
+              "type": "text",
+              "label": "Plot",
+              "mapping": "Plot"
+            }
+          ]
+        },
+        {
+          "id": "l2",
+          "orientation": "vertical",
+          "views": [
+            {
+              "type": "text",
+              "label": "Genre",
+              "mapping": "Genre"
+            },
+            {
+              "type": "text",
+              "title": "Ratings",
+              "textStyle": "bold",
+              "textSize": 8
+            },
+            {
+              "type": "list",
+              "mapping": "Ratings",
+              "layout": {
+                "id": "list_item",
+                "views": [
+                  {
+                    "type": "text",
+                    "textStyle": "bold",
+                    "mapping": "Source"
+                  },
+                  {
+                    "type": "text",
+                    "mapping": "Value"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "text",
+              "title": "Extra",
+              "textStyle": "bold",
+              "textSize": 8
+            },
+            {
+              "type": "text",
+              "title": "Rated - ${Rated}"
+            },
+            {
+              "type": "text",
+              "title": "Released - ${Released}"
+            },
+            {
+              "type": "text",
+              "title": "Runtime - ${Runtime}"
+            },
+            {
+              "type": "text",
+              "title": "Director - ${Director}"
+            },
+            {
+              "type": "text",
+              "title": "Writer - ${Writer}"
+            },
+            {
+              "type": "text",
+              "title": "Actors - ${Actors}"
+            },
+            {
+              "type": "text",
+              "title": "Language - ${Language}"
+            },
+            {
+              "type": "text",
+              "title": "Country - ${Country}"
+            },
+            {
+              "type": "text",
+              "title": "Awards - ${Awards}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

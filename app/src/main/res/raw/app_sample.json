@@ -1,0 +1,22 @@
+{
+  "name": "App creator",
+  "author" : "Marius Gabriel Magadan",
+  "version": "alpha-01",
+  "main": {
+    "id": "screen01",
+    "layouts": [
+      {
+        "id": "layout01",
+        "inheritedData": true,
+        "views": [
+          {
+            "type": "text",
+            "label" : "Hello world!",
+            "textSize" : 12,
+            "title": "In the settings you can find a series of sample apps to load. You can also load a json model from your device and see it inside the application. If you want details on the file structure write an email to:\nwakirox@gmail.com"
+          }
+        ]
+      }
+    ]
+  }
+}

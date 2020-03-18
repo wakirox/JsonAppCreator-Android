@@ -1,0 +1,26 @@
+{
+  "objects" : [
+    {
+      "label" : "container",
+      "schema_id" : 1,
+      "orientation" : {
+        "type" : "string"
+      },
+      "id" : {
+        "type" : "integer"
+      },
+      "subtype" : {
+        "type" : "string"
+      }
+    }
+  ],
+  "app" : {
+    "main" : {
+      "type" : "container",
+      "like_id" : 1,
+      "subcontainer" : {
+        "type" : ""
+      }
+    }
+  }
+}

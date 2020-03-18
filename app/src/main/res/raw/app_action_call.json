@@ -1,0 +1,39 @@
+{
+  "name": "My first app",
+  "version": "alpha-01",
+  "main": {
+    "id": "screen01",
+    "data": {
+      "name": "test",
+      "salary": "123",
+      "age": "23"
+    },
+    "inheritedData": true,
+    "layouts": [
+      {
+        "id": "layout01",
+        "inheritedData": true,
+        "views": [
+          {
+            "type": "button",
+            "title": "Click me! OK!?",
+            "action": {
+              "id": "action01",
+              "type": "click",
+              "inheritedData": true,
+              "event": {
+                "type": "call",
+                "url": "http://dummy.restapiexample.com/api/v1/create",
+                "method": "post",
+                "thenDo": {
+                  "type": "alert",
+                  "value": "Worked? ${status} saved name ${data.name}"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "main": [
+    {
+      "type": "button",
+      "id": "img3",
+      "value": "Spawn new container",
+      "request": {
+        "action": "click",
+        "type": "spawn",
+        "containerId": "textToSpawn"
+      }
+    },
+    {
+      "type": "text",
+      "id": "text1",
+      "textStyle": "bold",
+      "value": "Prima app creata con AppRatio",
+      "orientation": "vertical",
+      "subcontainers": [
+        {
+          "type": "image",
+          "id": "img1",
+          "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/a4ccb586-4566-485c-b92a-88932fd42265/ddqor1k-71e3ea4e-97da-484b-857d-ffab7853018a.jpg/v1/fill/w_900,h_666,q_75,strp/blind_revenge_by_ashpwright_ddqor1k-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjY2IiwicGF0aCI6IlwvZlwvYTRjY2I1ODYtNDU2Ni00ODVjLWI5MmEtODg5MzJmZDQyMjY1XC9kZHFvcjFrLTcxZTNlYTRlLTk3ZGEtNDg0Yi04NTdkLWZmYWI3ODUzMDE4YS5qcGciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.YkQzogonucmb8pBMNwbq-nuZytOxqGLhiQXd3Ab26C8"
+        },
+        {
+          "type": "image",
+          "id": "img1",
+          "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/80d20b71-5221-4a17-9c7a-212daf197448/d2zs2bl-acb928ae-8b14-4aab-b9df-bcfc6e64bcd7.jpg/v1/fill/w_600,h_356,q_75,strp/come_and_tell_me_a_story_mommy_by_liiqa_d2zs2bl-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MzU2IiwicGF0aCI6IlwvZlwvODBkMjBiNzEtNTIyMS00YTE3LTljN2EtMjEyZGFmMTk3NDQ4XC9kMnpzMmJsLWFjYjkyOGFlLThiMTQtNGFhYi1iOWRmLWJjZmM2ZTY0YmNkNy5qcGciLCJ3aWR0aCI6Ijw9NjAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.E8zZuiyX7BKAwRRuOmHkZ7uSLyQTz5mmH7epdHRU7R0"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "text1",
+      "textStyle": "bold",
+      "orientation": "vertical",
+      "value": "Lorem ipsum latin",
+      "subcontainers": [
+        {
+          "type": "text",
+          "id": "text1",
+          "value": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+        },
+        {
+          "type": "text",
+          "id": "text1",
+          "textStyle": "bold",
+          "value": "Lorem ipsum english"
+        },
+        {
+          "type": "text",
+          "id": "text1",
+          "value": "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?"
+        }
+      ]
+    },
+    {
+      "orientation": "horizontal",
+      "type": "image",
+      "id": "img2",
+      "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/3b301c2d-6d9b-46f0-bf0e-b81c829f7ad0/d5q4spj-83990870-76a0-425e-8145-94fda571ce75.jpg/v1/fill/w_1280,h_615,q_75,strp/a_long_long_adventure_with_hobbit_by_breath_art_d5q4spj-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjE1IiwicGF0aCI6IlwvZlwvM2IzMDFjMmQtNmQ5Yi00NmYwLWJmMGUtYjgxYzgyOWY3YWQwXC9kNXE0c3BqLTgzOTkwODcwLTc2YTAtNDI1ZS04MTQ1LTk0ZmRhNTcxY2U3NS5qcGciLCJ3aWR0aCI6Ijw9MTI4MCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.pbbqLnGsMM1T1qEUidZnaZqq8ZsN6w2O4WSffQ_xVlA",
+      "subcontainers": [
+        {
+          "type": "image",
+          "id": "img3",
+          "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/8279f786-1353-4056-9948-d292d6d99c4f/dauz0j1-5a4f0a04-a975-4d50-b822-0067d3bf27bf.jpg/v1/fill/w_1024,h_1418,q_75,strp/it_follows_by_picolo_kun_dauz0j1-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTQxOCIsInBhdGgiOiJcL2ZcLzgyNzlmNzg2LTEzNTMtNDA1Ni05OTQ4LWQyOTJkNmQ5OWM0ZlwvZGF1ejBqMS01YTRmMGEwNC1hOTc1LTRkNTAtYjgyMi0wMDY3ZDNiZjI3YmYuanBnIiwid2lkdGgiOiI8PTEwMjQifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.i7Mql0uPInIRhAbs1CHyJqSf9zgpjdF1p6p3Wfwq5BI"
+        }
+      ]
+    }
+  ],
+  "extraContainers": [
+    {
+      "type": "text",
+      "id": "textToSpawn",
+      "value": "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
+      "orientation": "vertical",
+      "subcontainers": [
+        {
+          "type": "image",
+          "id": "img3",
+          "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/bca94917-edc6-4d9d-b13e-191899d9cd1d/d1qna92-496af3ee-3b0b-484d-b746-474e8bfcb48e.jpg/v1/fill/w_879,h_900,q_75,strp/kani_crane_by_kalkulation_d1qna92-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTAwIiwicGF0aCI6IlwvZlwvYmNhOTQ5MTctZWRjNi00ZDlkLWIxM2UtMTkxODk5ZDljZDFkXC9kMXFuYTkyLTQ5NmFmM2VlLTNiMGItNDg0ZC1iNzQ2LTQ3NGU4YmZjYjQ4ZS5qcGciLCJ3aWR0aCI6Ijw9ODc5In1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.8gKcaMlkinkgo7z4MlclDJc_s-GWFf7j0y0c0XyI6jE"
+        },
+        {
+          "type": "image",
+          "id": "img3",
+          "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/058446bb-a88c-404c-b445-840501861912/d68doqw-ca7d95cd-2c2e-40b7-a1f4-339d3f186033.jpg/v1/fill/w_600,h_602,q_75,strp/angry_tiger___ballpoint_pen_by_vianaarts_d68doqw-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjAyIiwicGF0aCI6IlwvZlwvMDU4NDQ2YmItYTg4Yy00MDRjLWI0NDUtODQwNTAxODYxOTEyXC9kNjhkb3F3LWNhN2Q5NWNkLTJjMmUtNDBiNy1hMWY0LTMzOWQzZjE4NjAzMy5qcGciLCJ3aWR0aCI6Ijw9NjAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0._SIT3bdODFy80gcRn9eVC5pI2VWu7Fy7CibDAU2AF88"
+        },
+        {
+          "type": "image",
+          "id": "img3",
+          "value": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e65e21bd-dc77-499e-962a-fa13cab37fc2/d7bt39n-1055f4fb-25c4-4cdc-8ba4-d10392aadf96.jpg/v1/fill/w_894,h_894,q_70,strp/natalia_poklonskaya_by_kuvshinov_ilya_d7bt39n-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9OTAwIiwicGF0aCI6IlwvZlwvZTY1ZTIxYmQtZGM3Ny00OTllLTk2MmEtZmExM2NhYjM3ZmMyXC9kN2J0MzluLTEwNTVmNGZiLTI1YzQtNGNkYy04YmE0LWQxMDM5MmFhZGY5Ni5qcGciLCJ3aWR0aCI6Ijw9OTAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.mTABxQuinE--5Pmkmw0f_OyvYyZsfO7UZ0qzvi5T1Cw"
+        }
+      ]
+    }
+  ]
+}

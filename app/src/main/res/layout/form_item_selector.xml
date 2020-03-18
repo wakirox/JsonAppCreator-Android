@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:padding="@dimen/form_item_padding"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+
+    <include
+            layout="@layout/form_item_generic"/>
+    <!--<TextView-->
+            <!--android:padding="5dp"-->
+            <!--android:hint="dd/MM/yyyy"-->
+            <!--android:id="@+id/tv_date"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"/>-->
+    <androidx.appcompat.widget.AppCompatSpinner
+            android:id="@+id/spinner"
+            android:layout_width="match_parent"
+            android:layout_height="35dp">
+
+    </androidx.appcompat.widget.AppCompatSpinner>
+
+    <include
+            layout="@layout/form_item_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+</LinearLayout>

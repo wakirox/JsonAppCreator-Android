@@ -1,0 +1,46 @@
+{
+  "name": "My first app",
+  "version": "alpha-01",
+  "main": {
+    "id": "screen01",
+    "data": {
+      "obj": {
+        "hello": {
+          "salve": "Hello from data.salve"
+        }
+      },
+      "link": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ff1a75ee-fbbe-4841-9923-2bb297cadb3e/ddjg9yj-7a43784b-3e00-4e5f-91d5-ea09f95efc49.png/v1/fill/w_1017,h_786,q_70,strp/subject__ba_xx58_by_evelar_ddjg9yj-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTE1OSIsInBhdGgiOiJcL2ZcL2ZmMWE3NWVlLWZiYmUtNDg0MS05OTIzLTJiYjI5N2NhZGIzZVwvZGRqZzl5ai03YTQzNzg0Yi0zZTAwLTRlNWYtOTFkNS1lYTA5Zjk1ZWZjNDkucG5nIiwid2lkdGgiOiI8PTE1MDAifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.zz_b3HiULmN9WlqofyRbFewz7btKZZ4-z-46FzbWomk",
+      "link2": "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ff1a75ee-fbbe-4841-9923-2bb297cadb3e/ddhw0jg-4b26a525-04d8-467c-8efd-f7239aa59820.png/v1/fill/w_1017,h_786,q_70,strp/subject__ma_xx66_by_evelar_ddhw0jg-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTE1OSIsInBhdGgiOiJcL2ZcL2ZmMWE3NWVlLWZiYmUtNDg0MS05OTIzLTJiYjI5N2NhZGIzZVwvZGRodzBqZy00YjI2YTUyNS0wNGQ4LTQ2N2MtOGVmZC1mNzIzOWFhNTk4MjAucG5nIiwid2lkdGgiOiI8PTE1MDAifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.v73vD2APz30r6x7i7BJXJ4e8aRvb37m97hbKSvsl9_w"
+    },
+    "inheritedData": true,
+    "layouts": [
+      {
+        "id": "layout01",
+        "inheritedData": true,
+        "views": [
+          {
+            "type": "button",
+            "title": "Click me! OK!? ${obj.hello.salve}",
+            "action": {
+              "id": "action01",
+              "type": "click",
+              "data": {
+                "obj": {
+                  "hello": {
+                    "salve": "Hello from second screen"
+                  }
+                }
+              },
+              "inheritedData": false,
+              "event": {
+                "type": "screen",
+                "screen": {"id": "screen01"},
+                "returnIfStacked" : false
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
