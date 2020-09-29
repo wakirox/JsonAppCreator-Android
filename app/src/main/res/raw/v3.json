@@ -1,0 +1,9 @@
+{
+  "name" : "v3",
+  "version" : "0",
+  "author" : "Gabriel",
+  "mainView" : {
+    "type" : "text",
+    "title" : "Hello world!"
+  }
+}

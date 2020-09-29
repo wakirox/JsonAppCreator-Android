@@ -17,9 +17,9 @@ import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.extensions.getJsonExtra
 import it.sapienza.appinterpreter.extensions.putExtraJson
 import it.sapienza.appinterpreter.extensions.setApp
-import it.sapienza.appinterpreter.model.screen.Screen
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.ContainerConfiguration
+import it.sapienza.appinterpreter.model.view_model.helper.View
 import it.sapienza.appinterpreter.utils.DomainController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
@@ -27,7 +27,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
-fun spawnInstance(context: Context, model: Screen) {
+fun spawnInstance(context: Context, model : View) {
     val intent = Intent(context, MainActivity::class.java)
 //    intent.putExtra("model", model)
 
@@ -35,7 +35,7 @@ fun spawnInstance(context: Context, model: Screen) {
         intent.putExtraJson(it)
     }
 
-    intent.putExtra("idScreen", model.id)
+    intent.putExtra("idView", model.id)
 
     context.startActivity(intent)
 
@@ -60,19 +60,19 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        if (intent.hasExtra("idScreen")) {
+        if (intent.hasExtra("idView")) {
 
-            val screen: Screen =
-                application.app()!!.screenById(intent.getStringExtra("idScreen")!!)!!
+            val view : View =
+                application.app()!!.viewBy(intent.getStringExtra("idView")!!)!!
 
             val typeRef: TypeReference<MutableMap<Any?, Any?>?> =
                 object : TypeReference<MutableMap<Any?, Any?>?>() {}
 
             intent.getJsonExtra(typeRef)?.let { it ->
-                screen.data = it
+                view.data = it
             }
 
-            addContainer(screen)
+            addContainer(view)
 
         } else {
 
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             }
 
 
-            addContainer(application.app()!!.screenBy(application.app()!!.main)!!)
+            addContainer(application.app()!!.viewBy(application.app()!!.mainView)!!)
 
 //            application.app()!!.initService?.let {
 //                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?

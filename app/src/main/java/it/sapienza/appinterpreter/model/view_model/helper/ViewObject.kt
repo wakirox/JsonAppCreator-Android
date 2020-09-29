@@ -12,7 +12,7 @@ import java.util.HashMap
 
 class ViewObject(var type: ElementType.ViewElem) {
 
-    fun convert() : ViewElement {
+    fun convert() : View {
         return when(type){
             ElementType.ViewElem.text -> {
                 jacksonObjectMapper().convertValue<TextView>(additionalProperties)

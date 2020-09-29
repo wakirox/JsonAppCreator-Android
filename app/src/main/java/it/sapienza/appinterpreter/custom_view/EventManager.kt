@@ -102,7 +102,7 @@ object EventManager{
                     it.thenDoKO?.eventInstance?.let { ev -> Runnable { evaluateEvent(context,ev,data) } }
                 )
             }
-            is ShowScreen -> {
+            is ShowView -> {
                 (context as MainActivity).pushScreen(it.screen, data)
             }
             is CallService -> {

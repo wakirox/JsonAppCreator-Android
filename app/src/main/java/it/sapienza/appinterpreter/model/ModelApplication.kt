@@ -1,8 +1,8 @@
 package it.sapienza.appinterpreter.model
 
 import it.sapienza.appinterpreter.model.action.Action
-import it.sapienza.appinterpreter.model.event.CallService
-import it.sapienza.appinterpreter.model.screen.Screen
+import it.sapienza.appinterpreter.model.view_model.helper.View
+import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
 
 /**
  * ModelApplication comment
@@ -12,22 +12,16 @@ class ModelApplication (
     var author : String?,
     var debugMode : Boolean? = false,
     var version : String,
-    var previousVersion : String?,
     var changelog : String?,
-    var main : Screen,
-    var screens : MutableList<Screen> = mutableListOf(),
-    var layouts: MutableList<Layout> = mutableListOf(),
-    var actions : MutableList<Action> = mutableListOf()
+    var mainView : ViewObject,
+    var views: MutableList<ViewObject> = mutableListOf(),
+    var actions : MutableList<ViewObject> = mutableListOf()
 ){
 
-    fun screenById(id: String) : Screen? = screens.find { s->s.id == id }
+    fun viewBy(id: String) : View? = views.find { s->s.id == id }
 
-    fun screenBy(screen: Screen) : Screen? {
-        return if(screen.isEmpty()) screens.find { s->s.id == screen.id } else screen
-    }
-
-    fun layoutBy(layout: Layout) : Layout? {
-        return if(layout.isEmpty()) layouts.find { s->s.id == layout.id } else layout
+    fun viewBy(view: View) : View? {
+        return if(views.isEmpty()) views.find { s->s.id == view.id } else view
     }
 
     fun actionBy(action : Action) : Action? {

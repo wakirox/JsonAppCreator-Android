@@ -8,7 +8,7 @@ import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.CallService
 import it.sapienza.appinterpreter.model.event.Event
-import it.sapienza.appinterpreter.model.event.ShowScreen
+import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.view_model.ListView
 
 
@@ -41,8 +41,8 @@ class AppParser(val obj : String) {
             throw Exception("Empty model.actions[id=${it.id}]")
         }
 
-        model.screens.find { it.isEmpty() }?.let {
-            throw Exception("Empty model.screens[id=${it.id}]")
+        model.views.find { it.isEmpty() }?.let {
+            throw Exception("Empty model.views[id=${it.id}]")
         }
 
         model.layouts.find { it.isEmpty() }?.let {
@@ -125,7 +125,7 @@ class AppParser(val obj : String) {
 
         checkModelConsistency(model)
 
-        model.actions.filter { e->e.event?.eventInstance is ShowScreen}.onEach {
+        model.actions.filter { e->e.event?.eventInstance is ShowView}.onEach {
 //            var ev = (it.event?.eventInstance as ShowScreen)
 //            if(ev.screen.isEmpty() ){
 //                ev.screen = model.screens.find { e->e.id == ev.screen.id }!!
@@ -154,7 +154,7 @@ class AppParser(val obj : String) {
         model: ModelApplication
     ) {
         when(ev){
-            is ShowScreen -> if(!ev.screen.isEmpty()){
+            is ShowView -> if(!ev.screen.isEmpty()){
                 model.screens.add(ev.screen)
                 ev.screen.layouts.filter { !it.isEmpty() }.forEach { findScreens(it,model) }
             }
@@ -188,7 +188,7 @@ class AppParser(val obj : String) {
         model: ModelApplication
     ) {
         when(ev){
-            is ShowScreen -> if(!ev.screen.isEmpty()){
+            is ShowView -> if(!ev.screen.isEmpty()){
                 model.screens.add(ev.screen)
                 model.layouts.addAll(ev.screen.layouts.filter { l -> !l.isEmpty() })
                 ev.screen = ev.screen.toReference()
