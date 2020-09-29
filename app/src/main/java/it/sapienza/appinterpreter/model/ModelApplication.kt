@@ -14,9 +14,12 @@ class ModelApplication (
     var version : String,
     var changelog : String?,
     var mainView : ViewObject,
-    var views: MutableList<ViewObject> = mutableListOf(),
+    var _views: MutableList<ViewObject> = mutableListOf(),
     var actions : MutableList<ViewObject> = mutableListOf()
 ){
+
+    val views : List<View>
+        get() = _views.map { v->v.convert() }
 
     fun viewBy(id: String) : View? = views.find { s->s.id == id }
 
