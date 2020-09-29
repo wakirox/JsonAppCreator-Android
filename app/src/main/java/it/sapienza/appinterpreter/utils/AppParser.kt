@@ -5,10 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.ModelApplication
-import it.sapienza.appinterpreter.model.event.AlertMessage
-import it.sapienza.appinterpreter.model.event.CallService
-import it.sapienza.appinterpreter.model.event.Event
-import it.sapienza.appinterpreter.model.event.ShowView
+import it.sapienza.appinterpreter.model.event.*
 import it.sapienza.appinterpreter.model.view_model.ListView
 
 
@@ -45,19 +42,15 @@ class AppParser(val obj : String) {
             throw Exception("Empty model.views[id=${it.id}]")
         }
 
-        model.layouts.find { it.isEmpty() }?.let {
-            throw Exception("Empty model.layouts[id=${it.id}]")
-        }
-
         model.screens.forEach {
             it.layouts.forEach {
-                findScreens(it,model)
+                findView(it,model)
             }
         }
-        model.actions.forEach { it.event?.eventInstance?.let { ev -> findScreens(ev, model) } }
-        model.layouts.filter { !it.isEmpty() }.forEach { findScreens(it,model) }
+        model.actions.forEach { it.event?.eventInstance?.let { ev -> findView(ev, model) } }
+        model.layouts.filter { !it.isEmpty() }.forEach { findView(it,model) }
         if(!model.main.isEmpty()){
-            model.main.layouts.filter { !it.isEmpty() }.forEach { findScreens(it,model) }
+            model.main.layouts.filter { !it.isEmpty() }.forEach { findView(it,model) }
         }
 //        model.initService?.let {
 //            it.thenDo?.eventInstance?.let { ev -> findScreens(ev, model) }
@@ -71,113 +64,113 @@ class AppParser(val obj : String) {
     }
 
 
-    fun parseApplication() : ModelApplication {
-
-        /*
-        * per facilitare la scrittura del modello si è deciso di dare la possibilità di riutilizzare determinati elementi
-        * all'iterno del modello specificando solamente l'id di un elemento è possibile referenziarlo dalla lista generale dell'app
-        * Per evitare problemi con la scrittura non è
-        * possibile referenziare un elemento che si trova definito all'interno di un altro elemento*/
-
-        val mapper = jacksonObjectMapper()
-        val model = mapper.readValue<ModelApplication>(obj)
-
-
-
-//        model.initService?.let {
-//            it.thenDo?.eventInstance?.let { ev -> analyzeEvent(ev, model) }
+//    fun parseApplication() : ModelApplication {
+//
+//        /*
+//        * per facilitare la scrittura del modello si è deciso di dare la possibilità di riutilizzare determinati elementi
+//        * all'iterno del modello specificando solamente l'id di un elemento è possibile referenziarlo dalla lista generale dell'app
+//        * Per evitare problemi con la scrittura non è
+//        * possibile referenziare un elemento che si trova definito all'interno di un altro elemento*/
+//
+//        val mapper = jacksonObjectMapper()
+//        val model = mapper.readValue<ModelApplication>(obj)
+//
+//
+//
+////        model.initService?.let {
+////            it.thenDo?.eventInstance?.let { ev -> analyzeEvent(ev, model) }
+////        }
+//
+//        model.main.takeIf { !it.isEmpty() }?.let {
+//            model.main = it.toReference()
+//            model.screens.add(it)
 //        }
-
-        model.main.takeIf { !it.isEmpty() }?.let {
-            model.main = it.toReference()
-            model.screens.add(it)
-        }
-
-        model.screens.forEach {
-            model.layouts.addAll(it.layouts.filter { l->!l.isEmpty() })
-        }
-
-        model.layouts.iterator().forEach {
-            it.views.forEach { v ->
-                v.action?.event?.let {
-                    it.eventInstance?.let { ev -> analyzeEvent(ev, model) }
-                }
-            }
-        }
-
-        var toAddLayout = mutableListOf<Layout>()
-        model.layouts.forEach {
-            //converto le view in realtà
-            it.views.forEach{
-
-                if(it is ListView){
-                    toAddLayout.add(it.layout)
-                }
-
-                it.action?.takeIf { !it.isEmpty() }?.let {
-                    model.actions.add(it)
-                }
-            }
-
-        }
-
-        model.layouts.addAll(toAddLayout)
-
-        checkModelConsistency(model)
-
-        model.actions.filter { e->e.event?.eventInstance is ShowView}.onEach {
-//            var ev = (it.event?.eventInstance as ShowScreen)
-//            if(ev.screen.isEmpty() ){
-//                ev.screen = model.screens.find { e->e.id == ev.screen.id }!!
+//
+//        model.screens.forEach {
+//            model.layouts.addAll(it.layouts.filter { l->!l.isEmpty() })
+//        }
+//
+//        model.layouts.iterator().forEach {
+//            it.views.forEach { v ->
+//                v.action?.event?.let {
+//                    it.eventInstance?.let { ev -> analyzeEvent(ev, model) }
+//                }
 //            }
-        }
-
-        //setto le azioni qualora siano solamente riferimenti
-        model.layouts.forEach { it.views.forEach{
-            it.action?.let { ac ->
-                if (ac.isEmpty()) {
-                    it.action = model.actions.find { ai -> ai.id == ac.id }!!
-                }
-            }
-        } }
-
-
-//        if(model.main.isEmpty()){
-//            model.main = model.screens.find { it.id == model.main.id }!!
 //        }
+//
+//        var toAddLayout = mutableListOf<Layout>()
+//        model.layouts.forEach {
+//            //converto le view in realtà
+//            it.views.forEach{
+//
+//                if(it is ListView){
+//                    toAddLayout.add(it.layout)
+//                }
+//
+//                it.action?.takeIf { !it.isEmpty() }?.let {
+//                    model.actions.add(it)
+//                }
+//            }
+//
+//        }
+//
+//        model.layouts.addAll(toAddLayout)
+//
+//        checkModelConsistency(model)
+//
+//        model.actions.filter { e->e.event?.eventInstance is ShowView}.onEach {
+////            var ev = (it.event?.eventInstance as ShowScreen)
+////            if(ev.screen.isEmpty() ){
+////                ev.screen = model.screens.find { e->e.id == ev.screen.id }!!
+////            }
+//        }
+//
+//        //setto le azioni qualora siano solamente riferimenti
+//        model.layouts.forEach { it.views.forEach{
+//            it.action?.let { ac ->
+//                if (ac.isEmpty()) {
+//                    it.action = model.actions.find { ai -> ai.id == ac.id }!!
+//                }
+//            }
+//        } }
+//
+//
+////        if(model.main.isEmpty()){
+////            model.main = model.screens.find { it.id == model.main.id }!!
+////        }
+//
+//        return model
+//    }
 
-        return model
-    }
-
-    private fun findScreens(
+    private fun findView(
         ev: Event,
         model: ModelApplication
     ) {
         when(ev){
-            is ShowView -> if(!ev.screen.isEmpty()){
-                model.screens.add(ev.screen)
-                ev.screen.layouts.filter { !it.isEmpty() }.forEach { findScreens(it,model) }
+            is ShowView -> if(!ev.view.isEmpty()){
+                model.views.add(ev.view)
+                ev.screen.layouts.filter { !it.isEmpty() }.forEach { findView(it,model) }
             }
-            is CallService -> {
-                ev.thenDo?.eventInstance?.let { findScreens(it,model) }
+            is RESTService -> {
+                ev.thenDo?.eventInstance?.let { findView(it,model) }
             }
             is AlertMessage -> {
-                ev.thenDoOK?.eventInstance?.let { findScreens(it,model) }
-                ev.thenDoKO?.eventInstance?.let { findScreens(it,model) }
+                ev.thenDoOK?.eventInstance?.let { findView(it,model) }
+                ev.thenDoKO?.eventInstance?.let { findView(it,model) }
             }
         }
     }
 
-    private fun findScreens(
+    private fun findView(
         layout: Layout,
         model: ModelApplication
     ) {
         layout.views.forEach {
             it.action?.event?.eventInstance?.let {
-                findScreens(it,model)
+                findView(it,model)
             }
-            if(it is ListView && !it.layout.isEmpty()){
-                findScreens(it.layout,model)
+            if(it is ListView && !it.itemView.isEmpty()){
+                findView(it.itemView,model)
             }
         }
     }
@@ -188,7 +181,7 @@ class AppParser(val obj : String) {
         model: ModelApplication
     ) {
         when(ev){
-            is ShowView -> if(!ev.screen.isEmpty()){
+            is ShowView -> if(!ev.view.isEmpty()){
                 model.screens.add(ev.screen)
                 model.layouts.addAll(ev.screen.layouts.filter { l -> !l.isEmpty() })
                 ev.screen = ev.screen.toReference()
@@ -205,17 +198,7 @@ class AppParser(val obj : String) {
 
     private fun checkModelConsistency(model: ModelApplication) {
         if(model.actions.any { it.isEmpty() }) throw Exception("A action model is empty")
-        if(model.layouts.any { it.isEmpty() }) throw Exception("A layout model is empty")
-        if(model.screens.any { it.isEmpty() }) throw Exception("A screen model is empty")
-
-        if (model.layouts.map { it.id }.toSet().size != model.layouts.size) {
-            throw Exception("You used a not unique layout id")
-        }
-
-        if (model.screens.map { it.id }.toSet().size != model.screens.size) {
-            throw Exception("You used a not unique screen id")
-        }
-
+        if(model.views.any { it.isEmpty() }) throw Exception("A view model is empty")
         if (model.actions.map { it.id }.toSet().size != model.actions.size) {
             throw Exception("You used a not unique layout id")
         }

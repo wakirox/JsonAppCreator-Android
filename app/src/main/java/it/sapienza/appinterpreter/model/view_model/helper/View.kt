@@ -20,4 +20,8 @@ open class View(
                 object : TypeReference<MutableMap<Any?,Any?>?>() {}
             data = jacksonObjectMapper().readValue(value.toString(), typeRef)
         }
+
+    fun isEmpty() : Boolean{
+        return id == null
+    }
 }
