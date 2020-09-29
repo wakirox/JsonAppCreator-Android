@@ -4,11 +4,10 @@ import android.content.Context
 import android.widget.LinearLayout
 
 import it.sapienza.appinterpreter.custom_view.CLinearLayout
+import it.sapienza.appinterpreter.model.Layout
+import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.ModelApplication
-import it.sapienza.appinterpreter.model.screen.Screen
-import it.sapienza.appinterpreter.model.view_model.ButtonView
-import it.sapienza.appinterpreter.model.view_model.ImageView
-import it.sapienza.appinterpreter.model.view_model.helper.ViewElement
+import it.sapienza.appinterpreter.model.view_model.helper.View
 
 object ContainerConfiguration {
 
@@ -19,17 +18,29 @@ object ContainerConfiguration {
     fun createContainer(
         context : Context,
         app : ModelApplication,
-        result: Screen,
+        result: View,
         parent : LinearLayout
     ){
-        result.layouts.map { app.layoutBy(it)!! }.forEach {
+        if(result is Layout){
+            val viewBy = app.viewBy(result) as Layout
             var l = CLinearLayout(context)
-            l.configureLayout(it,null,result.dataObj)
-            it.views.forEach{
+            l.configureLayout(viewBy,null,result.dataObj)
+            viewBy.views.forEach{
                 l.addCView(it)
             }
             parent.addView(l)
+        }else{
+            parent.addView(CLinearLayout.createAndroidView(result, LayoutOrientation.vertical, result.dataObj, context))
         }
+
+//        result.layouts.map { app.layoutBy(it)!! }.forEach {
+//            var l = CLinearLayout(context)
+//            l.configureLayout(it,null,result.dataObj)
+//            it.views.forEach{
+//                l.addCView(it)
+//            }
+//            parent.addView(l)
+//        }
     }
 //        when (result) {
 //            is ImageView -> {

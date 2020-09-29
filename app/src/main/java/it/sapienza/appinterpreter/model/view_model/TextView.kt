@@ -9,10 +9,10 @@ open class TextView (
     var textSize : Float? = null,
     var size : Size? = null,
     var textStyle: TextStyle? = TextStyle.regular,
-    var title : String?,
+    var title : String? = null,
     var label : String? = null,
-    id : String?,
-    action : Action?,
-    mapping : String?,
-    data : MutableMap<Any?, Any?>?
+    id : String? = null,
+    action : Action? = null,
+    mapping : String? = null,
+    data : MutableMap<Any?, Any?>? = null
 ) : View(id,action,mapping,data)

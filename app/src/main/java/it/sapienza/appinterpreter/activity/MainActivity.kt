@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                 view.data = it
             }
 
-            addContainer(view)
+            addView(view)
 
         } else {
 
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             }
 
 
-            addContainer(application.app()!!.viewBy(application.app()!!.mainView)!!)
+            addView(application.app()!!.viewBy(application.app()!!.mainView)!!)
 
 //            application.app()!!.initService?.let {
 //                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?
@@ -117,11 +117,11 @@ class MainActivity : AppCompatActivity() {
             menu?.add(Menu.NONE, 1, Menu.NONE, "Version ${it.version}")?.let {
                 it.setIcon(R.drawable.baseline_merge_type_black_24)
             }
-            it.previousVersion?.let {
-                menu?.add(Menu.NONE, 2, Menu.NONE, "P.Version $it")?.let {
-                    it.setIcon(R.drawable.baseline_merge_type_black_24)
-                }
-            }
+//            it.previousVersion?.let {
+//                menu?.add(Menu.NONE, 2, Menu.NONE, "P.Version $it")?.let {
+//                    it.setIcon(R.drawable.baseline_merge_type_black_24)
+//                }
+//            }
 
             it.changelog?.let {
                 menu?.add(Menu.NONE, 3, Menu.NONE, "Changelog")?.let {
@@ -302,7 +302,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addContainer(model: Screen) {
+    fun addView(model: View) {
         ContainerConfiguration.createContainer(
             this,
             application.app()!!,
@@ -315,32 +315,22 @@ class MainActivity : AppCompatActivity() {
         linearLayout.removeAllViews()
     }
 
-    fun pushScreenWithId(id: String, obj: JSONObject?) {
-        val screen = application.app()!!.screenById(id)!!
+    fun pushViewWithId(id: String, obj: JSONObject?) {
+        val view = application.app()!!.viewBy(id)!!
         obj?.let {
-            if (screen.inheritedData == true) {
-                screen.dataObj = obj
-            } else {
-                if (screen.dataObj == null) {
-                    screen.dataObj = obj
-                }
-            }
+            if (view.dataObj == null) { view.dataObj = obj }
         }
-        spawnInstance(this, screen)
+        spawnInstance(this, view)
     }
 
-    fun pushScreen(screen: Screen, obj: JSONObject?) {
-        val screen = application.app()!!.screenBy(screen)!!
+    fun pushScreen(view: View, obj: JSONObject?) {
+        val _view = application.app()!!.viewBy(view)!!
         obj?.let {
-            if (screen.inheritedData == true) {
-                screen.dataObj = obj
-            } else {
-                if (screen.dataObj == null) {
-                    screen.dataObj = obj
-                }
+            if (_view.dataObj == null) {
+                _view.dataObj = obj
             }
         }
-        spawnInstance(this, screen)
+        spawnInstance(this, _view)
     }
 
     override fun onBackPressed() {

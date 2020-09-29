@@ -23,7 +23,7 @@ class EventObject(val type : ElementType.EventType){
             }
             ElementType.EventType.call -> {
                 val convertValue =
-                    jacksonObjectMapper().convertValue<CallService>(additionalProperties)
+                    jacksonObjectMapper().convertValue<RESTService>(additionalProperties)
 
 //                convertValue.thenDo?.convert()
 
