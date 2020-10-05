@@ -7,6 +7,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.event.*
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.model.view_model.helper.View
 
 
 class AppParser(val obj : String) {
@@ -44,7 +45,7 @@ class AppParser(val obj : String) {
 
         model.actions.forEach { it.event?.eventInstance?.let { ev -> findView(ev, model) } }
 
-        if(!model.mainView.isEmpty()){findView(model.mainView,model) }
+        if(!model.mainView.isEmpty()){findGenericView(model.mainView,model) }
 
 //        model.initService?.let {
 //            it.thenDo?.eventInstance?.let { ev -> findScreens(ev, model) }
@@ -142,8 +143,7 @@ class AppParser(val obj : String) {
     ) {
         when(ev){
             is ShowView -> if(!ev.view.isEmpty()){
-                model.views.add(ev.view)
-                ev.screen.layouts.filter { !it.isEmpty() }.forEach { findView(it,model) }
+                findGenericView(ev.view, model)
             }
             is RESTService -> {
                 ev.thenDo?.eventInstance?.let { findView(it,model) }
@@ -155,40 +155,58 @@ class AppParser(val obj : String) {
         }
     }
 
-    private fun findView(
-        layout: Layout,
-        model: ModelApplication
-    ) {
-        layout.views.forEach {
-            it.action?.event?.eventInstance?.let {
-                findView(it,model)
+    private fun findGenericView(view : View, model: ModelApplication){
+        when(view){
+            is ListView -> {
+                findGenericView(view.itemView,model)
             }
-            if(it is ListView && !it.itemView.isEmpty()){
-                findView(it.itemView,model)
-            }
-        }
-    }
-
-
-    private fun analyzeEvent(
-        ev: Event,
-        model: ModelApplication
-    ) {
-        when(ev){
-            is ShowView -> if(!ev.view.isEmpty()){
-                model.screens.add(ev.screen)
-                model.layouts.addAll(ev.screen.layouts.filter { l -> !l.isEmpty() })
-                ev.screen = ev.screen.toReference()
-            }
-            is CallService -> {
-                ev.thenDo?.eventInstance?.let { analyzeEvent(it,model) }
-            }
-            is AlertMessage -> {
-                ev.thenDoOK?.eventInstance?.let { analyzeEvent(it,model) }
-                ev.thenDoKO?.eventInstance?.let { analyzeEvent(it,model) }
+            is Layout -> {
+                view.views.forEach {
+                    findGenericView(it, model)
+                }
             }
         }
+
+        view.action?.event?.eventInstance?.let {
+            findView(it, model)
+        }
+
     }
+
+//    private fun findView(
+//        layout: Layout,
+//        model: ModelApplication
+//    ) {
+//        layout.views.forEach {
+//            it.action?.event?.eventInstance?.let {
+//                findView(it,model)
+//            }
+//            if(it is ListView && !it.itemView.isEmpty()){
+//                findView(it.itemView,model)
+//            }
+//        }
+//    }
+
+
+//    private fun analyzeEvent(
+//        ev: Event,
+//        model: ModelApplication
+//    ) {
+//        when(ev){
+//            is ShowView -> if(!ev.view.isEmpty()){
+//                model.screens.add(ev.screen)
+//                model.layouts.addAll(ev.screen.layouts.filter { l -> !l.isEmpty() })
+//                ev.screen = ev.screen.toReference()
+//            }
+//            is CallService -> {
+//                ev.thenDo?.eventInstance?.let { analyzeEvent(it,model) }
+//            }
+//            is AlertMessage -> {
+//                ev.thenDoOK?.eventInstance?.let { analyzeEvent(it,model) }
+//                ev.thenDoKO?.eventInstance?.let { analyzeEvent(it,model) }
+//            }
+//        }
+//    }
 
     private fun checkModelConsistency(model: ModelApplication) {
         if(model.actions.any { it.isEmpty() }) throw Exception("A action model is empty")
