@@ -42,16 +42,10 @@ class AppParser(val obj : String) {
             throw Exception("Empty model.views[id=${it.id}]")
         }
 
-        model.screens.forEach {
-            it.layouts.forEach {
-                findView(it,model)
-            }
-        }
         model.actions.forEach { it.event?.eventInstance?.let { ev -> findView(ev, model) } }
-        model.layouts.filter { !it.isEmpty() }.forEach { findView(it,model) }
-        if(!model.main.isEmpty()){
-            model.main.layouts.filter { !it.isEmpty() }.forEach { findView(it,model) }
-        }
+
+        if(!model.mainView.isEmpty()){findView(model.mainView,model) }
+
 //        model.initService?.let {
 //            it.thenDo?.eventInstance?.let { ev -> findScreens(ev, model) }
 //        }

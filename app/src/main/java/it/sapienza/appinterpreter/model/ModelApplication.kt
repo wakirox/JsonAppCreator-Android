@@ -22,8 +22,7 @@ class ModelApplication (
     val mainView : View
         get() = _mainView.convert()
 
-    val views : List<View>
-        get() = _views.map { v->v.convert() }
+    var views : MutableList<View>  = _views.map { v->v.convert() }.toMutableList()
 
     fun viewBy(id: String) : View? = views.find { s->s.id == id }
 
