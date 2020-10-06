@@ -10,8 +10,5 @@ class ShowView(
     mapping : String?,
     data : MutableMap<Any?, Any?>?
 ) : Event(mapping, data) {
-
-
     @JsonIgnore var view = _view.convert()
-
 }

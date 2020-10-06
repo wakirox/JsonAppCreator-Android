@@ -80,23 +80,4 @@ class CListView @JvmOverloads constructor(
 
     }
 
-//    private val recyclerViewOnScrollListener: OnScrollListener =
-//        object : OnScrollListener() {
-//
-//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                super.onScrolled(recyclerView, dx, dy)
-//
-//                val llmanager = layoutManager as LinearLayoutManager
-//
-//                val visibleItemCount = llmanager.childCount
-//                val totalItemCount = llmanager.itemCount
-//                val firstVisibleItemPosition: Int = llmanager.findFirstVisibleItemPosition()
-//                if (!isLoading && !isLastPage) {
-//                    if (visibleItemCount + firstVisibleItemPosition >= totalItemCount && firstVisibleItemPosition >= 0 && totalItemCount >= PAGE_SIZE
-//                    ) {
-//                        loadMoreItems()
-//                    }
-//                }
-//            }
-//        }
 }

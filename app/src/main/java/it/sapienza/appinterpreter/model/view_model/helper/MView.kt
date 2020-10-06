@@ -22,6 +22,6 @@ open class MView(
         }
 
     open fun isEmpty() : Boolean{
-        return id == null
+        return id != null && (action == null || mapping == null || data == null)
     }
 }

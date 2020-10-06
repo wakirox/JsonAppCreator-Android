@@ -1,6 +1,5 @@
 package it.sapienza.appinterpreter.model.view_model.form_model
 
-import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElement
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElementImpl
 
 class CheckBox(

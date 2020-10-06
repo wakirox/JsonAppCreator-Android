@@ -326,9 +326,9 @@ class MainActivity : AppCompatActivity() {
     fun pushScreen(view: MView, obj: JSONObject?) {
         val _view = application.app()!!.viewBy(view)!!
         obj?.let {
-            if (_view.dataObj == null) {
+//            if (_view.dataObj == null) {
                 _view.dataObj = obj
-            }
+//            }
         }
         spawnInstance(this, _view)
     }

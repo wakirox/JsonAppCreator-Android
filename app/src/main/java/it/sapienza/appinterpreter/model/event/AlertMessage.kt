@@ -9,7 +9,6 @@ class AlertMessage(
     mapping : String?,
     data : MutableMap<Any?, Any?>?) : Event(mapping,data) {
 
-
     val thenDoOK = _thenDoOK?.eventInstance
     val thenDoKO = _thenDoKO?.eventInstance
 }

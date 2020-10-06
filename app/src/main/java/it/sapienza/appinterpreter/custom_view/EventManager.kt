@@ -22,40 +22,6 @@ object EventManager{
         })
     }
 
-//    fun manage(context: Context, initService: InitService, data: JSONObject?, callbackConsumer: Consumer<JSONObject>){
-//        val url = initService.url.matchReplace(data)
-//
-//        val activity = (context as? MainActivity)
-//
-//        activity?.showLoading()
-//
-//        val callback = object : Callback {
-//            override fun onResponse(call: Call, response: Response) {
-//                activity?.hideLoading()
-//                if(response.code != 200){
-//                    onFailure(call, IOException("Some error occured with ${call.request().url}\n${response.body?.string()}"))
-//                }else {
-//                    response.body?.let { d ->
-//                        callbackConsumer.accept(JSONObject(d.string()))
-//                    } ?: AlertUtils.showAlert(context, "No body in response")
-//                }
-//            }
-//            override fun onFailure(call: Call, e: IOException) {
-//                activity?.hideLoading()
-//                AlertUtils.showAlert(context,e.message ?: "An error occurred")
-//            }
-//        }
-//        when(initService.method){
-//            CallServiceMethod.post -> {
-//                //TODO inserire l'oggetto
-//                HttpClient.post(url, data, callback)
-//            }
-//            else -> {
-//                HttpClient.get(url, callback)
-//            }
-//        }
-//    }
-
     fun manage(context: Context, event: RESTService, data: JSONObject?, callbackConsumer : Consumer<JSONObject>) {
         val url = event.url.matchReplace(data)
 

@@ -11,10 +11,6 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 object ContainerConfiguration {
 
-//    fun createContainer(context : Context, result: Screen, parent : LinearLayout) {
-//        createContainerObj(context,result)?.let{ it.addTo(parent) }
-//    }
-
     fun createContainer(
         context : Context,
         app : ModelApplication,
@@ -32,53 +28,6 @@ object ContainerConfiguration {
         }else{
             parent.addView(CLinearLayout.createAndroidView(result, LayoutOrientation.vertical, result.dataObj, context))
         }
-
-//        result.layouts.map { app.layoutBy(it)!! }.forEach {
-//            var l = CLinearLayout(context)
-//            l.configureLayout(it,null,result.dataObj)
-//            it.views.forEach{
-//                l.addCView(it)
-//            }
-//            parent.addView(l)
-//        }
     }
-//        when (result) {
-//            is ImageView -> {
-//                val container = ImageContainer(context)
-//                container.configure(result)
-//                return container
-//            }
-//            is TextView -> {
-//                val container = TextContainer(context)
-//                container.configure(result)
-//                return container
-//            }
-//           is ButtonView -> {
-//                val container = ButtonContainer(context)
-//                container.configure(result)
-//                return container
-//            }
-//        }
-//
-//
-//
-//        return null
-//    }
-
-//    fun createContainer(context : Context, result: VirtualObject, parent : LinearLayout) {
-//        createContainerObj(context,result)?.let{ it.addTo(parent) }
-//    }
-//
-//    fun createContainerObj(context : Context, result: VirtualObject) : BaseContainer? {
-//        when (result.property("type")) {
-//            "image" -> {
-//                val container = ImageContainer(context)
-//                container.configure(result)
-//                return container
-//            }
-//        }
-//
-//        return null
-//    }
 
 }

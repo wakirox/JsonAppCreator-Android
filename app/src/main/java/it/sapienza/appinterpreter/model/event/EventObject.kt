@@ -15,18 +15,11 @@ class EventObject(val type : ElementType.EventType){
             ElementType.EventType.alert -> {
                 val convertValue =
                     jacksonObjectMapper().convertValue<AlertMessage>(additionalProperties)
-
-//                convertValue.thenDoOK?.convert()
-//                convertValue.thenDoKO?.convert()
-
                 convertValue
             }
             ElementType.EventType.call -> {
                 val convertValue =
                     jacksonObjectMapper().convertValue<RESTService>(additionalProperties)
-
-//                convertValue.thenDo?.convert()
-
                 convertValue
             }
             ElementType.EventType.screen -> {
@@ -38,31 +31,6 @@ class EventObject(val type : ElementType.EventType){
     @JsonIgnore
     private val additionalProperties: MutableMap<String, Any> =
         HashMap()
-
-//    fun convert() {
-//        eventInstance =   when(type){
-//            ElementType.EventType.alert -> {
-//                val convertValue =
-//                    jacksonObjectMapper().convertValue<AlertMessage>(additionalProperties)
-//
-//                convertValue.thenDoOK?.convert()
-//                convertValue.thenDoKO?.convert()
-//
-//                convertValue
-//            }
-//            ElementType.EventType.call -> {
-//                val convertValue =
-//                    jacksonObjectMapper().convertValue<CallService>(additionalProperties)
-//
-//                convertValue.thenDo?.convert()
-//
-//                convertValue
-//            }
-//            ElementType.EventType.screen -> {
-//                jacksonObjectMapper().convertValue<ShowScreen>(additionalProperties)
-//            }
-//        }
-//    }
 
     @JsonAnyGetter
     fun getAdditionalProperties(): Map<String, Any> {

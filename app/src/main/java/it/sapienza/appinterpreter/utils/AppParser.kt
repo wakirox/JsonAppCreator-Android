@@ -29,8 +29,6 @@ class AppParser(val obj : String) {
         * Per evitare problemi con la scrittura non è
         * possibile referenziare un elemento che si trova definito all'interno di un altro elemento*/
 
-        //measureTimeMillisPair {
-
         val mapper = jacksonObjectMapper()
 
         val model = measureTimeMillisPair { mapper.readValue<ModelApplication>(obj) }
@@ -177,40 +175,6 @@ class AppParser(val obj : String) {
 
     }
 
-//    private fun findView(
-//        layout: Layout,
-//        model: ModelApplication
-//    ) {
-//        layout.views.forEach {
-//            it.action?.event?.eventInstance?.let {
-//                findView(it,model)
-//            }
-//            if(it is ListView && !it.itemView.isEmpty()){
-//                findView(it.itemView,model)
-//            }
-//        }
-//    }
-
-
-//    private fun analyzeEvent(
-//        ev: Event,
-//        model: ModelApplication
-//    ) {
-//        when(ev){
-//            is ShowView -> if(!ev.view.isEmpty()){
-//                model.screens.add(ev.screen)
-//                model.layouts.addAll(ev.screen.layouts.filter { l -> !l.isEmpty() })
-//                ev.screen = ev.screen.toReference()
-//            }
-//            is CallService -> {
-//                ev.thenDo?.eventInstance?.let { analyzeEvent(it,model) }
-//            }
-//            is AlertMessage -> {
-//                ev.thenDoOK?.eventInstance?.let { analyzeEvent(it,model) }
-//                ev.thenDoKO?.eventInstance?.let { analyzeEvent(it,model) }
-//            }
-//        }
-//    }
 
     private fun checkModelConsistency(model: ModelApplication) {
         if(model.actions.any { it.isEmpty() }) throw Exception("A action model is empty")
@@ -219,71 +183,5 @@ class AppParser(val obj : String) {
             throw Exception("You used a not unique layout id")
         }
     }
-
-//    fun parseApplication() : ModelApplication {
-//        var application = ModelApplication()
-//
-//        application.name = obj.getString("name")
-//        application.version = obj.getString("version")
-//
-//        if(obj.has("debugMode")){
-//            application.debugMode = obj.getBoolean("debugMode")
-//        }
-//
-//        application.main = parseScreen(obj.getJSONObject("main"))
-//
-//        if(obj.has("screens")){
-//            application.screens = mutableListOf()
-//            val arr = obj.getJSONArray("screens")
-//            for (i in 0 until arr.length()){
-//                application.screens?.add(parseScreen(arr.getJSONObject(i)))
-//            }
-//        }
-//
-//        if(obj.has("layouts")){
-//            application.layouts = mutableListOf()
-//            val arr = obj.getJSONArray("layouts")
-//            for (i in 0 until arr.length()){
-//                application.layouts?.add(parseLayout(arr.getJSONObject(i)))
-//            }
-//        }
-//
-//        if(obj.has("actions")){
-//            application.actions = mutableListOf()
-//            val arr = obj.getJSONArray("actions")
-//            for (i in 0 until arr.length()){
-//                application.actions?.add(parseAction(arr.getJSONObject(i)))
-//            }
-//        }
-//
-//
-//        return application
-//    }
-//
-//    private fun parseAction(obj: JSONObject): Action {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    private fun parseLayout(obj: JSONObject): Layout {
-//        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-//    }
-//
-//    private fun parseScreen(obj : JSONObject) : Screen {
-//        var screen = Screen()
-//
-//        screen.id = obj.getString("id")
-//
-//        if(obj.has("data")) {
-//            screen.data = obj.getJSONObject("data")
-//        }
-//
-//        if(obj.has("inheritedData")){
-//            screen.inheritedData = obj.getBoolean("inheritedData")
-//        }
-//
-//        return screen
-//    }
-
-
 
 }

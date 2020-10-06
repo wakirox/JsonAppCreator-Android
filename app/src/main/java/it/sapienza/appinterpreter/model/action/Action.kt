@@ -16,10 +16,6 @@ class Action(val id : String,
 
     @JsonIgnore val event = _event?.eventInstance
 
-//    fun convert(){
-//        event!!.convert()
-//    }
-
     var dataObj: JSONObject?
         get() = data?.let { JSONObject(it) }
         set(value) {

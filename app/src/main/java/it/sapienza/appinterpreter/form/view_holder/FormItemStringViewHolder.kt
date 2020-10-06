@@ -32,7 +32,13 @@ class FormItemStringViewHolder(view: View) : FormItemViewHolder(view) {
         setDescription(item.description)
 
         (obj?.let { o -> item.mapping?.let { o.getValue(it) } }
-            ?: item.value)?.let { itemView.edittext.setText(it) }
+            ?: item.value)?.let {
+            itemView.edittext.setText(it)
+        }
+
+        item.placeholder?.let {
+            itemView.edittext.hint = it
+        }
 
     }
 }

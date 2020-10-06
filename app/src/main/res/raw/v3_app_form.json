@@ -2,7 +2,6 @@
   "name" : "Form example",
   "version" : "alpha-01",
   "mainView" : {
-    "id" : "screen01",
     "type" : "layout",
     "data" : {
       "firstname" : "Gabriel",
@@ -23,12 +22,14 @@
               {
                 "type" : "text",
                 "mapping" : "firstname",
+                "placeholder" : "firstname",
                 "mandatory" : false,
                 "title" : "Firstname"
               },
               {
                 "type" : "text",
                 "mapping" : "lastname",
+                "placeholder" : "lastname",
                 "mandatory" : false,
                 "title" : "Lastname"
               },
@@ -43,6 +44,7 @@
               {
                 "type" : "date",
                 "mapping" : "dateofbirth",
+                "placeholder" : "date of birth",
                 "mandatory" : false,
                 "title" : "Date of birth",
                 "description" : "It's important to select your date of birth because of reasons"

@@ -27,26 +27,6 @@ object HttpClient{
         return call
     }
 
-//    fun post(url: String, parameters: HashMap<String, String>, callback: Callback): Call {
-//        val builder = FormBody.Builder()
-//        val it = parameters.entries.iterator()
-//        while (it.hasNext()) {
-//            val pair = it.next() as Map.Entry<*, *>
-//            builder.add(pair.key.toString(), pair.value.toString())
-//        }
-//
-//        val formBody = builder.build()
-//        val request = Request.Builder()
-//            .url(url)
-//            .post(formBody)
-//            .build()
-//
-//
-//        val call = client.newCall(request)
-//        call.enqueue(callback)
-//        return call
-//    }
-
     fun post(url: String, parameters: JSONObject?, callback: Callback): Call {
         val body: RequestBody = parameters.let { parameters.toString().toRequestBody(JSON) }
         val request = Request.Builder()

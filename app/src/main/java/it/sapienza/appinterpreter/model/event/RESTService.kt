@@ -10,7 +10,7 @@ abstract class DataService (
     mapping : String?,
     data : MutableMap<Any?, Any?>?
 ) : Event(mapping, data){
-    public val thenDo = _thenDo?.eventInstance
+    val thenDo = _thenDo?.eventInstance
 }
 
 class RESTService (val url : String,

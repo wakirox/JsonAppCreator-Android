@@ -11,4 +11,9 @@ class ImageView(
     action : Action?,
     mapping : String?,
     data : MutableMap<Any?, Any?>?
-) : MView(id, action, mapping, data)
+) : MView(id, action, mapping, data) {
+
+    override fun isEmpty(): Boolean {
+        return super.isEmpty() && url == null
+    }
+}
