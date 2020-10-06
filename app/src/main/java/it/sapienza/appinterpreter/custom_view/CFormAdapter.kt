@@ -36,9 +36,6 @@ class CFormAdapter(
             2 -> {
                 FormItemStringViewHolder(parent.inflate(R.layout.form_item_string))
             }
-//            3 -> {
-//                FormItemNumericViewHolder(parent.inflate(R.layout.form_item_string))
-//            }
             4 -> {
                 FormItemDateViewHolder(parent.inflate(R.layout.form_item_date))
             }
@@ -64,12 +61,6 @@ class CFormAdapter(
             is FormItemStringViewHolder -> holder.bind(items[position] as TextInput,obj)
             is FormItemDateViewHolder -> holder.bind(items[position] as DateInput,obj)
             is FormItemSpinnerViewHolder -> holder.bind(items[position] as Selector,obj)
-//            is FormItemNumericViewHolder -> {
-//                when(data[position]){
-//                    is TextInput -> holder.bind(data[position] as TextInput, obj)
-//                    is TextInput -> holder.bind(data[position] as TextInput, obj)
-//                }
-//            }
         }
 
     }

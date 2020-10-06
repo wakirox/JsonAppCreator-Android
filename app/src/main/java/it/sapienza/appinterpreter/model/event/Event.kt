@@ -1,4 +1,6 @@
 package it.sapienza.appinterpreter.model.event
 
-interface Event {
-}
+open class Event(
+    var mapping : String?,
+    var data : MutableMap<Any?, Any?>?
+)

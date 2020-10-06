@@ -10,10 +10,11 @@ import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElement
+import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElementImpl
 
 class FormObject(var type: ElementType.FormElem) {
 
-    fun convert() : FormElement {
+    fun convert() : FormElementImpl {
         return when(type){
             ElementType.FormElem.text -> {
                 jacksonObjectMapper().convertValue<TextInput>(additionalProperties)

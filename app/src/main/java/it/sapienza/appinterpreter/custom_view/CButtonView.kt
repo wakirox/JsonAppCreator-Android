@@ -74,9 +74,8 @@ fun evaluateAction(
 ) {
 
     val executor = fun(action: Action) {
-        val data =
-            if (action.inheritedData == true) obj ?: action.dataObj else action.dataObj ?: obj
-        action.event?.eventInstance?.let {
+        val data = action.dataObj ?: obj
+        action.event?.let {
             EventManager.evaluateEvent(context, it, data)
         }
     }

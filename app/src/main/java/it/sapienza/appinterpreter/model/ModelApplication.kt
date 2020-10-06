@@ -1,8 +1,10 @@
 package it.sapienza.appinterpreter.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import it.sapienza.appinterpreter.model.action.Action
-import it.sapienza.appinterpreter.model.event.CallService
-import it.sapienza.appinterpreter.model.screen.Screen
+import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
 
 /**
  * ModelApplication comment
@@ -12,22 +14,21 @@ class ModelApplication (
     var author : String?,
     var debugMode : Boolean? = false,
     var version : String,
-    var previousVersion : String?,
     var changelog : String?,
-    var main : Screen,
-    var screens : MutableList<Screen> = mutableListOf(),
-    var layouts: MutableList<Layout> = mutableListOf(),
+    @JsonProperty("mainView") var _mainView : ViewObject,
+    @JsonProperty("views") var _views: MutableList<ViewObject> = mutableListOf(),
     var actions : MutableList<Action> = mutableListOf()
 ){
 
-    fun screenById(id: String) : Screen? = screens.find { s->s.id == id }
+   @JsonIgnore val mainView = _mainView.convert()
 
-    fun screenBy(screen: Screen) : Screen? {
-        return if(screen.isEmpty()) screens.find { s->s.id == screen.id } else screen
-    }
+    @JsonIgnore
+    var views : MutableList<MView>  = _views.map { v->v.convert() }.toMutableList()
 
-    fun layoutBy(layout: Layout) : Layout? {
-        return if(layout.isEmpty()) layouts.find { s->s.id == layout.id } else layout
+    fun viewBy(id: String) : MView? = views.find { s->s.id == id }
+
+    fun viewBy(view: MView) : MView? {
+        return if(view.isEmpty()) views.find { s->s.id == view.id } else view
     }
 
     fun actionBy(action : Action) : Action? {

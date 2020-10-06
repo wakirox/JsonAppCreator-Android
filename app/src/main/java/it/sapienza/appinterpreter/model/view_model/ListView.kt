@@ -1,25 +1,31 @@
 package it.sapienza.appinterpreter.model.view_model
 
-import it.sapienza.appinterpreter.model.Layout
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.action.Action
-import it.sapienza.appinterpreter.model.event.InitService
-import it.sapienza.appinterpreter.model.view_model.helper.View
-import it.sapienza.appinterpreter.model.view_model.helper.ViewElement
+import it.sapienza.appinterpreter.model.event.RESTService
+import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
 import org.json.JSONArray
 
 class ListView(
-    var data : List<MutableMap<Any?,Any?>>?,
-    var layout : Layout,
+    @JsonProperty("itemView") var _itemView : ViewObject,
+    var initData : RESTService?,
+    var orientation: LayoutOrientation = LayoutOrientation.vertical,
+    id : String?,
+    action : Action?,
     mapping : String?,
-    var init : InitService?,
-    var orientation: LayoutOrientation = LayoutOrientation.vertical
-) : ViewElement, View(mapping){
-    override var action: Action? = null
+    data : MutableMap<Any?, Any?>?
+) : MView(id, action, mapping, data){
 
-    val dataObj: JSONArray?
+    @JsonIgnore var itemView = _itemView.convert()
+
+    val dataObjArr : JSONArray?
         get() = data?.let {
-            JSONArray(it)
+             mapping?.let { key ->
+                JSONArray(key)
+            }
         }
 
 }

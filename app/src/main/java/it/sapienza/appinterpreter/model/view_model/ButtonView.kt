@@ -1,14 +1,17 @@
 package it.sapienza.appinterpreter.model.view_model
 
 import it.sapienza.appinterpreter.model.action.Action
-import it.sapienza.appinterpreter.model.view_model.helper.View
-import it.sapienza.appinterpreter.model.view_model.helper.ViewElement
+import it.sapienza.appinterpreter.model.view_model.helper.Size
+import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
 
 class ButtonView(
-    var title: String?,
-    mapping: String?
-) : View(mapping), ViewElement {
-
-    override var action: Action? = null
-
-}
+    textSize : Float? = null,
+    size : Size? = null,
+    textStyle: TextStyle? = TextStyle.regular,
+    title : String?,
+    label : String? = null,
+    id : String?,
+    action : Action?,
+    mapping : String?,
+    data : MutableMap<Any?, Any?>?
+) : TextView(textSize, size, textStyle, title, label, id, action, mapping, data)

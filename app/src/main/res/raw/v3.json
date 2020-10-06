@@ -1,0 +1,23 @@
+{
+  "name": "v3",
+  "version": "0",
+  "author": "Gabriel",
+  "mainView": {
+    "type": "list",
+    "data" : {
+      "listData" : [
+        {"key":"value1"},
+        {"key": "value2"},
+        {"key": "value3"},
+        {"key": "value4"},
+        {"key": "value5"}
+      ]
+    },
+    "orientation" : "horizontal",
+    "mapping" : "listData",
+    "itemView": {
+      "type": "text",
+      "mapping": "key"
+    }
+  }
+}

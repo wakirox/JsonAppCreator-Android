@@ -18,7 +18,7 @@ class CViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val layout : CLinearLayout = this.itemView.findViewById(lId)//(this.itemView as CLinearLayout)
         action?.let {
             (itemView.context.applicationContext as Application)
-                .app()!!.actionBy(it)?.event?.eventInstance?.let {ev ->
+                .app()!!.actionBy(it)?.event?.let {ev ->
                 layout.setOnClickListener {
                     EventManager.evaluateEvent(itemView.context,ev,jsonObject)
                 }

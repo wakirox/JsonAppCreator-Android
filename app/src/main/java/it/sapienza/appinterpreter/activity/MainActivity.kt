@@ -17,9 +17,9 @@ import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.extensions.getJsonExtra
 import it.sapienza.appinterpreter.extensions.putExtraJson
 import it.sapienza.appinterpreter.extensions.setApp
-import it.sapienza.appinterpreter.model.screen.Screen
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.ContainerConfiguration
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.utils.DomainController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
@@ -27,7 +27,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
-fun spawnInstance(context: Context, model: Screen) {
+fun spawnInstance(context: Context, model : MView) {
     val intent = Intent(context, MainActivity::class.java)
 //    intent.putExtra("model", model)
 
@@ -35,7 +35,7 @@ fun spawnInstance(context: Context, model: Screen) {
         intent.putExtraJson(it)
     }
 
-    intent.putExtra("idScreen", model.id)
+    intent.putExtra("idView", model.id)
 
     context.startActivity(intent)
 
@@ -60,19 +60,19 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        if (intent.hasExtra("idScreen")) {
+        if (intent.hasExtra("idView")) {
 
-            val screen: Screen =
-                application.app()!!.screenById(intent.getStringExtra("idScreen")!!)!!
+            val view : MView =
+                application.app()!!.viewBy(intent.getStringExtra("idView")!!)!!
 
             val typeRef: TypeReference<MutableMap<Any?, Any?>?> =
                 object : TypeReference<MutableMap<Any?, Any?>?>() {}
 
             intent.getJsonExtra(typeRef)?.let { it ->
-                screen.data = it
+                view.data = it
             }
 
-            addContainer(screen)
+            addView(view)
 
         } else {
 
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
             }
 
 
-            addContainer(application.app()!!.screenBy(application.app()!!.main)!!)
+            addView(application.app()!!.viewBy(application.app()!!.mainView)!!)
 
 //            application.app()!!.initService?.let {
 //                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?
@@ -117,11 +117,11 @@ class MainActivity : AppCompatActivity() {
             menu?.add(Menu.NONE, 1, Menu.NONE, "Version ${it.version}")?.let {
                 it.setIcon(R.drawable.baseline_merge_type_black_24)
             }
-            it.previousVersion?.let {
-                menu?.add(Menu.NONE, 2, Menu.NONE, "P.Version $it")?.let {
-                    it.setIcon(R.drawable.baseline_merge_type_black_24)
-                }
-            }
+//            it.previousVersion?.let {
+//                menu?.add(Menu.NONE, 2, Menu.NONE, "P.Version $it")?.let {
+//                    it.setIcon(R.drawable.baseline_merge_type_black_24)
+//                }
+//            }
 
             it.changelog?.let {
                 menu?.add(Menu.NONE, 3, Menu.NONE, "Changelog")?.let {
@@ -302,7 +302,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addContainer(model: Screen) {
+    fun addView(model: MView) {
         ContainerConfiguration.createContainer(
             this,
             application.app()!!,
@@ -315,32 +315,22 @@ class MainActivity : AppCompatActivity() {
         linearLayout.removeAllViews()
     }
 
-    fun pushScreenWithId(id: String, obj: JSONObject?) {
-        val screen = application.app()!!.screenById(id)!!
+    fun pushViewWithId(id: String, obj: JSONObject?) {
+        val view = application.app()!!.viewBy(id)!!
         obj?.let {
-            if (screen.inheritedData == true) {
-                screen.dataObj = obj
-            } else {
-                if (screen.dataObj == null) {
-                    screen.dataObj = obj
-                }
-            }
+            if (view.dataObj == null) { view.dataObj = obj }
         }
-        spawnInstance(this, screen)
+        spawnInstance(this, view)
     }
 
-    fun pushScreen(screen: Screen, obj: JSONObject?) {
-        val screen = application.app()!!.screenBy(screen)!!
+    fun pushScreen(view: MView, obj: JSONObject?) {
+        val _view = application.app()!!.viewBy(view)!!
         obj?.let {
-            if (screen.inheritedData == true) {
-                screen.dataObj = obj
-            } else {
-                if (screen.dataObj == null) {
-                    screen.dataObj = obj
-                }
-            }
+//            if (_view.dataObj == null) {
+                _view.dataObj = obj
+//            }
         }
-        spawnInstance(this, screen)
+        spawnInstance(this, _view)
     }
 
     override fun onBackPressed() {
