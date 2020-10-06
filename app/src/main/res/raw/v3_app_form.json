@@ -44,7 +44,6 @@
               {
                 "type" : "date",
                 "mapping" : "dateofbirth",
-                "placeholder" : "date of birth",
                 "mandatory" : false,
                 "title" : "Date of birth",
                 "description" : "It's important to select your date of birth because of reasons"

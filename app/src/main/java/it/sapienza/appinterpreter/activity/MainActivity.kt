@@ -181,17 +181,17 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, JsonActivity::class.java))
         } else if (item.itemId == 6) {
             //simple
-            DomainController.setJsonFile(R.raw.app_sample, this)
+            DomainController.setJsonFile(R.raw.v3_app_sample, this)
             spawnNew(this)
 
         } else if (item.itemId == 7) {
             //the movie db
-            DomainController.setJsonFile(R.raw.themoviedb, this)
+            DomainController.setJsonFile(R.raw.v3_the_movie_db, this)
             spawnNew(this)
 
         }else if (item.itemId == 8) {
             //the movie db
-            DomainController.setJsonFile(R.raw.app_form, this)
+            DomainController.setJsonFile(R.raw.v3_app_form, this)
             spawnNew(this)
 
         }
