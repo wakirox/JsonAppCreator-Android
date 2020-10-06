@@ -1,7 +1,5 @@
 package it.sapienza.appinterpreter.model.view_model.form_model.helpers
 
-import it.sapienza.appinterpreter.model.view_model.helper.View
-
 abstract class FormElement(
     val title: String,
     val mapping: String

@@ -19,7 +19,7 @@ import it.sapienza.appinterpreter.extensions.putExtraJson
 import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.ContainerConfiguration
-import it.sapienza.appinterpreter.model.view_model.helper.View
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.utils.DomainController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
@@ -27,7 +27,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 
-fun spawnInstance(context: Context, model : View) {
+fun spawnInstance(context: Context, model : MView) {
     val intent = Intent(context, MainActivity::class.java)
 //    intent.putExtra("model", model)
 
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         if (intent.hasExtra("idView")) {
 
-            val view : View =
+            val view : MView =
                 application.app()!!.viewBy(intent.getStringExtra("idView")!!)!!
 
             val typeRef: TypeReference<MutableMap<Any?, Any?>?> =
@@ -302,7 +302,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addView(model: View) {
+    fun addView(model: MView) {
         ContainerConfiguration.createContainer(
             this,
             application.app()!!,
@@ -323,7 +323,7 @@ class MainActivity : AppCompatActivity() {
         spawnInstance(this, view)
     }
 
-    fun pushScreen(view: View, obj: JSONObject?) {
+    fun pushScreen(view: MView, obj: JSONObject?) {
         val _view = application.app()!!.viewBy(view)!!
         obj?.let {
             if (_view.dataObj == null) {

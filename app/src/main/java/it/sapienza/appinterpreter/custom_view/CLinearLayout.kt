@@ -34,12 +34,12 @@ class CLinearLayout @JvmOverloads constructor(
             if (layout.orientation == LayoutOrientation.vertical) VERTICAL else HORIZONTAL
     }
 
-    fun addCView(view: View) {
+    fun addCView(view: MView) {
         addView(createAndroidView(view, layout?.orientation, obj, context))
     }
 
     companion object {
-         fun createAndroidView(view: View, orientation : LayoutOrientation?, obj : JSONObject?, context: Context): android.view.View? {
+         fun createAndroidView(view: MView, orientation : LayoutOrientation?, obj : JSONObject?, context: Context): android.view.View? {
             return when (view) {
                 is TextView -> CTextView(context).configure(
                     view,

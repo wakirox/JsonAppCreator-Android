@@ -52,9 +52,9 @@ class CListView @JvmOverloads constructor(
     }
 
     fun fill(obj : JSONObject?){
-        this.view?.init?.let {
+        this.view?.initData?.let {
             EventManager.manage(context,it,obj, Consumer { obj ->
-                (view!!.mapping?.let { obj.getArray(it) } ?: view!!.dataObj)?.let {
+                (view!!.mapping?.let { obj.getArray(it) } ?: view!!.dataObjArr)?.let {
                     for(i in 0 until it.length()){
                         this.obj.add(it.getJSONObject(i))
                     }
@@ -62,17 +62,17 @@ class CListView @JvmOverloads constructor(
 
 //                        this.PAGE_SIZE = this.obj.size - 1
 
-                        adapter = CAdapter(this.obj, view!!.action, view!!.orientation,(context.applicationContext as it.sapienza.appinterpreter.AppRatioApplication).app!!.layoutBy(view!!.layout)!!)
+                        adapter = CAdapter(this.obj, view!!.action, view!!.orientation,(context.applicationContext as it.sapienza.appinterpreter.AppRatioApplication).app!!.viewBy(view!!.itemView)!!)
                     }
                 }
             })
         } ?: kotlin.run {
-            (view!!.mapping?.let { obj?.getArray(it) } ?: view!!.dataObj)?.let {
+            (view!!.mapping?.let { obj?.getArray(it) } ?: view!!.dataObjArr)?.let {
                 for(i in 0 until it.length()){
                     this.obj.add(it.getJSONObject(i))
                 }
             }
-            adapter = CAdapter(this.obj, view!!.action, view!!.orientation,(context.applicationContext as it.sapienza.appinterpreter.AppRatioApplication).app!!.layoutBy(view!!.layout)!!)
+            adapter = CAdapter(this.obj, view!!.action, view!!.orientation,(context.applicationContext as it.sapienza.appinterpreter.AppRatioApplication).app!!.viewBy(view!!.itemView)!!)
         }
     }
 

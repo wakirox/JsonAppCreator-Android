@@ -5,7 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import it.sapienza.appinterpreter.model.action.Action
 import org.json.JSONObject
 
-open class View(
+open class MView(
     var id : String? = null,
     var action : Action? = null,
     var mapping : String? = null,
@@ -21,7 +21,7 @@ open class View(
             data = jacksonObjectMapper().readValue(value.toString(), typeRef)
         }
 
-    fun isEmpty() : Boolean{
+    open fun isEmpty() : Boolean{
         return id == null
     }
 }

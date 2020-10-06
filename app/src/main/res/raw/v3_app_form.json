@@ -1,0 +1,61 @@
+{
+  "name" : "Form example",
+  "version" : "alpha-01",
+  "mainView" : {
+    "id" : "screen01",
+    "type" : "layout",
+    "data" : {
+      "firstname" : "Gabriel",
+      "lastname" : "Magadan",
+      "gender" : "Male",
+      "dateofbirth" : "24/05/1991"
+    },
+    "views" : [
+          {
+            "type" : "text",
+            "textStyle" : "bold",
+            "textSize" : 20,
+            "title" : "Hello this is a form!!"
+          },
+          {
+            "type" : "form",
+            "formElements" : [
+              {
+                "type" : "text",
+                "mapping" : "firstname",
+                "mandatory" : false,
+                "title" : "Firstname"
+              },
+              {
+                "type" : "text",
+                "mapping" : "lastname",
+                "mandatory" : false,
+                "title" : "Lastname"
+              },
+              {
+                "type" : "selector",
+                "mapping" : "gender",
+                "mandatory" : false,
+                "title" : "Gender",
+                "options" : ["Male","Female","Any"],
+                "description" : "Tell us your gender"
+              },
+              {
+                "type" : "date",
+                "mapping" : "dateofbirth",
+                "mandatory" : false,
+                "title" : "Date of birth",
+                "description" : "It's important to select your date of birth because of reasons"
+              },
+              {
+                "type" : "checkbox",
+                "mapping" : "tos",
+                "mandatory" : false,
+                "title" : "Terms of service",
+                "description" : "I, hereby accept the terms of service"
+              }
+            ]
+          }
+        ]
+  }
+}

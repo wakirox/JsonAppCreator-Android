@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.custom_view
 
+
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -9,6 +10,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.view_model.TextView
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 import org.json.JSONObject
 import java.lang.Integer.max
 
@@ -16,7 +18,7 @@ class CAdapter(
     val data: MutableList<JSONObject>,
     val action: Action?,
     val orientation: LayoutOrientation,
-    val layout: Layout
+    val view : MView
 ) : RecyclerView.Adapter<CViewHolder>() {
 
     val lId = View.generateViewId()
@@ -26,7 +28,11 @@ class CAdapter(
 
         //l.setBackgroundColor(Color.parseColor("#f6f6f6"))
 
-        l.configureLayout(layout, orientation)
+        if(view is Layout) {
+            l.configureLayout(view, orientation)
+        }else{
+            l.configureLayout(Layout(),orientation)
+        }
 
         val param = l.layoutParams as LinearLayout.LayoutParams
         param.setMargins(10, 10, 10, 10)
@@ -37,9 +43,14 @@ class CAdapter(
                 l.addCView(TextView(title = "No data available"))
             }
             1 -> {
-                layout.views.forEach {
-                    l.addCView(it)
+                if(view is Layout){
+                    view.views.forEach {
+                        l.addCView(it)
+                    }
+                }else{
+                    l.addCView(view)
                 }
+
             }
         }
 

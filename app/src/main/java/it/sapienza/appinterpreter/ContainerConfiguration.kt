@@ -7,7 +7,7 @@ import it.sapienza.appinterpreter.custom_view.CLinearLayout
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.ModelApplication
-import it.sapienza.appinterpreter.model.view_model.helper.View
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 object ContainerConfiguration {
 
@@ -18,7 +18,7 @@ object ContainerConfiguration {
     fun createContainer(
         context : Context,
         app : ModelApplication,
-        result: View,
+        result: MView,
         parent : LinearLayout
     ){
         if(result is Layout){

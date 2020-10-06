@@ -3,7 +3,7 @@ package it.sapienza.appinterpreter.model.view_model
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.view_model.helper.Size
 import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
-import it.sapienza.appinterpreter.model.view_model.helper.View
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 open class TextView (
     var textSize : Float? = null,
@@ -15,4 +15,4 @@ open class TextView (
     action : Action? = null,
     mapping : String? = null,
     data : MutableMap<Any?, Any?>? = null
-) : View(id,action,mapping,data)
+) : MView(id,action,mapping,data)

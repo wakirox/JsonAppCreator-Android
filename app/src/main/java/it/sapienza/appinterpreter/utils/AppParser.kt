@@ -7,7 +7,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.event.*
 import it.sapienza.appinterpreter.model.view_model.ListView
-import it.sapienza.appinterpreter.model.view_model.helper.View
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 
 class AppParser(val obj : String) {
@@ -155,7 +155,7 @@ class AppParser(val obj : String) {
         }
     }
 
-    private fun findGenericView(view : View, model: ModelApplication){
+    private fun findGenericView(view : MView, model: ModelApplication){
         when(view){
             is ListView -> {
                 findGenericView(view.itemView,model)

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.view_model.*
 
 import java.util.HashMap
@@ -12,8 +13,11 @@ import java.util.HashMap
 
 class ViewObject(var type: ElementType.ViewElem) {
 
-    fun convert() : View {
+    fun convert() : MView {
         return when(type){
+            ElementType.ViewElem.layout -> {
+                jacksonObjectMapper().convertValue<Layout>(additionalProperties)
+            }
             ElementType.ViewElem.text -> {
                 jacksonObjectMapper().convertValue<TextView>(additionalProperties)
             }

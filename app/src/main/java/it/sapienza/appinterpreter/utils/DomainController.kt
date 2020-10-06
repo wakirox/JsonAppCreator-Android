@@ -11,9 +11,9 @@ object DomainController {
 
     fun jsonFile(context : Activity) : String {
         val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
-        return sharedPref.getString("main_file",
+        return sharedPref.getString("main_file_pref_sav",
             read(
-                R.raw.themoviedb,
+                R.raw.v3_the_movie_db,
                 context
             )
         )!!
@@ -22,7 +22,7 @@ object DomainController {
     fun setJsonFile(value : String, context: Activity){
         val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
         val edit = sharedPref.edit()
-        edit.putString("main_file", value)
+        edit.putString("main_file_pref_sav", value)
         edit.apply()
     }
 
