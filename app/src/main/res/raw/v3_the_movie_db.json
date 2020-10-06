@@ -23,11 +23,11 @@
           "id": "action01",
           "type": "click",
           "event": {
-            "type": "call",
+            "type": "rest",
             "url": "https://api.themoviedb.org/3/search/movie?api_key=0bfaf3c0640773566cb7692affcae335&query=${title}",
             "method": "get",
             "thenDo": {
-              "type": "screen",
+              "type": "show",
               "view": {
                   "id": "movie_list"
               }
@@ -222,10 +222,10 @@
       "id": "list_click",
       "type": "click",
       "event": {
-        "type": "call",
+        "type": "rest",
         "url": "https://api.themoviedb.org/3/movie/${id}?api_key=0bfaf3c0640773566cb7692affcae335&append_to_response=images,credits",
         "thenDo": {
-          "type": "screen",
+          "type": "show",
           "view": {
             "id": "detail_screen",
             "type": "layout",
@@ -272,10 +272,10 @@
                       "id": "show_reviews",
                       "type": "click",
                       "event": {
-                        "type": "call",
+                        "type": "rest",
                         "url": "https://api.themoviedb.org/3/movie/${id}/reviews?api_key=0bfaf3c0640773566cb7692affcae335",
                         "thenDo": {
-                          "type": "screen",
+                          "type": "show",
                           "view": {
                             "id": "layout_reviews",
                             "type": "layout",
@@ -302,10 +302,10 @@
                       "id": "show_similar_movies",
                       "type": "click",
                       "event": {
-                        "type": "call",
+                        "type": "rest",
                         "url": "https://api.themoviedb.org/3/movie/${id}/similar?api_key=0bfaf3c0640773566cb7692affcae335",
                         "thenDo": {
-                          "type": "screen",
+                          "type": "show",
                           "view": {
                             "id": "movie_list"
                           }
@@ -377,10 +377,10 @@
       "id": "show_featured_movies",
       "type": "click",
       "event": {
-        "type": "call",
+        "type": "rest",
         "url": "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=0bfaf3c0640773566cb7692affcae335",
         "thenDo": {
-          "type": "screen",
+          "type": "show",
           "view": {
             "id": "screen0"
           }
@@ -391,10 +391,10 @@
       "id": "show_actor_detail",
       "type": "click",
       "event": {
-        "type": "call",
+        "type": "rest",
         "url": "https://api.themoviedb.org/3/person/${id}?append_to_response=images,movie_credits&api_key=0bfaf3c0640773566cb7692affcae335",
         "thenDo": {
-          "type": "screen",
+          "type": "show",
           "view": {
             "id": "actor_detail_screen",
             "type" : "layout",

@@ -17,12 +17,12 @@ class EventObject(val type : ElementType.EventType){
                     jacksonObjectMapper().convertValue<AlertMessage>(additionalProperties)
                 convertValue
             }
-            ElementType.EventType.call -> {
+            ElementType.EventType.rest -> {
                 val convertValue =
                     jacksonObjectMapper().convertValue<RESTService>(additionalProperties)
                 convertValue
             }
-            ElementType.EventType.screen -> {
+            ElementType.EventType.show -> {
                 jacksonObjectMapper().convertValue<ShowView>(additionalProperties)
             }
         }

@@ -11,7 +11,7 @@ interface ElementType {
     }
 
     enum class EventType {
-        call, alert, screen
+        rest, alert, show
     }
 
 }
