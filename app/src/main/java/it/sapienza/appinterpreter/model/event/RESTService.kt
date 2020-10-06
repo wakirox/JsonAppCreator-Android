@@ -1,16 +1,20 @@
 package it.sapienza.appinterpreter.model.event
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /**
  * Serve per riempire le liste con dati paginati
  */
 abstract class DataService (
-    var thenDo : EventObject?,
+    @JsonProperty("thenDo") var _thenDo : EventObject?,
     mapping : String?,
     data : MutableMap<Any?, Any?>?
-) : Event(mapping, data)
+) : Event(mapping, data){
+    public val thenDo = _thenDo?.eventInstance
+}
 
 class RESTService (val url : String,
                    val method : CallServiceMethod? = CallServiceMethod.get,
-                   thenDo : EventObject?,
+                   @JsonProperty("thenDo") _thenDo : EventObject?,
                    mapping : String?,
-                   data : MutableMap<Any?, Any?>?) : DataService(thenDo, mapping, data)
+                   data : MutableMap<Any?, Any?>?) : DataService(_thenDo, mapping, data)

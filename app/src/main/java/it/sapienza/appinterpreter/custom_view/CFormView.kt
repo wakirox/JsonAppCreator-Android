@@ -41,7 +41,7 @@ class CFormView @JvmOverloads constructor(
 
     fun fill(obj : JSONObject?){
         adapter = CFormAdapter(view!!, obj,  Consumer {
-            EventManager.evaluateEvent(context,view!!.action!!.event!!.eventInstance!!,it)
+            EventManager.evaluateEvent(context,view!!.action!!.event!!,it)
         },context)
     }
 }

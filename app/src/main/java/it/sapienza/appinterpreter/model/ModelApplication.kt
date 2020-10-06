@@ -20,8 +20,7 @@ class ModelApplication (
     var actions : MutableList<Action> = mutableListOf()
 ){
 
-    val mainView : MView
-        get() = _mainView.convert()
+   @JsonIgnore val mainView = _mainView.convert()
 
     @JsonIgnore
     var views : MutableList<MView>  = _views.map { v->v.convert() }.toMutableList()
@@ -29,11 +28,11 @@ class ModelApplication (
     fun viewBy(id: String) : MView? = views.find { s->s.id == id }
 
     fun viewBy(view: MView) : MView? {
-        return if(!views.isEmpty()) views.find { s->s.id == view.id } else view
+        return if(view.isEmpty()) views.find { s->s.id == view.id } else view
     }
 
     fun actionBy(action : Action) : Action? {
-        return if(!action.isEmpty()) actions.find { s->s.id == action.id } else action
+        return if(action.isEmpty()) actions.find { s->s.id == action.id } else action
 
     }
 

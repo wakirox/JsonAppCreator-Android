@@ -31,7 +31,9 @@ class CAdapter(
         if(view is Layout) {
             l.configureLayout(view, orientation)
         }else{
-            l.configureLayout(Layout(),orientation)
+            val layout = Layout()
+            layout.views = mutableListOf(view)
+            l.configureLayout(layout,orientation)
         }
 
         val param = l.layoutParams as LinearLayout.LayoutParams

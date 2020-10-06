@@ -17,7 +17,7 @@ object EventManager{
     fun manage(context: Context, event: RESTService, data: JSONObject?) {
         manage(context,event,data, Consumer { response ->
             event.thenDo?.let {
-                evaluateEvent(context,it.eventInstance!!,response)
+                evaluateEvent(context,it,response)
             }
         })
     }
@@ -98,8 +98,8 @@ object EventManager{
         when (it) {
             is AlertMessage -> {
                 AlertUtils.showAlert(context, it, data,
-                    it.thenDoOK?.eventInstance?.let { ev -> Runnable { evaluateEvent(context,ev,data) } },
-                    it.thenDoKO?.eventInstance?.let { ev -> Runnable { evaluateEvent(context,ev,data) } }
+                    it.thenDoOK?.let { ev -> Runnable { evaluateEvent(context,ev,data) } },
+                    it.thenDoKO?.let { ev -> Runnable { evaluateEvent(context,ev,data) } }
                 )
             }
             is ShowView -> {

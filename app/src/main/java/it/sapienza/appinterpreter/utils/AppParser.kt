@@ -43,7 +43,7 @@ class AppParser(val obj : String) {
             throw Exception("Empty model.views[id=${it.id}]")
         }
 
-        model.actions.forEach { it.event?.eventInstance?.let { ev -> findView(ev, model) } }
+        model.actions.forEach { it.event?.let { ev -> findView(ev, model) } }
 
         if(!model.mainView.isEmpty()){findGenericView(model.mainView,model) }
 
@@ -146,11 +146,11 @@ class AppParser(val obj : String) {
                 findGenericView(ev.view, model)
             }
             is RESTService -> {
-                ev.thenDo?.eventInstance?.let { findView(it,model) }
+                ev.thenDo?.let { findView(it,model) }
             }
             is AlertMessage -> {
-                ev.thenDoOK?.eventInstance?.let { findView(it,model) }
-                ev.thenDoKO?.eventInstance?.let { findView(it,model) }
+                ev.thenDoOK?.let { findView(it,model) }
+                ev.thenDoKO?.let { findView(it,model) }
             }
         }
     }
@@ -167,8 +167,12 @@ class AppParser(val obj : String) {
             }
         }
 
-        view.action?.event?.eventInstance?.let {
+        view.action?.event?.let {
             findView(it, model)
+        }
+
+        if(!view.isEmpty()){
+            model.views.add(view)
         }
 
     }

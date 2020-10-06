@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.view_model.helper.MView
@@ -17,8 +18,9 @@ class Layout(
 
     override fun isEmpty() = _views.isEmpty()
 
-    val views : List<MView>
-        get() = _views.map { v->v.convert() }
+
+   @JsonIgnore
+   var views : MutableList<MView> = _views.map { v->v.convert() }.toMutableList()
 
 //    fun convert(){
 //        convertedViews.clear()

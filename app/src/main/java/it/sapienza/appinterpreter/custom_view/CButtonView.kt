@@ -75,7 +75,7 @@ fun evaluateAction(
 
     val executor = fun(action: Action) {
         val data = action.dataObj ?: obj
-        action.event?.eventInstance?.let {
+        action.event?.let {
             EventManager.evaluateEvent(context, it, data)
         }
     }

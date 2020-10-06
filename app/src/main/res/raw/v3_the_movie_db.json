@@ -46,7 +46,7 @@
       {
         "type": "list",
         "orientation": "horizontal",
-        "init": {
+        "initData": {
           "url": "https://api.themoviedb.org/3/discover/movie?page=1&sort_by=popularity.desc&api_key=0bfaf3c0640773566cb7692affcae335"
         },
         "mapping": "results",
@@ -87,7 +87,7 @@
       {
         "type": "list",
         "orientation": "horizontal",
-        "init": {
+        "initData": {
           "url": "https://api.themoviedb.org/3/person/popular?api_key=0bfaf3c0640773566cb7692affcae335"
         },
         "mapping": "results",
@@ -146,13 +146,13 @@
           ]
         },
         {
-          "type": "layout",
           "id": "movie_list"
         }
       ]
     },
     {
       "id": "movie_list",
+      "type" : "layout",
       "views": [
         {
           "type": "list",
@@ -317,6 +317,7 @@
               },
               {
                 "id": "ldetail",
+                "type" : "layout",
                 "views": [
                   {
                     "type": "text",
