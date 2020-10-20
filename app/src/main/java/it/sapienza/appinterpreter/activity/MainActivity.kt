@@ -131,18 +131,18 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        val menuItem = menu?.addSubMenu("JSON model")?.let {
+        val menuItem = menu?.addSubMenu("JSON configuration")?.let {
             it.setIcon(R.drawable.baseline_account_tree_black_24)
             it
         }
-        menuItem?.add(Menu.NONE, 4, Menu.NONE, "Load model from device")?.let {
+        menuItem?.add(Menu.NONE, 4, Menu.NONE, "Load configuration from device")?.let {
             it.setIcon(R.drawable.baseline_insert_drive_file_black_24)
         }
-        menuItem?.add(Menu.NONE, 5, Menu.NONE, "View current model")?.let {
+        menuItem?.add(Menu.NONE, 5, Menu.NONE, "View current configuration")?.let {
             it.setIcon(R.drawable.baseline_view_list_black_24)
         }
 
-        val addSubMenu = menuItem?.addSubMenu("Sample models")
+        val addSubMenu = menuItem?.addSubMenu("Sample configurations")
         addSubMenu?.add(Menu.NONE, 6, Menu.NONE, "Plain app")
         addSubMenu?.add(Menu.NONE, 8, Menu.NONE, "Form example")
         addSubMenu?.add(Menu.NONE, 7, Menu.NONE, "THE MOVIE DB")

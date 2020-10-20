@@ -36,7 +36,7 @@ class CLinearLayout @JvmOverloads constructor(
     }
 
     fun addCView(view: MView) {
-        addView(createAndroidView(view, layout?.orientation, obj, context))
+        addView(createAndroidView( (context.applicationContext as AppRatioApplication).app!!.viewBy(view) ?: view, layout?.orientation, obj, context))
     }
 
     companion object {
