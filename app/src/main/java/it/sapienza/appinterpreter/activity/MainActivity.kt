@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.fasterxml.jackson.core.type.TypeReference
+import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.extensions.app
@@ -20,6 +21,7 @@ import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.ContainerConfiguration
 import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.model_editor.ModelEditorActivity
 import it.sapienza.appinterpreter.utils.DomainController
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
@@ -94,6 +96,10 @@ class MainActivity : AppCompatActivity() {
 
             addView(application.app()!!.viewBy(application.app()!!.mainView)!!)
 
+            //
+            if(BuildConfig.DEBUG) {
+                startActivity(Intent(this, ModelEditorActivity::class.java))
+            }
 //            application.app()!!.initService?.let {
 //                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?
 //            }
@@ -141,6 +147,13 @@ class MainActivity : AppCompatActivity() {
         menuItem?.add(Menu.NONE, 5, Menu.NONE, "View current configuration")?.let {
             it.setIcon(R.drawable.baseline_view_list_black_24)
         }
+
+
+//        menuItem?.add(Menu.NONE, 9, Menu.NONE, "Edit current configuration")?.let {
+//            it.setIcon(R.drawable.baseline_view_list_black_24)
+//        }
+
+
 
         val addSubMenu = menuItem?.addSubMenu("Sample configurations")
         addSubMenu?.add(Menu.NONE, 6, Menu.NONE, "Plain app")
@@ -194,6 +207,8 @@ class MainActivity : AppCompatActivity() {
             DomainController.setJsonFile(R.raw.v3_app_form, this)
             spawnNew(this)
 
+        }else if(item.itemId == 9){
+            startActivity(Intent(this,ModelEditorActivity::class.java))
         }
         return super.onOptionsItemSelected(item)
     }
@@ -311,17 +326,17 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    fun clear() {
-        linearLayout.removeAllViews()
-    }
-
-    fun pushViewWithId(id: String, obj: JSONObject?) {
-        val view = application.app()!!.viewBy(id)!!
-        obj?.let {
-            if (view.dataObj == null) { view.dataObj = obj }
-        }
-        spawnInstance(this, view)
-    }
+//    fun clear() {
+//        linearLayout.removeAllViews()
+//    }
+//
+//    fun pushViewWithId(id: String, obj: JSONObject?) {
+//        val view = application.app()!!.viewBy(id)!!
+//        obj?.let {
+//            if (view.dataObj == null) { view.dataObj = obj }
+//        }
+//        spawnInstance(this, view)
+//    }
 
     fun pushScreen(view: MView, obj: JSONObject?) {
         val _view = application.app()!!.viewBy(view)!!

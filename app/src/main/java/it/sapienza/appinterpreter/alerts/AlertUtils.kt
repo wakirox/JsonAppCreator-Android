@@ -22,11 +22,11 @@ object AlertUtils {
             // if the dialog is cancelable
             .setCancelable(false)
             // positive button text and action
-            .setPositiveButton("OK") { dialog, id -> ok?.run()
+            .setPositiveButton("Confirm") { dialog, id -> ok?.run()
             }
 
         ko?.let {
-            dialogBuilder = dialogBuilder.setNegativeButton("NO"){
+            dialogBuilder = dialogBuilder.setNegativeButton("Cancel"){
                     dialog, id -> it.run()
             }
         }

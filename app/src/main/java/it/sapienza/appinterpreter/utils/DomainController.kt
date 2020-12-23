@@ -2,6 +2,7 @@ package it.sapienza.appinterpreter.utils
 
 import android.app.Activity
 import android.content.Context
+import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
 
 object DomainController {
@@ -10,6 +11,7 @@ object DomainController {
     }
 
     fun jsonFile(context : Activity) : String {
+
         val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
         return sharedPref.getString("main_file_sav",
             read(

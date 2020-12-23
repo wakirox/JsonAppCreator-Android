@@ -1,0 +1,37 @@
+{
+  "name" : "My new application",
+  "author" : "Gabriel Magadan",
+  "debugMode" : false,
+  "version" : "1.0",
+  "changelog": "New release",
+  "mainView" :{
+    "type": "button",
+    "id": "idButton",
+    "title": "Press me!",
+    "textStyle" : "regular",
+    "textSize" : 16,
+    "action" : {
+      "id" : "action",
+      "type" : "click",
+      "event" : {
+        "type": "alert",
+        "value" : "This is a message",
+        "mapping" : "message",
+        "thenDoOK" : {
+          "type": "alert",
+          "value" : "This is a message",
+          "mapping" : "message"
+        },
+        "thenDoKO" : {
+          "type": "alert",
+          "value" : "This is a message",
+          "mapping" : "message"
+        }
+      }
+    },
+    "size": {
+      "width": 50,
+      "height" : 100
+    }
+  }
+}

@@ -88,7 +88,7 @@ class CImageView @JvmOverloads constructor(
 
             Glide.with(this)
                 .load(url)
-                //.centerCrop()
+                .centerCrop()
                 .into(this)
 
             this.view!!.action?.let {
@@ -105,7 +105,7 @@ class CImageView @JvmOverloads constructor(
 
             Glide.with(this)
                 .load(url)
-                //.centerCrop()
+                .centerCrop()
                 .into(this)
 
             this.view!!.action?.let {

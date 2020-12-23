@@ -27,9 +27,11 @@
             </intent-filter>
         </activity>
         <activity
+                android:theme="@style/AppTheme"
                 android:name="it.sapienza.appinterpreter.activity.PhotoActivity"/>
         <activity android:name="it.sapienza.appinterpreter.activity.PlainTextActivity"/>
         <activity android:name="it.sapienza.appinterpreter.activity.JsonActivity"/>
+        <activity android:name="it.sapienza.appinterpreter.model_editor.ModelEditorActivity"/>
 
         <activity android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity" >
             <intent-filter>

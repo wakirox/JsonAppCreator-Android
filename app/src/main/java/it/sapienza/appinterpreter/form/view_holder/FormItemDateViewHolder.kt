@@ -8,6 +8,7 @@ import it.sapienza.appinterpreter.form.extensions.stringValue
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
 import kotlinx.android.synthetic.main.form_item_date.view.*
 import org.json.JSONObject
+import java.text.SimpleDateFormat
 import java.util.*
 
 class FormItemDateViewHolder(view : View) : FormItemViewHolder(view){
@@ -21,9 +22,9 @@ class FormItemDateViewHolder(view : View) : FormItemViewHolder(view){
         val cal = Calendar.getInstance()
 
         (obj?.let { o -> item.mapping?.let { o.getValue(it) } }
-            ?: item.value?.toString())?.let {
-            itemView.tv_date.text = it
-            it.toDate()?.let { cal.time = it }
+            ?: item.value)?.let {
+            itemView.tv_date.text = (it as? Date)?.let { SimpleDateFormat("dd/MM/yyyy",Locale.ITALIAN).format(it) }
+            (it as? Date)?.let {value -> cal.time = value }
         }
 
         val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->

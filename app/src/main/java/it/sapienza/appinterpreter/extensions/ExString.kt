@@ -28,5 +28,5 @@ fun String.matchReplace(obj : JSONObject?) : String{
 }
 
 fun String.toDate() : Date? {
-    return SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH).parse(this)
+    return SimpleDateFormat("dd/MM/yyyy", Locale.ITALIAN).parse(this)
 }
