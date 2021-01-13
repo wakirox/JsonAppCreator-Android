@@ -9,8 +9,11 @@ open class MView(
     var id : String? = null,
     var action : Action? = null,
     var mapping : String? = null,
-    var data : MutableMap<Any?, Any?>? = null
+    var data : MutableMap<Any?, Any?>? = null,
+    val hideIfAttr : String? = null,
+    val viewType : String? = "default"
 ){
+
     var dataObj: JSONObject?
         get() = data?.let {
             JSONObject(it)
@@ -21,7 +24,25 @@ open class MView(
             data = jacksonObjectMapper().readValue(value.toString(), typeRef)
         }
 
+    fun isVisible(obj : JSONObject?) : Boolean {
+        hideIfAttr?.let {
+            if (it.contains('=')) {
+                val split = it.split("=")
+                return obj?.isNull(split[0]) == true || obj?.getString(split[0]) != split[1]
+            }
+
+            return obj?.isNull(it) != true
+        }
+        return true
+    }
+
     open fun isEmpty() : Boolean{
         return id != null && (action == null || mapping == null || data == null)
     }
+
+    override fun toString(): String {
+        return "MView(id=$id)"
+    }
+
+
 }

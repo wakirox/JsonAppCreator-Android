@@ -39,8 +39,15 @@ class CFormView @JvmOverloads constructor(
         return this
     }
 
-    fun fill(obj : JSONObject?){
-        adapter = CFormAdapter(view!!, obj,  Consumer {
+    fun fill(obj : JSONObject?) {
+
+        visibility = if(view?.isVisible(obj) == true) VISIBLE else GONE
+
+        val jsonObject = view?.initDataService?.let {
+            EventManager.getInitDataSyncronous(context, it, obj)
+        } ?: obj
+
+        adapter = CFormAdapter(view!!, jsonObject,  Consumer {
             EventManager.evaluateEvent(context,view!!.action!!.event!!,it)
         },context)
     }

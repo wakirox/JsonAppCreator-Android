@@ -5,6 +5,8 @@ import it.sapienza.appinterpreter.model.view_model.helper.Size
 import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
 
 class ButtonView(
+    val image : String? = null,
+    val backgroundColor : String? = null,
     textSize : Float? = null,
     size : Size? = null,
     textStyle: TextStyle? = TextStyle.regular,
@@ -13,5 +15,6 @@ class ButtonView(
     id : String?,
     action : Action?,
     mapping : String?,
-    data : MutableMap<Any?, Any?>?
-) : TextView(textSize, size, textStyle, title, label, id, action, mapping, data)
+    data : MutableMap<Any?, Any?>?,
+    hideIfAttrNull : String? = null
+) : TextView(textSize, size, textStyle, title, label, id, action, mapping, data,hideIfAttrNull)

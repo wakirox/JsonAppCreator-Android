@@ -14,8 +14,9 @@ open class TextView (
     id : String? = null,
     action : Action? = null,
     mapping : String? = null,
-    data : MutableMap<Any?, Any?>? = null
-) : MView(id,action,mapping,data) {
+    data : MutableMap<Any?, Any?>? = null,
+    hideIfAttrNull : String? = null
+) : MView(id,action,mapping,data,hideIfAttrNull) {
 
     override fun isEmpty(): Boolean {
         return super.isEmpty() && title == null && label == null

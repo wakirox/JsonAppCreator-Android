@@ -1,24 +1,23 @@
 package it.sapienza.appinterpreter.custom_view
 
-
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.cardview.widget.CardView
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.PagedListAdapter
+import androidx.recyclerview.widget.DiffUtil
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.LayoutOrientation
+import it.sapienza.appinterpreter.model.ListOrientation
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import org.json.JSONObject
 
-class CAdapter(
-    val data: MutableList<JSONObject>,
-    val action: Action?,
-    val orientation: LayoutOrientation,
-    val view : MView
-) : RecyclerView.Adapter<CViewHolder>() {
+class CAdapterLive(val action: Action?,
+                   val orientation: ListOrientation,
+                   val view : MView
+) : PagedListAdapter<JSONObject, CViewHolder>(DIFF_CALLBACK) {
 
 
 
@@ -28,11 +27,11 @@ class CAdapter(
         //l.setBackgroundColor(Color.parseColor("#f6f6f6"))
 
         if(view is Layout) {
-            l.configureLayout(view, orientation)
+            l.configureLayout(view, orientation.toLayout())
         }else{
             val layout = Layout()
             layout.views = mutableListOf(view)
-            l.configureLayout(layout,orientation)
+            l.configureLayout(layout,orientation.toLayout())
         }
 
         val param = l.layoutParams as LinearLayout.LayoutParams
@@ -63,16 +62,24 @@ class CAdapter(
 
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return  if(data.isEmpty()) 0 else 1
+    override fun onBindViewHolder(holder: CViewHolder, position: Int) {
+            holder.bind( this.getItem(position), action)
     }
 
-    override fun getItemCount(): Int = kotlin.math.max(1, data.size)
+    override fun getItemViewType(position: Int): Int {
+        return 1
+    }
 
-    override fun onBindViewHolder(holder: CViewHolder, position: Int) {
-        if(getItemViewType(position) == 1) {
-            holder.bind(data[position], action)
+
+    companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<JSONObject>(){
+            override fun areItemsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
+                return oldItem.toString() == newItem.toString()
+            }
+
+            override fun areContentsTheSame(oldItem: JSONObject, newItem: JSONObject): Boolean {
+                return oldItem.toString() == newItem.toString()
+            }
         }
     }
-
 }

@@ -12,10 +12,7 @@ import androidx.core.view.setPadding
 import com.bumptech.glide.Glide
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
-import it.sapienza.appinterpreter.extensions.app
-import it.sapienza.appinterpreter.extensions.getValue
-import it.sapienza.appinterpreter.extensions.matchReplace
-import it.sapienza.appinterpreter.extensions.px
+import it.sapienza.appinterpreter.extensions.*
 import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.view_model.ImageView
 import org.json.JSONObject
@@ -50,7 +47,7 @@ class CImageView @JvmOverloads constructor(
             )
         } else if (orientation == LayoutOrientation.horizontal) {
             layoutParams = LinearLayout.LayoutParams(
-                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
                 200.px,
                 1f
             )
@@ -84,11 +81,15 @@ class CImageView @JvmOverloads constructor(
     }
 
     fun fill(obj: JSONObject?) {
+
+        visibility = if(view?.isVisible(obj) == true) VISIBLE else GONE
+
         view?.mapping?.let { obj?.getValue(it) ?: view?.url }?.let { url ->
 
             Glide.with(this)
                 .load(url)
                 .centerCrop()
+                .placeholder(R.drawable.image_placeholder)
                 .into(this)
 
             this.view!!.action?.let {
@@ -104,8 +105,9 @@ class CImageView @JvmOverloads constructor(
         } ?: view?.url?.matchReplace(obj)?.let { url ->
 
             Glide.with(this)
-                .load(url)
+                .load(if(view?.url?.failedMatch(obj) == true){R.drawable.image_placeholder}else url)
                 .centerCrop()
+                .placeholder(R.drawable.image_placeholder)
                 .into(this)
 
             this.view!!.action?.let {
@@ -113,7 +115,7 @@ class CImageView @JvmOverloads constructor(
                     ?.let { evaluateAction(context, this, it, obj) }
             } ?: run {
                 this.setOnClickListener {
-                    context.startActivity(createIntentPhotoActivity(context, url))
+                    context.startActivity(createIntentPhotoActivity(context,view?.originalUrl?.matchReplace(obj) ?: url))
                 }
             }
 

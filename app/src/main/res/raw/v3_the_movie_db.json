@@ -3,38 +3,28 @@
   "version": "beta.1",
   "author": "Marius Gabriel Magadan",
   "changelog": "Implemented a series of endpoint calls from the movie db.\nIf you find any problem send me an email at:\nwakirox@gmail.com with a description and possibly a screenshot of the problem.",
+  "params": {
+    "apiToken": "0bfaf3c0640773566cb7692affcae335",
+    "apiTokenName": "api_key"
+  },
+  "searchable": {
+    "hint": "Search everything",
+    "name": "Search",
+    "event": {
+      "url": "https://api.themoviedb.org/3/search/multi?query=${query}",
+      "method": "get",
+      "thenDo": {
+        "type": "show",
+        "view": {
+          "id": "multi_list"
+        }
+      }
+    }
+  },
   "mainView": {
     "id": "l0",
     "type": "layout",
     "views": [
-      {
-        "type": "form",
-        "buttonTitle": "Search",
-        "formElements": [
-          {
-            "type": "text",
-            "mapping": "title",
-            "mandatory": true,
-            "title": "Movie title",
-            "description": "Search any movie by title!"
-          }
-        ],
-        "action": {
-          "id": "action01",
-          "type": "click",
-          "event": {
-            "type": "rest",
-            "url": "https://api.themoviedb.org/3/search/movie?api_key=0bfaf3c0640773566cb7692affcae335&query=${title}",
-            "method": "get",
-            "thenDo": {
-              "type": "show",
-              "view": {
-                  "id": "movie_list"
-              }
-            }
-          }
-        }
-      },
       {
         "type": "text",
         "label": "Popular movies",
@@ -47,7 +37,12 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://api.themoviedb.org/3/discover/movie?page=1&sort_by=popularity.desc&api_key=0bfaf3c0640773566cb7692affcae335"
+          "type": "rest",
+          "paginated": {
+            "pageMapping": "page",
+            "totalPageMapping": "total_pages"
+          },
+          "url": "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc"
         },
         "mapping": "results",
         "action": {
@@ -55,7 +50,7 @@
         },
         "itemView": {
           "id": "movie_list_featured_main",
-          "type" : "layout",
+          "type": "layout",
           "orientation": "vertical",
           "views": [
             {
@@ -88,7 +83,12 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://api.themoviedb.org/3/person/popular?api_key=0bfaf3c0640773566cb7692affcae335"
+          "type": "rest",
+          "paginated": {
+            "pageMapping": "page",
+            "totalPageMapping": "total_pages"
+          },
+          "url": "https://api.themoviedb.org/3/person/popular"
         },
         "mapping": "results",
         "action": {
@@ -96,7 +96,7 @@
         },
         "itemView": {
           "id": "movie_list_actor_mini",
-          "type" : "layout",
+          "type": "layout",
           "orientation": "vertical",
           "views": [
             {
@@ -130,6 +130,234 @@
   },
   "views": [
     {
+      "id": "detail_screen_tab",
+      "type": "pager",
+      "tabs": [
+        {
+          "name": "Overview",
+          "itemView": {
+            "id": "idTab02",
+            "type": "layout",
+            "views": [
+              {
+                "type": "text",
+                "title": "${title}${name}",
+                "textStyle": "bold",
+                "textSize": 10
+              },
+              {
+                "id": "l12",
+                "type": "layout",
+                "orientation": "horizontal",
+                "views": [
+                  {
+                    "type": "image",
+                    "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+                    "size": {
+                      "width": 141,
+                      "height": 210
+                    }
+                  },
+                  {
+                    "type": "text",
+                    "label": "Plot",
+                    "mapping": "overview"
+                  }
+                ]
+              },
+              {
+                "type": "button",
+                "hideIfAttr": "imdb_id",
+                "title": "View on IMDB",
+                "size": {
+                  "width": 0,
+                  "height": 0
+                },
+                "image": "https://icon-library.com/images/imdb-icon/imdb-icon-0.jpg",
+                "action": {
+                  "id": "click4siteMovie",
+                  "event": {
+                    "type": "opensite",
+                    "url": "https://www.imdb.com/title/${imdb_id}/"
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "title": "Release: ${release_date}${first_air_date}\nVote: ${vote_average} - total votes ${vote_count}"
+              },
+              {
+                "id": "ldetail2",
+                "type": "layout",
+                "views": [
+                  {
+                    "type": "text",
+                    "label": "Genres"
+                  },
+                  {
+                    "type": "list",
+                    "orientation": "horizontal",
+                    "mapping": "genres",
+                    "itemView": {
+                      "type": "text",
+                      "mapping": "name"
+                    }
+                  },
+                  {
+                    "type": "layout",
+                    "id" : "layout.last_episode_to_air",
+                    "hideIfAttr": "last_episode_to_air",
+                    "views": [
+                      {
+                        "type": "text",
+                        "label": "Last episode"
+                      },
+                      {
+                        "type": "layout",
+                        "orientation": "horizontal",
+                        "views": [
+                          {
+                            "type": "image",
+                            "url": "https://image.tmdb.org/t/p/w500${last_episode_to_air.still_path}",
+                            "size": {
+                              "width": 80,
+                              "height": 120
+                            }
+                          },
+                          {
+                            "type": "text",
+                            "label": "E${last_episode_to_air.episode_number}S${last_episode_to_air.season_number} - ${last_episode_to_air.name}",
+                            "title": "Air date ${last_episode_to_air.air_date}\nOverview ${last_episode_to_air.overview}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "layout",
+                    "hideIfAttr": "next_episode_to_air",
+                    "views": [
+                      {
+                        "type": "text",
+                        "label": "Next episode"
+                      },
+                      {
+                        "type": "layout",
+                        "orientation": "horizontal",
+                        "views": [
+                          {
+                            "type": "image",
+                            "url": "https://image.tmdb.org/t/p/w500${next_episode_to_air.still_path}",
+                            "size": {
+                              "width": 80,
+                              "height": 120
+                            }
+                          },
+                          {
+                            "type": "text",
+                            "label": "E${next_episode_to_air.episode_number}S${next_episode_to_air.season_number} - ${next_episode_to_air.name}",
+                            "title": "Air date ${next_episode_to_air.air_date}\nOverview ${next_episode_to_air.overview}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "label": "Production companies"
+                  },
+                  {
+                    "type": "list",
+                    "orientation": "horizontal",
+                    "mapping": "production_companies",
+                    "itemView": {
+                      "type": "text",
+                      "mapping": "name"
+                    }
+                  },
+                  {
+                    "type": "text",
+                    "title": "\nData taken from themoviedb.org"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name" : "Cast",
+          "itemView" : {
+            "id" : "cast.list.grid?",
+            "type": "list",
+            "orientation" : "grid",
+            "mapping": "credits.cast",
+            "itemView": {
+              "id": "cast"
+            }
+          }
+        },
+        {
+          "name" : "Crew",
+          "itemView" : {
+            "id" : "crew.list.grid?",
+            "type": "list",
+            "orientation" : "grid",
+            "mapping": "credits.crew",
+            "itemView": {
+              "id": "cast"
+            }
+          }
+        },
+        {
+          "name": "Reviews",
+          "itemView": {
+            "id": "idTab_Reviews",
+            "initData": {
+              "type": "rest",
+              "url": "https://api.themoviedb.org/3/movie/${id}/reviews?api_key=0bfaf3c0640773566cb7692affcae335"
+            },
+            "type": "list",
+            "mapping": "results",
+            "itemView": {
+              "type": "text",
+              "label": "Author ${author} rating ${author_details.rating}",
+              "mapping": "content"
+            }
+          }
+        },
+        {
+          "name" : "Posters",
+          "itemView" : {
+            "id" : "posters.grid",
+            "type": "list",
+            "orientation": "grid",
+            "mapping": "images.posters",
+            "itemView": {
+              "type": "image",
+              "url": "https://image.tmdb.org/t/p/w200${file_path}",
+              "originalUrl" : "https://image.tmdb.org/t/p/original${file_path}"
+            }
+          }
+        },
+        {
+          "name": "Similar content",
+          "itemView": {
+            "id": "idTab03",
+            "initData": {
+              "type": "rest",
+              "url": "https://api.themoviedb.org/3/movie/${id}/similar?api_key=0bfaf3c0640773566cb7692affcae335"
+            },
+            "type": "layout",
+            "views": [
+              {
+                "id": "movie_list"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "screen0",
       "type": "layout",
       "views": [
@@ -152,7 +380,7 @@
     },
     {
       "id": "movie_list",
-      "type" : "layout",
+      "type": "layout",
       "views": [
         {
           "type": "list",
@@ -184,6 +412,163 @@
       ]
     },
     {
+      "id": "multi_list",
+      "type": "list",
+      "mapping": "results",
+      "viewTypeAttr": "media_type",
+      "action": {
+        "id": "list_click"
+      },
+      "itemViews": [
+        {
+          "id": "multi_item_tv_list",
+          "type": "layout",
+          "viewType": "tv",
+          "action": {
+            "id": "list_click_tv"
+          },
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "image",
+              "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+              "size": {
+                "width": 94,
+                "height": 140
+              }
+            },
+            {
+              "type": "text",
+              "label": "${name}",
+              "title": "First air date - ${first_air_date}\nVote - ${vote_average}\nPlot - ${overview}"
+            }
+          ]
+        },
+        {
+          "id": "multi_item_actor_list",
+          "action": {
+            "id": "show_actor_detail"
+          },
+          "type": "layout",
+          "viewType": "person",
+          "orientation": "vertical",
+          "views": [
+            {
+              "type": "layout",
+              "orientation": "horizontal",
+              "views": [
+                {
+                  "type": "image",
+                  "url": "https://image.tmdb.org/t/p/w500${profile_path}",
+                  "size": {
+                    "width": 94,
+                    "height": 140
+                  }
+                },
+                {
+                  "type": "layout",
+                  "views": [
+                    {
+                      "type": "text",
+                      "label": "${name}",
+                      "title": "Role - ${known_for_department}"
+                    },
+                    {
+                      "type": "text",
+                      "label": "Known for"
+                    },
+                    {
+                      "type": "list",
+                      "orientation": "horizontal",
+                      "mapping": "known_for",
+                      "viewTypeAttr": "media_type",
+                      "action": {
+                        "id": "list_click"
+                      },
+                      "itemViews": [
+                        {
+                          "id": "movie_list_actor_search",
+                          "viewType": "movie",
+                          "orientation": "vertical",
+                          "action": {
+                            "id": "list_click"
+                          },
+                          "type": "layout",
+                          "views": [
+                            {
+                              "type": "image",
+                              "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+                              "action": {
+                                "id": "list_click"
+                              },
+                              "size": {
+                                "width": 100,
+                                "height": 100
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "title": "${title}"
+                            }
+                          ]
+                        },
+                        {
+                          "id": "movie_list_actor_search",
+                          "viewType": "tv",
+                          "type": "layout",
+                          "action": {
+                            "id": "list_click_tv"
+                          },
+                          "views": [
+                            {
+                              "type": "image",
+                              "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+                              "action": {
+                                "id": "list_click_tv"
+                              },
+                              "size": {
+                                "width": 100,
+                                "height": 100
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "title": "${name}"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "multi_item_movie_list",
+          "type": "layout",
+          "viewType": "movie",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "image",
+              "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+              "size": {
+                "width": 94,
+                "height": 140
+              }
+            },
+            {
+              "type": "text",
+              "label": "${title}",
+              "title": "Release - ${release_date}\nVote - ${vote_average}\nPlot - ${overview}"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "cast",
       "type": "layout",
       "views": [
@@ -191,7 +576,7 @@
           "type": "image",
           "url": "https://image.tmdb.org/t/p/w500${profile_path}",
           "size": {
-            "width": 100,
+            "width": 120,
             "height": 150
           },
           "action": {
@@ -209,7 +594,40 @@
         },
         {
           "type": "text",
-          "mapping": "character",
+          "title": "${character}${department}",
+          "action": {
+            "id": "show_actor_detail"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cast",
+      "type": "layout",
+      "views": [
+        {
+          "type": "image",
+          "url": "https://image.tmdb.org/t/p/w500${profile_path}",
+          "size": {
+            "width": 120,
+            "height": 150
+          },
+          "action": {
+            "id": "show_actor_detail"
+          }
+        },
+        {
+          "type": "text",
+          "title": "Name",
+          "mapping": "name",
+          "textStyle": "bold",
+          "action": {
+            "id": "show_actor_detail"
+          }
+        },
+        {
+          "type": "text",
+          "title": "${character}${department}",
           "action": {
             "id": "show_actor_detail"
           }
@@ -219,6 +637,20 @@
   ],
   "actions": [
     {
+      "id": "list_click_tv",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "url": "https://api.themoviedb.org/3/tv/${id}?api_key=0bfaf3c0640773566cb7692affcae335&append_to_response=images,credits",
+        "thenDo": {
+          "type": "show",
+          "view": {
+            "id": "detail_screen_tab"
+          }
+        }
+      }
+    },
+    {
       "id": "list_click",
       "type": "click",
       "event": {
@@ -227,148 +659,7 @@
         "thenDo": {
           "type": "show",
           "view": {
-            "id": "detail_screen",
-            "type": "layout",
-            "views": [
-              {
-                "type": "text",
-                "mapping": "title",
-                "textStyle": "bold",
-                "textSize": 10
-              },
-              {
-                "id": "l1",
-                "type": "layout",
-                "orientation": "horizontal",
-                "views": [
-                  {
-                    "type": "image",
-                    "url": "https://image.tmdb.org/t/p/w500${poster_path}",
-                    "size": {
-                      "width": 141,
-                      "height": 210
-                    }
-                  },
-                  {
-                    "type": "text",
-                    "label": "Plot",
-                    "mapping": "overview"
-                  }
-                ]
-              },
-              {
-                "type": "text",
-                "title": "Release: ${release_date}\nVote: ${vote_average}"
-              },
-              {
-                "id": "l_buttons",
-                "type": "layout",
-                "orientation": "horizontal",
-                "views": [
-                  {
-                    "type": "button",
-                    "title": "reviews",
-                    "action": {
-                      "id": "show_reviews",
-                      "type": "click",
-                      "event": {
-                        "type": "rest",
-                        "url": "https://api.themoviedb.org/3/movie/${id}/reviews?api_key=0bfaf3c0640773566cb7692affcae335",
-                        "thenDo": {
-                          "type": "show",
-                          "view": {
-                            "id": "layout_reviews",
-                            "type": "layout",
-                            "views": [
-                              {
-                                "type": "list",
-                                "mapping": "results",
-                                "itemView": {
-                                      "type": "text",
-                                      "label": "Author ${author}",
-                                      "mapping": "content"
-                                    }
-                              }
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "type": "button",
-                    "title": "Similar movies",
-                    "action": {
-                      "id": "show_similar_movies",
-                      "type": "click",
-                      "event": {
-                        "type": "rest",
-                        "url": "https://api.themoviedb.org/3/movie/${id}/similar?api_key=0bfaf3c0640773566cb7692affcae335",
-                        "thenDo": {
-                          "type": "show",
-                          "view": {
-                            "id": "movie_list"
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "id": "ldetail",
-                "type" : "layout",
-                "views": [
-                  {
-                    "type": "text",
-                    "label": "Genres"
-                  },
-                  {
-                    "type": "list",
-                    "orientation": "horizontal",
-                    "mapping": "genres",
-                    "itemView": {
-                          "type": "text",
-                          "mapping": "name"
-                        }
-                  },
-                  {
-                    "type": "text",
-                    "label": "Cast"
-                  },
-                  {
-                    "type": "list",
-                    "orientation": "horizontal",
-                    "mapping": "credits.cast",
-                    "itemView": {
-                      "id": "cast"
-                    }
-                  },
-                  {
-                    "type": "text",
-                    "label": "Posters"
-                  },
-                  {
-                    "type": "list",
-                    "orientation": "horizontal",
-                    "mapping": "images.posters",
-                    "itemView":
-                        {
-                          "type": "image",
-                          "url": "https://image.tmdb.org/t/p/w500${file_path}",
-                          "size": {
-                            "width": 200,
-                            "height": 200
-                          }
-                    }
-                  },
-                  {
-                    "type": "text",
-                    "title": "\nData taken from themoviedb.org"
-                  }
-                ]
-              }
-            ]
+            "id": "detail_screen_tab"
           }
         }
       }
@@ -397,77 +688,94 @@
           "type": "show",
           "view": {
             "id": "actor_detail_screen",
-            "type" : "layout",
+            "type": "layout",
             "views": [
-                  {
-                    "type": "text",
-                    "mapping": "name",
-                    "textStyle": "bold",
-                    "textSize": 10
-                  },
-                  {
-                    "type": "list",
-                    "orientation": "horizontal",
-                    "mapping": "images.profiles",
-                    "itemView": {
-                          "type": "image",
-                          "url": "https://image.tmdb.org/t/p/w500${file_path}",
-                          "size": {
-                            "width": 200,
-                            "height": 200
-                          }
-                    }
-                  },
-                  {
-                    "type": "text",
-                    "label": "Birthday",
-                    "mapping": "birthday"
-                  },
-                  {
-                    "type": "text",
-                    "label": "Place of birth",
-                    "mapping": "place_of_birth"
-                  },
-                  {
-                    "type": "text",
-                    "label": "Biography",
-                    "mapping": "biography"
-                  },
-                  {
-                    "type": "text",
-                    "label": "Also known for"
-                  },
-                  {
-                    "type": "list",
-                    "orientation": "horizontal",
-                    "mapping": "movie_credits.cast",
-                    "action": {
-                      "id": "list_click"
-                    },
-                    "itemView": {
-                      "id": "movie_list_actor",
-                      "orientation": "vertical",
-                      "type" : "layout",
-                      "views": [
-                        {
-                          "type": "image",
-                          "url": "https://image.tmdb.org/t/p/w500${poster_path}",
-                          "action": {
-                            "id": "list_click"
-                          },
-                          "size": {
-                            "width": 94,
-                            "height": 140
-                          }
-                        },
-                        {
-                          "type": "text",
-                          "title": "${title}\n${character}"
-                        }
-                      ]
-                    }
+              {
+                "type": "text",
+                "mapping": "name",
+                "textStyle": "bold",
+                "textSize": 10
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "images.profiles",
+                "itemView": {
+                  "type": "image",
+                  "url": "https://image.tmdb.org/t/p/w500${file_path}",
+                  "size": {
+                    "width": 200,
+                    "height": 200
                   }
-                ]
+                }
+              },
+              {
+                "type": "button",
+                "size": {
+                  "width": 0,
+                  "height": 0
+                },
+                "hideIfAttr": "imdb_id",
+                "image": "https://icon-library.com/images/imdb-icon/imdb-icon-0.jpg",
+                "title": "View on IMDB",
+                "action": {
+                  "id": "click4site",
+                  "event": {
+                    "type": "opensite",
+                    "url": "https://www.imdb.com/name/${imdb_id}/"
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "label": "Birthday",
+                "mapping": "birthday"
+              },
+              {
+                "type": "text",
+                "label": "Place of birth",
+                "mapping": "place_of_birth"
+              },
+              {
+                "type": "text",
+                "label": "Biography",
+                "mapping": "biography"
+              },
+              {
+                "type": "text",
+                "label": "Also known for"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "movie_credits.cast",
+                "action": {
+                  "id": "list_click"
+                },
+                "itemView": {
+                  "id": "movie_list_actor",
+                  "orientation": "vertical",
+                  "type": "layout",
+                  "views": [
+                    {
+                      "type": "image",
+                      "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+                      "action": {
+                        "id": "list_click"
+                      },
+                      "size": {
+                        "width": 94,
+                        "height": 140
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "title": "${title}\n${character}"
+                    }
+                  ]
+                }
+              }
+            ]
           }
         }
       }

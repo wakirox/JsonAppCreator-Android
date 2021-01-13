@@ -1,6 +1,7 @@
 package it.sapienza.appinterpreter.extensions
 
 import android.content.Intent
+import android.os.Bundle
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
@@ -17,6 +18,10 @@ fun Intent.putExtraJson(name: String, src: Any) {
 
 fun Intent.putExtraJson(src: Any) {
     putExtra(DEFAULT_NAME, IntentUtil.jackson.writeValueAsString(src))
+}
+
+fun Bundle.putExtraJson(src: Any) {
+    putString(DEFAULT_NAME, IntentUtil.jackson.writeValueAsString(src))
 }
 
 fun <T> Intent.getJsonExtra(name: String, `class`: Class<T>): T? {
@@ -37,6 +42,14 @@ fun <T> Intent.getJsonExtra(`class`: Class<T>): T? {
 
 fun <T> Intent.getJsonExtra(ref : TypeReference<T>): T? {
     val stringExtra = getStringExtra(DEFAULT_NAME)
+    if (stringExtra != null) {
+        return IntentUtil.jackson.readValue<T>(stringExtra, ref)
+    }
+    return null
+}
+
+fun <T> Bundle.getJsonExtra(ref : TypeReference<T>): T? {
+    val stringExtra = getString(DEFAULT_NAME)
     if (stringExtra != null) {
         return IntentUtil.jackson.readValue<T>(stringExtra, ref)
     }

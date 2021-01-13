@@ -49,8 +49,8 @@ class TestTest() {
   }
 }""")
 
-        val v = parser.parseApplication()
-        print(v)
+//        val v = parser.parseApplication()
+//        print(v)
     }
 
 }

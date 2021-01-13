@@ -7,6 +7,8 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.event.*
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.model.view_model.PagerView
+import it.sapienza.appinterpreter.model.view_model.TabView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 
@@ -39,6 +41,11 @@ class AppParser(val obj : String) {
 
         model.views.find { it.isEmpty() }?.let {
             throw Exception("Empty model.views[id=${it.id}]")
+        }
+
+
+        for(i in 0 until model.views.size){
+            findGenericView(model.views[i],model)
         }
 
         model.actions.forEach { it.event?.let { ev -> findView(ev, model) } }
@@ -156,11 +163,18 @@ class AppParser(val obj : String) {
     private fun findGenericView(view : MView, model: ModelApplication){
         when(view){
             is ListView -> {
-                findGenericView(view.itemView,model)
+                view.itemViews.forEach { v ->
+                    findGenericView(v,model)
+                }
             }
             is Layout -> {
                 view.views.forEach {
                     findGenericView(it, model)
+                }
+            }
+            is PagerView -> {
+                view.tabs.forEach {
+                    findGenericView(it.itemView, model)
                 }
             }
         }
@@ -170,7 +184,9 @@ class AppParser(val obj : String) {
         }
 
         if(!view.isEmpty()){
-            model.views.add(view)
+            if(model.views.none { it.id == view.id }) {
+                model.views.add(view)
+            }
         }
 
     }

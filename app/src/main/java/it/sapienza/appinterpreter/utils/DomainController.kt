@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
+import org.json.JSONObject
 
 object DomainController {
     init {
@@ -11,14 +12,14 @@ object DomainController {
     }
 
     fun jsonFile(context : Activity) : String {
-
-        val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
-        return sharedPref.getString("main_file_sav",
-            read(
-                R.raw.v3_app_sample,
-                context
-            )
-        )!!
+        return read(R.raw.v3_the_movie_db,context)
+//        val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
+//        return sharedPref.getString("main_file_sav",
+//            read(
+//                R.raw.v3_app_sample,
+//                context
+//            )
+//        )!!
     }
 
     fun setJsonFile(value : String, context: Activity){
@@ -50,6 +51,21 @@ object DomainController {
         }
 
         return "{}"
+    }
+
+
+    fun saveJson(context: Context, key : String, obj : JSONObject){
+        val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
+        val edit = sharedPref.edit()
+        edit.putString("configuration_key_$key", obj.toString())
+        edit.apply()
+    }
+
+    fun getJson(context: Context, key : String) : JSONObject? {
+        val sharedPref = context.getSharedPreferences("DomainController",Context.MODE_PRIVATE)
+        return sharedPref.getString("configuration_key_$key",null)?.let {
+            JSONObject(it)
+        }
     }
 
 }

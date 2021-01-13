@@ -18,6 +18,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
+import androidx.core.widget.TextViewCompat
 import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.extensions.getValue
 import it.sapienza.appinterpreter.extensions.matchReplace
@@ -39,6 +40,7 @@ class CTextView @JvmOverloads constructor(
     init {
         //this.movementMethod = LinkMovementMethod.getInstance()
         ellipsize = TextUtils.TruncateAt.END
+
     }
 
     fun configure(view: TextView, orientation: LayoutOrientation, obj: JSONObject?): View? {
@@ -84,6 +86,9 @@ class CTextView @JvmOverloads constructor(
     }
 
     fun fill(obj: JSONObject?) {
+
+        visibility = if(view?.isVisible(obj) == true) VISIBLE else GONE
+
         this.obj = obj
         this.text = this.view?.title
         this.view?.textSize?.px?.let { textSize = it }
@@ -118,13 +123,13 @@ class CTextView @JvmOverloads constructor(
             val span1 =
                 SpannableString(matchReplace + if (this.text.isEmpty()) "" else ("\n" + this.text))
             span1.setSpan(
-                AbsoluteSizeSpan(20.px),
+                AbsoluteSizeSpan(18.px),
                 0,
                 matchReplace.length,
                 SPAN_INCLUSIVE_INCLUSIVE
             )
             span1.setSpan(
-                ForegroundColorSpan(Color.GRAY),
+                ForegroundColorSpan(Color.DKGRAY),
                 0, matchReplace.length,
                 Spannable.SPAN_EXCLUSIVE_INCLUSIVE
             )
@@ -146,7 +151,7 @@ class CTextView @JvmOverloads constructor(
             (context as Activity).getWindowManager()
                 .getDefaultDisplay()
                 .getMetrics(displayMetrics)
-            min(displayMetrics.widthPixels,it)
+            kotlin.math.min(displayMetrics.widthPixels, it)
         }
     }
 }

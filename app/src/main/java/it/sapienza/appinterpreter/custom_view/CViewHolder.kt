@@ -7,15 +7,14 @@ import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.model.action.Action
 import org.json.JSONObject
 
-class CViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+class CViewHolder(itemView: View,val rootId: Int) : RecyclerView.ViewHolder(itemView) {
 
     fun bind(
-        jsonObject: JSONObject,
-        action: Action?,
-        lId: Int
+        jsonObject: JSONObject?,
+        action: Action?
     ) {
 
-        val layout : CLinearLayout = this.itemView.findViewById(lId)//(this.itemView as CLinearLayout)
+        val layout : CLinearLayout = this.itemView.findViewById(rootId)//(this.itemView as CLinearLayout)
         action?.let {
             (itemView.context.applicationContext as Application)
                 .app()!!.actionBy(it)?.event?.let {ev ->
@@ -25,14 +24,15 @@ class CViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             }
         }
 
-        for (i in 0 until layout.getChildCount()) {
-            val v : View = layout.getChildAt(i)
-            when(v){
+        for (i in 0 until layout.childCount) {
+            when(val v : View = layout.getChildAt(i)){
                 is CTextView -> v.fill(jsonObject)
                 is CImageView -> v.fill(jsonObject)
                 is CButtonView -> v.fill(jsonObject)
                 is CFormView -> v.fill(jsonObject)
                 is CListView -> v.fill(jsonObject)
+                is CLinearLayout -> v.fill(jsonObject)
+                is CViewPager -> v.fill(jsonObject)
             }
         }
 

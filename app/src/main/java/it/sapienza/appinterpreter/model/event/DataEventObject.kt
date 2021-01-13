@@ -8,30 +8,18 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import it.sapienza.appinterpreter.model.view_model.ElementType
 import java.util.HashMap
 
-class EventObject(val type : ElementType.EventType){
-
-    var eventInstance : Event? = null
+class DataEventObject(val type : ElementType.DataType) {
+    var eventInstance : DataService? = null
         get() = when(type){
-            ElementType.EventType.alert -> {
-                val convertValue =
-                    jacksonObjectMapper().convertValue<AlertMessage>(additionalProperties)
-                convertValue
-            }
-            ElementType.EventType.show -> {
-                jacksonObjectMapper().convertValue<ShowView>(additionalProperties)
-            }
-            ElementType.EventType.opensite -> {
-                jacksonObjectMapper().convertValue<OpenSiteService>(additionalProperties)
-            }
-            ElementType.EventType.rest -> {
+            ElementType.DataType.rest -> {
                 val convertValue =
                     jacksonObjectMapper().convertValue<RESTService>(additionalProperties)
                 convertValue
             }
-            ElementType.EventType.save -> {
+            ElementType.DataType.save -> {
                 jacksonObjectMapper().convertValue<SaveDataService>(additionalProperties)
             }
-            ElementType.EventType.getsaved -> {
+            ElementType.DataType.getsaved -> {
                 jacksonObjectMapper().convertValue<GetSavedDataService>(additionalProperties)
             }
         }

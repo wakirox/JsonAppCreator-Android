@@ -1,6 +1,7 @@
 package it.sapienza.appinterpreter.activity
 
 import android.Manifest
+import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,10 +9,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.fasterxml.jackson.core.type.TypeReference
-import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.extensions.app
@@ -20,6 +21,8 @@ import it.sapienza.appinterpreter.extensions.putExtraJson
 import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.ContainerConfiguration
+import it.sapienza.appinterpreter.custom_view.EventManager
+import it.sapienza.appinterpreter.model.view_model.PagerView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model_editor.ModelEditorActivity
 import it.sapienza.appinterpreter.utils.DomainController
@@ -60,7 +63,9 @@ class MainActivity : AppCompatActivity() {
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //            WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
-        setContentView(R.layout.activity_main)
+
+
+
 
         if (intent.hasExtra("idView")) {
 
@@ -97,9 +102,9 @@ class MainActivity : AppCompatActivity() {
             addView(application.app()!!.viewBy(application.app()!!.mainView)!!)
 
             //
-            if(BuildConfig.DEBUG) {
-                startActivity(Intent(this, ModelEditorActivity::class.java))
-            }
+//            if(BuildConfig.DEBUG) {
+//                startActivity(Intent(this, ModelEditorActivity::class.java))
+//            }
 //            application.app()!!.initService?.let {
 //                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?
 //            }
@@ -111,9 +116,38 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 
-        application.app()?.let {
+        application.app()?.let { it ->
+
+            it.searchable?.let { searchAction ->
+                menu?.add(Menu.NONE, 99, Menu.NONE, searchAction.name)?.let { item ->
+
+                    val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+                    item.actionView = SearchView(this).apply {
+                        setSearchableInfo(searchManager.getSearchableInfo(componentName))
+                        queryHint = searchAction.hint
+                        setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+                            override fun onQueryTextSubmit(query: String?) : Boolean {
+                                return query?.takeIf { it.length > 1 }.let{ query ->
+                                    EventManager.manage(context, application.app()!!.searchable!!.event,JSONObject("{\"query\"=\"$query\"}"))
+                                    true
+                                }
+                            }
+
+                            override fun onQueryTextChange(newText: String?): Boolean {
+                                return false
+                            }
+                        })
+                    }
+
+                    item.setIcon(R.drawable.ic_search)
+                    item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW or MenuItem.SHOW_AS_ACTION_IF_ROOM)
+                }
+            }
+
+
             it.author?.let {
                 menu?.add(Menu.NONE, 1, Menu.NONE, "Author $it")?.let {
                     it.setIcon(R.drawable.baseline_perm_identity_black_24)
@@ -318,6 +352,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun addView(model: MView) {
+
+        if(model is PagerView){
+            setContentView(R.layout.activity_main_tabbed)
+        }else{
+            setContentView(R.layout.activity_main)
+        }
+
+        setSupportActionBar(findViewById(R.id.my_toolbar))
+
         ContainerConfiguration.createContainer(
             this,
             application.app()!!,
@@ -350,9 +393,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if(isTaskRoot){
-            AlertUtils.showAlert(this,"Are you sure you want to close the app?", Runnable {
+            AlertUtils.showAlert(this,"Are you sure you want to close the app?", {
                 super.onBackPressed()
-            }, Runnable {  })
+            }, {})
         }else{
             super.onBackPressed()
         }

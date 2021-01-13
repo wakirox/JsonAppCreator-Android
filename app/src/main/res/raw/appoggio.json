@@ -1,0 +1,226 @@
+[
+  {
+    "name": "Overview",
+    "itemView": {
+      "id": "idTab02",
+      "type": "layout",
+      "views": [
+        [
+          {
+            "type": "text",
+            "title": "${title}${name}",
+            "textStyle": "bold",
+            "textSize": 10
+          },
+          {
+            "id": "l12",
+            "type": "layout",
+            "orientation": "horizontal",
+            "views": [
+              {
+                "type": "image",
+                "url": "https://image.tmdb.org/t/p/w500${poster_path}",
+                "size": {
+                  "width": 141,
+                  "height": 210
+                }
+              },
+              {
+                "type": "text",
+                "label": "Plot",
+                "mapping": "overview"
+              }
+            ]
+          },
+          {
+            "type": "button",
+            "hideIfAttr": "imdb_id",
+            "title": "View on IMDB",
+            "size": {
+              "width": 0,
+              "height": 0
+            },
+            "image": "https://icon-library.com/images/imdb-icon/imdb-icon-0.jpg",
+            "action": {
+              "id": "click4siteMovie",
+              "event": {
+                "type": "opensite",
+                "url": "https://www.imdb.com/title/${imdb_id}/"
+              }
+            }
+          },
+          {
+            "type": "text",
+            "title": "Release: ${release_date}${first_air_date}\nVote: ${vote_average} - total votes ${vote_count}"
+          },
+          {
+            "id": "ldetail2",
+            "type": "layout",
+            "views": [
+              {
+                "type": "text",
+                "label": "Genres"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "genres",
+                "itemView": {
+                  "type": "text",
+                  "mapping": "name"
+                }
+              },
+              {
+                "type": "layout",
+                "hideIfAttr": "last_episode_to_air",
+                "views": [
+                  {
+                    "type": "text",
+                    "label": "Last episode"
+                  },
+                  {
+                    "type": "layout",
+                    "orientation": "horizontal",
+                    "views": [
+                      {
+                        "type": "image",
+                        "url": "https://image.tmdb.org/t/p/w500${last_episode_to_air.still_path}",
+                        "size": {
+                          "width": 80,
+                          "height": 120
+                        }
+                      },
+                      {
+                        "type": "text",
+                        "label": "E${last_episode_to_air.episode_number}S${last_episode_to_air.season_number} - ${last_episode_to_air.name}",
+                        "title": "Air date ${last_episode_to_air.air_date}\nOverview ${last_episode_to_air.overview}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "layout",
+                "hideIfAttr": "next_episode_to_air",
+                "views": [
+                  {
+                    "type": "text",
+                    "label": "Next episode"
+                  },
+                  {
+                    "type": "layout",
+                    "orientation": "horizontal",
+                    "views": [
+                      {
+                        "type": "image",
+                        "url": "https://image.tmdb.org/t/p/w500${next_episode_to_air.still_path}",
+                        "size": {
+                          "width": 80,
+                          "height": 120
+                        }
+                      },
+                      {
+                        "type": "text",
+                        "label": "E${next_episode_to_air.episode_number}S${next_episode_to_air.season_number} - ${next_episode_to_air.name}",
+                        "title": "Air date ${next_episode_to_air.air_date}\nOverview ${next_episode_to_air.overview}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "label": "Cast"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "credits.cast",
+                "itemView": {
+                  "id": "cast"
+                }
+              },
+              {
+                "type": "text",
+                "label": "Crew"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "credits.crew",
+                "itemView": {
+                  "id": "cast"
+                }
+              },
+              {
+                "type": "text",
+                "label": "Posters"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "images.posters",
+                "itemView": {
+                  "type": "image",
+                  "url": "https://image.tmdb.org/t/p/w500${file_path}",
+                  "size": {
+                    "width": 135,
+                    "height": 200
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "label": "Production companies"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "production_companies",
+                "itemView": {
+                  "id": "production_companies",
+                  "orientation": "vertical",
+                  "type": "layout",
+                  "views": [
+                    {
+                      "type": "image",
+                      "url": "https://image.tmdb.org/t/p/w500${logo_path}",
+                      "size": {
+                        "width": 94,
+                        "height": 140
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "title": "${name}"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "text",
+                "title": "\nData taken from themoviedb.org"
+              }
+            ]
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "name": "Reviews",
+    "itemView": {
+      "initData" : {
+        "type": "rest",
+        "url": "https://api.themoviedb.org/3/movie/${id}/reviews?api_key=0bfaf3c0640773566cb7692affcae335"
+      },
+      "type": "list",
+      "mapping": "results",
+      "itemView": {
+        "type": "text",
+        "label": "Author ${author}",
+        "mapping": "content"
+      }
+    }
+  }
+]

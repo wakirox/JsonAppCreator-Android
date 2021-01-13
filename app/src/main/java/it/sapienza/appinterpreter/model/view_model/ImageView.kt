@@ -6,6 +6,7 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 class ImageView(
     var url : String?,
+    var originalUrl : String?,
     var size : Size?,
     id : String?,
     action : Action?,

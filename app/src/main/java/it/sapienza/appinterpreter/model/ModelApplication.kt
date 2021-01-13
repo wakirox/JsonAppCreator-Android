@@ -3,6 +3,7 @@ package it.sapienza.appinterpreter.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import it.sapienza.appinterpreter.model.action.Action
+import it.sapienza.appinterpreter.model.action.SearchAction
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
 
@@ -15,6 +16,8 @@ class ModelApplication (
     var debugMode : Boolean? = false,
     var version : String,
     var changelog : String?,
+    var params : ModelParams?,
+    var searchable : SearchAction?,
     @JsonProperty("mainView") var _mainView : ViewObject,
     @JsonProperty("views") var _views: MutableList<ViewObject> = mutableListOf(),
     var actions : MutableList<Action> = mutableListOf()
