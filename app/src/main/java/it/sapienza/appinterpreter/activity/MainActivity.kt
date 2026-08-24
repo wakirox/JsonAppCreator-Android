@@ -3,12 +3,13 @@ package it.sapienza.appinterpreter.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.fasterxml.jackson.core.type.TypeReference
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.alerts.AlertUtils
@@ -20,10 +21,7 @@ import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.ui.AppTheme
-import it.sapienza.appinterpreter.ui.RendererScreen
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import it.sapienza.appinterpreter.ui.MainScreen
 import org.json.JSONObject
 
 
@@ -47,7 +45,7 @@ fun spawnNew(context: Context) {
     context.startActivity(intent)
 }
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private var loading by mutableStateOf(false)
 
@@ -68,16 +66,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
-
-        setTheme(R.style.AppTheme)
 
 //        requestWindowFeature(Window.FEATURE_NO_TITLE)
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //            WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
         val model = initializeModel() ?: return
-        setContent { AppTheme { RendererScreen(model, loading) } }
+        val appModel = checkNotNull(application.app())
+        setContent {
+            AppTheme {
+                MainScreen(
+                    title = appModel.name,
+                    author = appModel.author,
+                    version = appModel.version,
+                    hasChangelog = appModel.changelog != null,
+                    model = model,
+                    loading = loading,
+                    onChangelog = {
+                        appModel.changelog?.let { changelog ->
+                            spawnInstance(context = this, changelog = changelog)
+                        }
+                    },
+                    onLoadConfiguration = { openJsonFile.launch("application/json") },
+                    onViewConfiguration = {
+                        startActivity(Intent(this, JsonActivity::class.java))
+                    },
+                    onLoadPlainSample = {
+                        loadSampleConfiguration(R.raw.v3_app_sample)
+                    },
+                    onLoadFormSample = {
+                        loadSampleConfiguration(R.raw.v3_app_form)
+                    },
+                    onLoadMovieSample = {
+                        loadSampleConfiguration(R.raw.v3_the_movie_db)
+                    },
+                    onLoadPokedexSample = {
+                        loadSampleConfiguration(R.raw.v3_pokedex)
+                    }
+                )
+            }
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -94,7 +124,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        supportActionBar?.title = application.app()?.name
     }
 
     private fun initializeModel(): MView? {
@@ -139,55 +168,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-
-        application.app()?.let {
-            it.author?.let {
-                menu?.add(Menu.NONE, 1, Menu.NONE, "Author $it")?.let {
-                    it.setIcon(R.drawable.baseline_perm_identity_black_24)
-                }
-            }
-
-            menu?.add(Menu.NONE, 1, Menu.NONE, "Version ${it.version}")?.let {
-                it.setIcon(R.drawable.baseline_merge_type_black_24)
-            }
-//            it.previousVersion?.let {
-//                menu?.add(Menu.NONE, 2, Menu.NONE, "P.Version $it")?.let {
-//                    it.setIcon(R.drawable.baseline_merge_type_black_24)
-//                }
-//            }
-
-            it.changelog?.let {
-                menu?.add(Menu.NONE, 3, Menu.NONE, "Changelog")?.let {
-                    it.setIcon(R.drawable.baseline_track_changes_black_24)
-                }
-            }
-        }
-
-
-        val menuItem = menu?.addSubMenu("JSON configuration")?.let {
-            it.setIcon(R.drawable.baseline_account_tree_black_24)
-            it
-        }
-        menuItem?.add(Menu.NONE, 4, Menu.NONE, "Load configuration from device")?.let {
-            it.setIcon(R.drawable.baseline_insert_drive_file_black_24)
-        }
-        menuItem?.add(Menu.NONE, 5, Menu.NONE, "View current configuration")?.let {
-            it.setIcon(R.drawable.baseline_view_list_black_24)
-        }
-
-        val addSubMenu = menuItem?.addSubMenu("Sample configurations")
-        addSubMenu?.add(Menu.NONE, 6, Menu.NONE, "Plain app")
-        addSubMenu?.add(Menu.NONE, 8, Menu.NONE, "Form example")
-        addSubMenu?.add(Menu.NONE, 7, Menu.NONE, "THE MOVIE DB")
-
-
-
-
-        return super.onCreateOptionsMenu(menu)
-
-    }
-
     fun showLoading() {
         runOnUiThread { loading = true }
     }
@@ -196,33 +176,9 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread { loading = false }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == 3) {
-            spawnInstance(
-                context = this,
-                changelog = application.app()!!.changelog!!
-            )
-        } else if (item.itemId == 4) {
-            openJsonFile.launch("application/json")
-        } else if (item.itemId == 5) {
-            startActivity(Intent(this, JsonActivity::class.java))
-        } else if (item.itemId == 6) {
-            //simple
-            DomainController.setJsonFile(R.raw.v3_app_sample, this)
-            spawnNew(this)
-
-        } else if (item.itemId == 7) {
-            //the movie db
-            DomainController.setJsonFile(R.raw.v3_the_movie_db, this)
-            spawnNew(this)
-
-        }else if (item.itemId == 8) {
-            //the movie db
-            DomainController.setJsonFile(R.raw.v3_app_form, this)
-            spawnNew(this)
-
-        }
-        return super.onOptionsItemSelected(item)
+    private fun loadSampleConfiguration(resourceId: Int) {
+        DomainController.setJsonFile(resourceId, this)
+        spawnNew(this)
     }
 
     fun pushViewWithId(id: String, obj: JSONObject?) {

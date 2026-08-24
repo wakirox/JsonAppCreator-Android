@@ -10,7 +10,12 @@ fun JSONObject.getValue(mapping : String) : String? {
         return getJSONObject(firstKey).getValue(mapping.substring(mapping.indexOf(".")+1))
     }else{
         if(!has(mapping)) { return null }
-        return get(mapping).toString()
+        val value = get(mapping)
+        return if (value is JSONArray) {
+            (0 until value.length()).joinToString(", ") { index -> value.get(index).toString() }
+        } else {
+            value.toString()
+        }
     }
 }
 

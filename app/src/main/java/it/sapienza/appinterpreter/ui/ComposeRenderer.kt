@@ -375,11 +375,10 @@ private fun ListCardContent(itemView: MView, item: JSONObject) {
             Column(Modifier.weight(1f)) {
                 resolvedChildren.drop(1).forEach { child ->
                     when (child) {
-                        is TextView -> RenderText(
+                        is TextView -> RenderHorizontalCardText(
                             view = child,
                             data = item,
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                            modifier = Modifier.fillMaxWidth()
                         )
                         else -> Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             RenderNode(child, item, Modifier.fillMaxWidth(), allowImagePreview = false)
@@ -391,6 +390,38 @@ private fun ListCardContent(itemView: MView, item: JSONObject) {
     } else {
         Column(Modifier.padding(14.dp)) {
             RenderNode(resolvedItem, item, Modifier.fillMaxWidth(), allowImagePreview = false)
+        }
+    }
+}
+
+@Composable
+private fun RenderHorizontalCardText(view: TextView, data: JSONObject?, modifier: Modifier) {
+    val title = view.label?.matchReplace(data).orEmpty()
+    val supportingText = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty())
+        .matchReplace(data)
+    Column(
+        modifier = modifier
+            .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
+            .then(actionModifier(view.action, data))
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        if (title.isNotEmpty()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        if (supportingText.isNotEmpty()) {
+            Text(
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
