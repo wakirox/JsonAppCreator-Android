@@ -24,7 +24,10 @@ android {
         unitTests {
             includeAndroidResources = true
             all {
+                def unitTestTempDirectory = layout.buildDirectory.dir('tmp/unit-tests').get().asFile
+                doFirst { unitTestTempDirectory.mkdirs() }
                 workingDir = project.projectDir
+                systemProperty 'java.io.tmpdir', unitTestTempDirectory.absolutePath
                 jvmArgs += [
                     '--add-opens=java.base/java.lang=ALL-UNNAMED',
                     '--add-opens=java.base/java.io=ALL-UNNAMED',
@@ -49,6 +52,13 @@ android {
     buildFeatures {
         compose true
     }
+
+    sourceSets {
+        main {
+            // Package the canonical repository schema without maintaining a second copy.
+            assets.srcDir rootProject.file('schema')
+        }
+    }
 }
 
 dependencies {
@@ -64,6 +74,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.20.0'
+    implementation 'com.networknt:json-schema-validator:1.0.87'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.16'
@@ -74,4 +85,42 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 
     debugImplementation "androidx.compose.ui:ui-test-manifest:1.6.8"
+}
+
+def configToValidate = providers.gradleProperty('config')
+def runningConfigValidation = gradle.startParameter.taskNames.any {
+    it.tokenize(':').last() == 'validateConfig'
+}
+
+tasks.withType(Test).configureEach {
+    if (runningConfigValidation) {
+        filter {
+            includeTestsMatching 'it.sapienza.androidratio.appratio.ConfigSchemaValidationTest'
+            includeTestsMatching 'it.sapienza.androidratio.appratio.ConfigurationValidatorTest'
+        }
+    }
+    if (configToValidate.isPresent()) {
+        def requestedConfig = rootProject.file(configToValidate.get())
+        systemProperty 'jsonApp.config', requestedConfig.absolutePath
+        inputs.file(requestedConfig)
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    }
+}
+
+tasks.register('validateConfig') {
+    group = 'verification'
+    description = 'Validates bundled v3 configurations and the JSON file supplied with -Pconfig=<path>.'
+    dependsOn 'testDebugUnitTest'
+
+    doFirst {
+        if (!configToValidate.isPresent()) {
+            throw new GradleException(
+                'Missing configuration path. Use ./gradlew :app:validateConfig -Pconfig=path/to/app.json'
+            )
+        }
+        def requestedConfig = rootProject.file(configToValidate.get())
+        if (!requestedConfig.isFile()) {
+            throw new GradleException("Configuration file does not exist: ${requestedConfig}")
+        }
+    }
 }

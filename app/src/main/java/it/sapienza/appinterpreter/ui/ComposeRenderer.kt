@@ -3,8 +3,6 @@
 package it.sapienza.appinterpreter.ui
 
 import android.app.DatePickerDialog
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +18,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -90,22 +92,83 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.Calendar
+import java.util.function.Consumer
+
+private class ListUiState(initiallyWaiting: Boolean) {
+    val items = mutableStateListOf<JSONObject>()
+    var waiting by mutableStateOf(initiallyWaiting)
+}
+
+private const val HORIZONTAL_LAZY_THRESHOLD = 8
 
 @Composable
-fun RendererScreen(model: MView, loading: Boolean) {
+fun RendererScreen(model: MView, data: JSONObject? = model.dataObj, loading: Boolean) {
     Box(Modifier.fillMaxSize().testTag("renderer-screen")) {
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            RenderNode(model = model, parentData = model.dataObj, modifier = Modifier.fillMaxWidth())
-        }
+        RenderRoot(model, data)
         if (loading) {
             Card(
                 modifier = Modifier.align(Alignment.Center),
                 shape = RoundedCornerShape(20.dp)
             ) {
                 CircularProgressIndicator(Modifier.padding(24.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun RenderRoot(model: MView, screenData: JSONObject?) {
+    val context = LocalContext.current
+    val app = (context.applicationContext as AppRatioApplication).app
+    val resolved = app?.viewBy(model) ?: model
+    val data = remember(resolved, resolved.data, screenData) { screenData ?: resolved.dataObj }
+
+    when {
+        resolved is Layout && resolved.orientation != LayoutOrientation.horizontal -> {
+            val children = remember(resolved, app) {
+                resolved.views.map { app?.viewBy(it) ?: it }
+            }
+            val listStates = children.map { child ->
+                if (child is ListView && child.orientation != LayoutOrientation.horizontal) {
+                    val childData = remember(child, child.data, data) { child.dataObj ?: data }
+                    rememberListUiState(child, childData)
+                } else {
+                    null
+                }
+            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                children.forEachIndexed { index, child ->
+                    val listState = listStates[index]
+                    if (child is ListView && listState != null) {
+                        verticalListItems(child, listState)
+                    } else {
+                        item(key = "root-$index-${child.id.orEmpty()}") {
+                            RenderNode(child, data, columnChildModifier(child))
+                        }
+                    }
+                }
+            }
+        }
+        resolved is ListView && resolved.orientation != LayoutOrientation.horizontal -> {
+            val state = rememberListUiState(resolved, data)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                verticalListItems(resolved, state)
+            }
+        }
+        else -> {
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                RenderNode(resolved, data, Modifier.fillMaxWidth())
             }
         }
     }
@@ -121,7 +184,7 @@ private fun RenderNode(
     val context = LocalContext.current
     val app = (context.applicationContext as AppRatioApplication).app
     val resolved = app?.viewBy(model) ?: model
-    val data = resolved.dataObj ?: parentData
+    val data = remember(resolved, resolved.data, parentData) { resolved.dataObj ?: parentData }
     when (resolved) {
         is Layout -> RenderLayout(resolved, data, modifier, allowImagePreview)
         is ButtonView -> RenderButton(resolved, data, modifier)
@@ -274,40 +337,101 @@ private fun RenderImage(
 
 @Composable
 private fun RenderList(view: ListView, data: JSONObject?, modifier: Modifier) {
-    val context = LocalContext.current
-    val items = remember(view, data) { mutableStateListOf<JSONObject>() }
-    var waiting by remember(view, data) { mutableStateOf(view.initData != null) }
-    LaunchedEffect(view, data) {
-        items.clear()
-        val accept: (JSONObject) -> Unit = { response ->
-            val array = view.mapping?.let { response.getArray(it) } ?: view.dataObjArr
-            Handler(Looper.getMainLooper()).post {
-                items.clear()
-                array?.let { values ->
-                    for (index in 0 until values.length()) items.add(values.getJSONObject(index))
-                }
-                waiting = false
-            }
-        }
-        view.initData?.let { event -> EventManager.manage(context, event, data) { accept(it) } }
-            ?: accept(data ?: JSONObject())
-    }
+    val state = rememberListUiState(view, data)
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         when {
-            waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-            items.isEmpty() -> Text("No data available", style = MaterialTheme.typography.bodyMedium)
-            view.orientation == LayoutOrientation.horizontal -> Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            state.waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            state.items.isEmpty() -> Text("No data available", style = MaterialTheme.typography.bodyMedium)
+            view.orientation == LayoutOrientation.horizontal &&
+                state.items.size > HORIZONTAL_LAZY_THRESHOLD -> LazyRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 val cardWidth = (view.itemView.explicitWidth()?.plus(28) ?: 300).dp
-                items.forEach { ListCard(view, it, Modifier.width(cardWidth)) }
+                itemsIndexed(
+                    items = state.items,
+                    key = { index, item -> listItemKey(view, index, item) }
+                ) { _, item ->
+                    ListCard(view, item, Modifier.width(cardWidth))
+                }
             }
-            else -> items.forEach { ListCard(view, it, Modifier.fillMaxWidth()) }
+            view.orientation == LayoutOrientation.horizontal -> Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                val cardWidth = (view.itemView.explicitWidth()?.plus(28) ?: 300).dp
+                state.items.forEach { item ->
+                    ListCard(view, item, Modifier.width(cardWidth))
+                }
+            }
+            else -> state.items.forEachIndexed { index, item ->
+                ListCard(
+                    view = view,
+                    item = item,
+                    modifier = Modifier.fillMaxWidth().testTag("list-position-$index")
+                )
+            }
         }
     }
 }
+
+@Composable
+private fun rememberListUiState(view: ListView, data: JSONObject?): ListUiState {
+    val context = LocalContext.current
+    val dataKey = data?.toString().orEmpty()
+    val state = remember(view, dataKey) { ListUiState(view.initData != null) }
+    DisposableEffect(view, dataKey) {
+        state.items.clear()
+        state.waiting = view.initData != null
+        val accept: (JSONObject) -> Unit = { response ->
+            val array = view.mapping?.let { response.getArray(it) } ?: view.dataObjArr
+            (context as MainActivity).runOnUiThread {
+                state.items.clear()
+                array?.let { values ->
+                    for (index in 0 until values.length()) {
+                        state.items.add(values.getJSONObject(index))
+                    }
+                }
+                state.waiting = false
+            }
+        }
+        val call = view.initData?.let { event ->
+            EventManager.manage(
+                context = context,
+                event = event,
+                data = data,
+                callbackConsumer = Consumer { accept(it) },
+                showLoading = false
+            )
+        }
+        if (call == null) accept(data ?: JSONObject())
+        onDispose { call?.cancel() }
+    }
+    return state
+}
+
+private fun LazyListScope.verticalListItems(view: ListView, state: ListUiState) {
+    when {
+        state.waiting -> item(key = "list-loading-${System.identityHashCode(view)}") {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        state.items.isEmpty() -> item(key = "list-empty-${System.identityHashCode(view)}") {
+            Text("No data available", style = MaterialTheme.typography.bodyMedium)
+        }
+        else -> itemsIndexed(
+            items = state.items,
+            key = { index, item -> listItemKey(view, index, item) }
+        ) { _, item ->
+            ListCard(view, item, Modifier.fillMaxWidth())
+        }
+    }
+}
+
+private fun listItemKey(view: ListView, index: Int, item: JSONObject): String =
+    "${System.identityHashCode(view)}-$index-${item.optString("id")}"
 
 @Composable
 private fun ListCard(view: ListView, item: JSONObject, modifier: Modifier) {

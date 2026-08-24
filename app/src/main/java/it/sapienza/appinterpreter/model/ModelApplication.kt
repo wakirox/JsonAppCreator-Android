@@ -11,6 +11,7 @@ import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
  */
 class ModelApplication (
     var name : String,
+    var schemaVersion: Int? = null,
     var author : String?,
     var debugMode : Boolean? = false,
     var version : String,
@@ -28,11 +29,11 @@ class ModelApplication (
     fun viewBy(id: String) : MView? = views.find { s->s.id == id }
 
     fun viewBy(view: MView) : MView? {
-        return if(view.isEmpty()) views.find { s->s.id == view.id } else view
+        return if(view.isReference()) views.find { it.id == view.referenceId } else view
     }
 
     fun actionBy(action : Action) : Action? {
-        return if(action.isEmpty()) actions.find { s->s.id == action.id } else action
+        return if(action.isReference()) actions.find { it.id == action.referenceId } else action
 
     }
 

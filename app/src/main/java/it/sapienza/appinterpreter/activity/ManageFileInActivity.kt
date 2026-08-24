@@ -3,12 +3,17 @@ package it.sapienza.appinterpreter.activity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import it.sapienza.appinterpreter.alerts.AlertUtils
-import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.validation.ConfigurationValidator
+import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class ManageFileInActivity : AppCompatActivity() {
+    private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
+        ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleIntent()
@@ -22,18 +27,16 @@ class ManageFileInActivity : AppCompatActivity() {
                 val r = BufferedReader(InputStreamReader(it))
 
                 val text = r.readText()
-                val parser = AppParser(text)
-
                 try {
-                    //verifico se il file è buono altrimenti mostro l'errore e basta
-                    parser.parseApplication2()
+                    configurationParser.parse(text)
                     DomainController.setJsonFile(text, this)
                     spawnNew(this)
                     finish()
                 } catch (e: java.lang.Exception) {
                     e.printStackTrace()
                     AlertUtils.showAlert(
-                        this, """An error occurred while parsing the model
+                        this, """Configuration could not be loaded
+                |
                 |${e.message ?: "Unrecognized error"}""".trimMargin(), Runnable{
                             this.finish()
                         }

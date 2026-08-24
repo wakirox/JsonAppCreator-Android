@@ -28,20 +28,27 @@ class AppParser(val obj : String) {
         * possibile referenziare un elemento che si trova definito all'interno di un altro elemento*/
 
         val mapper = jacksonObjectMapper()
+        val tree = try {
+            mapper.readTree(obj)
+        } catch (error: Exception) {
+            throw ConfigurationValidationException("$", "invalid JSON: ${error.message}")
+        }
+        ReferenceValidator().validate(tree)
 
-        val model = measureTimeMillisPair { mapper.readValue<ModelApplication>(obj) }
-
-        model.actions.find { it.isEmpty() }?.let {
-            throw Exception("Empty model.actions[id=${it.id}]")
+        val model = try {
+            measureTimeMillisPair { mapper.readValue<ModelApplication>(obj) }
+        } catch (error: ConfigurationValidationException) {
+            throw error
+        } catch (error: Exception) {
+            throw ConfigurationValidationException("$", "configuration cannot be parsed: ${error.message}")
         }
 
-        model.views.find { it.isEmpty() }?.let {
-            throw Exception("Empty model.views[id=${it.id}]")
-        }
+        val declaredActions = model.actions.toList()
+        val declaredViews = model.views.toList()
 
-        model.actions.forEach { it.event?.let { ev -> findView(ev, model) } }
-
-        if(!model.mainView.isEmpty()){findGenericView(model.mainView,model) }
+        declaredActions.forEach { it.event?.let { event -> findView(event, model) } }
+        declaredViews.forEach { findGenericView(it, model, addSelf = false) }
+        if (!model.mainView.isReference()) findGenericView(model.mainView, model)
 
 //        model.initService?.let {
 //            it.thenDo?.eventInstance?.let { ev -> findScreens(ev, model) }
@@ -138,7 +145,7 @@ class AppParser(val obj : String) {
         model: ModelApplication
     ) {
         when(ev){
-            is ShowView -> if(!ev.view.isEmpty()){
+            is ShowView -> if(!ev.view.isReference()){
                 findGenericView(ev.view, model)
             }
             is RESTService -> {
@@ -151,7 +158,11 @@ class AppParser(val obj : String) {
         }
     }
 
-    private fun findGenericView(view : MView, model: ModelApplication){
+    private fun findGenericView(
+        view: MView,
+        model: ModelApplication,
+        addSelf: Boolean = true
+    ) {
         when(view){
             is ListView -> {
                 findGenericView(view.itemView,model)
@@ -166,8 +177,11 @@ class AppParser(val obj : String) {
         view.action?.event?.let {
             findView(it, model)
         }
+        view.action?.takeUnless { it.isReference() }?.let { action ->
+            if (model.actions.none { it.id == action.id }) model.actions.add(action)
+        }
 
-        if(!view.isEmpty()){
+        if (addSelf && !view.isReference()) {
             model.views.add(view)
         }
 
@@ -175,10 +189,11 @@ class AppParser(val obj : String) {
 
 
     private fun checkModelConsistency(model: ModelApplication) {
-        if(model.actions.any { it.isEmpty() }) throw Exception("A action model is empty")
-        if(model.views.any { it.isEmpty() }) throw Exception("A view model is empty")
-        if (model.actions.map { it.id }.toSet().size != model.actions.size) {
-            throw Exception("You used a not unique layout id")
+        model.actions.firstOrNull { it.isReference() }?.let {
+            throw ConfigurationValidationException("$.actions", "references cannot be registered as action definitions")
+        }
+        model.views.firstOrNull { it.isReference() }?.let {
+            throw ConfigurationValidationException("$.views", "references cannot be registered as view definitions")
         }
     }
 

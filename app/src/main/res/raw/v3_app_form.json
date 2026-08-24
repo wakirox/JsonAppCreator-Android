@@ -1,4 +1,5 @@
 {
+  "schemaVersion" : 3,
   "name" : "Form example",
   "version" : "alpha-01",
   "mainView" : {

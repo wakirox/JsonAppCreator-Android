@@ -14,6 +14,7 @@
             android:theme="@style/AppTheme.Launcher">
 
         <activity
+                android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
                 android:screenOrientation="unspecified"
                 android:name="it.sapienza.appinterpreter.activity.MainActivity"
                 android:exported="true"
@@ -26,9 +27,14 @@
             </intent-filter>
         </activity>
         <activity
+                android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
                 android:name="it.sapienza.appinterpreter.activity.PhotoActivity"/>
-        <activity android:name="it.sapienza.appinterpreter.activity.PlainTextActivity"/>
-        <activity android:name="it.sapienza.appinterpreter.activity.JsonActivity"/>
+        <activity
+                android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
+                android:name="it.sapienza.appinterpreter.activity.PlainTextActivity"/>
+        <activity
+                android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
+                android:name="it.sapienza.appinterpreter.activity.JsonActivity"/>
 
         <activity
                 android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity"

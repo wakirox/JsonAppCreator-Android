@@ -12,7 +12,7 @@ object HttpClient{
     private var client : OkHttpClient = let {
         val c = OkHttpClient().newBuilder()
         val logging = HttpLoggingInterceptor()
-        logging.level = (HttpLoggingInterceptor.Level.BODY)
+        logging.level = HttpLoggingInterceptor.Level.BASIC
         c.addInterceptor(logging)
         c.build()
     }

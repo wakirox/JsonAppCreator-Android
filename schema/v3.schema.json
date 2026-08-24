@@ -1,0 +1,412 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/master/schema/v3.schema.json",
+  "title": "JSON App Creator configuration v3",
+  "description": "Machine-readable contract for a JSON App Creator v3 application. schemaVersion is optional for backward compatibility; new configurations should set it to 3.",
+  "type": "object",
+  "required": ["name", "version", "mainView"],
+  "properties": {
+    "schemaVersion": {
+      "description": "Configuration-language version. Optional only for compatibility with configurations created before schema versioning was introduced.",
+      "const": 3,
+      "default": 3
+    },
+    "name": { "$ref": "#/$defs/nonEmptyString" },
+    "author": { "$ref": "#/$defs/nullableString" },
+    "debugMode": { "type": ["boolean", "null"], "default": false },
+    "version": { "$ref": "#/$defs/nonEmptyString" },
+    "changelog": { "$ref": "#/$defs/nullableString" },
+    "mainView": { "$ref": "#/$defs/view" },
+    "views": {
+      "type": "array",
+      "description": "Reusable view definitions. References are not valid in this registry.",
+      "items": { "$ref": "#/$defs/viewDefinition" },
+      "default": []
+    },
+    "actions": {
+      "type": "array",
+      "description": "Reusable action definitions. References are not valid in this registry.",
+      "items": { "$ref": "#/$defs/actionDefinition" },
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullableString": {
+      "type": ["string", "null"]
+    },
+    "data": {
+      "type": ["object", "null"],
+      "description": "Arbitrary JSON object made available to mappings and interpolation."
+    },
+    "size": {
+      "type": ["object", "null"],
+      "properties": {
+        "width": { "type": ["integer", "null"], "minimum": 0 },
+        "height": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "view": {
+      "oneOf": [
+        { "$ref": "#/$defs/viewDefinition" },
+        { "$ref": "#/$defs/explicitViewReference" },
+        { "$ref": "#/$defs/legacyViewReference" }
+      ]
+    },
+    "explicitViewReference": {
+      "title": "Explicit view reference (preferred)",
+      "description": "References a reusable root view by ID. New configurations should use this unambiguous form.",
+      "type": "object",
+      "required": ["ref"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "legacyViewReference": {
+      "title": "Legacy view reference",
+      "description": "Backward-compatible ID-only reference. Prefer the explicit ref property in new configurations.",
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false,
+      "deprecated": true
+    },
+    "viewDefinition": {
+      "oneOf": [
+        { "$ref": "#/$defs/layoutView" },
+        { "$ref": "#/$defs/textView" },
+        { "$ref": "#/$defs/buttonView" },
+        { "$ref": "#/$defs/imageView" },
+        { "$ref": "#/$defs/listView" },
+        { "$ref": "#/$defs/formView" }
+      ]
+    },
+    "layoutView": {
+      "type": "object",
+      "required": ["type", "views"],
+      "properties": {
+        "type": { "const": "layout" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" },
+        "orientation": {
+          "type": ["string", "null"],
+          "enum": ["horizontal", "vertical", null],
+          "default": "vertical"
+        },
+        "views": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/view" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "textView": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "text" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" },
+        "textSize": { "type": ["number", "null"], "minimum": 0 },
+        "size": { "$ref": "#/$defs/size" },
+        "textStyle": {
+          "type": ["string", "null"],
+          "enum": ["regular", "italic", "bold", null],
+          "default": "regular"
+        },
+        "title": { "$ref": "#/$defs/nullableString" },
+        "label": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "buttonView": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "button" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" },
+        "textSize": { "type": ["number", "null"], "minimum": 0 },
+        "size": { "$ref": "#/$defs/size" },
+        "textStyle": {
+          "type": ["string", "null"],
+          "enum": ["regular", "italic", "bold", null],
+          "default": "regular"
+        },
+        "title": { "$ref": "#/$defs/nullableString" },
+        "label": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "imageView": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "image" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" },
+        "url": { "$ref": "#/$defs/nullableString" },
+        "size": { "$ref": "#/$defs/size" }
+      },
+      "additionalProperties": false
+    },
+    "listView": {
+      "type": "object",
+      "required": ["type", "itemView"],
+      "properties": {
+        "type": { "const": "list" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" },
+        "itemView": { "$ref": "#/$defs/view" },
+        "initData": {
+          "oneOf": [
+            { "$ref": "#/$defs/initialRestService" },
+            { "type": "null" }
+          ]
+        },
+        "orientation": {
+          "enum": ["horizontal", "vertical"],
+          "default": "vertical"
+        }
+      },
+      "additionalProperties": false
+    },
+    "formView": {
+      "type": "object",
+      "required": ["type", "formElements"],
+      "properties": {
+        "type": { "const": "form" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" },
+        "title": { "$ref": "#/$defs/nullableString" },
+        "buttonTitle": { "$ref": "#/$defs/nullableString" },
+        "formElements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/formElement" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "formElement": {
+      "oneOf": [
+        { "$ref": "#/$defs/textInput" },
+        { "$ref": "#/$defs/selectorInput" },
+        { "$ref": "#/$defs/dateInput" },
+        { "$ref": "#/$defs/checkboxInput" }
+      ]
+    },
+    "textInput": {
+      "type": "object",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "text" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "type": "string" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "placeholder": { "$ref": "#/$defs/nullableString" },
+        "value": { "$ref": "#/$defs/nullableString" },
+        "textType": {
+          "type": ["string", "null"],
+          "enum": ["plain", "numeric", "email", "password", null],
+          "default": "plain"
+        }
+      },
+      "additionalProperties": false
+    },
+    "selectorInput": {
+      "type": "object",
+      "required": ["type", "mapping", "title", "options"],
+      "properties": {
+        "type": { "const": "selector" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "type": "string" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "options": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "selection": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "dateInput": {
+      "type": "object",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "date" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "type": "string" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "min": { "$ref": "#/$defs/dateValue" },
+        "max": { "$ref": "#/$defs/dateValue" },
+        "value": { "$ref": "#/$defs/dateValue" }
+      },
+      "additionalProperties": false
+    },
+    "dateValue": {
+      "description": "A date string accepted by Jackson or an epoch-millisecond number.",
+      "type": ["string", "number", "null"]
+    },
+    "checkboxInput": {
+      "type": "object",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "checkbox" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "type": "string" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "value": { "type": "boolean", "default": false }
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "oneOf": [
+        { "$ref": "#/$defs/actionDefinition" },
+        { "$ref": "#/$defs/explicitActionReference" },
+        { "$ref": "#/$defs/legacyActionReference" }
+      ]
+    },
+    "explicitActionReference": {
+      "title": "Explicit action reference (preferred)",
+      "description": "References a reusable root action by ID. New configurations should use this unambiguous form.",
+      "type": "object",
+      "required": ["ref"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "legacyActionReference": {
+      "title": "Legacy action reference",
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false,
+      "deprecated": true
+    },
+    "actionDefinition": {
+      "type": "object",
+      "required": ["id", "event"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "data": { "$ref": "#/$defs/data" },
+        "type": {
+          "enum": ["click", "longclick"],
+          "default": "click"
+        },
+        "event": { "$ref": "#/$defs/event" }
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "oneOf": [
+        { "$ref": "#/$defs/restEvent" },
+        { "$ref": "#/$defs/showEvent" },
+        { "$ref": "#/$defs/alertEvent" }
+      ]
+    },
+    "restEvent": {
+      "type": "object",
+      "required": ["type", "url"],
+      "properties": {
+        "type": { "const": "rest" },
+        "url": { "$ref": "#/$defs/nonEmptyString" },
+        "method": {
+          "type": ["string", "null"],
+          "enum": ["get", "post", null],
+          "default": "get"
+        },
+        "thenDo": {
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "initialRestService": {
+      "type": "object",
+      "required": ["url"],
+      "properties": {
+        "url": { "$ref": "#/$defs/nonEmptyString" },
+        "method": {
+          "type": ["string", "null"],
+          "enum": ["get", "post", null],
+          "default": "get"
+        },
+        "thenDo": {
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "showEvent": {
+      "type": "object",
+      "required": ["type", "view"],
+      "properties": {
+        "type": { "const": "show" },
+        "view": { "$ref": "#/$defs/view" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "alertEvent": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "alert" },
+        "value": { "$ref": "#/$defs/nullableString" },
+        "thenDoOK": {
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "thenDoKO": {
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

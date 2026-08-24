@@ -10,34 +10,35 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.fasterxml.jackson.core.type.TypeReference
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.extensions.app
-import it.sapienza.appinterpreter.extensions.getJsonExtra
-import it.sapienza.appinterpreter.extensions.putExtraJson
 import it.sapienza.appinterpreter.extensions.setApp
-import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.runtime.ScreenRuntimeState
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.MainScreen
+import it.sapienza.appinterpreter.validation.ConfigurationValidator
+import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
 import org.json.JSONObject
 
 
-fun spawnInstance(context: Context, model : MView) {
-    val intent = Intent(context, MainActivity::class.java)
-//    intent.putExtra("model", model)
+private const val EXTRA_VIEW_ID = "idView"
+private const val EXTRA_SCREEN_PAYLOAD = "screenPayload"
+private const val STATE_VIEW_ID = "screen.viewId"
+private const val STATE_SCREEN_PAYLOAD = "screen.payload"
 
-    model.data?.let {
-        intent.putExtraJson(it)
-    }
-
-    intent.putExtra("idView", model.id)
-
-    context.startActivity(intent)
-
+fun spawnInstance(context: Context, model: MView, payload: JSONObject? = model.dataObj) {
+    val viewId = requireNotNull(model.id) { "A navigated view must have an id" }
+    context.startActivity(screenIntent(context, viewId, payload))
 }
+
+private fun screenIntent(context: Context, viewId: String, payload: JSONObject?): Intent =
+    Intent(context, MainActivity::class.java).apply {
+        putExtra(EXTRA_VIEW_ID, viewId)
+        payload?.let { putExtra(EXTRA_SCREEN_PAYLOAD, it.toString()) }
+    }
 
 fun spawnNew(context: Context) {
     val intent = Intent(context, MainActivity::class.java)
@@ -48,19 +49,24 @@ fun spawnNew(context: Context) {
 class MainActivity : ComponentActivity() {
 
     private var loading by mutableStateOf(false)
+    private var loadingRequests = 0
+    private var screenState: ScreenRuntimeState? = null
+    private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
+        ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
+    }
 
     private val openJsonFile = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri ?: return@registerForActivityResult
         try {
             val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                 ?: throw IllegalArgumentException("Unable to read the selected file")
-            AppParser(text).parseApplication2()
+            configurationParser.parse(text)
             DomainController.setJsonFile(text, this)
             spawnNew(this)
         } catch (e: Exception) {
             AlertUtils.showAlert(
                 this,
-                "An error occurred while reading the model\n${e.message ?: "Unrecognized error"}"
+                "Configuration could not be loaded\n\n${e.message ?: "Unrecognized error"}"
             )
         }
     }
@@ -73,7 +79,8 @@ class MainActivity : ComponentActivity() {
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //            WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
-        val model = initializeModel() ?: return
+        val screen = initializeScreen(savedInstanceState) ?: return
+        screenState = screen
         val appModel = checkNotNull(application.app())
         setContent {
             AppTheme {
@@ -82,7 +89,8 @@ class MainActivity : ComponentActivity() {
                     author = appModel.author,
                     version = appModel.version,
                     hasChangelog = appModel.changelog != null,
-                    model = model,
+                    model = screen.definition,
+                    modelData = screen.data,
                     loading = loading,
                     onChangelog = {
                         appModel.changelog?.let { changelog ->
@@ -126,54 +134,67 @@ class MainActivity : ComponentActivity() {
 
     }
 
-    private fun initializeModel(): MView? {
-        return if (intent.hasExtra("idView")) {
-
-            val view : MView =
-                application.app()!!.viewBy(intent.getStringExtra("idView")!!)!!
-
-            val typeRef: TypeReference<MutableMap<Any?, Any?>?> =
-                object : TypeReference<MutableMap<Any?, Any?>?>() {}
-
-            intent.getJsonExtra(typeRef)?.let { it ->
-                view.data = it
-            }
-
-            view
-
+    private fun initializeScreen(savedInstanceState: Bundle?): ScreenRuntimeState? {
+        val viewId = savedInstanceState?.getString(STATE_VIEW_ID)
+            ?: intent.getStringExtra(EXTRA_VIEW_ID)
+        val appModel = if (viewId == null) {
+            loadApplicationModel()
         } else {
-
-            val schema =
-                DomainController.jsonFile(this)
-            val parser = AppParser(schema)
-
-            try {
-                application.setApp(parser.parseApplication2())
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                AlertUtils.showAlert(
-                    this, """An error occurred while parsing the model
-                |${e.message ?: "Unrecognized error"}""".trimMargin()
-                )
+            application.app() ?: loadApplicationModel()
+        } ?: return null
+        val definition = if (viewId == null) {
+            appModel.viewBy(appModel.mainView) ?: appModel.mainView
+        } else {
+            appModel.viewBy(viewId) ?: run {
+                AlertUtils.showAlert(this, "View '$viewId' does not exist in this configuration")
                 return null
             }
-
-
-            application.app()!!.viewBy(application.app()!!.mainView)!!
-
-//            application.app()!!.initService?.let {
-//                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?
-//            }
-
         }
+        val payloadText = savedInstanceState?.getString(STATE_SCREEN_PAYLOAD)
+            ?: intent.getStringExtra(EXTRA_SCREEN_PAYLOAD)
+        val payload = try {
+            payloadText?.let(::JSONObject)
+        } catch (e: Exception) {
+            AlertUtils.showAlert(this, "Unable to restore screen data\n${e.message.orEmpty()}")
+            return null
+        }
+        return ScreenRuntimeState.create(definition, payload, navigatedViewId = viewId)
+    }
+
+    private fun loadApplicationModel() = try {
+        configurationParser.parse(DomainController.jsonFile(this)).also(application::setApp)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        AlertUtils.showAlert(
+            this,
+            """The saved configuration is invalid
+                |${e.message ?: "Unrecognized error"}""".trimMargin()
+        )
+        null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        screenState?.let { screen ->
+            screen.navigatedViewId?.let { outState.putString(STATE_VIEW_ID, it) }
+            screen.navigationPayload?.let {
+                outState.putString(STATE_SCREEN_PAYLOAD, it.toString())
+            }
+        }
+        super.onSaveInstanceState(outState)
     }
 
     fun showLoading() {
-        runOnUiThread { loading = true }
+        runOnUiThread {
+            loadingRequests += 1
+            loading = true
+        }
     }
 
     fun hideLoading() {
-        runOnUiThread { loading = false }
+        runOnUiThread {
+            loadingRequests = (loadingRequests - 1).coerceAtLeast(0)
+            loading = loadingRequests > 0
+        }
     }
 
     private fun loadSampleConfiguration(resourceId: Int) {
@@ -182,21 +203,21 @@ class MainActivity : ComponentActivity() {
     }
 
     fun pushViewWithId(id: String, obj: JSONObject?) {
-        val view = application.app()!!.viewBy(id)!!
-        obj?.let {
-            if (view.dataObj == null) { view.dataObj = obj }
+        val view = application.app()?.viewBy(id)
+        if (view == null) {
+            AlertUtils.showAlert(this, "View '$id' does not exist in this configuration")
+            return
         }
-        spawnInstance(this, view)
+        spawnInstance(this, view, obj ?: view.dataObj)
     }
 
     fun pushScreen(view: MView, obj: JSONObject?) {
-        val _view = application.app()!!.viewBy(view)!!
-        obj?.let {
-//            if (_view.dataObj == null) {
-                _view.dataObj = obj
-//            }
+        val definition = application.app()?.viewBy(view)
+        if (definition == null) {
+            AlertUtils.showAlert(this, "View '${view.id.orEmpty()}' does not exist in this configuration")
+            return
         }
-        spawnInstance(this, _view)
+        spawnInstance(this, definition, obj ?: definition.dataObj)
     }
 
 }

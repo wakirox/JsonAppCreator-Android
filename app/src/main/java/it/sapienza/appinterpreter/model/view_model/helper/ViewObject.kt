@@ -15,7 +15,7 @@ import java.util.HashMap
 class ViewObject(var type: ElementType.ViewElem? = null) {
 
     fun convert() : MView {
-        return type?.let {
+        val view = type?.let {
             when (it) {
                 ElementType.ViewElem.layout -> {
                     jacksonObjectMapper().convertValue<Layout>(additionalProperties)
@@ -39,6 +39,7 @@ class ViewObject(var type: ElementType.ViewElem? = null) {
         } ?: run {
             jacksonObjectMapper().convertValue<MView>(additionalProperties)
         }
+        return if (type == null) view.markAsReference() else view
     }
 
     @JsonIgnore

@@ -7,14 +7,23 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import it.sapienza.appinterpreter.model.event.EventObject
 import org.json.JSONObject
 
-class Action(val id : String,
+class Action(val id : String = "",
+             val ref : String? = null,
              var data : MutableMap<Any?, Any?>?,
              val type : ActionType = ActionType.click,
              @JsonProperty("event") eventObject : EventObject?){
 
-    private val empty = eventObject == null
+    private val reference = ref != null || eventObject == null
 
-    fun isEmpty() = empty
+    @get:JsonIgnore
+    val referenceId: String
+        get() = ref ?: id
+
+    @JsonIgnore
+    fun isReference() = reference
+
+    /** Kept for callers compiled against the old model API. */
+    fun isEmpty() = isReference()
 
     @JsonIgnore val event = eventObject?.eventInstance
 

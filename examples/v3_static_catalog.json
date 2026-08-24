@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 3,
+  "name": "Static catalog",
+  "author": "JSON App Creator",
+  "version": "1.0.0",
+  "mainView": {
+    "type": "layout",
+    "data": {
+      "items": [
+        {
+          "id": "one",
+          "name": "First item",
+          "description": "Data is bundled directly in the configuration."
+        },
+        {
+          "id": "two",
+          "name": "Second item",
+          "description": "Tap any row to open its reusable detail view."
+        }
+      ]
+    },
+    "views": [
+      {
+        "type": "text",
+        "title": "Choose an item",
+        "textStyle": "bold",
+        "textSize": 22
+      },
+      {
+        "type": "list",
+        "mapping": "items",
+        "action": { "ref": "open_item" },
+        "itemView": {
+          "type": "text",
+          "mapping": "name"
+        }
+      }
+    ]
+  },
+  "views": [
+    {
+      "id": "item_details",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "mapping": "name",
+          "textStyle": "bold",
+          "textSize": 24
+        },
+        {
+          "type": "text",
+          "mapping": "description"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "open_item",
+      "type": "click",
+      "event": {
+        "type": "show",
+        "view": { "ref": "item_details" }
+      }
+    }
+  ]
+}

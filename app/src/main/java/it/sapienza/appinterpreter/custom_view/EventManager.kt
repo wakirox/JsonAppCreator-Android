@@ -14,38 +14,51 @@ import java.io.IOException
 import java.util.function.Consumer
 
 object EventManager{
-    fun manage(context: Context, event: RESTService, data: JSONObject?) {
-        manage(context,event,data, Consumer { response ->
+    fun manage(context: Context, event: RESTService, data: JSONObject?): Call {
+        return manage(context,event,data, Consumer { response ->
             event.thenDo?.let {
                 evaluateEvent(context,it,response)
             }
         })
     }
 
-    fun manage(context: Context, event: RESTService, data: JSONObject?, callbackConsumer : Consumer<JSONObject>) {
+    fun manage(
+        context: Context,
+        event: RESTService,
+        data: JSONObject?,
+        callbackConsumer: Consumer<JSONObject>,
+        showLoading: Boolean = true
+    ): Call {
         val url = event.url.matchReplace(data)
 
         val activity = (context as? MainActivity)
 
-        activity?.showLoading()
+        if (showLoading) activity?.showLoading()
 
         val callback = object : Callback {
             override fun onResponse(call: Call, response: Response) {
-                activity?.hideLoading()
-                if(response.code != 200){
-                    onFailure(call, IOException("Some error occured with ${call.request().url}\n${response.body?.string()}"))
-                }else {
-                    response.body?.let { d ->
-                        callbackConsumer.accept(JSONObject(d.string()))
+                if (showLoading) activity?.hideLoading()
+                response.use {
+                    if (!response.isSuccessful) {
+                        val details = response.body?.string().orEmpty()
+                        AlertUtils.showAlert(
+                            context,
+                            "Request failed with ${response.code} for ${call.request().url}\n$details"
+                        )
+                        return
+                    }
+                    response.body?.let { body ->
+                        callbackConsumer.accept(JSONObject(body.string()))
                     } ?: AlertUtils.showAlert(context, "No body in response")
                 }
             }
             override fun onFailure(call: Call, e: IOException) {
-                activity?.hideLoading()
+                if (showLoading) activity?.hideLoading()
+                if (call.isCanceled()) return
                 AlertUtils.showAlert(context,e.message ?: "An error occurred")
             }
         }
-        when(event.method){
+        return when(event.method){
             CallServiceMethod.post -> {
                 //TODO inserire l'oggetto
                 HttpClient.post(url, data, callback)
@@ -78,4 +91,3 @@ object EventManager{
         }
     }
 }
-

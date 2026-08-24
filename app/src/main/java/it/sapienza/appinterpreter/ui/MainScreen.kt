@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.model.view_model.helper.MView
+import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,6 +34,7 @@ fun MainScreen(
     version: String,
     hasChangelog: Boolean,
     model: MView,
+    modelData: JSONObject?,
     loading: Boolean,
     onChangelog: () -> Unit,
     onLoadConfiguration: () -> Unit,
@@ -131,7 +133,7 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(contentPadding)
         ) {
-            RendererScreen(model = model, loading = loading)
+            RendererScreen(model = model, data = modelData, loading = loading)
         }
     }
 }

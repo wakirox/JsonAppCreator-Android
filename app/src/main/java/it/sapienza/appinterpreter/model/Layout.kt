@@ -15,10 +15,6 @@ class Layout(
     var orientation: LayoutOrientation? = LayoutOrientation.vertical,
     @JsonProperty("views") viewObjects: List<ViewObject> = listOf()
 ) : MView(id, action, mapping, data){
-
-    override fun isEmpty() = views.isEmpty()
-
-
    @JsonIgnore
    var views : MutableList<MView> = viewObjects.map { it.convert() }.toMutableList()
 

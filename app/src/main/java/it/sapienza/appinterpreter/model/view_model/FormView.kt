@@ -13,8 +13,6 @@ class FormView(var title : String?,
                mapping : String?,
                data : MutableMap<Any?, Any?>?) : MView(id, action, mapping, data) {
 
-    override fun isEmpty() = formElements.isEmpty()
-
     val formElements : List<FormElementImpl> = formElementObjects.map { it.convert() }
 
 }

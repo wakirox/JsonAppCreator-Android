@@ -1,6 +1,7 @@
 package it.sapienza.appinterpreter.model.view_model.helper
 
 import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import it.sapienza.appinterpreter.model.action.Action
 import org.json.JSONObject
@@ -9,8 +10,25 @@ open class MView(
     var id : String? = null,
     var action : Action? = null,
     var mapping : String? = null,
-    var data : MutableMap<Any?, Any?>? = null
+    var data : MutableMap<Any?, Any?>? = null,
+    var ref : String? = null
 ){
+    @JsonIgnore
+    private var reference = ref != null
+
+    @get:JsonIgnore
+    val referenceId: String?
+        get() = ref ?: id
+
+    @JsonIgnore
+    fun markAsReference(): MView {
+        reference = true
+        return this
+    }
+
+    @JsonIgnore
+    fun isReference(): Boolean = reference
+
     var dataObj: JSONObject?
         get() = data?.let {
             JSONObject(it)
@@ -21,7 +39,6 @@ open class MView(
             data = jacksonObjectMapper().readValue(value.toString(), typeRef)
         }
 
-    open fun isEmpty() : Boolean{
-        return id != null && (action == null || mapping == null || data == null)
-    }
+    /** Kept for callers compiled against the old model API. */
+    open fun isEmpty(): Boolean = isReference()
 }
