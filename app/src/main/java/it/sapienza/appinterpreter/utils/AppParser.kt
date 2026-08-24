@@ -1,6 +1,5 @@
 package it.sapienza.appinterpreter.utils
 
-import android.util.Log
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import it.sapienza.appinterpreter.model.Layout
@@ -17,7 +16,6 @@ class AppParser(val obj : String) {
         val result: T = function.invoke()
         val endTime = System.currentTimeMillis()
 
-        Log.d("TIME","Function took ${endTime - startTime}")
         return result
     }
 

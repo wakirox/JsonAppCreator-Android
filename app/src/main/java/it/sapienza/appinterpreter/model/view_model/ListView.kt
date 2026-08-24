@@ -10,7 +10,7 @@ import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
 import org.json.JSONArray
 
 class ListView(
-    @JsonProperty("itemView") var _itemView : ViewObject,
+    @JsonProperty("itemView") itemViewObject : ViewObject,
     var initData : RESTService?,
     var orientation: LayoutOrientation = LayoutOrientation.vertical,
     id : String?,
@@ -19,7 +19,7 @@ class ListView(
     data : MutableMap<Any?, Any?>?
 ) : MView(id, action, mapping, data){
 
-    @JsonIgnore var itemView = _itemView.convert()
+    @JsonIgnore var itemView = itemViewObject.convert()
 
     val dataObjArr : JSONArray?
         get() = data?.let {

@@ -1,0 +1,270 @@
+{
+  "name": "TMDb Visual Regression",
+  "author": "Screenshot tests",
+  "version": "1.0",
+  "mainView": {
+    "id": "screenshot_home",
+    "type": "layout",
+    "views": [
+      {
+        "type": "form",
+        "buttonTitle": "Search",
+        "formElements": [
+          {
+            "type": "text",
+            "mapping": "title",
+            "mandatory": true,
+            "title": "Movie title",
+            "description": "Search the deterministic TMDb fixture"
+          }
+        ],
+        "action": {
+          "id": "search_movies",
+          "type": "click",
+          "event": {
+            "type": "rest",
+            "url": "{{BASE_URL}}search?query=${title}",
+            "method": "get",
+            "thenDo": {
+              "type": "show",
+              "view": { "id": "screenshot_movie_results" }
+            }
+          }
+        }
+      },
+      {
+        "type": "text",
+        "label": "Popular movies",
+        "title": "Tap for details"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "{{BASE_URL}}popular-movies",
+          "method": "get"
+        },
+        "mapping": "results",
+        "action": { "id": "screenshot_movie_detail" },
+        "itemView": {
+          "id": "screenshot_movie_card",
+          "type": "layout",
+          "orientation": "vertical",
+          "views": [
+            {
+              "type": "image",
+              "url": "${poster_path}",
+              "size": { "width": 140, "height": 200 }
+            },
+            {
+              "type": "text",
+              "title": "${title}",
+              "size": { "width": 140, "height": 45 }
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "label": "Popular people"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "{{BASE_URL}}popular-people",
+          "method": "get"
+        },
+        "mapping": "results",
+        "action": { "id": "screenshot_actor_detail" },
+        "itemView": {
+          "id": "screenshot_person_card",
+          "type": "layout",
+          "orientation": "vertical",
+          "views": [
+            {
+              "type": "image",
+              "url": "${profile_path}",
+              "size": { "width": 94, "height": 140 }
+            },
+            {
+              "type": "text",
+              "title": "${name}",
+              "size": { "width": 94, "height": 45 }
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "label": "About this fixture",
+        "title": "Stable local data keeps screenshot changes meaningful."
+      }
+    ]
+  },
+  "views": [
+    {
+      "id": "screenshot_movie_results",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "title": "Search results",
+          "textStyle": "bold",
+          "textSize": 24
+        },
+        {
+          "type": "list",
+          "mapping": "results",
+          "action": { "id": "screenshot_movie_detail" },
+          "itemView": {
+            "id": "screenshot_search_result_card",
+            "type": "layout",
+            "orientation": "horizontal",
+            "views": [
+              {
+                "type": "image",
+                "url": "${poster_path}",
+                "size": { "width": 94, "height": 140 }
+              },
+              {
+                "type": "text",
+                "label": "${title}",
+                "title": "Released ${release_date}\nRating ${vote_average}\n${overview}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "screenshot_movie_detail",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "url": "{{BASE_URL}}movie/${id}",
+        "method": "get",
+        "thenDo": {
+          "type": "show",
+          "view": {
+            "id": "screenshot_movie_detail_screen",
+            "type": "layout",
+            "views": [
+              {
+                "type": "text",
+                "mapping": "title",
+                "textStyle": "bold",
+                "textSize": 24
+              },
+              {
+                "type": "image",
+                "url": "${backdrop_path}",
+                "size": { "height": 180 }
+              },
+              {
+                "type": "text",
+                "label": "Released",
+                "mapping": "release_date"
+              },
+              {
+                "type": "text",
+                "label": "Overview",
+                "mapping": "overview"
+              },
+              {
+                "type": "text",
+                "label": "Cast"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "credits.cast",
+                "action": { "id": "screenshot_actor_detail" },
+                "itemView": {
+                  "id": "screenshot_cast_card",
+                  "type": "layout",
+                  "orientation": "vertical",
+                  "views": [
+                    {
+                      "type": "image",
+                      "url": "${profile_path}",
+                      "size": { "width": 94, "height": 140 }
+                    },
+                    {
+                      "type": "text",
+                      "title": "${name}",
+                      "size": { "width": 94, "height": 45 }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "screenshot_actor_detail",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "url": "{{BASE_URL}}person/${id}",
+        "method": "get",
+        "thenDo": {
+          "type": "show",
+          "view": {
+            "id": "screenshot_actor_detail_screen",
+            "type": "layout",
+            "views": [
+              {
+                "type": "text",
+                "mapping": "name",
+                "textStyle": "bold",
+                "textSize": 24
+              },
+              {
+                "type": "image",
+                "url": "${profile_path}",
+                "size": { "width": 140, "height": 200 }
+              },
+              {
+                "type": "text",
+                "label": "Biography",
+                "mapping": "biography"
+              },
+              {
+                "type": "text",
+                "label": "Known for"
+              },
+              {
+                "type": "list",
+                "orientation": "horizontal",
+                "mapping": "movie_credits.cast",
+                "action": { "id": "screenshot_movie_detail" },
+                "itemView": {
+                  "id": "screenshot_known_for_card",
+                  "type": "layout",
+                  "orientation": "vertical",
+                  "views": [
+                    {
+                      "type": "image",
+                      "url": "${poster_path}",
+                      "size": { "width": 94, "height": 140 }
+                    },
+                    {
+                      "type": "text",
+                      "title": "${title}",
+                      "size": { "width": 94, "height": 45 }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

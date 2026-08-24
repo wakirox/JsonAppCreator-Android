@@ -1,32 +1,42 @@
-apply plugin: 'com.android.application'
-
-apply plugin: 'kotlin-android'
-
-apply plugin: 'kotlin-android-extensions'
-
-apply plugin: 'org.jetbrains.kotlin.android.extensions'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
 
 android {
-    androidExtensions {
-        experimental = true
-    }
-    compileSdkVersion 29
+    namespace = 'it.sapienza.androidratio.appratio'
+    compileSdk 36
     defaultConfig {
         applicationId "it.sapienza.androidratio.appratio"
-        minSdkVersion 27
-        targetSdkVersion 29
+        minSdk 27
+        targetSdk 36
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            all {
+                workingDir = project.projectDir
+                jvmArgs += [
+                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util.concurrent=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                    '--add-opens=java.base/jdk.internal.access=ALL-UNNAMED'
+                ]
+                systemProperty 'recordScreenshots',
+                    project.findProperty('recordScreenshots') ?: 'false'
+            }
+        }
     }
 
     buildTypes {
@@ -35,33 +45,33 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        compose true
+    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.activity:activity-compose:1.9.1'
+    implementation 'androidx.compose.ui:ui:1.6.8'
+    implementation 'androidx.compose.ui:ui-tooling-preview:1.6.8'
+    implementation 'androidx.compose.foundation:foundation:1.6.8'
+    implementation 'androidx.compose.material3:material3:1.2.1'
 
-    implementation 'androidx.appcompat:appcompat:1.2.0-alpha02'
-    implementation 'androidx.core:core-ktx:1.3.0-alpha01'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha01'
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.20.0'
 
-    implementation 'com.github.bumptech.glide:glide:4.9.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.13.1'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.16'
+    testImplementation 'androidx.test:core-ktx:1.7.0'
+    testImplementation 'androidx.compose.ui:ui-test-junit4:1.6.8'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+    androidTestImplementation 'androidx.test:runner:1.7.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
 
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.3.0-alpha03'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha03'
-
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.8.+'
-
-    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
-    //implementation 'com.google.code.gson:gson:2.8.6'
-    implementation "com.squareup.okhttp3:logging-interceptor:4.0.1"
-    implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-    implementation 'com.github.pvarry:android-json-viewer:v1.1'
-
-    implementation "androidx.cardview:cardview:1.0.0"
-
-
+    debugImplementation "androidx.compose.ui:ui-test-manifest:1.6.8"
 }

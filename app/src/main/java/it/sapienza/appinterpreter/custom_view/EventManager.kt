@@ -69,7 +69,8 @@ object EventManager{
                 )
             }
             is ShowView -> {
-                (context as MainActivity).pushScreen(it.view, data)
+                val activity = context as MainActivity
+                activity.runOnUiThread { activity.pushScreen(it.view, data) }
             }
             is RESTService -> {
                 EventManager.manage(context, it, data)

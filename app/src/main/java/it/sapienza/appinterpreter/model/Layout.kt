@@ -13,14 +13,14 @@ class Layout(
     mapping : String? = null,
     data : MutableMap<Any?, Any?>? = null,
     var orientation: LayoutOrientation? = LayoutOrientation.vertical,
-    @JsonProperty("views") val _views: List<ViewObject> = listOf()
+    @JsonProperty("views") viewObjects: List<ViewObject> = listOf()
 ) : MView(id, action, mapping, data){
 
-    override fun isEmpty() = _views.isEmpty()
+    override fun isEmpty() = views.isEmpty()
 
 
    @JsonIgnore
-   var views : MutableList<MView> = _views.map { v->v.convert() }.toMutableList()
+   var views : MutableList<MView> = viewObjects.map { it.convert() }.toMutableList()
 
 //    fun convert(){
 //        convertedViews.clear()

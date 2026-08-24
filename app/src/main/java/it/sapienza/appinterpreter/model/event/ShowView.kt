@@ -6,9 +6,9 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model.view_model.helper.ViewObject
 
 class ShowView(
-    @JsonProperty("view") var _view : ViewObject,
+    @JsonProperty("view") viewObject : ViewObject,
     mapping : String?,
     data : MutableMap<Any?, Any?>?
 ) : Event(mapping, data) {
-    @JsonIgnore var view = _view.convert()
+    @JsonIgnore var view = viewObject.convert()
 }

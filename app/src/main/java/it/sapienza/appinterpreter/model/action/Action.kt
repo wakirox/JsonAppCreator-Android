@@ -10,11 +10,13 @@ import org.json.JSONObject
 class Action(val id : String,
              var data : MutableMap<Any?, Any?>?,
              val type : ActionType = ActionType.click,
-             @JsonProperty("event") val _event : EventObject?){
+             @JsonProperty("event") eventObject : EventObject?){
 
-    fun isEmpty() = _event == null
+    private val empty = eventObject == null
 
-    @JsonIgnore val event = _event?.eventInstance
+    fun isEmpty() = empty
+
+    @JsonIgnore val event = eventObject?.eventInstance
 
     var dataObj: JSONObject?
         get() = data?.let { JSONObject(it) }

@@ -15,15 +15,15 @@ class ModelApplication (
     var debugMode : Boolean? = false,
     var version : String,
     var changelog : String?,
-    @JsonProperty("mainView") var _mainView : ViewObject,
-    @JsonProperty("views") var _views: MutableList<ViewObject> = mutableListOf(),
+    @JsonProperty("mainView") mainViewObject : ViewObject,
+    @JsonProperty("views") viewObjects: MutableList<ViewObject> = mutableListOf(),
     var actions : MutableList<Action> = mutableListOf()
 ){
 
-   @JsonIgnore val mainView = _mainView.convert()
+   @JsonIgnore val mainView = mainViewObject.convert()
 
     @JsonIgnore
-    var views : MutableList<MView>  = _views.map { v->v.convert() }.toMutableList()
+    var views : MutableList<MView> = viewObjects.map { it.convert() }.toMutableList()
 
     fun viewBy(id: String) : MView? = views.find { s->s.id == id }
 

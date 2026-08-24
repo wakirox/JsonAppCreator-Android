@@ -6,15 +6,15 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * Serve per riempire le liste con dati paginati
  */
 abstract class DataService (
-    @JsonProperty("thenDo") var _thenDo : EventObject?,
+    @param:JsonProperty("thenDo") thenDoObject : EventObject?,
     mapping : String?,
     data : MutableMap<Any?, Any?>?
 ) : Event(mapping, data){
-    val thenDo = _thenDo?.eventInstance
+    val thenDo = thenDoObject?.eventInstance
 }
 
 class RESTService (val url : String,
                    val method : CallServiceMethod? = CallServiceMethod.get,
-                   @JsonProperty("thenDo") _thenDo : EventObject?,
+                   @param:JsonProperty("thenDo") thenDoObject : EventObject?,
                    mapping : String?,
-                   data : MutableMap<Any?, Any?>?) : DataService(_thenDo, mapping, data)
+                   data : MutableMap<Any?, Any?>?) : DataService(thenDoObject, mapping, data)

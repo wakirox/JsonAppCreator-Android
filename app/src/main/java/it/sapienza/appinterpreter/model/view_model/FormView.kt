@@ -7,15 +7,14 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 
 class FormView(var title : String?,
                var buttonTitle : String?,
-               @JsonProperty("formElements") val _formElements : List<FormObject>,
+               @JsonProperty("formElements") formElementObjects : List<FormObject>,
                id : String?,
                action : Action?,
                mapping : String?,
                data : MutableMap<Any?, Any?>?) : MView(id, action, mapping, data) {
 
-    override fun isEmpty() = _formElements.isEmpty()
+    override fun isEmpty() = formElements.isEmpty()
 
-    val formElements : List<FormElementImpl>
-        get() = _formElements.map { v->v.convert() }
+    val formElements : List<FormElementImpl> = formElementObjects.map { it.convert() }
 
 }

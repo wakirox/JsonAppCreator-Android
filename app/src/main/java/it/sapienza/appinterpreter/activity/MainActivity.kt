@@ -1,15 +1,14 @@
 package it.sapienza.appinterpreter.activity
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.fasterxml.jackson.core.type.TypeReference
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.alerts.AlertUtils
@@ -18,13 +17,14 @@ import it.sapienza.appinterpreter.extensions.getJsonExtra
 import it.sapienza.appinterpreter.extensions.putExtraJson
 import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.utils.AppParser
-import it.sapienza.appinterpreter.ContainerConfiguration
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.utils.DomainController
-import kotlinx.android.synthetic.main.activity_main.*
+import it.sapienza.appinterpreter.ui.AppTheme
+import it.sapienza.appinterpreter.ui.RendererScreen
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 
 fun spawnInstance(context: Context, model : MView) {
@@ -49,6 +49,24 @@ fun spawnNew(context: Context) {
 
 class MainActivity : AppCompatActivity() {
 
+    private var loading by mutableStateOf(false)
+
+    private val openJsonFile = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri ?: return@registerForActivityResult
+        try {
+            val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                ?: throw IllegalArgumentException("Unable to read the selected file")
+            AppParser(text).parseApplication2()
+            DomainController.setJsonFile(text, this)
+            spawnNew(this)
+        } catch (e: Exception) {
+            AlertUtils.showAlert(
+                this,
+                "An error occurred while reading the model\n${e.message ?: "Unrecognized error"}"
+            )
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -58,9 +76,29 @@ class MainActivity : AppCompatActivity() {
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //            WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
-        setContentView(R.layout.activity_main)
+        val model = initializeModel() ?: return
+        setContent { AppTheme { RendererScreen(model, loading) } }
 
-        if (intent.hasExtra("idView")) {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (isTaskRoot) {
+                    AlertUtils.showAlert(
+                        this@MainActivity,
+                        "Are you sure you want to close the app?",
+                        Runnable { finish() },
+                        Runnable { }
+                    )
+                } else {
+                    finish()
+                }
+            }
+        })
+
+        supportActionBar?.title = application.app()?.name
+    }
+
+    private fun initializeModel(): MView? {
+        return if (intent.hasExtra("idView")) {
 
             val view : MView =
                 application.app()!!.viewBy(intent.getStringExtra("idView")!!)!!
@@ -72,7 +110,7 @@ class MainActivity : AppCompatActivity() {
                 view.data = it
             }
 
-            addView(view)
+            view
 
         } else {
 
@@ -88,21 +126,17 @@ class MainActivity : AppCompatActivity() {
                     this, """An error occurred while parsing the model
                 |${e.message ?: "Unrecognized error"}""".trimMargin()
                 )
-                return
+                return null
             }
 
 
-            addView(application.app()!!.viewBy(application.app()!!.mainView)!!)
+            application.app()!!.viewBy(application.app()!!.mainView)!!
 
 //            application.app()!!.initService?.let {
 //                EventManager.evaluateEvent(this,it,null) //todo serve passare dei dati per l'init?
 //            }
 
         }
-
-
-        supportActionBar?.title = application.app()?.name
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -155,15 +189,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showLoading() {
-//        runOnUiThread {
-//            this.spin_kit.visibility = View.VISIBLE
-//        }
+        runOnUiThread { loading = true }
     }
 
     fun hideLoading() {
-//        runOnUiThread {
-//            this.spin_kit.visibility = View.GONE
-//        }
+        runOnUiThread { loading = false }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -173,10 +203,7 @@ class MainActivity : AppCompatActivity() {
                 changelog = application.app()!!.changelog!!
             )
         } else if (item.itemId == 4) {
-            val intent = Intent()
-                .setType("application/json")
-                .setAction(Intent.ACTION_GET_CONTENT)
-            startActivityForResult(Intent.createChooser(intent, "Select a json model"), 111)
+            openJsonFile.launch("application/json")
         } else if (item.itemId == 5) {
             startActivity(Intent(this, JsonActivity::class.java))
         } else if (item.itemId == 6) {
@@ -198,123 +225,6 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == 111 && resultCode == RESULT_OK) {
-
-            try {
-                data?.data?.let {
-                    contentResolver.openInputStream(it)
-                }?.let {
-                    val r = BufferedReader(InputStreamReader(it))
-
-                    val text = r.readText()
-                    val parser = AppParser(text)
-
-                    try {
-                        //verifico se il file è buono altrimenti mostro l'errore e basta
-                        parser.parseApplication2()
-                        DomainController.setJsonFile(text, this)
-                        spawnNew(this)
-                    } catch (e: java.lang.Exception) {
-                        e.printStackTrace()
-                        AlertUtils.showAlert(
-                            this, """An error occurred while parsing the model
-                |${e.message ?: "Unrecognized error"}""".trimMargin()
-                        )
-                        return
-                    }
-                }
-
-            } catch (e: Exception) { // If the app failed to attempt to retrieve the error file, throw an error alert
-                AlertUtils.showAlert(
-                    this,
-                    "Sorry, but there was an error reading in the file"
-                )
-            }
-
-        }
-    }
-
-    fun filePermissionCheck(runnable: Runnable) {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_CONTACTS
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-
-            // Permission is not granted
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.READ_CONTACTS
-                )
-            ) {
-
-                AlertUtils.showAlert(
-                    this,
-                    "If you want to load a model from your device you have to accept the permission"
-                )
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-            } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_CONTACTS),
-                    11
-                )
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        } else {
-            // Permission has already been granted
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        when (requestCode) {
-            11 -> {
-                // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return
-            }
-
-            // Add other 'when' lines to check for other
-            // permissions this app might request.
-            else -> {
-                // Ignore all other requests.
-            }
-        }
-    }
-
-    fun addView(model: MView) {
-        ContainerConfiguration.createContainer(
-            this,
-            application.app()!!,
-            model,
-            linearLayout
-        )
-    }
-
-    fun clear() {
-        linearLayout.removeAllViews()
-    }
-
     fun pushViewWithId(id: String, obj: JSONObject?) {
         val view = application.app()!!.viewBy(id)!!
         obj?.let {
@@ -332,16 +242,5 @@ class MainActivity : AppCompatActivity() {
         }
         spawnInstance(this, _view)
     }
-
-    override fun onBackPressed() {
-        if(isTaskRoot){
-            AlertUtils.showAlert(this,"Are you sure you want to close the app?", Runnable {
-                super.onBackPressed()
-            }, Runnable {  })
-        }else{
-            super.onBackPressed()
-        }
-    }
-
 
 }
