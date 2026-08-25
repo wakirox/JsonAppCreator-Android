@@ -14,6 +14,10 @@ Configure these repository Actions secrets:
 - `ANDROID_KEY_ALIAS`: the signing key alias
 - `ANDROID_KEY_PASSWORD`: the signing key password
 
+An optional `APP_CONFIG_KEYS_BASE64` secret can provide Base64-encoded, per-bundled-
+configuration API-key properties. These values are compiled into the APK and are
+recoverable by anyone who downloads it, so use only restricted client keys.
+
 The release workflow fails if any value is missing. It decodes the keystore only into
 the runner's temporary directory and removes it after the job. Never commit a
 keystore, Base64 keystore data, passwords, or locally signed APKs.

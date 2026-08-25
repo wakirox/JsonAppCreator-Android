@@ -44,6 +44,8 @@ jobs:
         run: ./gradlew --no-daemon :app:validateConfig -Pconfig=examples/v3_static_catalog.json
 
       - name: Build debug APK
+        env:
+          APP_CONFIG_KEYS_BASE64: ${{ secrets.APP_CONFIG_KEYS_BASE64 }}
         run: ./gradlew --no-daemon :app:assembleDebug
 
       - name: Upload debug APK
