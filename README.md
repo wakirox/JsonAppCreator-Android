@@ -134,9 +134,13 @@ APP_CONFIG_KEYS_FILE=/secure/path/config-keys.properties ./gradlew :app:assemble
 # or: ./gradlew :app:assembleDebug -PconfigApiKeysFile=/secure/path/config-keys.properties
 ```
 
-CI can instead set `APP_CONFIG_KEYS_BASE64` to Base64-encoded properties content. Key
-values are not logged, but build-time credentials are compiled into the APK and can be
-extracted. Use restricted, non-privileged keys and rotate them if exposed.
+GitHub Actions builds can use a repository secret named `TMDB_API_KEY` directly. Add
+it under **Repository settings → Secrets and variables → Actions → New repository
+secret**; both the CI and release workflows pass it to Gradle. For multiple bundled
+configurations, CI can instead set `APP_CONFIG_KEYS_BASE64` to Base64-encoded
+properties content. If both contain a TMDB value, `TMDB_API_KEY` takes precedence.
+Key values are not logged, but build-time credentials are compiled into the APK and
+can be extracted. Use restricted, non-privileged keys and rotate them if exposed.
 
 Run all unit and screenshot tests:
 

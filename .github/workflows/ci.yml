@@ -49,6 +49,7 @@ jobs:
       - name: Build debug APK
         env:
           APP_CONFIG_KEYS_BASE64: ${{ secrets.APP_CONFIG_KEYS_BASE64 }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: ./gradlew --no-daemon :app:assembleDebug
 
       - name: Upload debug APK

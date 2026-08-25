@@ -408,9 +408,12 @@ v3_the_movie_db.TMDB_API_KEY=<your-own-key>
 
 Set `APP_CONFIG_KEYS_FILE` to the file path, pass
 `-PconfigApiKeysFile=/secure/path/config-keys.properties`, or provide Base64-encoded
-properties content as `APP_CONFIG_KEYS_BASE64`. Keep the source file outside the
-repository. Build-time keys are embedded in the APK and are therefore recoverable by
-someone who has the APK; only use restricted client keys.
+properties content as `APP_CONFIG_KEYS_BASE64`. The bundled TMDB configuration also
+accepts `TMDB_API_KEY` directly; GitHub Actions passes the repository secret with that
+name to CI and release builds. A direct `TMDB_API_KEY` overrides the corresponding
+value from the properties source. Keep source files outside the repository.
+Build-time keys are embedded in the APK and are therefore recoverable by someone who
+has the APK; only use restricted client keys.
 
 An `initData` object on a list uses the same REST fields but does not need a `type`:
 

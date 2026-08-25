@@ -122,6 +122,7 @@ jobs:
           APP_VERSION_NAME: ${{ steps.version.outputs.version_name }}
           APP_VERSION_CODE: ${{ steps.version.outputs.version_code }}
           APP_CONFIG_KEYS_BASE64: ${{ secrets.APP_CONFIG_KEYS_BASE64 }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/json-app-creator-release.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}

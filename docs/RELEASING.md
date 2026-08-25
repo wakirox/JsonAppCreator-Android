@@ -14,9 +14,12 @@ Configure these repository Actions secrets:
 - `ANDROID_KEY_ALIAS`: the signing key alias
 - `ANDROID_KEY_PASSWORD`: the signing key password
 
-An optional `APP_CONFIG_KEYS_BASE64` secret can provide Base64-encoded, per-bundled-
-configuration API-key properties. These values are compiled into the APK and are
-recoverable by anyone who downloads it, so use only restricted client keys.
+An optional `TMDB_API_KEY` repository secret supplies the TMDB key directly to both
+CI and release builds. For multiple bundled configurations, the optional
+`APP_CONFIG_KEYS_BASE64` secret can provide Base64-encoded, per-configuration API-key
+properties. `TMDB_API_KEY` takes precedence if both sources define the TMDB key.
+These values are compiled into the APK and are recoverable by anyone who downloads
+it, so use only restricted client keys.
 
 The release workflow fails if any value is missing. It decodes the keystore only into
 the runner's temporary directory and removes it after the job. Never commit a
@@ -60,9 +63,10 @@ gh secret set ANDROID_KEYSTORE_BASE64 < json-app-creator-release.keystore.base64
 gh secret set ANDROID_KEYSTORE_PASSWORD
 gh secret set ANDROID_KEY_ALIAS
 gh secret set ANDROID_KEY_PASSWORD
+gh secret set TMDB_API_KEY
 ```
 
-The last three commands prompt for their values. Delete the temporary Base64 file
+The last four commands prompt for their values. Delete the temporary Base64 file
 after the secret is stored, and never paste secret values into command arguments,
 shell history, workflow logs, issues, or chat.
 

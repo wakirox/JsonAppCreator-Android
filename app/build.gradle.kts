@@ -51,6 +51,7 @@ val environmentConfigApiKeysFile = environmentValue("APP_CONFIG_KEYS_FILE")
 val gradleConfigApiKeysFile = providers.gradleProperty("configApiKeysFile").orNull
     ?.takeUnless { it.isBlank() }
 val encodedConfigApiKeys = environmentValue("APP_CONFIG_KEYS_BASE64")
+val tmdbApiKey = environmentValue("TMDB_API_KEY")
 val suppliedConfigApiKeySources = listOfNotNull(
     environmentConfigApiKeysFile,
     gradleConfigApiKeysFile,
@@ -86,6 +87,12 @@ if (configApiKeysFile != null) {
     } catch (_: IllegalArgumentException) {
         throw GradleException("APP_CONFIG_KEYS_BASE64 contains malformed properties data.")
     }
+}
+
+// Allow CI to provide the key as a regular GitHub Actions secret without first
+// wrapping it in a Base64-encoded Java properties file.
+if (tmdbApiKey != null) {
+    configApiKeyProperties["v3_the_movie_db.TMDB_API_KEY"] = tmdbApiKey
 }
 
 val bundledConfigApiKeys = sortedMapOf<String, MutableMap<String, String>>()
