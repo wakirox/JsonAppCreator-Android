@@ -231,7 +231,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.20.0")
-    implementation("com.networknt:json-schema-validator:1.0.87")
+    implementation("com.networknt:json-schema-validator:3.0.7")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16")
