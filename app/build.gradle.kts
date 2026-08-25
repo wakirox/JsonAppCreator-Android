@@ -138,7 +138,7 @@ val releaseSigningConfigured = suppliedSigningValueCount == releaseSigningValues
 
 android {
     namespace = "it.sapienza.androidratio.appratio"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "it.sapienza.androidratio.appratio"
@@ -217,31 +217,44 @@ android {
             assets.directories.add(rootProject.file("schema").absolutePath)
         }
     }
+
+    packaging {
+        resources.pickFirsts += setOf(
+            "META-INF/FastDoubleParser-LICENSE",
+            "META-INF/FastDoubleParser-ThirdParty-LICENSE",
+            "META-INF/Schubfach-LICENSE"
+        )
+    }
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.activity:activity-compose:1.9.1")
-    implementation("androidx.compose.ui:ui:1.6.8")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
-    implementation("androidx.compose.foundation:foundation:1.6.8")
-    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
+    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.activity:activity-compose:1.13.0")
 
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.20.0")
-    implementation("com.networknt:json-schema-validator:1.0.87")
+    val composeBom = platform("androidx.compose:compose-bom:2026.08.00")
+    implementation(composeBom)
+    testImplementation(composeBom)
+    debugImplementation(composeBom)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.material3:material3")
+
+    implementation("com.github.bumptech.glide:glide:5.0.9")
+    implementation("com.squareup.okhttp3:okhttp:5.5.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2")
+    implementation("com.networknt:json-schema-validator:3.0.7")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("org.robolectric:robolectric:4.16.1")
     testImplementation("androidx.test:core-ktx:1.7.0")
-    testImplementation("androidx.compose.ui:ui-test-junit4:1.6.8")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.5.0")
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
 
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.8")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
 
 val configToValidate = providers.gradleProperty("config")

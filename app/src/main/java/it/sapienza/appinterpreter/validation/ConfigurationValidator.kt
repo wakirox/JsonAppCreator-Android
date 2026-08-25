@@ -3,9 +3,12 @@ package it.sapienza.appinterpreter.validation
 import android.content.Context
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.networknt.schema.JsonSchema
-import com.networknt.schema.JsonSchemaFactory
-import com.networknt.schema.SpecVersion
+import com.networknt.schema.InputFormat
+import com.networknt.schema.Schema
+import com.networknt.schema.SchemaRegistry
+import com.networknt.schema.SchemaRegistryConfig
+import com.networknt.schema.SpecificationVersion
+import com.networknt.schema.path.PathType
 import java.io.InputStream
 
 enum class ConfigurationIssueKind {
@@ -34,7 +37,7 @@ data class ConfigurationValidationResult(
  * only the first Jackson conversion exception.
  */
 class ConfigurationValidator private constructor(
-    private val schema: JsonSchema,
+    private val schema: Schema,
     private val mapper: ObjectMapper = ObjectMapper()
 ) {
     fun validate(json: String): ConfigurationValidationResult {
@@ -70,9 +73,10 @@ class ConfigurationValidator private constructor(
             )
         }
 
-        val issues = schema.validate(document)
+        val issues = schema.validate(json, InputFormat.JSON)
             .map { validationMessage ->
-                val path = validationMessage.path?.takeIf(String::isNotBlank) ?: "$"
+                val path = validationMessage.instanceLocation.toString()
+                    .takeIf(String::isNotBlank) ?: "$"
                 ConfigurationIssue(
                     path = path,
                     message = validationMessage.message
@@ -94,8 +98,14 @@ class ConfigurationValidator private constructor(
             context.assets.open(ASSET_PATH).use { fromSchema(it) }
 
         fun fromSchema(schemaInput: InputStream): ConfigurationValidator {
-            val schema = JsonSchemaFactory
-                .getInstance(SpecVersion.VersionFlag.V202012)
+            val schema = SchemaRegistry
+                .withDefaultDialect(SpecificationVersion.DRAFT_2020_12) { builder ->
+                    builder.schemaRegistryConfig(
+                        SchemaRegistryConfig.builder()
+                            .pathType(PathType.LEGACY)
+                            .build()
+                    )
+                }
                 .getSchema(schemaInput)
             return ConfigurationValidator(schema)
         }

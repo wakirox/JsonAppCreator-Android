@@ -1,11 +1,10 @@
 package it.sapienza.androidratio.appratio
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.networknt.schema.JsonSchema
-import com.networknt.schema.JsonSchemaFactory
-import com.networknt.schema.SpecVersion
-import com.networknt.schema.ValidationMessage
+import com.networknt.schema.Error
+import com.networknt.schema.InputFormat
+import com.networknt.schema.Schema
+import com.networknt.schema.SchemaRegistry
+import com.networknt.schema.SpecificationVersion
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.nio.file.Files
@@ -14,14 +13,13 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.name
 
 class ConfigSchemaValidationTest {
-    private val mapper = ObjectMapper()
-
-    private val schema: JsonSchema by lazy {
+    private val schema: Schema by lazy {
         val schemaPath = Path.of("..", "schema", "v3.schema.json")
-        val schemaDocument = Files.newBufferedReader(schemaPath).use(mapper::readTree)
-        JsonSchemaFactory
-            .getInstance(SpecVersion.VersionFlag.V202012)
-            .getSchema(schemaDocument)
+        Files.newInputStream(schemaPath).use {
+            SchemaRegistry
+                .withDefaultDialect(SpecificationVersion.DRAFT_2020_12)
+                .getSchema(it)
+        }
     }
 
     @Test
@@ -108,23 +106,23 @@ class ConfigSchemaValidationTest {
     }
 
     private fun assertValid(path: Path) {
-        val document = Files.newBufferedReader(path).use(mapper::readTree)
-        val errors = schema.validate(document)
+        val errors = schema.validate(Files.readString(path), InputFormat.JSON)
         assertTrue(validationFailure(path.toString(), errors), errors.isEmpty())
     }
 
     private fun assertValid(json: String) {
-        val document: JsonNode = mapper.readTree(json)
-        val errors = schema.validate(document)
+        val errors = schema.validate(json, InputFormat.JSON)
         assertTrue(validationFailure("inline test configuration", errors), errors.isEmpty())
     }
 
     private fun assertInvalid(json: String) {
-        val document: JsonNode = mapper.readTree(json)
-        assertTrue("Expected configuration to be rejected", schema.validate(document).isNotEmpty())
+        assertTrue(
+            "Expected configuration to be rejected",
+            schema.validate(json, InputFormat.JSON).isNotEmpty()
+        )
     }
 
-    private fun validationFailure(path: String, errors: Set<ValidationMessage>): String =
+    private fun validationFailure(path: String, errors: List<Error>): String =
         buildString {
             append("Configuration does not match schema/v3.schema.json: ")
             append(path)
