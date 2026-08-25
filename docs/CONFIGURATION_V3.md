@@ -379,6 +379,39 @@ the previous view.
 - Custom headers, authentication configuration, and JSON arrays
   at the response root are not currently supported.
 
+#### API-key placeholders
+
+Keep credentials outside configuration JSON by using an uppercase named placeholder
+in a REST URL:
+
+```json
+{
+  "type": "rest",
+  "url": "https://api.example.com/items?api_key=__CATALOG_API_KEY__",
+  "method": "get"
+}
+```
+
+Names must match `__[A-Z][A-Z0-9_]*__`. They are distinct from `${path}` data
+interpolation. When a JSON file is loaded from a device, the app prompts for every
+key, encrypts the values with Android Keystore, and stores them in private app storage
+under a SHA-256 identity for that exact JSON. The original JSON remains unchanged, so
+viewing or sharing it does not expose the keys. Loading the same file again can reuse
+or replace its saved values; changing the file gives it a separate identity.
+
+For a bundled file in `app/src/main/res/raw`, builds can supply values from an external
+Java properties file. Scope each entry with the raw-resource name:
+
+```properties
+v3_the_movie_db.TMDB_API_KEY=<your-own-key>
+```
+
+Set `APP_CONFIG_KEYS_FILE` to the file path, pass
+`-PconfigApiKeysFile=/secure/path/config-keys.properties`, or provide Base64-encoded
+properties content as `APP_CONFIG_KEYS_BASE64`. Keep the source file outside the
+repository. Build-time keys are embedded in the APK and are therefore recoverable by
+someone who has the APK; only use restricted client keys.
+
 An `initData` object on a list uses the same REST fields but does not need a `type`:
 
 ```json

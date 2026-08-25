@@ -1,13 +1,31 @@
+# IDE and operating-system files
+.idea/
+.vscode/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 .DS_Store
-/build
-/captures
-.externalNativeBuild
+
+# Gradle and Android build output
+.gradle/
+**/build/
+/local.properties
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.apk.sha256
+*.aab
+
+# Local credentials and signing material
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+keystore.properties
+secrets.properties
+google-services.json
+service-account*.json

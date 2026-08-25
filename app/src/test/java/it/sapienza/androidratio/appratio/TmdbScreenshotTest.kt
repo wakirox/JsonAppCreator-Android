@@ -117,6 +117,8 @@ class TmdbScreenshotTest {
 
         awaitText("A cartographer follows a signal beyond the mapped sky.")
         awaitTag("image-101")
+        awaitTag("image-201")
+        awaitTag("image-202")
         assertScreenshot("tmdb_movie_details")
     }
 
@@ -153,7 +155,9 @@ class TmdbScreenshotTest {
         awaitText("Northstar")
         awaitText("Mira Vale")
         awaitTag("image-101")
+        awaitTag("image-102")
         awaitTag("image-201")
+        awaitTag("image-202")
     }
 
     private fun awaitText(text: String) {

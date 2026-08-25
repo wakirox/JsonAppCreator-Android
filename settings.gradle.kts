@@ -1,3 +1,5 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
 pluginManagement {
     repositories {
         google()
@@ -11,9 +13,9 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri('https://jitpack.io') }
+        maven(url = "https://jitpack.io")
     }
 }
 
-rootProject.name = 'JsonAppCreator'
-include ':app'
+rootProject.name = "JsonAppCreator"
+include(":app")

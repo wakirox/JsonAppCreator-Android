@@ -14,7 +14,7 @@ import java.io.IOException
 import java.util.function.Consumer
 
 object EventManager{
-    fun manage(context: Context, event: RESTService, data: JSONObject?): Call {
+    fun manage(context: Context, event: RESTService, data: JSONObject?): Call? {
         return manage(context,event,data, Consumer { response ->
             event.thenDo?.let {
                 evaluateEvent(context,it,response)
@@ -28,7 +28,7 @@ object EventManager{
         data: JSONObject?,
         callbackConsumer: Consumer<JSONObject>,
         showLoading: Boolean = true
-    ): Call {
+    ): Call? {
         val url = event.url.matchReplace(data)
 
         val activity = (context as? MainActivity)
@@ -40,10 +40,9 @@ object EventManager{
                 if (showLoading) activity?.hideLoading()
                 response.use {
                     if (!response.isSuccessful) {
-                        val details = response.body?.string().orEmpty()
                         AlertUtils.showAlert(
                             context,
-                            "Request failed with ${response.code} for ${call.request().url}\n$details"
+                            "Request failed with ${response.code}"
                         )
                         return
                     }
@@ -58,14 +57,20 @@ object EventManager{
                 AlertUtils.showAlert(context,e.message ?: "An error occurred")
             }
         }
-        return when(event.method){
-            CallServiceMethod.post -> {
-                //TODO inserire l'oggetto
-                HttpClient.post(url, data, callback)
+        return try {
+            when(event.method){
+                CallServiceMethod.post -> {
+                    //TODO inserire l'oggetto
+                    HttpClient.post(url, data, callback)
+                }
+                else -> {
+                    HttpClient.get(url, callback)
+                }
             }
-            else -> {
-                HttpClient.get(url, callback)
-            }
+        } catch (error: IllegalStateException) {
+            if (showLoading) activity?.hideLoading()
+            AlertUtils.showAlert(context, error.message ?: "A configuration API key is missing")
+            null
         }
     }
 

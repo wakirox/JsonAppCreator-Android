@@ -16,7 +16,9 @@ import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.ScreenRuntimeState
+import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.ui.ApiKeyEntryDialog
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.MainScreen
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
@@ -51,6 +53,9 @@ class MainActivity : ComponentActivity() {
     private var loading by mutableStateOf(false)
     private var loadingRequests = 0
     private var screenState: ScreenRuntimeState? = null
+    private var pendingConfiguration by mutableStateOf<String?>(null)
+    private var pendingApiKeyNames by mutableStateOf<Set<String>>(emptySet())
+    private var savedApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
     }
@@ -60,9 +65,7 @@ class MainActivity : ComponentActivity() {
         try {
             val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                 ?: throw IllegalArgumentException("Unable to read the selected file")
-            configurationParser.parse(text)
-            DomainController.setJsonFile(text, this)
-            spawnNew(this)
+            prepareLoadedConfiguration(text)
         } catch (e: Exception) {
             AlertUtils.showAlert(
                 this,
@@ -114,6 +117,17 @@ class MainActivity : ComponentActivity() {
                         loadSampleConfiguration(R.raw.v3_pokedex)
                     }
                 )
+                pendingConfiguration?.let { json ->
+                    ApiKeyEntryDialog(
+                        names = pendingApiKeyNames,
+                        savedNames = savedApiKeyNames,
+                        onConfirm = { values ->
+                            ConfigurationApiKeys.save(json, values)
+                            commitLoadedConfiguration(json)
+                        },
+                        onDismiss = { clearPendingConfiguration() }
+                    )
+                }
             }
         }
 
@@ -164,7 +178,6 @@ class MainActivity : ComponentActivity() {
     private fun loadApplicationModel() = try {
         configurationParser.parse(DomainController.jsonFile(this)).also(application::setApp)
     } catch (e: Exception) {
-        e.printStackTrace()
         AlertUtils.showAlert(
             this,
             """The saved configuration is invalid
@@ -200,6 +213,32 @@ class MainActivity : ComponentActivity() {
     private fun loadSampleConfiguration(resourceId: Int) {
         DomainController.setJsonFile(resourceId, this)
         spawnNew(this)
+    }
+
+    private fun prepareLoadedConfiguration(json: String) {
+        configurationParser.parse(json)
+        val names = ConfigurationApiKeys.placeholderNames(json)
+        if (names.isEmpty()) {
+            commitLoadedConfiguration(json)
+            return
+        }
+        pendingConfiguration = json
+        pendingApiKeyNames = names
+        savedApiKeyNames = names.filterTo(mutableSetOf()) {
+            ConfigurationApiKeys.hasSavedValue(json, it)
+        }
+    }
+
+    private fun commitLoadedConfiguration(json: String) {
+        DomainController.setJsonFile(json, this)
+        clearPendingConfiguration()
+        spawnNew(this)
+    }
+
+    private fun clearPendingConfiguration() {
+        pendingConfiguration = null
+        pendingApiKeyNames = emptySet()
+        savedApiKeyNames = emptySet()
     }
 
     fun pushViewWithId(id: String, obj: JSONObject?) {

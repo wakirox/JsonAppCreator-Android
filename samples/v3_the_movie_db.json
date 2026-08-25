@@ -25,7 +25,7 @@
           "type": "click",
           "event": {
             "type": "rest",
-            "url": "https://api.themoviedb.org/3/search/movie?api_key=0bfaf3c0640773566cb7692affcae335&query=${title}",
+            "url": "https://api.themoviedb.org/3/search/movie?api_key=__TMDB_API_KEY__&query=${title}",
             "method": "get",
             "thenDo": {
               "type": "show",
@@ -48,7 +48,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://api.themoviedb.org/3/discover/movie?page=1&sort_by=popularity.desc&api_key=0bfaf3c0640773566cb7692affcae335"
+          "url": "https://api.themoviedb.org/3/discover/movie?page=1&sort_by=popularity.desc&api_key=__TMDB_API_KEY__"
         },
         "mapping": "results",
         "action": {
@@ -89,7 +89,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://api.themoviedb.org/3/person/popular?api_key=0bfaf3c0640773566cb7692affcae335"
+          "url": "https://api.themoviedb.org/3/person/popular?api_key=__TMDB_API_KEY__"
         },
         "mapping": "results",
         "action": {
@@ -224,7 +224,7 @@
       "type": "click",
       "event": {
         "type": "rest",
-        "url": "https://api.themoviedb.org/3/movie/${id}?api_key=0bfaf3c0640773566cb7692affcae335&append_to_response=images,credits",
+        "url": "https://api.themoviedb.org/3/movie/${id}?api_key=__TMDB_API_KEY__&append_to_response=images,credits",
         "thenDo": {
           "type": "show",
           "view": {
@@ -274,7 +274,7 @@
                       "type": "click",
                       "event": {
                         "type": "rest",
-                        "url": "https://api.themoviedb.org/3/movie/${id}/reviews?api_key=0bfaf3c0640773566cb7692affcae335",
+                        "url": "https://api.themoviedb.org/3/movie/${id}/reviews?api_key=__TMDB_API_KEY__",
                         "thenDo": {
                           "type": "show",
                           "view": {
@@ -304,7 +304,7 @@
                       "type": "click",
                       "event": {
                         "type": "rest",
-                        "url": "https://api.themoviedb.org/3/movie/${id}/similar?api_key=0bfaf3c0640773566cb7692affcae335",
+                        "url": "https://api.themoviedb.org/3/movie/${id}/similar?api_key=__TMDB_API_KEY__",
                         "thenDo": {
                           "type": "show",
                           "view": {
@@ -379,7 +379,7 @@
       "type": "click",
       "event": {
         "type": "rest",
-        "url": "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=0bfaf3c0640773566cb7692affcae335",
+        "url": "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=__TMDB_API_KEY__",
         "thenDo": {
           "type": "show",
           "view": {
@@ -393,7 +393,7 @@
       "type": "click",
       "event": {
         "type": "rest",
-        "url": "https://api.themoviedb.org/3/person/${id}?append_to_response=images,movie_credits&api_key=0bfaf3c0640773566cb7692affcae335",
+        "url": "https://api.themoviedb.org/3/person/${id}?append_to_response=images,movie_credits&api_key=__TMDB_API_KEY__",
         "thenDo": {
           "type": "show",
           "view": {

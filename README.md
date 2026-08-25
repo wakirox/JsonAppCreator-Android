@@ -1,5 +1,10 @@
 # JSON App Creator
 
+[![CI](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/wakirox/JsonAppCreator-Android)](https://github.com/wakirox/JsonAppCreator-Android/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Android API 27+](https://img.shields.io/badge/Android-API%2027%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/tools/releases/platforms#8.1)
+
 JSON App Creator is an Android interpreter that turns a JSON configuration into a
 native, interactive app. Configurations can define layouts, text, images, lists,
 forms, navigation, alerts, data binding, and REST requests without creating another
@@ -20,10 +25,13 @@ LLMs, then validated before the app loads it.
 - In-app JSON Schema and semantic reference validation
 - Isolated runtime data for every opened screen
 
-## Try it
+## Download
 
-A prebuilt APK is available at [`samples/AppInterpreter.apk`](samples/AppInterpreter.apk).
-It requires Android 8.1 (API 27) or newer.
+Download the latest signed APK and its SHA-256 checksum from
+[GitHub Releases](https://github.com/wakirox/JsonAppCreator-Android/releases/latest).
+The app requires Android 8.1 (API 27) or newer.
+
+## Try it
 
 1. Create a UTF-8 JSON file using the v3 format.
 2. Open JSON App Creator and open the three-dot menu.
@@ -33,6 +41,10 @@ It requires Android 8.1 (API 27) or newer.
 The app validates the complete file before saving or displaying it. Invalid files show
 path-based feedback such as `$.mainView.views[1].type`. The last valid configuration
 remains saved.
+
+Configurations may use named API-key placeholders such as `__TMDB_API_KEY__`. When a
+loaded file contains one, the app asks for the value and encrypts it in private app
+storage, scoped to that exact JSON file. The key is never inserted into the saved JSON.
 
 Android can also offer JSON App Creator when another app opens an `application/json`
 file. Use **View current configuration** to inspect the active JSON.
@@ -108,6 +120,24 @@ Build the debug APK:
 
 The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
+Bundled configurations can receive placeholder values from an untracked Java
+properties file outside the repository. Each property is scoped by raw-resource name:
+
+```properties
+v3_the_movie_db.TMDB_API_KEY=<your-own-key>
+```
+
+Point Gradle to it through the environment or a Gradle property:
+
+```sh
+APP_CONFIG_KEYS_FILE=/secure/path/config-keys.properties ./gradlew :app:assembleDebug
+# or: ./gradlew :app:assembleDebug -PconfigApiKeysFile=/secure/path/config-keys.properties
+```
+
+CI can instead set `APP_CONFIG_KEYS_BASE64` to Base64-encoded properties content. Key
+values are not logged, but build-time credentials are compiled into the APK and can be
+extracted. Use restricted, non-privileged keys and rotate them if exposed.
+
 Run all unit and screenshot tests:
 
 ```sh
@@ -122,6 +152,15 @@ Run the configuration-focused tests:
   --tests '*ConfigSchemaValidationTest' \
   --tests '*AppParserReferenceTest'
 ```
+
+## Automation
+
+Pushes to `master` run the complete unit and screenshot suite, validate a public
+configuration, and build a short-lived debug APK artifact. Tags such as `v1.0.0` run
+the same checks before producing a signature-verified release APK and checksum.
+
+Release signing setup, version derivation, tagging, verification, and key recovery are
+documented in [the release guide](docs/RELEASING.md).
 
 ## Project structure
 
@@ -140,4 +179,8 @@ samples/                           Shareable APK and full configuration example
 
 The app is written in Kotlin and rendered with Jetpack Compose. JSON is parsed with
 Jackson, JSON Schema validation uses NetworkNT, HTTP requests use OkHttp, and remote
-images are loaded with Glide.
+images are loaded with Glide. Gradle configuration uses Kotlin DSL.
+
+## License
+
+JSON App Creator is available under the [MIT License](LICENSE).
