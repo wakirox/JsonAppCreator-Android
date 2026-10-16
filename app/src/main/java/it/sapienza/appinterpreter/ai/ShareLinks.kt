@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
  */
 object ShareLinks {
     private val LINK = Regex(
-        """https?://(?:www\.)?(?:chatgpt\.com/share/|chat\.openai\.com/share/|g\.co/gemini/share/|""" +
+        """https?://(?:www\.)?(?:chatgpt\.com/share/|chatgpt\.com/s/|chat\.openai\.com/share/|g\.co/gemini/share/|""" +
             """gemini\.google\.com/share/|share\.gemini\.google/|grok\.com/share/|x\.com/i/grok/share/)[\w\-./?=&%]+"""
     )
     private const val USER_AGENT =
