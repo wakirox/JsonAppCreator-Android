@@ -161,6 +161,7 @@ private fun SectionHeader(text: String) {
 private val EXAMPLES = listOf(
     Triple("Masterpieces", "A gallery of famous paintings with a screen for each", R.raw.v3_masterpieces),
     Triple("Hello", "The smallest app: one screen of text", R.raw.v3_app_sample),
+    Triple("Summer Run", "A race sign-up form with required fields", R.raw.v3_race_signup),
     Triple("Form", "Every kind of form field", R.raw.v3_app_form),
     Triple("Kanto Pokédex", "A list loaded from the web, with details", R.raw.v3_pokedex),
     Triple("The Movie DB", "Movies from an online API (needs your own API key)", R.raw.v3_the_movie_db)
