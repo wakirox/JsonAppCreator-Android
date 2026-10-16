@@ -154,6 +154,10 @@ class EditorAssistTest {
         assertTrue(!numberAt("""{ "mainView": { "type": "text", "label": "2|0" } }"""))
         assertTrue(!numberAt("""{ "mainView": { "type": "text", "label": | } }"""))
         assertTrue(!numberAt("""{ "mainView": { "type": "text", | } }"""))
+        // On the next line the letters come back, for "}" or the next property.
+        assertTrue(!numberAt("{ \"mainView\": { \"type\": \"text\", \"textSize\": 20\n|} }"))
+        // Digits typed for a property the schema doesn't know (inside data) still get the number pad.
+        assertTrue(numberAt("""{ "mainView": { "type": "text", "data": { "price": 1|9 } } }"""))
     }
 
     @Test

@@ -2,6 +2,7 @@ package it.sapienza.appinterpreter.ai
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.EditorIssue
 import it.sapienza.appinterpreter.editor.prettyJson
 
@@ -137,11 +138,13 @@ object AiContext {
     /**
      * The last configuration in a page or API response holding a whole conversation, such as a shared chat, where
      * the AI's answers sit inside JavaScript or JSON strings, escaped once or more: each level of escaping is undone
-     * in turn until an object with "schemaVersion" and "mainView" parses. The examples from the prompt, which the
-     * conversation also contains, are skipped.
+     * in turn until an object with "schemaVersion" and "mainView" parses. Exact copies of [promptExamples] (the
+     * prompt's examples, which the conversation also contains) and the guide's skeleton are skipped; an AI's own app
+     * is returned whatever its name, even one changed from an example.
      */
-    fun lastConfiguration(page: String): String? {
+    fun lastConfiguration(page: String, promptExamples: Collection<String> = emptyList()): String? {
         val mapper = ObjectMapper()
+        val examples = promptExamples.mapNotNull { runCatching { mapper.readTree(it) }.getOrNull() }.toSet()
         var text = page
         repeat(MAX_ESCAPING) {
             val chars = text.toCharArray()
@@ -154,7 +157,7 @@ object AiContext {
                         mapper.factory.createParser(chars, start, chars.size - start).use { mapper.readTree<JsonNode>(it) }
                     }.getOrNull()
                     if (node != null && node.isObject && node.has("schemaVersion") && node.has("mainView")) {
-                        if (node.path("name").asText() !in PROMPT_EXAMPLES) {
+                        if (node !in examples && node.path("name").asText() != GUIDE_SKELETON) {
                             return restorePlaceholders(prettyJson(mapper.writeValueAsString(node)))
                         }
                         break
@@ -171,8 +174,8 @@ object AiContext {
 
     private const val MAX_ESCAPING = 4
 
-    /** The names of the configurations in the prompt (the examples and the guide's skeleton), not AI answers. */
-    private val PROMPT_EXAMPLES = setOf("Masterpieces", "Summer Run 2026", "KANTO POKÉDEX", "Application name")
+    /** The name in the guide's skeleton configuration, which every shared chat contains. */
+    private const val GUIDE_SKELETON = "Application name"
 
     /** One level of JSON string escaping undone: \" becomes ", \n a line break, \u003c a <, \\ a \. */
     private fun unescapeString(text: String): String = buildString(text.length) {
@@ -235,7 +238,7 @@ object AiContext {
         appendLine("JSON App Creator reports these problems in the configuration below:")
         appendLine()
         issues.forEach { issue ->
-            val line = issue.offset?.let { offset -> json.take(offset).count { it == '\n' } + 1 }
+            val line = issue.offset?.let { ConfigurationChecker.lineOf(json, it) }
             val where = listOfNotNull(line?.let { "line $it" }, issue.path.takeIf { it != "$" }).joinToString(", ")
             appendLine("- ${if (where.isEmpty()) "" else "$where: "}${issue.message}")
         }

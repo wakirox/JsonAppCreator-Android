@@ -67,6 +67,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fasterxml.jackson.databind.ObjectMapper
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
@@ -110,14 +111,14 @@ fun EditorScreen(
         delay(CHECK_DELAY_MS)
         issues = check(value.text)
     }
-    val numberKeyboard = remember(value.text, value.selection) {
-        value.selection.collapsed && runCatching { suggestions.isNumberAt(value.text, value.selection.start) }.getOrDefault(false)
-    }
-    val chips = remember(value.text, value.selection) {
+    // Suggestions and the keyboard type, from one reading of the text at the cursor.
+    val assist = remember(value.text, value.selection) {
         if (value.selection.collapsed) {
-            runCatching { suggestions.at(value.text, value.selection.start) }.getOrDefault(Suggestions.NONE)
-        } else Suggestions.NONE
+            runCatching { suggestions.assist(value.text, value.selection.start) }.getOrNull()
+        } else null
     }
+    val numberKeyboard = assist?.numberKeyboard ?: false
+    val chips = assist?.suggestions ?: Suggestions.NONE
 
     fun replace(start: Int, end: Int, insert: String, cursor: Int) {
         val text = value.text.replaceRange(start, end, insert)
@@ -145,24 +146,35 @@ fun EditorScreen(
                 actions = {
                     IconButton(onClick = { insertOpen = true }) { Icon(Icons.Filled.Add, contentDescription = "Insert") }
                     DropdownMenu(expanded = insertOpen, onDismissRequest = { insertOpen = false }) {
-                        Snippets.all.forEach { snippet ->
-                            DropdownMenuItem(
-                                text = { Text(snippet.label) },
-                                onClick = {
-                                    insertOpen = false
-                                    val at = value.selection.start
-                                    val indent = Snippets.indentAt(value.text, at)
-                                    val insert = Snippets.indented(snippet.json, indent)
-                                    replace(at, value.selection.end, insert, insert.length)
-                                }
+                        Snippets.all.groupBy { it.formField }.toSortedMap().forEach { (formFields, group) ->
+                            if (formFields) HorizontalDivider()
+                            Text(
+                                if (formFields) "Form fields (inside formElements)" else "Views",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             )
+                            group.forEach { snippet ->
+                                DropdownMenuItem(
+                                    text = { Text(snippet.label) },
+                                    onClick = {
+                                        insertOpen = false
+                                        val at = value.selection.start
+                                        val indent = Snippets.indentAt(value.text, at)
+                                        val insert = Snippets.indented(snippet.json, indent)
+                                        replace(at, value.selection.end, insert, insert.length)
+                                    }
+                                )
+                            }
                         }
                     }
                     IconButton(onClick = {
+                        // The text that is checked is the text that runs, even if typing goes on meanwhile.
+                        val text = value.text
                         scope.launch {
-                            val found = check(value.text)
+                            val found = check(text)
                             issues = found
-                            if (found.isEmpty()) onRun(value.text) else {
+                            if (found.isEmpty()) onRun(text) else {
                                 issuesOpen = true
                                 found.firstNotNullOfOrNull { it.offset }?.let(::jumpTo)
                                 Toast.makeText(context, problemsLabel(found.size) + " to fix first", Toast.LENGTH_SHORT).show()
@@ -173,10 +185,9 @@ fun EditorScreen(
                     DropdownMenu(expanded = moreOpen, onDismissRequest = { moreOpen = false }) {
                         DropdownMenuItem(text = { Text("Format") }, onClick = {
                             moreOpen = false
-                            val formatted = prettyJson(value.text)
-                            if (formatted == value.text && issues?.any { it.path == "$" } == true) {
+                            if (runCatching { ObjectMapper().readTree(value.text) }.isFailure) {
                                 Toast.makeText(context, "Fix the JSON syntax first", Toast.LENGTH_SHORT).show()
-                            } else value = TextFieldValue(formatted, TextRange(0))
+                            } else value = TextFieldValue(prettyJson(value.text), TextRange(0))
                         })
                         DropdownMenuItem(text = { Text("Save as file…") }, onClick = { moreOpen = false; onSaveAs(value.text) })
                         HorizontalDivider()
@@ -360,7 +371,7 @@ private fun IssueBar(
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {
                     items(issues) { issue ->
                         Column(Modifier.fillMaxWidth().clickable { onIssue(issue) }.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            val line = issue.offset?.let { offset -> text.take(offset).count { it == '\n' } + 1 }
+                            val line = issue.offset?.let { ConfigurationChecker.lineOf(text, it) }
                             Text(
                                 listOfNotNull(line?.let { "Line $it" }, issue.path.takeIf { it != "$" }).joinToString(" · "),
                                 style = MaterialTheme.typography.labelMedium,

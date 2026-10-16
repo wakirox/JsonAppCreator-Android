@@ -88,10 +88,14 @@ class AiContextTest {
         val chat = "[[\"prompt\", \"${escaped(example)}\"], [\"answer\", \"${escaped(first)}\"], [\"answer\", \"${escaped(last)}\"]]"
         val page = ")]}'\n[[\"wrb.fr\",\"ujx1Bf\",\"${escaped(chat)}\"]]"
 
-        val found = checkNotNull(AiContext.lastConfiguration(page))
+        val found = checkNotNull(AiContext.lastConfiguration(page, listOf(example)))
         assertTrue(found, found.contains("\"name\": \"Books 2\""))
         assertTrue("placeholders are restored", found.contains("${'$'}{title}"))
-        assertNull("the prompt's example alone isn't an answer", AiContext.lastConfiguration(escaped(example)))
+        assertNull("the prompt's example alone isn't an answer", AiContext.lastConfiguration(escaped(example), listOf(example)))
+        // An AI's change to an example keeps its name, and is still the AI's answer.
+        val changed = example.replaceFirst("\"version\": \"1.0.0\"", "\"version\": \"1.1.0\"")
+        val changedFound = checkNotNull(AiContext.lastConfiguration(escaped(example) + escaped(changed), listOf(example)))
+        assertTrue(changedFound.contains("\"version\": \"1.1.0\""))
     }
 
     @Test

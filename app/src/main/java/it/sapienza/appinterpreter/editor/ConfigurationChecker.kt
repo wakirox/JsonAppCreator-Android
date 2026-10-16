@@ -78,6 +78,9 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
             return offsets
         }
 
+        /** The 1-based line of [offset] in [text]. */
+        fun lineOf(text: String, offset: Int): Int = text.take(offset).count { it == '\n' } + 1
+
         /** Jackson's parser messages, in plain words for the common mistakes. */
         fun syntaxMessage(original: String): String = when {
             "CTRL-CHAR, code 10" in original -> "A text value isn't closed: add a quote (\") before the end of the line"

@@ -37,15 +37,15 @@ object ShareLinks {
     }
 
     /** The AI's last configuration in the shared chat, or null if the page doesn't show one. */
-    suspend fun configuration(link: String): String? = withContext(Dispatchers.IO) {
+    suspend fun configuration(link: String, promptExamples: Collection<String>): String? = withContext(Dispatchers.IO) {
         val (page, finalUrl) = get(link)
-        AiContext.lastConfiguration(page)?.let { return@withContext it }
+        AiContext.lastConfiguration(page, promptExamples)?.let { return@withContext it }
         val id = finalUrl.substringAfter("/share/", "").substringBefore('?').substringBefore('/')
         when {
             // Gemini's page loads the chat afterwards, with this request of its own.
-            "gemini.google.com" in finalUrl && id.isNotEmpty() -> geminiChat(id)?.let(AiContext::lastConfiguration)
+            "gemini.google.com" in finalUrl && id.isNotEmpty() -> geminiChat(id)?.let { AiContext.lastConfiguration(it, promptExamples) }
             "grok.com" in finalUrl && id.isNotEmpty() ->
-                get("https://grok.com/rest/app-chat/share_links/$id").first.let(AiContext::lastConfiguration)
+                get("https://grok.com/rest/app-chat/share_links/$id").first.let { AiContext.lastConfiguration(it, promptExamples) }
             else -> null
         }
     }

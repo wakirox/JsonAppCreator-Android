@@ -80,12 +80,13 @@ class MissingApiKeyDialogTest {
     }
 
     @Test
-    fun cancellingFallsBackToTheDefaultExampleInsteadOfClosingTheApp() {
+    fun cancellingKeepsTheAppAndShowsIt() {
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.waitForIdle()
 
-        assertEquals(DEFAULT_CONFIGURATION_ID, domainPreferences.getString(CONFIGURATION_ID_KEY, null))
-        assertTrue(domainPreferences.getString(JSON_KEY, null).orEmpty().contains("\"name\": \"Masterpieces\""))
+        assertEquals(TMDB_CONFIGURATION_ID, domainPreferences.getString(CONFIGURATION_ID_KEY, null))
+        assertTrue(domainPreferences.getString(JSON_KEY, null).orEmpty().contains("THE MOVIE DB"))
+        composeRule.onNodeWithText("THE MOVIE DB").assertExists()
     }
 
     private companion object {
@@ -94,6 +95,5 @@ class MissingApiKeyDialogTest {
         const val JSON_KEY = "main_file_sav"
         const val CONFIGURATION_ID_KEY = "configuration_id"
         const val TMDB_CONFIGURATION_ID = "bundled:v3_the_movie_db"
-        const val DEFAULT_CONFIGURATION_ID = "bundled:v3_masterpieces"
     }
 }

@@ -23,10 +23,14 @@ object DomainController {
             }
     }
 
-    fun setJsonFile(value: String, context: Context) {
+    /**
+     * Makes [value] the current app. [configurationId] keeps an app's identity, and with it its saved or bundled API
+     * keys; by default it comes from the JSON itself.
+     */
+    fun setJsonFile(value: String, context: Context, configurationId: String = ApiKeyPlaceholders.configurationId(value)) {
         preferences(context).edit()
             .putString(JSON_KEY, value)
-            .putString(CONFIGURATION_ID_KEY, ApiKeyPlaceholders.configurationId(value))
+            .putString(CONFIGURATION_ID_KEY, configurationId)
             .apply()
     }
 
