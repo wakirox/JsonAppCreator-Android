@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 3,
+  "name": "Summer Run 2026",
+  "version": "1.0.0",
+  "author": "JSON App Creator",
+  "mainView": {
+    "type": "layout",
+    "views": [
+      {
+        "type": "text",
+        "label": "Summer Run · 10 km",
+        "title": "Saturday 13 June, 8:00 · Villa Borghese, Rome",
+        "textStyle": "bold",
+        "textSize": 20
+      },
+      {
+        "type": "form",
+        "buttonTitle": "Sign me up",
+        "action": {
+          "ref": "confirm"
+        },
+        "formElements": [
+          {
+            "type": "text",
+            "mapping": "name",
+            "title": "Full name",
+            "placeholder": "Your name",
+            "mandatory": true
+          },
+          {
+            "type": "text",
+            "mapping": "email",
+            "title": "Email",
+            "placeholder": "you@example.com",
+            "textType": "email",
+            "mandatory": true,
+            "description": "We send your race number here"
+          },
+          {
+            "type": "selector",
+            "mapping": "distance",
+            "title": "Distance",
+            "options": [
+              "5 km",
+              "10 km",
+              "Half marathon"
+            ],
+            "selection": "10 km"
+          },
+          {
+            "type": "selector",
+            "mapping": "shirt",
+            "title": "T-shirt size",
+            "options": [
+              "S",
+              "M",
+              "L",
+              "XL"
+            ],
+            "selection": "M"
+          },
+          {
+            "type": "date",
+            "mapping": "birth",
+            "title": "Date of birth",
+            "description": "Runners must be 16 or older"
+          },
+          {
+            "type": "checkbox",
+            "mapping": "rules",
+            "title": "I accept the race rules",
+            "mandatory": true
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "confirm",
+      "type": "click",
+      "event": {
+        "type": "alert",
+        "value": "See you at the start line, ${name}!"
+      }
+    }
+  ]
+}
