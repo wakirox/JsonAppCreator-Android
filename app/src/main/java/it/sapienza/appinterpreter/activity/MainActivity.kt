@@ -3,6 +3,7 @@ package it.sapienza.appinterpreter.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.extensions.app
@@ -109,6 +111,12 @@ class MainActivity : ComponentActivity() {
                         onEditConfiguration = { EditorActivity.edit(this) },
                         onNewApp = { EditorActivity.newApp(this) },
                         onAskAi = { askingAi = true },
+                        onPasteFromAi = {
+                            val answer = AskAi.clipboardText(this)
+                            if (answer == null) {
+                                Toast.makeText(this, "The clipboard is empty: copy the answer in your AI app first", Toast.LENGTH_LONG).show()
+                            } else EditorActivity.aiAnswer(this, answer)
+                        },
                         onLoadMasterpiecesSample = {
                             loadSampleConfiguration(R.raw.v3_masterpieces)
                         },

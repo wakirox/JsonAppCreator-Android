@@ -62,6 +62,11 @@ class AiContextTest {
         assertEquals(json, AiContext.extractJson("Here you go:\n```json\n$json\n```\nEnjoy!"))
         assertEquals(json, AiContext.extractJson("Sure! $json Hope it helps."))
         assertNull(AiContext.extractJson("No JSON here"))
+        // Placeholders that lost their $ get it back; complete ones are left alone.
+        assertEquals(
+            "{ \"url\": \"${'$'}{thumb}\", \"title\": \"${'$'}{author}\\n${'$'}{genre}, ${'$'}{year}\" }",
+            AiContext.extractJson("{ \"url\": \"{thumb}\", \"title\": \"{author}\\n{genre}, ${'$'}{year}\" }")
+        )
         // Markdown escapes added when copying from a chat app are undone.
         assertEquals("{ \"a\": [1, 2] }", AiContext.extractJson("{ \"a\": \\[1, 2\\] }"))
     }

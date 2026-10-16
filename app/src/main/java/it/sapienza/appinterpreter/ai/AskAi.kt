@@ -71,12 +71,15 @@ object AskAi {
         Toast.makeText(context, done, Toast.LENGTH_LONG).show()
     }
 
-    /** The JSON in the clipboard's text, if it holds an AI answer with one. */
-    fun jsonFromClipboard(context: Context): String? {
+    /** The clipboard's text, such as an answer copied from an AI app. */
+    fun clipboardText(context: Context): String? {
         val clip = context.getSystemService(ClipboardManager::class.java).primaryClip ?: return null
-        val text = (0 until clip.itemCount).joinToString("\n") { clip.getItemAt(it).coerceToText(context).toString() }
-        return AiContext.extractJson(text)
+        return (0 until clip.itemCount).joinToString("\n") { clip.getItemAt(it).coerceToText(context).toString() }
+            .takeIf { it.isNotBlank() }
     }
+
+    /** The JSON in the clipboard's text, if it holds an AI answer with one. */
+    fun jsonFromClipboard(context: Context): String? = clipboardText(context)?.let(AiContext::extractJson)
 }
 
 /**

@@ -121,8 +121,17 @@ object AiContext {
                 if (start >= 0 && end > start) answer.substring(start, end + 1).trim() else null
             }
             ?: return null
-        return if (parses(candidate)) candidate else unescapeMarkdown(candidate).takeIf(::parses) ?: candidate
+        val json = if (parses(candidate)) candidate else unescapeMarkdown(candidate).takeIf(::parses) ?: candidate
+        return restorePlaceholders(json)
     }
+
+    /**
+     * Chat apps that render $...$ as maths can eat the dollar of ${field} placeholders, leaving {field}. JSON's own
+     * braces never enclose a bare name, so a {name} is always a placeholder that lost its $, and gets it back.
+     */
+    private fun restorePlaceholders(json: String) = BARE_PLACEHOLDER.replace(json) { "\${${it.groupValues[1]}}" }
+
+    private val BARE_PLACEHOLDER = Regex("""(?<!\${'$'})\{([A-Za-z_][\w.]*)\}""")
 
     /**
      * Copying from a chat app can add Markdown escapes such as \[ and \_, which JSON never allows: they are removed.

@@ -44,7 +44,7 @@ class EditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val newApp = intent.getBooleanExtra(EXTRA_NEW_APP, false)
         // Shared from an AI app (or any app): the JSON in what was shared, if there is one.
-        val shared = if (intent.action == Intent.ACTION_SEND) sharedText() else null
+        val shared = intent.getStringExtra(EXTRA_AI_ANSWER) ?: if (intent.action == Intent.ACTION_SEND) sharedText() else null
         val fromAiApp = shared?.let { AiContext.extractJson(it) }
         val initialText = when {
             fromAiApp != null -> prettyJson(fromAiApp)
@@ -100,11 +100,16 @@ class EditorActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_NEW_APP = "new_app"
+        private const val EXTRA_AI_ANSWER = "ai_answer"
 
         fun edit(context: Context) = context.startActivity(Intent(context, EditorActivity::class.java))
 
         fun newApp(context: Context) =
             context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_NEW_APP, true))
+
+        /** Opens an AI app's answer (copied, then pasted) like a shared one: "From your AI app". */
+        fun aiAnswer(context: Context, answer: String) =
+            context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_AI_ANSWER, answer))
     }
 }
 

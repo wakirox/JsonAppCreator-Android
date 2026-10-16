@@ -113,12 +113,16 @@ properties.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
   fields of that one item, not to the whole response.
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
-  string, such as a URL or a label.
+  string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
+  `{title}`.
 - An inline action needs both `id` and `event`. To reuse one, define it in the root
   `actions` and reference it with `{ "ref": "id" }`.
 - Form fields are `text`, `selector`, `date` and `checkbox`; there is no `input`,
   `dropdown` or `switch`. Dates are `dd/MM/yyyy`.
 - Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
+- Don't invent image addresses or IDs (such as cover IDs): a made-up one shows a different
+  picture or none. Use addresses the user gives, fields of a REST response, or images you
+  are certain of; otherwise leave the image out and say so.
 - A screen opened with a `show` event already has the system Back gesture and button:
   don't add "Back" buttons or alerts that only explain how to go back.
 - JSON has no comments and no trailing commas.

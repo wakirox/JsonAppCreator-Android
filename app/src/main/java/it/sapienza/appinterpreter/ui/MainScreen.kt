@@ -41,6 +41,7 @@ fun MainScreen(
     onEditConfiguration: () -> Unit,
     onNewApp: () -> Unit,
     onAskAi: () -> Unit,
+    onPasteFromAi: () -> Unit,
     onLoadMasterpiecesSample: () -> Unit,
     onLoadPlainSample: () -> Unit,
     onLoadFormSample: () -> Unit,
@@ -109,11 +110,19 @@ fun MainScreen(
                             closeMenu = { menuExpanded = false },
                             onClick = onNewApp
                         )
+                        HorizontalDivider()
+                        MenuSectionLabel("With your AI app (no AI in this app)")
                         ActionMenuItem(
                             text = "Use your AI app…",
                             iconResource = R.drawable.baseline_track_changes_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAskAi
+                        )
+                        ActionMenuItem(
+                            text = "Paste answer from your AI app",
+                            iconResource = R.drawable.baseline_insert_drive_file_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onPasteFromAi
                         )
 
                         HorizontalDivider()
