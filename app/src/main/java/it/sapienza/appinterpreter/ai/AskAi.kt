@@ -109,7 +109,8 @@ fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss:
                     "1. Describe your app and share it to your AI app.\n" +
                         "2. Chat there until you like the result.\n" +
                         "3. Bring the result back: open the file it makes in JSON App Creator, or share or copy " +
-                        "its answer here. It opens in the editor, checked and ready to run.",
+                        "its answer, or a share link of the chat, here. It opens in the editor, checked and ready " +
+                        "to run.",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 OutlinedTextField(

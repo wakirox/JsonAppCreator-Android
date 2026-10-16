@@ -135,8 +135,77 @@ object AiContext {
     }
 
     /**
-     * Chat apps that render $...$ as maths can eat the dollar of ${field} placeholders, leaving {field}. JSON's own
-     * braces never enclose a bare name, so a {name} is always a placeholder that lost its $, and gets it back.
+     * The last configuration in a page or API response holding a whole conversation, such as a shared chat, where
+     * the AI's answers sit inside JavaScript or JSON strings, escaped once or more: each level of escaping is undone
+     * in turn until an object with "schemaVersion" and "mainView" parses. The examples from the prompt, which the
+     * conversation also contains, are skipped.
+     */
+    fun lastConfiguration(page: String): String? {
+        val mapper = ObjectMapper()
+        var text = page
+        repeat(MAX_ESCAPING) {
+            val chars = text.toCharArray()
+            var at = text.lastIndexOf("\"schemaVersion\"")
+            while (at >= 0) {
+                var start = text.lastIndexOf('{', at)
+                var tries = 0
+                while (start >= 0 && tries < 64) {
+                    val node = runCatching {
+                        mapper.factory.createParser(chars, start, chars.size - start).use { mapper.readTree<JsonNode>(it) }
+                    }.getOrNull()
+                    if (node != null && node.isObject && node.has("schemaVersion") && node.has("mainView")) {
+                        if (node.path("name").asText() !in PROMPT_EXAMPLES) {
+                            return restorePlaceholders(prettyJson(mapper.writeValueAsString(node)))
+                        }
+                        break
+                    }
+                    start = text.lastIndexOf('{', start - 1)
+                    tries++
+                }
+                at = text.lastIndexOf("\"schemaVersion\"", at - 1)
+            }
+            text = unescapeString(text)
+        }
+        return null
+    }
+
+    private const val MAX_ESCAPING = 4
+
+    /** The names of the configurations in the prompt (the examples and the guide's skeleton), not AI answers. */
+    private val PROMPT_EXAMPLES = setOf("Masterpieces", "Summer Run 2026", "KANTO POKÉDEX", "Application name")
+
+    /** One level of JSON string escaping undone: \" becomes ", \n a line break, \u003c a <, \\ a \. */
+    private fun unescapeString(text: String): String = buildString(text.length) {
+        var i = 0
+        while (i < text.length) {
+            val c = text[i]
+            if (c == '\\' && i + 1 < text.length) {
+                val next = text[i + 1]
+                if (next == 'u' && i + 5 < text.length) {
+                    text.substring(i + 2, i + 6).toIntOrNull(16)?.let { append(it.toChar()); i += 6; continue }
+                }
+                append(
+                    when (next) {
+                        'n' -> '\n'
+                        't' -> '\t'
+                        'r' -> '\r'
+                        'b' -> '\b'
+                        'f' -> '\u000C'
+                        else -> next
+                    }
+                )
+                i += 2
+                continue
+            }
+            append(c)
+            i++
+        }
+    }
+
+    /**
+     * AI answers sometimes write ${field} placeholders without the $ (Gemini wrote {thumb} and {title}), and chat apps
+     * that render $...$ as maths can eat it too. JSON's own braces never enclose a bare name, so a {name} is always a
+     * placeholder that lost its $, and gets it back.
      */
     private fun restorePlaceholders(json: String) = BARE_PLACEHOLDER.replace(json) { "\${${it.groupValues[1]}}" }
 

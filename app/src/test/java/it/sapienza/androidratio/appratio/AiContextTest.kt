@@ -1,6 +1,7 @@
 package it.sapienza.androidratio.appratio
 
 import it.sapienza.appinterpreter.ai.AiContext
+import it.sapienza.appinterpreter.ai.ShareLinks
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.EditorIssue
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
@@ -69,6 +70,36 @@ class AiContextTest {
         )
         // Markdown escapes added when copying from a chat app are undone.
         assertEquals("{ \"a\": [1, 2] }", AiContext.extractJson("{ \"a\": \\[1, 2\\] }"))
+    }
+
+    @Test
+    fun theAisLastAppIsFoundInASharedChatEvenWhenEscapedTwice() {
+        val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+        fun escaped(json: String) = mapper.writeValueAsString(json).removeSurrounding("\"")
+        val example = raw("v3_masterpieces")
+        val first = "{ \"schemaVersion\": 3, \"name\": \"Books\", \"version\": \"1\", \"mainView\": { \"type\": \"text\" } }"
+        val last = "{ \"schemaVersion\": 3, \"name\": \"Books 2\", \"version\": \"1\", \"mainView\": { \"type\": \"text\", \"label\": \"{title}\" } }"
+        // Like Gemini's response: the chat (prompt with its example, then two answers) is a string inside a string.
+        val chat = "[[\"prompt\", \"${escaped(example)}\"], [\"answer\", \"${escaped(first)}\"], [\"answer\", \"${escaped(last)}\"]]"
+        val page = ")]}'\n[[\"wrb.fr\",\"ujx1Bf\",\"${escaped(chat)}\"]]"
+
+        val found = checkNotNull(AiContext.lastConfiguration(page))
+        assertTrue(found, found.contains("\"name\": \"Books 2\""))
+        assertTrue("placeholders are restored", found.contains("${'$'}{title}"))
+        assertNull("the prompt's example alone isn't an answer", AiContext.lastConfiguration(escaped(example)))
+    }
+
+    @Test
+    fun chatShareLinksAreRecognised() {
+        listOf(
+            "https://share.gemini.google/UUvnFPkqgvad",
+            "https://g.co/gemini/share/abc123",
+            "https://gemini.google.com/share/bd594c962c63",
+            "https://chatgpt.com/share/6800000a-0000-8000-8000-000000000000",
+            "https://grok.com/share/bGVnYWN5_abc"
+        ).forEach { assertEquals(it, ShareLinks.find("Look: $it")) }
+        assertNull(ShareLinks.find("https://example.com/share/abc"))
+        assertEquals("Gemini", ShareLinks.service("https://share.gemini.google/x"))
     }
 
     @Test

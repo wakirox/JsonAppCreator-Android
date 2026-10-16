@@ -5,16 +5,33 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AiContext
+import it.sapienza.appinterpreter.ai.ShareLinks
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.EditorScreen
 import it.sapienza.appinterpreter.editor.SchemaSuggestions
@@ -47,32 +64,49 @@ class EditorActivity : AppCompatActivity() {
         val shared = intent.getStringExtra(EXTRA_AI_ANSWER) ?: if (intent.action == Intent.ACTION_SEND) sharedText() else null
         val fromFile = intent.getBooleanExtra(EXTRA_FROM_FILE, false)
         val fromAiApp = shared?.let { AiContext.extractJson(it) }
-        val initialText = when {
-            fromAiApp != null -> prettyJson(fromAiApp)
-            newApp -> Snippets.newApp
-            else -> prettyJson(DomainController.jsonFile(this))
-        }
+        // A link to a shared chat instead of the answer: the chat is read to find the answer.
+        val chatLink = shared?.takeIf { fromAiApp == null }?.let(ShareLinks::find)
         val schema = assets.open(ConfigurationValidator.ASSET_PATH).bufferedReader().use { it.readText() }
         val checker = ConfigurationChecker(ConfigurationValidator.fromSchema(schema.byteInputStream()))
         val suggestions = SchemaSuggestions(schema)
 
         setContent {
             AppTheme {
-                if (shared != null && fromAiApp == null) {
+                var fromChat by rememberSaveable { mutableStateOf<String?>(null) }
+                var chatUnreadable by rememberSaveable { mutableStateOf(false) }
+                if (chatLink != null && fromChat == null) {
+                    if (chatUnreadable) {
+                        ChatNotReadDialog(ShareLinks.service(chatLink), onDismiss = ::finish)
+                    } else {
+                        ReadingChat(chatLink, onBack = ::finish)
+                        LaunchedEffect(chatLink) {
+                            val found = runCatching { ShareLinks.configuration(chatLink) }.getOrNull()
+                            if (found != null) fromChat = found else chatUnreadable = true
+                        }
+                    }
+                    return@AppTheme
+                }
+                if (shared != null && fromAiApp == null && fromChat == null) {
                     NothingToOpenDialog(shared, onDismiss = ::finish)
                     return@AppTheme
                 }
+                val received = fromChat ?: fromAiApp
                 EditorScreen(
                     title = when {
-                        fromAiApp != null && fromFile -> "Opened file"
-                        fromAiApp != null -> "From your AI app"
+                        received != null && fromFile -> "Opened file"
+                        received != null -> "From your AI app"
                         newApp -> "New app"
                         else -> "Edit configuration"
                     },
-                    initialText = initialText,
+                    initialText = when {
+                        received != null -> prettyJson(received)
+                        newApp -> Snippets.newApp
+                        else -> prettyJson(DomainController.jsonFile(this))
+                    },
                     unsavedSource = when {
-                        fromAiApp == null -> null
+                        received == null -> null
                         fromFile -> "Opened from a file"
+                        chatLink != null -> "From your shared ${ShareLinks.service(chatLink)} chat"
                         else -> "Shared from your AI app"
                     },
                     check = { text -> withContext(Dispatchers.Default) { checker.check(text) } },
@@ -136,3 +170,41 @@ private fun NothingToOpenDialog(shared: String, onDismiss: () -> Unit) {
         confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } }
     )
 }
+
+/** While a shared chat is read: what is happening, and that it's only reading a public page. */
+@Composable
+private fun ReadingChat(link: String, onBack: () -> Unit) {
+    BackHandler(onBack = onBack)
+    Column(
+        Modifier.fillMaxSize().padding(32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
+        Text("Reading your shared ${ShareLinks.service(link)} chat…", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "JSON App Creator opens the public page of the link, as a browser would, and takes the last app the AI " +
+                "wrote in it. There is no AI in this app.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/** When a shared chat can't be read, or has no app in it. */
+@Composable
+private fun ChatNotReadDialog(service: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("No app found in the chat") },
+        text = {
+            Text(
+                "JSON App Creator couldn't read an app from that $service chat: the page may have changed, be " +
+                    "private, or have no JSON app in the AI's answers. In $service, copy the AI's answer (or open " +
+                    "the file it made), then use Paste answer from your AI app."
+            )
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } }
+    )
+}
+
