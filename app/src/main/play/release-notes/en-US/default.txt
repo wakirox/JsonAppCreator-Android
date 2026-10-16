@@ -1,1 +1,1 @@
-JSON App Creator 3: a new Material 3 design, the documented v3 format with full validation and clear errors, lists and forms backed by REST APIs, encrypted API keys, and four example apps.
+JSON App Creator 3: a new Material 3 design; a built-in editor with suggestions and live checking; make apps with the AI app you already use (no AI inside) and bring them back by file, answer or chat link; keep several apps and add them to the home screen; calendar events; clear error messages; examples to start from.

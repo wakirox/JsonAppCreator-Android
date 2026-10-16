@@ -1,27 +1,27 @@
-Describe an app in a JSON file, open it in JSON App Creator, and use it as a native Android app. No Android Studio, no build, nothing to compile.
+Describe an app in a JSON file and JSON App Creator runs it as a native Android app. No Android Studio, no build, nothing to compile.
 
 WHAT YOU CAN BUILD
-• Screens with vertical and horizontal layouts, text, buttons and images from the web
+• Screens with text, buttons and images from the web, in vertical and horizontal layouts
 • Lists, written in the file or loaded from a REST API, with a detail screen for each item
-• Forms with text, number, email, password, date, selector and checkbox fields
-• Navigation between screens, alerts, and actions on tap or long press
-• GET and POST requests, with the response shown on the next screen
-• Data binding with dot paths and ${placeholders}
+• Forms with text, number, email, password, date, choice and switch fields, and required fields
+• Navigation between screens, alerts, and GET or POST requests whose response opens the next screen
+• Events added to your calendar, filled in from a form
+• Data binding with ${placeholders}
 
-WRITE IT YOURSELF, OR ASK AN AI
-The format is documented field by field, with a JSON Schema and a guide written for AI assistants: describe the app you want, save the answer as a .json file, and open it.
+A BUILT-IN EDITOR
+Write and change apps on your phone: syntax colours, suggestions for what each part can still contain (required ones first), a live check that points at every mistake, ready-made views to insert, and one tap to run.
 
-CHECKED BEFORE IT RUNS
-The whole file is validated before it opens. A mistake is shown with its exact place, like $.mainView.views[1].type, and the last working app stays loaded.
+MAKE IT WITH YOUR AI APP
+JSON App Creator has no AI inside. It hands complete instructions to the AI app you already use, such as ChatGPT, Gemini, Grok or Claude. Chat there, then bring the result back: open the file it makes, share or paste its answer, or share a link to the chat. The app opens it checked and ready to run, and can send any problems back to your AI app for a fix.
+
+YOUR APPS ON YOUR HOME SCREEN
+Keep every app you make in My apps, and add each one to the home screen with its own icon.
 
 READY-MADE EXAMPLES
-The menu opens example apps to start from: a simple app, a form, and two catalogues loaded from public APIs. View the JSON behind any of them, change it, and load your own version.
+Start from a gallery of famous paintings, a race sign-up form, a Pokédex loaded from a public API or a movie catalogue, and change any of them in the editor.
 
 YOUR API KEYS STAY ON YOUR PHONE
-If an app needs an API key, JSON App Creator asks for it once and keeps it encrypted on your phone, tied to that file. It is never written into the JSON.
-
-OPEN FILES FROM ANYWHERE
-Open a .json file from your file manager, downloads or a chat, and JSON App Creator runs it.
+If an app needs an API key, JSON App Creator asks for it once and keeps it encrypted on your phone, tied to that app. It is never written into the JSON.
 
 OPEN SOURCE, NO ACCOUNT
-No ads, no account, no data collected. JSON App Creator is open source under the MIT licence; the format reference and examples are on GitHub: github.com/wakirox/JsonAppCreator-Android
+No ads, no account, no data collected. JSON App Creator is open source under the MIT licence; the format reference, a guide for AI assistants and examples are on GitHub: github.com/wakirox/JsonAppCreator-Android

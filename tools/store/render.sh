@@ -19,6 +19,9 @@ for c in "$(command -v chromium 2>/dev/null || true)" "$(command -v google-chrom
   [ -z "$chrome" ] && [ -n "$c" ] && [ -x "$c" ] && chrome="$c"
 done
 [ -n "$chrome" ] || { echo "Chrome not found; set CHROME=/path/to/chrome" >&2; exit 1; }
+# Without the font Chrome falls back to another one and the captions lay out differently: stop instead of
+# overwriting the committed images.
+[ -f "$tools/fonts/google_sans_flex.ttf" ] || { echo "Missing tools/store/fonts/google_sans_flex.ttf (Google Sans Flex, fonts.google.com)" >&2; exit 1; }
 
 # shoot <page and query> <width> <height> <output.png>
 shoot() {
