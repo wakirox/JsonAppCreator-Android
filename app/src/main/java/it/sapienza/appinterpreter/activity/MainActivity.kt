@@ -104,8 +104,10 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         onLoadConfiguration = { openJsonFile.launch("application/json") },
-                        onViewConfiguration = {
-                            startActivity(Intent(this, JsonActivity::class.java))
+                        onEditConfiguration = { EditorActivity.edit(this) },
+                        onNewApp = { EditorActivity.newApp(this) },
+                        onLoadMasterpiecesSample = {
+                            loadSampleConfiguration(R.raw.v3_masterpieces)
                         },
                         onLoadPlainSample = {
                             loadSampleConfiguration(R.raw.v3_app_sample)
@@ -135,11 +137,11 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         onDismiss = {
-                            // Without its keys the active configuration can't run: fall back to the plain sample,
+                            // Without its keys the active configuration can't run: fall back to the default example,
                             // so the menu stays reachable and another configuration can be loaded.
                             if (pendingActiveConfiguration) {
                                 clearPendingConfiguration()
-                                loadSampleConfiguration(R.raw.v3_app_sample)
+                                loadSampleConfiguration(DomainController.DEFAULT_CONFIGURATION)
                             } else clearPendingConfiguration()
                         }
                     )

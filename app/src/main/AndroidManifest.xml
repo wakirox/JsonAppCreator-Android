@@ -35,7 +35,8 @@
                 android:name="it.sapienza.appinterpreter.activity.PlainTextActivity"/>
         <activity
                 android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
-                android:name="it.sapienza.appinterpreter.activity.JsonActivity"/>
+                android:windowSoftInputMode="adjustResize"
+                android:name="it.sapienza.appinterpreter.activity.EditorActivity"/>
 
         <activity
                 android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity"

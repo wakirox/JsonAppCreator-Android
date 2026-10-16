@@ -38,7 +38,9 @@ fun MainScreen(
     loading: Boolean,
     onChangelog: () -> Unit,
     onLoadConfiguration: () -> Unit,
-    onViewConfiguration: () -> Unit,
+    onEditConfiguration: () -> Unit,
+    onNewApp: () -> Unit,
+    onLoadMasterpiecesSample: () -> Unit,
     onLoadPlainSample: () -> Unit,
     onLoadFormSample: () -> Unit,
     onLoadMovieSample: () -> Unit,
@@ -95,14 +97,25 @@ fun MainScreen(
                             onClick = onLoadConfiguration
                         )
                         ActionMenuItem(
-                            text = "View current configuration",
+                            text = "Edit configuration",
                             iconResource = R.drawable.baseline_view_list_24,
                             closeMenu = { menuExpanded = false },
-                            onClick = onViewConfiguration
+                            onClick = onEditConfiguration
+                        )
+                        ActionMenuItem(
+                            text = "New app",
+                            iconResource = R.drawable.baseline_insert_drive_file_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onNewApp
                         )
 
                         HorizontalDivider()
                         MenuSectionLabel("Sample configurations")
+                        ActionMenuItem(
+                            text = "Masterpieces",
+                            closeMenu = { menuExpanded = false },
+                            onClick = onLoadMasterpiecesSample
+                        )
                         ActionMenuItem(
                             text = "Plain app",
                             closeMenu = { menuExpanded = false },
