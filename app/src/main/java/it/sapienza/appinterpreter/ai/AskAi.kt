@@ -38,6 +38,12 @@ import it.sapienza.appinterpreter.validation.ConfigurationValidator
 object AskAi {
     private const val GUIDE_ASSET = "LLM_GUIDE.md"
 
+    /** The example configurations exactly as the prompt shows them, to tell them apart from an AI's answer. */
+    fun promptExamples(context: Context): List<String> {
+        fun raw(id: Int) = context.resources.openRawResource(id).bufferedReader().use { it.readText() }
+        return AiContext.examples(raw(R.raw.v3_masterpieces), raw(R.raw.v3_race_signup), raw(R.raw.v3_pokedex)).map { it.json }
+    }
+
     fun context(context: Context, currentApp: String?, request: String?): String {
         fun asset(name: String) = context.assets.open(name).bufferedReader().use { it.readText() }
         fun raw(id: Int) = context.resources.openRawResource(id).bufferedReader().use { it.readText() }

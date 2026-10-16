@@ -2,7 +2,10 @@ package it.sapienza.androidratio.appratio
 
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.SchemaSuggestions
+import it.sapienza.appinterpreter.editor.JsonColors
 import it.sapienza.appinterpreter.editor.Snippets
+import it.sapienza.appinterpreter.editor.highlightJson
+import it.sapienza.appinterpreter.editor.prettyJson
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
@@ -154,6 +157,19 @@ class EditorAssistTest {
         assertTrue(!numberAt("""{ "mainView": { "type": "text", "label": "2|0" } }"""))
         assertTrue(!numberAt("""{ "mainView": { "type": "text", "label": | } }"""))
         assertTrue(!numberAt("""{ "mainView": { "type": "text", | } }"""))
+        // On the next line the letters come back, for "}" or the next property.
+        assertTrue(!numberAt("{ \"mainView\": { \"type\": \"text\", \"textSize\": 20\n|} }"))
+        // Digits typed for a property the schema doesn't know (inside data) still get the number pad.
+        assertTrue(numberAt("""{ "mainView": { "type": "text", "data": { "price": 1|9 } } }"""))
+    }
+
+    @Test
+    fun formattingKeepsNumbersAndDuplicatesAndSurvivesLongStrings() {
+        assertEquals("{\n  \"price\": 0.10,\n  \"big\": 12345678901234567890.5\n}", prettyJson("{\"price\":0.10,\"big\":12345678901234567890.5}"))
+        val duplicated = "{\"a\": 1, \"a\": 2}"
+        assertEquals("a key twice is left as it is", duplicated, prettyJson(duplicated))
+        val long = "{\"data\": \"" + "x".repeat(200_000) + "\"}"
+        assertEquals(4, highlightJson(long, JsonColors.Light).spanStyles.size) // { key string }
     }
 
     @Test

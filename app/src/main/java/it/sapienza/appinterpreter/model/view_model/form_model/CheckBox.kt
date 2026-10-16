@@ -10,7 +10,7 @@ class CheckBox(
     mapping: String
 ) : FormElementImpl(mandatory, title, description, mapping){
 
-    override fun isSet() : Boolean = !isRequired || value
-    override fun value(): Any? = value
+    override fun isSet(value: Any?): Boolean = !isRequired || value == true
+    override fun defaultValue(): Any? = value
 
 }

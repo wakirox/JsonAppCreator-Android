@@ -121,12 +121,9 @@ class MainActivity : ComponentActivity() {
                             ConfigurationApiKeys.saveForCurrentConfiguration(json, values)
                             spawnNew(this)
                         },
-                        onDismiss = {
-                            // Without its keys the current app can't run: fall back to the default example, so the
-                            // menu stays reachable and another app can be opened.
-                            clearPendingConfiguration()
-                            loadSampleConfiguration(DomainController.DEFAULT_CONFIGURATION)
-                        }
+                        // Cancelled: the app opens without its keys (what needs them can't load) and stays saved, with
+                        // the menu reachable to add them later or open another app.
+                        onDismiss = { clearPendingConfiguration() }
                     )
                 }
             }
@@ -209,11 +206,6 @@ class MainActivity : ComponentActivity() {
             loadingRequests = (loadingRequests - 1).coerceAtLeast(0)
             loading = loadingRequests > 0
         }
-    }
-
-    private fun loadSampleConfiguration(resourceId: Int) {
-        DomainController.setJsonFile(resourceId, this)
-        spawnNew(this)
     }
 
     private fun addToHomeScreen() {

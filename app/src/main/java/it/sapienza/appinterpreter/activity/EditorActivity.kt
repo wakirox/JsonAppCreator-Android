@@ -29,8 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
+import com.fasterxml.jackson.databind.ObjectMapper
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AiContext
+import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.ShareLinks
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.EditorScreen
@@ -41,6 +43,7 @@ import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -62,7 +65,7 @@ class EditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val newApp = intent.getBooleanExtra(EXTRA_NEW_APP, false)
         // Shared from an AI app (or any app): the JSON in what was shared, if there is one.
-        val shared = intent.getStringExtra(EXTRA_AI_ANSWER) ?: if (intent.action == Intent.ACTION_SEND) sharedText() else null
+        val shared = incomingText() ?: if (intent.action == Intent.ACTION_SEND) sharedText() else null
         val fromFile = intent.getBooleanExtra(EXTRA_FROM_FILE, false)
         val fromAiApp = shared?.let { AiContext.extractJson(it) }
         // A link to a shared chat instead of the answer: the chat is read to find the answer.
@@ -81,7 +84,7 @@ class EditorActivity : AppCompatActivity() {
                     } else {
                         ReadingChat(chatLink, onBack = ::finish)
                         LaunchedEffect(chatLink) {
-                            val found = runCatching { ShareLinks.configuration(chatLink) }.getOrNull()
+                            val found = runCatching { ShareLinks.configuration(chatLink, AskAi.promptExamples(this@EditorActivity)) }.getOrNull()
                             if (found != null) fromChat = found else chatUnreadable = true
                         }
                     }
@@ -113,8 +116,13 @@ class EditorActivity : AppCompatActivity() {
                     check = { text -> withContext(Dispatchers.Default) { checker.check(text) } },
                     suggestions = suggestions,
                     onRun = { text ->
-                        DomainController.setJsonFile(text, this)
+                        // Unchanged content keeps its identity, and so its saved or bundled API keys.
+                        val unchanged = chatLink == null && shared == null && !newApp && sameJson(text, DomainController.jsonFile(this))
+                        if (unchanged) DomainController.setJsonFile(text, this, DomainController.configurationId(this))
+                        else DomainController.setJsonFile(text, this)
                         spawnNew(this)
+                        // Opened from another app's share sheet, the editor would otherwise stay in that app's task.
+                        finish()
                     },
                     onSaveAs = { text ->
                         pendingSave = text
@@ -126,6 +134,14 @@ class EditorActivity : AppCompatActivity() {
         }
     }
 
+    /** Text handed over by [aiAnswer] or [fileWithProblems], through a file because it can be large. */
+    private fun incomingText(): String? = intent.getStringExtra(EXTRA_INCOMING_FILE)?.let { path ->
+        runCatching { File(path).readText() }.getOrNull()
+    }
+
+    private fun sameJson(a: String, b: String): Boolean =
+        runCatching { ObjectMapper().readTree(a) == ObjectMapper().readTree(b) }.getOrDefault(false)
+
     /** The text shared to the app: the message, or the content of a shared text or JSON file. */
     private fun sharedText(): String? {
         intent.getStringExtra(Intent.EXTRA_TEXT)?.let { return it }
@@ -135,7 +151,7 @@ class EditorActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_NEW_APP = "new_app"
-        private const val EXTRA_AI_ANSWER = "ai_answer"
+        private const val EXTRA_INCOMING_FILE = "incoming_file"
         private const val EXTRA_FROM_FILE = "from_file"
 
         fun edit(context: Context) = context.startActivity(Intent(context, EditorActivity::class.java))
@@ -145,12 +161,22 @@ class EditorActivity : AppCompatActivity() {
 
         /** Opens an AI app's answer (copied, then pasted) like a shared one: "From your AI app". */
         fun aiAnswer(context: Context, answer: String) =
-            context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_AI_ANSWER, answer))
+            context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_INCOMING_FILE, incoming(context, answer)))
 
         /** Opens a file's configuration that has problems, so they can be fixed or sent to the AI app. */
         fun fileWithProblems(context: Context, json: String) = context.startActivity(
-            Intent(context, EditorActivity::class.java).putExtra(EXTRA_AI_ANSWER, json).putExtra(EXTRA_FROM_FILE, true)
+            Intent(context, EditorActivity::class.java)
+                .putExtra(EXTRA_INCOMING_FILE, incoming(context, json))
+                .putExtra(EXTRA_FROM_FILE, true)
         )
+
+        /**
+         * Large text can't travel in an Intent (about 1 MB at most), so it goes through a file in the app's cache,
+         * and only the path is passed.
+         */
+        private fun incoming(context: Context, text: String): String =
+            File(File(context.cacheDir, "incoming").apply { mkdirs() }, "text-${System.nanoTime()}.txt")
+                .apply { writeText(text) }.absolutePath
     }
 }
 

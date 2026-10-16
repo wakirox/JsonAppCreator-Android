@@ -38,21 +38,41 @@ class SchemaSuggestions(schemaJson: String) {
     private val root: JsonNode = ObjectMapper().readTree(schemaJson)
     private val defs: JsonNode = root.path("\$defs")
 
-    fun at(text: String, cursor: Int, limit: Int = 16): Suggestions {
+    /** What the editor needs at the cursor, worked out from one reading of the text. */
+    data class Assist(val suggestions: Suggestions, val numberKeyboard: Boolean)
+
+    fun assist(text: String, cursor: Int): Assist {
+        val located = locate(text, cursor) ?: return Assist(Suggestions.NONE, false)
+        return Assist(suggestions(text, located), isNumber(text, cursor, located))
+    }
+
+    fun at(text: String, cursor: Int, limit: Int = 16): Suggestions =
+        locate(text, cursor)?.let { suggestions(text, it, limit) } ?: Suggestions.NONE
+
+    fun isNumberAt(text: String, cursor: Int): Boolean = locate(text, cursor)?.let { isNumber(text, cursor, it) } ?: false
+
+    /** The cursor, the facts of each container around it, and the schema of the innermost one. */
+    private class Located(val at: JsonCursor, val facts: List<Pair<Set<String>, String?>>, val schema: JsonNode)
+
+    private fun locate(text: String, cursor: Int): Located? {
         val at = JsonCursor.at(text, cursor)
-        if (at.position == CursorPosition.NONE) return Suggestions.NONE
+        if (at.position == CursorPosition.NONE) return null
         // The object facts are read without the token being typed, so a half-written string doesn't confuse them.
         val facts = text.removeRange(at.replaceStart, at.replaceEnd).let { clean ->
             at.containers.map { if (it.isObject) JsonCursor.objectFacts(clean, it.start) else emptySet<String>() to null }
         }
-
         var schema: JsonNode? = root
         for (i in 1 until at.containers.size) {
             schema = schema?.let { child(it, facts[i - 1], at.containers[i].slot) }
         }
-        schema ?: return Suggestions.NONE
+        return schema?.let { Located(at, facts, it) }
+    }
+
+    private fun suggestions(text: String, located: Located, limit: Int = 16): Suggestions {
+        val at = located.at
+        val schema = located.schema
         val container = at.containers.last()
-        val objectFacts = facts.last()
+        val objectFacts = located.facts.last()
         val heading = objectFacts.second ?: (container.slot as? String) ?: if (at.containers.size == 1) "app" else null
 
         if (at.position == CursorPosition.VALUE) {
@@ -80,25 +100,23 @@ class SchemaSuggestions(schemaJson: String) {
     }
 
     /**
-     * Whether the cursor is on a number: a value the schema says is a number (and not text), or digits already typed
-     * outside a string. The editor shows the number keyboard there.
+     * Whether the number keyboard fits the cursor: writing a value the schema says is a number (and not text), or
+     * digits already typed, on the same line as its property name. On the next line the letters come back, for the
+     * "}" or the next property.
      */
-    fun isNumberAt(text: String, cursor: Int): Boolean {
-        val at = JsonCursor.at(text, cursor)
+    private fun isNumber(text: String, cursor: Int, located: Located): Boolean {
+        val at = located.at
         if (at.inString || at.position != CursorPosition.VALUE) return false
-        val around = text.getOrNull(cursor - 1).isNumberChar() || text.getOrNull(cursor).isNumberChar()
-        if (around && at.prefix.all { it.isDigit() || it == '-' || it == '.' }) return true
-        val container = at.containers.lastOrNull()?.takeIf { it.isObject } ?: return false
-        val key = at.key ?: return false
-        val facts = at.containers.map { if (it.isObject) JsonCursor.objectFacts(text, it.start) else emptySet<String>() to null }
-        var schema: JsonNode? = root
-        for (i in 1 until at.containers.size) schema = schema?.let { child(it, facts[i - 1], at.containers[i].slot) }
-        val value = schema?.let { properties(it, facts.last())[key] }?.let(::resolve) ?: return false
-        val types = types(value)
-        return ("number" in types || "integer" in types) && "string" !in types && container.isObject
+        val key = at.key?.takeIf { at.containers.last().isObject } ?: return false
+        val colon = text.lastIndexOf(':', cursor - 1).takeIf { it >= 0 } ?: return false
+        val written = text.substring(colon + 1, cursor)
+        if ('\n' in written || !NUMBER_SO_FAR.matches(written.trim())) return false
+        if (written.isNotBlank()) return true
+        val types = properties(located.schema, located.facts.last())[key]?.let { types(resolve(it)) }.orEmpty()
+        return ("number" in types || "integer" in types) && "string" !in types
     }
 
-    private fun Char?.isNumberChar() = this != null && (isDigit() || this == '.' || this == '-')
+    private val NUMBER_SO_FAR = Regex("""-?\d*(\.\d*)?""")
 
     /** The attributes the object doesn't have yet, required ones first. */
     private fun missing(schema: JsonNode, facts: Pair<Set<String>, String?>): List<Triple<String, JsonNode, Boolean>> {
