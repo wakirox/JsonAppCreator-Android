@@ -134,14 +134,9 @@ class MainActivity : ComponentActivity() {
                                 commitLoadedConfiguration(json)
                             }
                         },
-                        onDismiss = {
-                            // Without its keys the active configuration can't run: fall back to the plain sample,
-                            // so the menu stays reachable and another configuration can be loaded.
-                            if (pendingActiveConfiguration) {
-                                clearPendingConfiguration()
-                                loadSampleConfiguration(R.raw.v3_app_sample)
-                            } else clearPendingConfiguration()
-                        }
+                        // Cancelled: the app opens without its keys (what needs them can't load) and stays saved, with
+                        // the menu reachable to add them later or open another app.
+                        onDismiss = { clearPendingConfiguration() }
                     )
                 }
             }
