@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,10 +19,12 @@ import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.ScreenRuntimeState
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
-import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.ui.ApiKeyEntryDialog
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.MainScreen
+import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.HomeShortcuts
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
 import org.json.JSONObject
@@ -59,24 +60,9 @@ class MainActivity : ComponentActivity() {
     private var pendingConfiguration by mutableStateOf<String?>(null)
     private var pendingApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var savedApiKeyNames by mutableStateOf<Set<String>>(emptySet())
-    private var pendingActiveConfiguration by mutableStateOf(false)
     private var askingAi by mutableStateOf(false)
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
-    }
-
-    private val openJsonFile = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri ?: return@registerForActivityResult
-        try {
-            val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-                ?: throw IllegalArgumentException("Unable to read the selected file")
-            prepareLoadedConfiguration(text)
-        } catch (e: Exception) {
-            AlertUtils.showAlert(
-                this,
-                "Configuration could not be loaded\n\n${e.message ?: "Unrecognized error"}"
-            )
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,28 +73,27 @@ class MainActivity : ComponentActivity() {
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //            WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
+        // Opened from a home-screen shortcut: that saved app becomes the current one.
+        if (savedInstanceState == null) intent.getStringExtra(HomeShortcuts.EXTRA_APP_ID)?.let { id ->
+            AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this, it.configurationId) }
+                ?: Toast.makeText(this, "That app was deleted", Toast.LENGTH_LONG).show()
+        }
         val screen = initializeScreen(savedInstanceState) ?: return
         screenState = screen
         val appModel = checkNotNull(application.app())
         prepareActiveConfigurationApiKeys()
         setContent {
             AppTheme {
-                if (!pendingActiveConfiguration) {
+                if (pendingConfiguration == null) {
                     MainScreen(
                         title = appModel.name,
                         author = appModel.author,
                         version = appModel.version,
-                        hasChangelog = appModel.changelog != null,
+                        changelog = appModel.changelog,
                         model = screen.definition,
                         modelData = screen.data,
                         loading = loading,
-                        onChangelog = {
-                            appModel.changelog?.let { changelog ->
-                                spawnInstance(context = this, changelog = changelog)
-                            }
-                        },
-                        onLoadConfiguration = { openJsonFile.launch("application/json") },
-                        onEditConfiguration = { EditorActivity.edit(this) },
+                        onEditApp = { EditorActivity.edit(this) },
                         onNewApp = { EditorActivity.newApp(this) },
                         onAskAi = { askingAi = true },
                         onPasteFromAi = {
@@ -117,21 +102,8 @@ class MainActivity : ComponentActivity() {
                                 Toast.makeText(this, "The clipboard is empty: copy the answer in your AI app first", Toast.LENGTH_LONG).show()
                             } else EditorActivity.aiAnswer(this, answer)
                         },
-                        onLoadMasterpiecesSample = {
-                            loadSampleConfiguration(R.raw.v3_masterpieces)
-                        },
-                        onLoadPlainSample = {
-                            loadSampleConfiguration(R.raw.v3_app_sample)
-                        },
-                        onLoadFormSample = {
-                            loadSampleConfiguration(R.raw.v3_app_form)
-                        },
-                        onLoadMovieSample = {
-                            loadSampleConfiguration(R.raw.v3_the_movie_db)
-                        },
-                        onLoadPokedexSample = {
-                            loadSampleConfiguration(R.raw.v3_pokedex)
-                        }
+                        onMyApps = { startActivity(Intent(this, MyAppsActivity::class.java)) },
+                        onAddToHome = { addToHomeScreen() }
                     )
                 }
                 if (askingAi) {
@@ -146,13 +118,8 @@ class MainActivity : ComponentActivity() {
                         names = pendingApiKeyNames,
                         savedNames = savedApiKeyNames,
                         onConfirm = { values ->
-                            if (pendingActiveConfiguration) {
-                                ConfigurationApiKeys.saveForCurrentConfiguration(json, values)
-                                spawnNew(this)
-                            } else {
-                                ConfigurationApiKeys.save(json, values)
-                                commitLoadedConfiguration(json)
-                            }
+                            ConfigurationApiKeys.saveForCurrentConfiguration(json, values)
+                            spawnNew(this)
                         },
                         // Cancelled: the app opens without its keys (what needs them can't load) and stays saved, with
                         // the menu reachable to add them later or open another app.
@@ -241,9 +208,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun loadSampleConfiguration(resourceId: Int) {
-        DomainController.setJsonFile(resourceId, this)
-        spawnNew(this)
+    private fun addToHomeScreen() {
+        val app = AppLibrary.save(this, DomainController.jsonFile(this), DomainController.configurationId(this))
+        val message = when {
+            app == null -> "This app needs a name to be added to the home screen"
+            !HomeShortcuts.pin(this, app) -> "Your home screen app can't add shortcuts"
+            else -> null
+        }
+        message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
     }
 
     private fun prepareActiveConfigurationApiKeys() {
@@ -255,34 +227,12 @@ class MainActivity : ComponentActivity() {
         pendingConfiguration = json
         pendingApiKeyNames = names
         savedApiKeyNames = availableNames
-        pendingActiveConfiguration = true
-    }
-
-    private fun prepareLoadedConfiguration(json: String) {
-        configurationParser.parse(json)
-        val names = ConfigurationApiKeys.placeholderNames(json)
-        if (names.isEmpty()) {
-            commitLoadedConfiguration(json)
-            return
-        }
-        pendingConfiguration = json
-        pendingApiKeyNames = names
-        savedApiKeyNames = names.filterTo(mutableSetOf()) {
-            ConfigurationApiKeys.hasSavedValue(json, it)
-        }
-    }
-
-    private fun commitLoadedConfiguration(json: String) {
-        DomainController.setJsonFile(json, this)
-        clearPendingConfiguration()
-        spawnNew(this)
     }
 
     private fun clearPendingConfiguration() {
         pendingConfiguration = null
         pendingApiKeyNames = emptySet()
         savedApiKeyNames = emptySet()
-        pendingActiveConfiguration = false
     }
 
     fun pushViewWithId(id: String, obj: JSONObject?) {

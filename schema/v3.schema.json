@@ -346,11 +346,12 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
-        { "if": { "properties": { "type": { "const": "alert" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/alertEvent" } }
+        { "if": { "properties": { "type": { "const": "alert" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/alertEvent" } },
+        { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } }
       ]
     },
     "restEvent": {
@@ -404,6 +405,23 @@
         "type": { "const": "show" },
         "view": { "description": "The view to open; it receives the current data", "$ref": "#/$defs/view" },
         "mapping": { "description": "Path of the part of the current data the view receives", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "calendarEvent": {
+      "type": "object",
+      "description": "Opens the phone's calendar app on a new event, filled in; the user reviews and saves it there.",
+      "required": ["type", "title", "date"],
+      "properties": {
+        "type": { "const": "calendar" },
+        "title": { "description": "The event's title; may use ${field} placeholders", "$ref": "#/$defs/nonEmptyString" },
+        "date": { "description": "The day, dd/MM/yyyy; may be a placeholder such as ${date} from a form's date field", "$ref": "#/$defs/nonEmptyString" },
+        "time": { "description": "The start time, HH:mm; without it the event lasts all day", "$ref": "#/$defs/nullableString" },
+        "durationMinutes": { "description": "How long a timed event lasts; 60 by default", "type": ["integer", "null"], "minimum": 1 },
+        "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false

@@ -30,9 +30,6 @@
                 android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
                 android:theme="@style/AppTheme.Compose"
                 android:name="it.sapienza.appinterpreter.activity.PhotoActivity"/>
-        <activity
-                android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
-                android:name="it.sapienza.appinterpreter.activity.PlainTextActivity"/>
         <!-- Also the share target for answers from an AI app: shared text or JSON opens in the editor. -->
         <activity
                 android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
@@ -46,6 +43,8 @@
                 <data android:mimeType="application/json" />
             </intent-filter>
         </activity>
+
+        <activity android:name="it.sapienza.appinterpreter.activity.MyAppsActivity" />
 
         <activity
                 android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity"

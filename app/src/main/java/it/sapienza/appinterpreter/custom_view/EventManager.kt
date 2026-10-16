@@ -1,18 +1,24 @@
 package it.sapienza.appinterpreter.custom_view
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
+import android.provider.CalendarContract
 import it.sapienza.appinterpreter.activity.MainActivity
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.extensions.getObject
 import it.sapienza.appinterpreter.extensions.matchReplace
 import it.sapienza.appinterpreter.model.event.*
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
+import java.util.function.Consumer
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
 import org.json.JSONObject
-import java.io.IOException
-import java.util.function.Consumer
 
 object EventManager{
     fun manage(context: Context, event: RESTService, data: JSONObject?): Call? {
@@ -79,6 +85,9 @@ object EventManager{
         }
     }
 
+    /** The date format of a form's date field, which a calendar event's date uses too. */
+    private const val DATE_PATTERN = "dd/MM/yyyy"
+
     fun evaluateEvent(
         context: Context,
         it: Event,
@@ -100,6 +109,41 @@ object EventManager{
             is RESTService -> {
                 EventManager.manage(context, it, data)
             }
+            is CalendarEvent -> openCalendar(context, it, it.mapping?.let { mapping -> data?.getObject(mapping) } ?: data)
+        }
+    }
+
+    /**
+     * Opens the calendar app on a new event filled in from [event] and [data]. Nothing is written to the calendar
+     * here: the user saves the event in their calendar app, so no calendar permission is needed.
+     */
+    private fun openCalendar(context: Context, event: CalendarEvent, data: JSONObject?) {
+        val date = event.date.matchReplace(data)
+        val time = event.time?.matchReplace(data)?.takeIf { it.isNotBlank() }
+        // A timed event starts at that local time; an all-day one covers that day from UTC midnight to the next,
+        // as the calendar provider defines all-day events.
+        val start = runCatching {
+            SimpleDateFormat(if (time != null) "$DATE_PATTERN HH:mm" else DATE_PATTERN, Locale.ENGLISH).apply {
+                isLenient = false
+                if (time == null) timeZone = TimeZone.getTimeZone("UTC")
+            }.parse(if (time != null) "$date $time" else date)
+        }.getOrNull()
+        if (start == null) {
+            AlertUtils.showAlert(context, "The event's date and time must be dd/MM/yyyy and HH:mm, but they are \"$date${time?.let { " $it" }.orEmpty()}\".")
+            return
+        }
+        val end = start.time + if (time != null) (event.durationMinutes ?: 60) * 60_000L else 24 * 3_600_000L
+        val intent = Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
+            .putExtra(CalendarContract.Events.TITLE, event.title.matchReplace(data))
+            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, start.time)
+            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end)
+            .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, time == null)
+        event.location?.let { intent.putExtra(CalendarContract.Events.EVENT_LOCATION, it.matchReplace(data)) }
+        event.description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it.matchReplace(data)) }
+        try {
+            context.startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            AlertUtils.showAlert(context, "There is no calendar app on this phone to add the event to.")
         }
     }
 }

@@ -102,7 +102,7 @@ fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss:
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Use your AI app") },
+        title = { Text("Make an app with your AI app") },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(

@@ -88,6 +88,7 @@ Events:
 - `show`
 - `rest`
 - `alert`
+- `calendar` (opens the phone's calendar app on a new event, for the user to save)
 
 Other enums:
 
@@ -278,6 +279,19 @@ What an action does: the `event` of an action definition.
 - `value`: text. The message; may use ${field} placeholders
 - `thenDoOK`: an event. The event to run when OK is tapped
 - `thenDoKO`: an event. The event to run when the alert is cancelled
+- `mapping`: text
+- `data`: an object with any data
+
+#### `calendar`
+
+Opens the phone's calendar app on a new event, filled in; the user reviews and saves it there.
+
+- `title` **(required)**: text (not empty). The event's title; may use ${field} placeholders
+- `date` **(required)**: text (not empty). The day, dd/MM/yyyy; may be a placeholder such as ${date} from a form's date field
+- `time`: text. The start time, HH:mm; without it the event lasts all day
+- `durationMinutes`: a whole number (at least 1). How long a timed event lasts; 60 by default
+- `location`: text. Where it happens; may use ${field} placeholders
+- `description`: text. Notes for the event; may use ${field} placeholders
 - `mapping`: text
 - `data`: an object with any data
 

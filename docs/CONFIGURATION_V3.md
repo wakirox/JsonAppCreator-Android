@@ -31,8 +31,8 @@ Install it on an Android device running Android 8.1 (API 27) or newer.
 1. Create a UTF-8 JSON file using the format below.
 2. Open JSON App Creator.
 3. Open the three-dot menu.
-4. Select **Load configuration from device** and choose the file.
-5. Use **Edit configuration** to see or change the active JSON, or **New app** to write
+4. Select **My apps**, then **Open a file…**, and choose the file.
+5. Use **Edit this app** to see or change the active JSON, or **New app** to write
    one in the app's editor.
 
 The selected configuration is saved locally and restored the next time the app opens.
@@ -364,6 +364,25 @@ Action properties:
 current event data is passed to the destination view. Android's Back button returns to
 the previous view.
 
+### Add an event to the calendar
+
+```json
+{
+  "type": "calendar",
+  "title": "Dinner: ${cuisine}",
+  "date": "${date}",
+  "time": "19:30",
+  "durationMinutes": 180,
+  "location": "Home",
+  "description": "${guests} guests, hosted by ${name}"
+}
+```
+
+Opens the phone's calendar app on a new event, filled in; the user reviews and saves it
+there, so the app needs no calendar permission. `date` is `dd/MM/yyyy`, as a form's
+`date` field submits it, and `time` is `HH:mm`; without `time` the event lasts all day.
+A timed event lasts `durationMinutes`, 60 by default. Every text may use `${...}`.
+
 ### Call a REST endpoint
 
 ```json
@@ -450,8 +469,10 @@ An `initData` object on a list uses the same REST fields but does not need a `ty
 ```
 
 Use `value` for a literal/interpolated message, or `mapping` to read the message from
-the current data. `thenDoOK` runs from the **OK** button. When `thenDoKO` is present, the
-dialog also shows a **NO** button and runs that branch when selected.
+the current data. `thenDoOK` runs from the **OK** button. An alert with `thenDoOK` or
+`thenDoKO` also shows a **Cancel** button, which runs `thenDoKO` when there is one and
+otherwise just closes the alert, so a question such as "Add it to your calendar?" can be
+declined.
 
 ## Reusing views and actions
 
@@ -632,5 +653,5 @@ Common failures:
 - **Destination does not open:** the view ID is missing or does not match a reusable
   view definition.
 
-Use the app menu's **Edit configuration** command to confirm which JSON is currently
+Use the app menu's **Edit this app** command to confirm which JSON is currently
 loaded; its live check shows the same problems the app reports when loading.

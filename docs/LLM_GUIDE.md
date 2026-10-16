@@ -90,6 +90,7 @@ Events:
 - `show`
 - `rest`
 - `alert`
+- `calendar` (opens the phone's calendar app on a new event, for the user to save)
 
 Other enums:
 
@@ -149,7 +150,7 @@ app…** shares them back to the model as a message.
 
 ## Recommended prompt
 
-The app has no AI inside. Its **Use your AI app…** command shares a complete,
+The app has no AI inside. Its **Make an app with your AI app…** command shares a complete,
 self-contained prompt to an AI app the user picks: these rules, a reference of every view,
 field and event generated from the schema, and worked examples. The user shares the
 answer back to the app.
