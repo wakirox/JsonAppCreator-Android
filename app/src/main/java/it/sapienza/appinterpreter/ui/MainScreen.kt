@@ -40,6 +40,7 @@ fun MainScreen(
     onLoadConfiguration: () -> Unit,
     onEditConfiguration: () -> Unit,
     onNewApp: () -> Unit,
+    onAskAi: () -> Unit,
     onLoadMasterpiecesSample: () -> Unit,
     onLoadPlainSample: () -> Unit,
     onLoadFormSample: () -> Unit,
@@ -107,6 +108,12 @@ fun MainScreen(
                             iconResource = R.drawable.baseline_insert_drive_file_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onNewApp
+                        )
+                        ActionMenuItem(
+                            text = "Ask an AI to make an app",
+                            iconResource = R.drawable.baseline_track_changes_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onAskAi
                         )
 
                         HorizontalDivider()

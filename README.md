@@ -41,6 +41,11 @@ three-dot menu:
   allows where the cursor is, checks the file as you type (tap a problem to jump to it),
   inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
 - **Load configuration from device** opens a UTF-8 JSON file in the v3 format.
+- **Ask an AI to make an app** copies a complete prompt, or shares it as a Markdown file,
+  for ChatGPT, Claude, Gemini or any other assistant: the rules, a reference of every
+  view, field and event generated from the schema, worked examples and your request
+  (optionally with the current app to change). In the editor, **Paste AI answer** takes
+  the JSON out of the reply, and **Copy problems for AI** sends the check's findings back.
 
 The app validates the complete file before saving or displaying it. Invalid files show
 path-based feedback such as `$.mainView.views[1].type`. The last valid configuration
@@ -81,7 +86,8 @@ Save it as `hello.json` and load it from the app.
 ## Documentation
 
 - [v3 configuration reference](docs/CONFIGURATION_V3.md)
-- [Instructions for LLMs](docs/LLM_GUIDE.md)
+- [Instructions for LLMs](docs/LLM_GUIDE.md) and the complete
+  [AI context](docs/AI_CONTEXT.md) to attach to a prompt
 - [Draft 2020-12 JSON Schema](schema/v3.schema.json)
 - [Small validated examples](examples)
 - [Complete TMDb example](samples/v3_the_movie_db.json)

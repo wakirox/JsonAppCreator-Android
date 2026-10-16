@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.extensions.setApp
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
     private var pendingApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var savedApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var pendingActiveConfiguration by mutableStateOf(false)
+    private var askingAi by mutableStateOf(false)
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
     }
@@ -106,6 +108,7 @@ class MainActivity : ComponentActivity() {
                         onLoadConfiguration = { openJsonFile.launch("application/json") },
                         onEditConfiguration = { EditorActivity.edit(this) },
                         onNewApp = { EditorActivity.newApp(this) },
+                        onAskAi = { askingAi = true },
                         onLoadMasterpiecesSample = {
                             loadSampleConfiguration(R.raw.v3_masterpieces)
                         },
@@ -121,6 +124,13 @@ class MainActivity : ComponentActivity() {
                         onLoadPokedexSample = {
                             loadSampleConfiguration(R.raw.v3_pokedex)
                         }
+                    )
+                }
+                if (askingAi) {
+                    AskAiDialog(
+                        currentApp = DomainController.jsonFile(this),
+                        changeCurrentByDefault = false,
+                        onDismiss = { askingAi = false }
                     )
                 }
                 pendingConfiguration?.let { json ->

@@ -67,6 +67,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import it.sapienza.appinterpreter.ai.AiContext
+import it.sapienza.appinterpreter.ai.AskAi
+import it.sapienza.appinterpreter.ai.AskAiDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -93,6 +96,8 @@ fun EditorScreen(
     var insertOpen by remember { mutableStateOf(false) }
     var moreOpen by remember { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
+    var askAi by remember { mutableStateOf(false) }
+    var pasted by remember { mutableStateOf<String?>(null) }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val scroll = rememberScrollState()
     val focus = remember { FocusRequester() }
@@ -171,6 +176,15 @@ fun EditorScreen(
                             } else value = TextFieldValue(formatted, TextRange(0))
                         })
                         DropdownMenuItem(text = { Text("Save as file…") }, onClick = { moreOpen = false; onSaveAs(value.text) })
+                        HorizontalDivider()
+                        DropdownMenuItem(text = { Text("Ask an AI…") }, onClick = { moreOpen = false; askAi = true })
+                        DropdownMenuItem(text = { Text("Paste AI answer") }, onClick = {
+                            moreOpen = false
+                            val json = AskAi.jsonFromClipboard(context)
+                            if (json == null) {
+                                Toast.makeText(context, "No JSON in the clipboard: copy the AI's answer first", Toast.LENGTH_LONG).show()
+                            } else pasted = json
+                        })
                     }
                 }
             )
@@ -212,9 +226,29 @@ fun EditorScreen(
                 open = issuesOpen,
                 text = value.text,
                 onToggle = { issuesOpen = !issuesOpen },
-                onIssue = { issue -> issue.offset?.let(::jumpTo) }
+                onIssue = { issue -> issue.offset?.let(::jumpTo) },
+                onCopyForAi = { found ->
+                    AskAi.copy(context, AiContext.fixRequest(value.text, found), "Copied: paste it to the AI that wrote the JSON")
+                }
             )
         }
+    }
+
+    if (askAi) AskAiDialog(currentApp = value.text, changeCurrentByDefault = true, onDismiss = { askAi = false })
+
+    pasted?.let { json ->
+        AlertDialog(
+            onDismissRequest = { pasted = null },
+            title = { Text("Use the AI's answer?") },
+            text = { Text("It replaces the text in the editor. The check then shows anything to fix.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    value = TextFieldValue(prettyJson(json), TextRange(0))
+                    pasted = null
+                }) { Text("Replace") }
+            },
+            dismissButton = { TextButton(onClick = { pasted = null }) { Text("Cancel") } }
+        )
     }
 
     if (confirmDiscard) {
@@ -277,7 +311,8 @@ private fun IssueBar(
     open: Boolean,
     text: String,
     onToggle: () -> Unit,
-    onIssue: (EditorIssue) -> Unit
+    onIssue: (EditorIssue) -> Unit,
+    onCopyForAi: (List<EditorIssue>) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     Surface(color = colors.surfaceContainer) {
@@ -307,6 +342,9 @@ private fun IssueBar(
                 }
             }
             if (open && !issues.isNullOrEmpty()) {
+                TextButton(onClick = { onCopyForAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
+                    Text("Copy problems for AI")
+                }
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {
                     items(issues) { issue ->
                         Column(Modifier.fillMaxWidth().clickable { onIssue(issue) }.padding(horizontal = 16.dp, vertical = 8.dp)) {
