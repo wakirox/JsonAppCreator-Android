@@ -25,7 +25,7 @@ object AlertUtils {
             }
 
         ko?.let {
-            dialogBuilder = dialogBuilder.setNegativeButton("NO"){
+            dialogBuilder = dialogBuilder.setNegativeButton("Cancel"){
                     dialog, id -> it.run()
             }
         }
@@ -51,6 +51,8 @@ object AlertUtils {
         val message = event.mapping?.let {
             data?.getValue(it)
         } ?: event.value
-        showAlert(context,message?.matchReplace(data) ?: "Missing message (check model)", ok,ko)
+        // An alert that does something on OK can always be declined: Cancel then just closes it.
+        val decline = ko ?: if (ok != null) Runnable { } else null
+        showAlert(context, message?.matchReplace(data) ?: "Missing message (check model)", ok, decline)
     }
 }

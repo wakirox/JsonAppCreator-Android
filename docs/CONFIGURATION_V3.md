@@ -469,8 +469,10 @@ An `initData` object on a list uses the same REST fields but does not need a `ty
 ```
 
 Use `value` for a literal/interpolated message, or `mapping` to read the message from
-the current data. `thenDoOK` runs from the **OK** button. When `thenDoKO` is present, the
-dialog also shows a **NO** button and runs that branch when selected.
+the current data. `thenDoOK` runs from the **OK** button. An alert with `thenDoOK` or
+`thenDoKO` also shows a **Cancel** button, which runs `thenDoKO` when there is one and
+otherwise just closes the alert, so a question such as "Add it to your calendar?" can be
+declined.
 
 ## Reusing views and actions
 
