@@ -113,14 +113,26 @@ object AiContext {
      * last }. Null when there is none.
      */
     fun extractJson(answer: String): String? {
-        Regex("```[a-zA-Z]*\\s*\\n(.*?)```", RegexOption.DOT_MATCHES_ALL).findAll(answer)
+        val candidate = Regex("```[a-zA-Z]*\\s*\\n(.*?)```", RegexOption.DOT_MATCHES_ALL).findAll(answer)
             .map { it.groupValues[1].trim() }
             .firstOrNull { it.startsWith("{") }
-            ?.let { return it }
-        val start = answer.indexOf('{')
-        val end = answer.lastIndexOf('}')
-        return if (start >= 0 && end > start) answer.substring(start, end + 1).trim() else null
+            ?: answer.indexOf('{').let { start ->
+                val end = answer.lastIndexOf('}')
+                if (start >= 0 && end > start) answer.substring(start, end + 1).trim() else null
+            }
+            ?: return null
+        return if (parses(candidate)) candidate else unescapeMarkdown(candidate).takeIf(::parses) ?: candidate
     }
+
+    /**
+     * Copying from a chat app can add Markdown escapes such as \[ and \_, which JSON never allows: they are removed.
+     * Only used on text that isn't valid JSON as it is.
+     */
+    private fun unescapeMarkdown(text: String) = MARKDOWN_ESCAPE.replace(text, "$1")
+
+    private val MARKDOWN_ESCAPE = Regex("""\\([\[\]{}()_*#`~<>!|+.-])""")
+
+    private fun parses(json: String) = runCatching { ObjectMapper().readTree(json) }.isSuccess
 
     /** A message asking a model to fix the problems the editor found, with their lines and paths, and the JSON. */
     fun fixRequest(json: String, issues: List<EditorIssue>): String = buildString {

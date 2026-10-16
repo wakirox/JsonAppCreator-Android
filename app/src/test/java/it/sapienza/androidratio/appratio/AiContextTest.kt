@@ -62,6 +62,8 @@ class AiContextTest {
         assertEquals(json, AiContext.extractJson("Here you go:\n```json\n$json\n```\nEnjoy!"))
         assertEquals(json, AiContext.extractJson("Sure! $json Hope it helps."))
         assertNull(AiContext.extractJson("No JSON here"))
+        // Markdown escapes added when copying from a chat app are undone.
+        assertEquals("{ \"a\": [1, 2] }", AiContext.extractJson("{ \"a\": \\[1, 2\\] }"))
     }
 
     @Test

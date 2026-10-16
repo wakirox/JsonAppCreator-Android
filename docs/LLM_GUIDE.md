@@ -121,6 +121,8 @@ properties.
 - Form fields are `text`, `selector`, `date` and `checkbox`; there is no `input`,
   `dropdown` or `switch`. Dates are `dd/MM/yyyy`.
 - Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
+- A screen opened with a `show` event already has the system Back gesture and button:
+  don't add "Back" buttons or alerts that only explain how to go back.
 - JSON has no comments and no trailing commas.
 
 ## Validate generated output
