@@ -32,7 +32,8 @@ Install it on an Android device running Android 8.1 (API 27) or newer.
 2. Open JSON App Creator.
 3. Open the three-dot menu.
 4. Select **Load configuration from device** and choose the file.
-5. Use **View current configuration** to inspect the active JSON.
+5. Use **Edit configuration** to see or change the active JSON, or **New app** to write
+   one in the app's editor.
 
 The selected configuration is saved locally and restored the next time the app opens.
 Android can also offer JSON App Creator when opening an `application/json` file from
@@ -298,6 +299,8 @@ Each rendered node receives a current JSON data object:
 - A node's own `data` replaces inherited data for that node and its descendants.
 - A list item receives that item object as its data.
 - A REST response becomes the data passed to its chained event.
+- A `show` event passes its current data to the view it opens, or only the part its
+  `mapping` selects, such as `meals.0` for the one item of a lookup response.
 - A form action receives the object assembled from the submitted fields.
 - An action's own `data`, when present, replaces the data from the clicked view.
 
@@ -317,7 +320,9 @@ interpolate data:
 }
 ```
 
-Dot paths traverse JSON objects. Array values used as text are joined with `, `. Missing
+Dot paths traverse JSON objects, and reach array items by index: `meals.0.strMeal` and
+`meals[0].strMeal` are the same. A list's `initData` URL can use placeholders too, filled
+from the data of the screen it is on. Array values used as text are joined with `, `. Missing
 values remain unreplaced in interpolated strings, so make sure every placeholder exists
 in the data available at that point.
 
@@ -627,5 +632,5 @@ Common failures:
 - **Destination does not open:** the view ID is missing or does not match a reusable
   view definition.
 
-Use the app menu's **View current configuration** command to confirm which JSON is
-currently loaded.
+Use the app menu's **Edit configuration** command to confirm which JSON is currently
+loaded; its live check shows the same problems the app reports when loading.

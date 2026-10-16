@@ -33,10 +33,23 @@ The app requires Android 8.1 (API 27) or newer.
 
 ## Try it
 
-1. Create a UTF-8 JSON file using the v3 format.
-2. Open JSON App Creator and open the three-dot menu.
-3. Select **Load configuration from device**.
-4. Choose the JSON file.
+The app opens on **Masterpieces**, an example gallery of public-domain paintings. From the
+three-dot menu:
+
+- **New app** starts a small app in the built-in editor; **Edit configuration** opens the
+  active one. The editor colours the JSON, suggests the properties and values the schema
+  allows where the cursor is, checks the file as you type (tap a problem to jump to it),
+  inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
+- **Load configuration from device** opens a UTF-8 JSON file in the v3 format.
+- **Use your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
+  JSON App Creator has no AI inside and calls no AI service: it shares a complete prompt
+  (the rules, a reference generated from the schema, worked examples and your request,
+  optionally with the current app to change) to the app you pick. Chat there; the AI is
+  asked for a downloadable `.json` file when it can make one. Open that file in JSON App
+  Creator, or share or paste the AI's answer, or a share link of the chat (ChatGPT, Gemini,
+  Grok: the app reads that public page and takes the AI's last app). It opens in the editor,
+  checked and ready to run. **Send problems to your AI app…** in the editor's problem list shares the check's
+  findings back for a fix. Copy and **Paste answer from your AI app** work too.
 
 The app validates the complete file before saving or displaying it. Invalid files show
 path-based feedback such as `$.mainView.views[1].type`. The last valid configuration
@@ -47,7 +60,7 @@ loaded file contains one, the app asks for the value and encrypts it in private 
 storage, scoped to that exact JSON file. The key is never inserted into the saved JSON.
 
 Android can also offer JSON App Creator when another app opens an `application/json`
-file. Use **View current configuration** to inspect the active JSON.
+file. Use **Edit configuration** to see or change the active JSON.
 
 ## Minimal configuration
 
@@ -77,7 +90,8 @@ Save it as `hello.json` and load it from the app.
 ## Documentation
 
 - [v3 configuration reference](docs/CONFIGURATION_V3.md)
-- [Instructions for LLMs](docs/LLM_GUIDE.md)
+- [Instructions for LLMs](docs/LLM_GUIDE.md) and the complete
+  [AI context](docs/AI_CONTEXT.md) to attach to a prompt
 - [Draft 2020-12 JSON Schema](schema/v3.schema.json)
 - [Small validated examples](examples)
 - [Complete TMDb example](samples/v3_the_movie_db.json)

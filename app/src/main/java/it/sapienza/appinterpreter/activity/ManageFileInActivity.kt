@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.ui.ApiKeyEntryDialog
@@ -31,7 +32,16 @@ class ManageFileInActivity : AppCompatActivity() {
                 BufferedReader(InputStreamReader(it)).readText()
             } ?: throw IllegalArgumentException("Unable to read the selected file")
 
-            configurationParser.parse(text)
+            try {
+                configurationParser.parse(text)
+            } catch (problems: Exception) {
+                if (AiContext.extractJson(text) != null) {
+                    EditorActivity.fileWithProblems(this, text)
+                    finish()
+                    return
+                }
+                throw problems
+            }
             val names = ConfigurationApiKeys.placeholderNames(text)
             if (names.isEmpty()) {
                 commitConfiguration(text)

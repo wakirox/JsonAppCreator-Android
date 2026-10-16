@@ -106,11 +106,13 @@
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
         "orientation": {
+          "description": "How the child views are arranged; vertical by default",
           "type": ["string", "null"],
           "enum": ["horizontal", "vertical", null],
           "default": "vertical"
         },
         "views": {
+          "description": "The child views, in order",
           "type": "array",
           "items": { "$ref": "#/$defs/view" }
         }
@@ -124,17 +126,17 @@
         "type": { "const": "text" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
         "action": { "$ref": "#/$defs/action" },
-        "mapping": { "$ref": "#/$defs/nullableString" },
+        "mapping": { "description": "Path of a value in the current data to show as the text, such as owner.name", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
-        "textSize": { "type": ["number", "null"], "minimum": 0 },
+        "textSize": { "description": "Font size in sp", "type": ["number", "null"], "minimum": 0 },
         "size": { "$ref": "#/$defs/size" },
         "textStyle": {
           "type": ["string", "null"],
           "enum": ["regular", "italic", "bold", null],
           "default": "regular"
         },
-        "title": { "$ref": "#/$defs/nullableString" },
-        "label": { "$ref": "#/$defs/nullableString" }
+        "title": { "description": "The text, when no mapping value is shown", "$ref": "#/$defs/nullableString" },
+        "label": { "description": "First line of the text view, shown above the text", "$ref": "#/$defs/nullableString" }
       },
       "additionalProperties": false
     },
@@ -144,8 +146,8 @@
       "properties": {
         "type": { "const": "button" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
-        "action": { "$ref": "#/$defs/action" },
-        "mapping": { "$ref": "#/$defs/nullableString" },
+        "action": { "description": "What a tap does", "$ref": "#/$defs/action" },
+        "mapping": { "description": "Path of a value in the current data to use as the button's text", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
         "textSize": { "type": ["number", "null"], "minimum": 0 },
         "size": { "$ref": "#/$defs/size" },
@@ -154,8 +156,8 @@
           "enum": ["regular", "italic", "bold", null],
           "default": "regular"
         },
-        "title": { "$ref": "#/$defs/nullableString" },
-        "label": { "$ref": "#/$defs/nullableString" }
+        "title": { "description": "The button's text", "$ref": "#/$defs/nullableString" },
+        "label": { "description": "Not displayed on buttons: use title", "$ref": "#/$defs/nullableString" }
       },
       "additionalProperties": false
     },
@@ -166,9 +168,9 @@
         "type": { "const": "image" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
         "action": { "$ref": "#/$defs/action" },
-        "mapping": { "$ref": "#/$defs/nullableString" },
+        "mapping": { "description": "Path of an image address in the current data", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
-        "url": { "$ref": "#/$defs/nullableString" },
+        "url": { "description": "Image address; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "size": { "$ref": "#/$defs/size" }
       },
       "additionalProperties": false
@@ -179,11 +181,12 @@
       "properties": {
         "type": { "const": "list" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
-        "action": { "$ref": "#/$defs/action" },
-        "mapping": { "$ref": "#/$defs/nullableString" },
+        "action": { "description": "What tapping an item does; its event receives that item", "$ref": "#/$defs/action" },
+        "mapping": { "description": "Path of the array of objects to show, in data or in the initData response", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
-        "itemView": { "$ref": "#/$defs/view" },
+        "itemView": { "description": "The view repeated for each item; its mappings and placeholders refer to that item", "$ref": "#/$defs/view" },
         "initData": {
+          "description": "A REST request whose JSON response is the list's data",
           "oneOf": [
             { "$ref": "#/$defs/initialRestService" },
             { "type": "null" }
@@ -202,12 +205,13 @@
       "properties": {
         "type": { "const": "form" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
-        "action": { "$ref": "#/$defs/action" },
+        "action": { "description": "Runs on submit, with the submitted object as data", "$ref": "#/$defs/action" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
-        "title": { "$ref": "#/$defs/nullableString" },
-        "buttonTitle": { "$ref": "#/$defs/nullableString" },
+        "title": { "description": "Heading above the fields", "$ref": "#/$defs/nullableString" },
+        "buttonTitle": { "description": "The submit button's text; Submit by default", "$ref": "#/$defs/nullableString" },
         "formElements": {
+          "description": "The fields; each one puts its value under its mapping in the submitted object",
           "type": "array",
           "items": { "$ref": "#/$defs/formElement" }
         }
@@ -231,10 +235,10 @@
       "required": ["type", "mapping", "title"],
       "properties": {
         "type": { "const": "text" },
-        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "mapping": { "description": "Key of the submitted object that receives the value", "$ref": "#/$defs/nonEmptyString" },
         "title": { "type": "string" },
         "description": { "$ref": "#/$defs/nullableString" },
-        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "mandatory": { "description": "Must be filled in before submitting", "type": ["boolean", "null"], "default": false },
         "placeholder": { "$ref": "#/$defs/nullableString" },
         "value": { "$ref": "#/$defs/nullableString" },
         "textType": {
@@ -286,10 +290,10 @@
       "required": ["type", "mapping", "title"],
       "properties": {
         "type": { "const": "checkbox" },
-        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "mapping": { "description": "Key of the submitted object that receives true or false", "$ref": "#/$defs/nonEmptyString" },
         "title": { "type": "string" },
         "description": { "$ref": "#/$defs/nullableString" },
-        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "mandatory": { "description": "Must be checked before submitting", "type": ["boolean", "null"], "default": false },
         "value": { "type": "boolean", "default": false }
       },
       "additionalProperties": false
@@ -354,13 +358,14 @@
       "required": ["type", "url"],
       "properties": {
         "type": { "const": "rest" },
-        "url": { "$ref": "#/$defs/nonEmptyString" },
+        "url": { "description": "HTTPS address; may use ${field} placeholders from the current data", "$ref": "#/$defs/nonEmptyString" },
         "method": {
           "type": ["string", "null"],
           "enum": ["get", "post", null],
           "default": "get"
         },
         "thenDo": {
+          "description": "The event to run next, with the JSON response as data",
           "oneOf": [
             { "$ref": "#/$defs/event" },
             { "type": "null" }
@@ -397,8 +402,8 @@
       "required": ["type", "view"],
       "properties": {
         "type": { "const": "show" },
-        "view": { "$ref": "#/$defs/view" },
-        "mapping": { "$ref": "#/$defs/nullableString" },
+        "view": { "description": "The view to open; it receives the current data", "$ref": "#/$defs/view" },
+        "mapping": { "description": "Path of the part of the current data the view receives", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false
@@ -408,14 +413,16 @@
       "required": ["type"],
       "properties": {
         "type": { "const": "alert" },
-        "value": { "$ref": "#/$defs/nullableString" },
+        "value": { "description": "The message; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "thenDoOK": {
+          "description": "The event to run when OK is tapped",
           "oneOf": [
             { "$ref": "#/$defs/event" },
             { "type": "null" }
           ]
         },
         "thenDoKO": {
+          "description": "The event to run when the alert is cancelled",
           "oneOf": [
             { "$ref": "#/$defs/event" },
             { "type": "null" }

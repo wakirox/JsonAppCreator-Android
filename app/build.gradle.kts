@@ -143,6 +143,13 @@ if (suppliedSigningValueCount in 1 until releaseSigningValues.size) {
 }
 val releaseSigningConfigured = suppliedSigningValueCount == releaseSigningValues.size
 
+val aiGuideAssets = layout.buildDirectory.dir("generated/aiGuideAssets")
+val copyAiGuide by tasks.registering(Copy::class) {
+    from(rootProject.file("docs/LLM_GUIDE.md"))
+    into(aiGuideAssets)
+}
+tasks.named("preBuild") { dependsOn(copyAiGuide) }
+
 android {
     namespace = "it.sapienza.androidratio.appratio"
     compileSdk = 37
@@ -222,6 +229,8 @@ android {
         getByName("main") {
             // Package the canonical repository schema without maintaining a second copy.
             assets.directories.add(rootProject.file("schema").absolutePath)
+            // And the AI guide, which the in-app "Ask an AI" context is built from.
+            assets.directories.add(aiGuideAssets.get().asFile.absolutePath)
         }
     }
 
@@ -282,6 +291,11 @@ tasks.withType<Test>().configureEach {
         systemProperty("jsonApp.config", requestedConfig.absolutePath)
         inputs.file(requestedConfig).withPathSensitivity(PathSensitivity.RELATIVE)
     }
+}
+
+// `-PupdateAiContext=true` lets AiContextTest rewrite docs/AI_CONTEXT.md.
+tasks.withType<Test>().configureEach {
+    systemProperty("updateAiContext", providers.gradleProperty("updateAiContext").getOrElse("false"))
 }
 
 tasks.register("validateConfig") {
