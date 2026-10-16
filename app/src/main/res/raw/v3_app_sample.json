@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "App creator",
-  "author": "Marius Gabriel Magadan",
+  "author": "JSON App Creator",
   "version": "alpha-01",
   "mainView": {
     "type": "layout",
@@ -10,7 +10,7 @@
         "type": "text",
         "label": "Hello world!",
         "textSize": 12,
-        "title": "In the settings you can find a series of sample apps to load. You can also load a json model from your device and see it inside the application. If you want details on the file structure write an email to:\nwakirox@gmail.com"
+        "title": "Open the menu to load one of the sample apps, or a JSON file from your device. The format reference and examples are on GitHub:\ngithub.com/wakirox/JsonAppCreator-Android"
       }
     ]
   }

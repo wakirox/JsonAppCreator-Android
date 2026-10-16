@@ -5,10 +5,10 @@
   "mainView" : {
     "type" : "layout",
     "data" : {
-      "firstname" : "Gabriel",
-      "lastname" : "Magadan",
+      "firstname" : "Alex",
+      "lastname" : "Smith",
       "gender" : "Male",
-      "dateofbirth" : "24/05/1991"
+      "dateofbirth" : "01/01/1990"
     },
     "views" : [
           {
