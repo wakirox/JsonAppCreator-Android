@@ -110,7 +110,7 @@ fun MainScreen(
                             onClick = onNewApp
                         )
                         ActionMenuItem(
-                            text = "Ask an AI to make an app",
+                            text = "Use your AI app…",
                             iconResource = R.drawable.baseline_track_changes_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAskAi

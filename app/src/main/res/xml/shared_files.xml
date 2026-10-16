@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Files the app shares with other apps, such as the AI context. -->
-<paths>
-    <cache-path name="shared" path="shared/" />
-</paths>

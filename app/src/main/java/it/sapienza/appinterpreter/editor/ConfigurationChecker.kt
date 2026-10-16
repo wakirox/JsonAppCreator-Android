@@ -28,7 +28,12 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
         val schemaIssues = validator.validate(json).issues
         if (schemaIssues.isNotEmpty()) {
             val offsets = pathOffsets(json)
-            return schemaIssues.map { EditorIssue(offsetOf(it.path, offsets), it.path, it.message) }
+            return schemaIssues.map { issue ->
+                // An unknown property is reported on its object: point at the property itself.
+                val unknown = UNKNOWN_PROPERTY.find(issue.message)?.groupValues?.get(1)
+                val offset = unknown?.let { offsets["${issue.path}.$it"] } ?: offsetOf(issue.path, offsets)
+                EditorIssue(offset, issue.path, issue.message)
+            }
         }
 
         return try {
@@ -42,6 +47,8 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
     }
 
     companion object {
+        private val UNKNOWN_PROPERTY = Regex("property '([^']+)' is not defined")
+
         /**
          * Where each JSON path starts in the text, as "$.mainView.views[1].type": a property at its key, an array
          * element at its first character.

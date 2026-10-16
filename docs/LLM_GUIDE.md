@@ -135,13 +135,15 @@ Treat every reported path as a required correction. Do not suppress validation e
 by deleting useful definitions or weakening references; repair the configuration's
 structure and data flow.
 
-In the app, the editor's live check shows the same problems; **Copy problems for AI**
-turns them into a message to send back to the model.
+In the app, the editor's live check shows the same problems; **Send problems to your AI
+app…** shares them back to the model as a message.
 
 ## Recommended prompt
 
-The app's **Ask an AI** command builds a complete, self-contained prompt: these rules, a
-reference of every view, field and event generated from the schema, and worked examples.
+The app has no AI inside. Its **Use your AI app…** command shares a complete,
+self-contained prompt to an AI app the user picks: these rules, a reference of every view,
+field and event generated from the schema, and worked examples. The user shares the
+answer back to the app.
 The same context is in [AI_CONTEXT.md](AI_CONTEXT.md) for use outside the app; attach it
 to a prompt like this one:
 

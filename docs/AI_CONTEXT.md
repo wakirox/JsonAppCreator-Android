@@ -685,4 +685,4 @@ Submitting runs the form's action with the filled-in values, so the alert can us
 
 Create a JSON App Creator v3 configuration for this app: <describe the app: its screens, data and actions>
 
-Return only the complete JSON configuration, starting with { and ending with }: no Markdown fences, comments or explanations.
+Return only the complete JSON configuration, starting with { and ending with }: no comments or explanations. I will share your answer to the JSON App Creator app, which runs it; if it reports problems, I will send them to you to fix.

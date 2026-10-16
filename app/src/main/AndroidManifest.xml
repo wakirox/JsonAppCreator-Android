@@ -33,10 +33,19 @@
         <activity
                 android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
                 android:name="it.sapienza.appinterpreter.activity.PlainTextActivity"/>
+        <!-- Also the share target for answers from an AI app: shared text or JSON opens in the editor. -->
         <activity
                 android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
                 android:windowSoftInputMode="adjustResize"
-                android:name="it.sapienza.appinterpreter.activity.EditorActivity"/>
+                android:name="it.sapienza.appinterpreter.activity.EditorActivity"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+        </activity>
 
         <activity
                 android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity"
@@ -51,15 +60,6 @@
             </intent-filter>
         </activity>
 
-        <provider
-                android:name="androidx.core.content.FileProvider"
-                android:authorities="${applicationId}.files"
-                android:exported="false"
-                android:grantUriPermissions="true">
-            <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/shared_files" />
-        </provider>
     </application>
 
 </manifest>

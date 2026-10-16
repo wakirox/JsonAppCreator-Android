@@ -41,11 +41,13 @@ three-dot menu:
   allows where the cursor is, checks the file as you type (tap a problem to jump to it),
   inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
 - **Load configuration from device** opens a UTF-8 JSON file in the v3 format.
-- **Ask an AI to make an app** copies a complete prompt, or shares it as a Markdown file,
-  for ChatGPT, Claude, Gemini or any other assistant: the rules, a reference of every
-  view, field and event generated from the schema, worked examples and your request
-  (optionally with the current app to change). In the editor, **Paste AI answer** takes
-  the JSON out of the reply, and **Copy problems for AI** sends the check's findings back.
+- **Use your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
+  JSON App Creator has no AI inside and calls no AI service: it shares a complete prompt
+  (the rules, a reference generated from the schema, worked examples and your request,
+  optionally with the current app to change) to the app you pick. Chat there, then share
+  the AI's answer back to JSON App Creator: it opens in the editor, checked and ready to
+  run. **Send problems to your AI app…** in the editor's problem list shares the check's
+  findings back for a fix. Copy and **Paste answer from your AI app** work too.
 
 The app validates the complete file before saving or displaying it. Invalid files show
 path-based feedback such as `$.mainView.views[1].type`. The last valid configuration

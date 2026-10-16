@@ -39,6 +39,12 @@ class EditorAssistTest {
     }
 
     @Test
+    fun anUnknownPropertyIsPlacedAtItsName() {
+        val json = HELLO.replace("\"label\": \"Hello\"", "\"label\": \"Hello\", \"colour\": \"red\"")
+        assertEquals(json.indexOf("\"colour\""), checker.check(json).single().offset)
+    }
+
+    @Test
     fun aSyntaxErrorIsPlacedWhereTheParserStopped() {
         val json = HELLO.replace("\"label\": \"Hello\"", "\"label\" \"Hello\"")
         val issue = checker.check(json).single()

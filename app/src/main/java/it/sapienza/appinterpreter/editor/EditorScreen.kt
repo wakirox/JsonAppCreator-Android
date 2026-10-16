@@ -82,6 +82,7 @@ import kotlinx.coroutines.launch
 fun EditorScreen(
     title: String,
     initialText: String,
+    fromAiApp: Boolean,
     check: suspend (String) -> List<EditorIssue>,
     suggestions: SchemaSuggestions,
     onRun: (String) -> Unit,
@@ -129,7 +130,8 @@ fun EditorScreen(
         layout?.let { scope.launch { scroll.animateScrollTo((it.getLineTop(it.getLineForOffset(target)) - 120f).toInt().coerceAtLeast(0)) } }
     }
 
-    fun leave() = if (value.text != initialText) confirmDiscard = true else onBack()
+    // An answer from an AI app isn't saved anywhere yet, so leaving always asks.
+    fun leave() = if (fromAiApp || value.text != initialText) confirmDiscard = true else onBack()
     BackHandler(onBack = ::leave)
 
     Scaffold(
@@ -177,8 +179,8 @@ fun EditorScreen(
                         })
                         DropdownMenuItem(text = { Text("Save as file…") }, onClick = { moreOpen = false; onSaveAs(value.text) })
                         HorizontalDivider()
-                        DropdownMenuItem(text = { Text("Ask an AI…") }, onClick = { moreOpen = false; askAi = true })
-                        DropdownMenuItem(text = { Text("Paste AI answer") }, onClick = {
+                        DropdownMenuItem(text = { Text("Send to your AI app…") }, onClick = { moreOpen = false; askAi = true })
+                        DropdownMenuItem(text = { Text("Paste answer from your AI app") }, onClick = {
                             moreOpen = false
                             val json = AskAi.jsonFromClipboard(context)
                             if (json == null) {
@@ -191,6 +193,17 @@ fun EditorScreen(
         }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
+            if (fromAiApp) {
+                Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Text(
+                        "Shared from your AI app, not saved yet. ▶ runs it; problems can go back to your AI app " +
+                            "from the bar below.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+            }
             val colors = MaterialTheme.colorScheme
             val jsonColors = if (colors.surface.luminance() < 0.5f) JsonColors.Dark else JsonColors.Light
             val problems = issues.orEmpty().mapNotNull { it.offset }
@@ -227,9 +240,7 @@ fun EditorScreen(
                 text = value.text,
                 onToggle = { issuesOpen = !issuesOpen },
                 onIssue = { issue -> issue.offset?.let(::jumpTo) },
-                onCopyForAi = { found ->
-                    AskAi.copy(context, AiContext.fixRequest(value.text, found), "Copied: paste it to the AI that wrote the JSON")
-                }
+                onSendToAi = { found -> AskAi.shareToAiApp(context, AiContext.fixRequest(value.text, found)) }
             )
         }
     }
@@ -239,7 +250,7 @@ fun EditorScreen(
     pasted?.let { json ->
         AlertDialog(
             onDismissRequest = { pasted = null },
-            title = { Text("Use the AI's answer?") },
+            title = { Text("Use the answer from your AI app?") },
             text = { Text("It replaces the text in the editor. The check then shows anything to fix.") },
             confirmButton = {
                 TextButton(onClick = {
@@ -255,7 +266,7 @@ fun EditorScreen(
         AlertDialog(
             onDismissRequest = { confirmDiscard = false },
             title = { Text("Discard changes?") },
-            text = { Text("Your edits haven't been run or saved.") },
+            text = { Text(if (fromAiApp) "The app from your AI app hasn't been run or saved." else "Your edits haven't been run or saved.") },
             confirmButton = { TextButton(onClick = { confirmDiscard = false; onBack() }) { Text("Discard") } },
             dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Keep editing") } }
         )
@@ -312,7 +323,7 @@ private fun IssueBar(
     text: String,
     onToggle: () -> Unit,
     onIssue: (EditorIssue) -> Unit,
-    onCopyForAi: (List<EditorIssue>) -> Unit
+    onSendToAi: (List<EditorIssue>) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     Surface(color = colors.surfaceContainer) {
@@ -342,8 +353,8 @@ private fun IssueBar(
                 }
             }
             if (open && !issues.isNullOrEmpty()) {
-                TextButton(onClick = { onCopyForAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
-                    Text("Copy problems for AI")
+                TextButton(onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
+                    Text("Send problems to your AI app…")
                 }
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {
                     items(issues) { issue ->

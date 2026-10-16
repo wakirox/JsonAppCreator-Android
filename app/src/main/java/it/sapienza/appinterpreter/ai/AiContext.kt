@@ -62,8 +62,9 @@ object AiContext {
         )
         appendLine()
         append(
-            "Return only the complete JSON configuration, starting with { and ending with }: no Markdown fences, " +
-                "comments or explanations."
+            "Return only the complete JSON configuration, starting with { and ending with }: no comments or " +
+                "explanations. I will share your answer to the JSON App Creator app, which runs it; if it reports " +
+                "problems, I will send them to you to fix."
         )
         appendLine()
     }
@@ -131,7 +132,7 @@ object AiContext {
             appendLine("- ${if (where.isEmpty()) "" else "$where: "}${issue.message}")
         }
         appendLine()
-        appendLine("Fix them and return only the complete corrected JSON, with no Markdown fences or comments.")
+        appendLine("Fix them and return only the complete corrected JSON, with no comments, so I can share it back to the app.")
         appendLine()
         appendLine("```json")
         appendLine(json.trim())
