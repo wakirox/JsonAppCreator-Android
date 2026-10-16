@@ -6,7 +6,7 @@
 # Input: the emulator captures in tools/store/raw/ (1080×2400), taken with the example configurations in examples/
 # (v3_masterpieces.json, v3_race_signup.json) and the status bar in demo mode.
 # Font: put google_sans_flex.ttf (Google Sans Flex, from fonts.google.com) in tools/store/fonts/ (not committed).
-# Output: app/src/main/play/listings/en-US/graphics/phone-screenshots/1..5.png and feature-graphic/feature.png.
+# Output: app/src/main/play/listings/en-US/graphics/phone-screenshots/1..6.png and feature-graphic/feature.png.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -30,8 +30,8 @@ shoot() {
     --virtual-time-budget=4000 --window-size="$2,$3" --screenshot="$4" "file://$tools/$1" >/dev/null 2>&1
 }
 
-shots=(gallery detail form alert ai)
-raws=(gallery detail form alert form)
+shots=(gallery detail form alert editor ai)
+raws=(gallery detail form alert editor form)
 dir="$play/en-US/graphics"
 for i in "${!shots[@]}"; do
   shoot "shot.html?shot=${shots[$i]}&src=raw/${raws[$i]}.png" 1080 1920 "$dir/phone-screenshots/$((i + 1)).png"

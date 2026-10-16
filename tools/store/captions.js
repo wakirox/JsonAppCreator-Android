@@ -7,7 +7,8 @@ const CAPTIONS = {
     detail: { kicker: "Lists and images", headline: "Tap an item, open its own screen" },
     form: { kicker: "Forms", headline: "Text, email, dates, choices and switches" },
     alert: { kicker: "Actions", headline: "Buttons that answer with your data" },
-    ai: { kicker: "Write it or ask an AI", headline: "Describe the app, open the file",
+    editor: { kicker: "Built-in editor", headline: "Suggestions and live checking on your phone" },
+    ai: { kicker: "With your AI app", headline: "Describe it there, open it here",
       prompt: "Make a sign-up form for a 10 km run in Rome", code: "form" },
   },
 };
