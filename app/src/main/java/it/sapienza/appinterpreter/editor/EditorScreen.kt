@@ -82,7 +82,8 @@ import kotlinx.coroutines.launch
 fun EditorScreen(
     title: String,
     initialText: String,
-    fromAiApp: Boolean,
+    /** Where the text came from when it isn't saved anywhere yet ("Shared from your AI app"), or null. */
+    unsavedSource: String?,
     check: suspend (String) -> List<EditorIssue>,
     suggestions: SchemaSuggestions,
     onRun: (String) -> Unit,
@@ -131,7 +132,7 @@ fun EditorScreen(
     }
 
     // An answer from an AI app isn't saved anywhere yet, so leaving always asks.
-    fun leave() = if (fromAiApp || value.text != initialText) confirmDiscard = true else onBack()
+    fun leave() = if (unsavedSource != null || value.text != initialText) confirmDiscard = true else onBack()
     BackHandler(onBack = ::leave)
 
     Scaffold(
@@ -193,10 +194,10 @@ fun EditorScreen(
         }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (fromAiApp) {
+            if (unsavedSource != null) {
                 Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
                     Text(
-                        "Shared from your AI app, not saved yet. ▶ runs it; problems can go back to your AI app " +
+                        "$unsavedSource, not saved yet. ▶ runs it; problems can go back to your AI app " +
                             "from the bar below.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -266,7 +267,7 @@ fun EditorScreen(
         AlertDialog(
             onDismissRequest = { confirmDiscard = false },
             title = { Text("Discard changes?") },
-            text = { Text(if (fromAiApp) "The app from your AI app hasn't been run or saved." else "Your edits haven't been run or saved.") },
+            text = { Text(if (unsavedSource != null) "This app hasn't been run or saved." else "Your edits haven't been run or saved.") },
             confirmButton = { TextButton(onClick = { confirmDiscard = false; onBack() }) { Text("Discard") } },
             dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Keep editing") } }
         )

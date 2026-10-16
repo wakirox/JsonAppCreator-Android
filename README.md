@@ -44,8 +44,9 @@ three-dot menu:
 - **Use your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
   JSON App Creator has no AI inside and calls no AI service: it shares a complete prompt
   (the rules, a reference generated from the schema, worked examples and your request,
-  optionally with the current app to change) to the app you pick. Chat there, then share
-  the AI's answer back to JSON App Creator: it opens in the editor, checked and ready to
+  optionally with the current app to change) to the app you pick. Chat there; the AI is
+  asked for a downloadable `.json` file when it can make one. Open that file in JSON App
+  Creator, or share or paste the AI's answer: it opens in the editor, checked and ready to
   run. **Send problems to your AI app…** in the editor's problem list shares the check's
   findings back for a fix. Copy and **Paste answer from your AI app** work too.
 

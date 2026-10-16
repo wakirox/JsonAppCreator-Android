@@ -45,6 +45,7 @@ class EditorActivity : AppCompatActivity() {
         val newApp = intent.getBooleanExtra(EXTRA_NEW_APP, false)
         // Shared from an AI app (or any app): the JSON in what was shared, if there is one.
         val shared = intent.getStringExtra(EXTRA_AI_ANSWER) ?: if (intent.action == Intent.ACTION_SEND) sharedText() else null
+        val fromFile = intent.getBooleanExtra(EXTRA_FROM_FILE, false)
         val fromAiApp = shared?.let { AiContext.extractJson(it) }
         val initialText = when {
             fromAiApp != null -> prettyJson(fromAiApp)
@@ -63,12 +64,17 @@ class EditorActivity : AppCompatActivity() {
                 }
                 EditorScreen(
                     title = when {
+                        fromAiApp != null && fromFile -> "Opened file"
                         fromAiApp != null -> "From your AI app"
                         newApp -> "New app"
                         else -> "Edit configuration"
                     },
                     initialText = initialText,
-                    fromAiApp = fromAiApp != null,
+                    unsavedSource = when {
+                        fromAiApp == null -> null
+                        fromFile -> "Opened from a file"
+                        else -> "Shared from your AI app"
+                    },
                     check = { text -> withContext(Dispatchers.Default) { checker.check(text) } },
                     suggestions = suggestions,
                     onRun = { text ->
@@ -77,7 +83,7 @@ class EditorActivity : AppCompatActivity() {
                     },
                     onSaveAs = { text ->
                         pendingSave = text
-                        saveAs.launch(fileName(text))
+                        saveAs.launch(AiContext.fileName(text))
                     },
                     onBack = ::finish
                 )
@@ -92,15 +98,10 @@ class EditorActivity : AppCompatActivity() {
         return runCatching { contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } }.getOrNull()
     }
 
-    private fun fileName(json: String): String {
-        val name = Regex(""""name"\s*:\s*"([^"]*)"""").find(json)?.groupValues?.get(1).orEmpty()
-        val slug = name.lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_').ifEmpty { "app" }
-        return "$slug.json"
-    }
-
     companion object {
         private const val EXTRA_NEW_APP = "new_app"
         private const val EXTRA_AI_ANSWER = "ai_answer"
+        private const val EXTRA_FROM_FILE = "from_file"
 
         fun edit(context: Context) = context.startActivity(Intent(context, EditorActivity::class.java))
 
@@ -110,6 +111,11 @@ class EditorActivity : AppCompatActivity() {
         /** Opens an AI app's answer (copied, then pasted) like a shared one: "From your AI app". */
         fun aiAnswer(context: Context, answer: String) =
             context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_AI_ANSWER, answer))
+
+        /** Opens a file's configuration that has problems, so they can be fixed or sent to the AI app. */
+        fun fileWithProblems(context: Context, json: String) = context.startActivity(
+            Intent(context, EditorActivity::class.java).putExtra(EXTRA_AI_ANSWER, json).putExtra(EXTRA_FROM_FILE, true)
+        )
     }
 }
 

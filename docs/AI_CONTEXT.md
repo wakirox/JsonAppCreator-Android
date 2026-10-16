@@ -691,4 +691,4 @@ Submitting runs the form's action with the filled-in values, so the alert can us
 
 Create a JSON App Creator v3 configuration for this app: <describe the app: its screens, data and actions>
 
-Return only the complete JSON configuration, starting with { and ending with }: no comments or explanations. I will share your answer to the JSON App Creator app, which runs it; if it reports problems, I will send them to you to fix.
+If you can create files, give me the complete configuration as a downloadable file named app.json, containing only the JSON. If you can't, reply with only the complete JSON, starting with { and ending with }: no comments or explanations. I will open your file or share your answer in the JSON App Creator app, which runs it; if it reports problems, I will send them to you to fix.

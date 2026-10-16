@@ -62,9 +62,11 @@ object AiContext {
         )
         appendLine()
         append(
-            "Return only the complete JSON configuration, starting with { and ending with }: no comments or " +
-                "explanations. I will share your answer to the JSON App Creator app, which runs it; if it reports " +
-                "problems, I will send them to you to fix."
+            "If you can create files, give me the complete configuration as a downloadable file named " +
+                "${fileName(currentApp)}, containing only the JSON. If you can't, reply with only the " +
+                "complete JSON, starting with { and ending with }: no comments or explanations. I will open your " +
+                "file or share your answer in the JSON App Creator app, which runs it; if it reports problems, I " +
+                "will send them to you to fix."
         )
         appendLine()
     }
@@ -96,6 +98,13 @@ object AiContext {
                 prettyJson(restList)
             )
         )
+    }
+
+    /** A file name for the configuration: from its "name", else "app.json". */
+    fun fileName(json: String?): String {
+        val name = json?.let { Regex(""""name"\s*:\s*"([^"]*)"""").find(it)?.groupValues?.get(1) }.orEmpty()
+        val slug = name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
+        return (slug.ifEmpty { "app" }) + ".json"
     }
 
     /** The guide's rules for a model: its sections without the repository-specific ones. */
@@ -153,7 +162,10 @@ object AiContext {
             appendLine("- ${if (where.isEmpty()) "" else "$where: "}${issue.message}")
         }
         appendLine()
-        appendLine("Fix them and return only the complete corrected JSON, with no comments, so I can share it back to the app.")
+        appendLine(
+            "Fix them and give me the complete corrected configuration: as a downloadable file named " +
+                "${fileName(json)} if you can create files, otherwise as only the JSON with no comments."
+        )
         appendLine()
         appendLine("```json")
         appendLine(json.trim())

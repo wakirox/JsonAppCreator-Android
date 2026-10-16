@@ -80,6 +80,13 @@ class AiContextTest {
     }
 
     @Test
+    fun theAiIsAskedForAFileNamedAfterTheApp() {
+        assertEquals("my-favorite-books.json", AiContext.fileName("{ \"name\": \"My Favorite Books\" }"))
+        assertEquals("app.json", AiContext.fileName(null))
+        assertTrue(context.contains("downloadable file named app.json"))
+    }
+
+    @Test
     fun aRequestAndTheCurrentAppEndTheContext() {
         val withApp = AiContext.build("## Rules\n\nBe nice.\n", schema, emptyList(), currentApp = "{}", request = "Add a map")
         assertTrue(withApp.contains("## The current configuration"))
