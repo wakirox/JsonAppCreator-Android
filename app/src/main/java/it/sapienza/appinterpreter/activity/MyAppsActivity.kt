@@ -105,7 +105,7 @@ class MyAppsActivity : AppCompatActivity() {
                                     }
                                 },
                                 modifier = Modifier.clickable {
-                                    DomainController.setJsonFile(app.json, this@MyAppsActivity)
+                                    DomainController.setJsonFile(app.json, this@MyAppsActivity, app.configurationId)
                                     spawnNew(this@MyAppsActivity)
                                 }
                             )

@@ -2,6 +2,7 @@ package it.sapienza.androidratio.appratio
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
+import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
 import org.junit.Assert.assertEquals
@@ -26,29 +27,44 @@ class AppLibraryTest {
 
     @Test
     fun appsAreSavedByNameNewestFirst() {
-        AppLibrary.save(context, app("Books"))
+        AppLibrary.save(context, app("Books"), "file:1")
         Thread.sleep(5)
-        AppLibrary.save(context, app("Kitchen"))
+        AppLibrary.save(context, app("Kitchen"), "file:2")
         Thread.sleep(5)
-        AppLibrary.save(context, app("Books", version = "2"))
+        AppLibrary.save(context, app("books", version = "2"), "file:3")
 
         val apps = AppLibrary.all(context)
-        assertEquals(listOf("Books", "Kitchen"), apps.map { it.name })
-        assertEquals(app("Books", version = "2"), apps.first().json)
+        assertEquals(listOf("books", "Kitchen"), apps.map { it.name })
+        assertEquals(app("books", version = "2"), apps.first().json)
     }
 
     @Test
-    fun runningAnAppSavesItAndDeletingRemovesIt() {
-        DomainController.setJsonFile(app("Planner"), context)
+    fun runningAnAppSavesItWithItsIdentityAndDeletingRemovesIt() {
+        DomainController.setJsonFile(app("Planner"), context, "bundled:v3_planner")
         val saved = checkNotNull(AppLibrary.get(context, AppLibrary.idOf("Planner")))
+        assertEquals("the configuration id is kept for its API keys", "bundled:v3_planner", saved.configurationId)
         AppLibrary.delete(context, saved.id)
         assertNull(AppLibrary.get(context, saved.id))
     }
 
     @Test
+    fun examplesAreNotSaved() {
+        DomainController.setJsonFile(R.raw.v3_masterpieces, context)
+        assertEquals(emptyList<Any>(), AppLibrary.all(context))
+    }
+
+    @Test
+    fun aNewAppGetsANameThatIsntTaken() {
+        assertEquals("My app", AppLibrary.freeName(context, "My app"))
+        AppLibrary.save(context, app("My app"), "file:1")
+        AppLibrary.save(context, app("My app 2"), "file:2")
+        assertEquals("My app 3", AppLibrary.freeName(context, "My app"))
+    }
+
+    @Test
     fun withoutANameNothingIsSaved() {
-        AppLibrary.save(context, "{ \"schemaVersion\": 3 }")
-        AppLibrary.save(context, "not json")
+        assertNull(AppLibrary.save(context, "{ \"schemaVersion\": 3, \"name\": \"  \" }", "file:1"))
+        assertNull(AppLibrary.save(context, "not json", "file:2"))
         assertEquals(emptyList<Any>(), AppLibrary.all(context))
     }
 }

@@ -22,6 +22,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 /** A calendar event opens the calendar app's new-event screen, filled in from the data. */
 @RunWith(RobolectricTestRunner::class)
@@ -66,12 +67,26 @@ class CalendarEventTest {
     }
 
     @Test
-    fun withoutATimeItLastsAllDay() {
+    fun withoutATimeItCoversThatDayInUtc() {
         composeRule.onNodeWithText("Add day").performClick()
         composeRule.waitForIdle()
         var started: Intent? = null
         scenario.onActivity { started = shadowOf(it).nextStartedActivity }
-        assertTrue(checkNotNull(started).getBooleanExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, false))
+        val intent = checkNotNull(started)
+        assertTrue(intent.getBooleanExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, false))
+        val utcMidnight = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT).apply { timeZone = TimeZone.getTimeZone("UTC") }
+            .parse("20/10/2026")!!.time
+        assertEquals(utcMidnight, intent.getLongExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, 0))
+        assertEquals(utcMidnight + 24 * 3_600_000L, intent.getLongExtra(CalendarContract.EXTRA_EVENT_END_TIME, 0))
+    }
+
+    @Test
+    fun aMappingSelectsTheDataOfTheEvent() {
+        composeRule.onNodeWithText("Add race").performClick()
+        composeRule.waitForIdle()
+        var started: Intent? = null
+        scenario.onActivity { started = shadowOf(it).nextStartedActivity }
+        assertEquals("Summer Run", checkNotNull(started).getStringExtra(CalendarContract.Events.TITLE))
     }
 
     private companion object {
@@ -81,13 +96,15 @@ class CalendarEventTest {
               "schemaVersion": 3, "name": "Calendar test", "version": "1.0",
               "mainView": {
                 "type": "layout",
-                "data": { "who": "Ana", "when": "20/10/2026", "guests": "6" },
+                "data": { "who": "Ana", "when": "20/10/2026", "guests": "6", "race": { "name": "Summer Run", "day": "13/06/2027" } },
                 "views": [
                   { "type": "button", "title": "Add dinner", "action": { "id": "dinner", "event": {
                     "type": "calendar", "title": "Dinner with ${'$'}{who}", "date": "${'$'}{when}", "time": "19:30",
                     "durationMinutes": 150, "description": "${'$'}{guests} guests" } } },
                   { "type": "button", "title": "Add day", "action": { "id": "day", "event": {
-                    "type": "calendar", "title": "Day off", "date": "${'$'}{when}" } } }
+                    "type": "calendar", "title": "Day off", "date": "${'$'}{when}" } } },
+                  { "type": "button", "title": "Add race", "action": { "id": "race", "event": {
+                    "type": "calendar", "mapping": "race", "title": "${'$'}{name}", "date": "${'$'}{day}" } } }
                 ]
               }
             }

@@ -23,20 +23,23 @@ object DomainController {
             }
     }
 
-    fun setJsonFile(value: String, context: Context) {
-        AppLibrary.save(context, value)
+    /**
+     * Makes [value] the current app and saves it in My apps. [configurationId] keeps the identity of an app reopened
+     * from My apps (a bundled example keeps its bundled API keys); by default it comes from the JSON itself.
+     */
+    fun setJsonFile(value: String, context: Context, configurationId: String = ApiKeyPlaceholders.configurationId(value)) {
+        AppLibrary.save(context, value, configurationId)
         preferences(context).edit()
             .putString(JSON_KEY, value)
-            .putString(CONFIGURATION_ID_KEY, ApiKeyPlaceholders.configurationId(value))
+            .putString(CONFIGURATION_ID_KEY, configurationId)
             .apply()
     }
 
     fun setJsonFile(resource: Int, context: Context) {
         val resourceName = context.resources.getResourceEntryName(resource)
-        val json = read(resource, context)
-        AppLibrary.save(context, json)
+        // An example: not saved in My apps, which lists the examples separately.
         preferences(context).edit()
-            .putString(JSON_KEY, json)
+            .putString(JSON_KEY, read(resource, context))
             .putString(CONFIGURATION_ID_KEY, bundledId(resourceName))
             .apply()
     }

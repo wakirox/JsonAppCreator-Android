@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity() {
     private var pendingConfiguration by mutableStateOf<String?>(null)
     private var pendingApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var savedApiKeyNames by mutableStateOf<Set<String>>(emptySet())
-    private var pendingActiveConfiguration by mutableStateOf(false)
     private var askingAi by mutableStateOf(false)
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
@@ -76,20 +75,16 @@ class MainActivity : ComponentActivity() {
 
         // Opened from a home-screen shortcut: that saved app becomes the current one.
         if (savedInstanceState == null) intent.getStringExtra(HomeShortcuts.EXTRA_APP_ID)?.let { id ->
-            AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this) }
+            AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this, it.configurationId) }
                 ?: Toast.makeText(this, "That app was deleted", Toast.LENGTH_LONG).show()
         }
         val screen = initializeScreen(savedInstanceState) ?: return
-        // The app opened at its first screen is saved in My apps, which lists the most recently used first.
-        if (savedInstanceState == null && intent.getStringExtra(EXTRA_VIEW_ID) == null) {
-            AppLibrary.save(this, DomainController.jsonFile(this))
-        }
         screenState = screen
         val appModel = checkNotNull(application.app())
         prepareActiveConfigurationApiKeys()
         setContent {
             AppTheme {
-                if (!pendingActiveConfiguration) {
+                if (pendingConfiguration == null) {
                     MainScreen(
                         title = appModel.name,
                         author = appModel.author,
@@ -222,13 +217,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun addToHomeScreen() {
-        val json = DomainController.jsonFile(this)
-        AppLibrary.save(this, json)
-        val name = application.app()?.name.orEmpty()
-        val app = AppLibrary.get(this, AppLibrary.idOf(name))
-        if (app == null || !HomeShortcuts.pin(this, app)) {
-            Toast.makeText(this, "Your home screen app can't add shortcuts", Toast.LENGTH_LONG).show()
+        val app = AppLibrary.save(this, DomainController.jsonFile(this), DomainController.configurationId(this))
+        val message = when {
+            app == null -> "This app needs a name to be added to the home screen"
+            !HomeShortcuts.pin(this, app) -> "Your home screen app can't add shortcuts"
+            else -> null
         }
+        message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
     }
 
     private fun prepareActiveConfigurationApiKeys() {
@@ -240,14 +235,12 @@ class MainActivity : ComponentActivity() {
         pendingConfiguration = json
         pendingApiKeyNames = names
         savedApiKeyNames = availableNames
-        pendingActiveConfiguration = true
     }
 
     private fun clearPendingConfiguration() {
         pendingConfiguration = null
         pendingApiKeyNames = emptySet()
         savedApiKeyNames = emptySet()
-        pendingActiveConfiguration = false
     }
 
     fun pushViewWithId(id: String, obj: JSONObject?) {

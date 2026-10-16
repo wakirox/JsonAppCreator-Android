@@ -13,6 +13,7 @@ import it.sapienza.appinterpreter.utils.httpclient.HttpClient
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 import java.util.function.Consumer
 import okhttp3.Call
 import okhttp3.Callback
@@ -84,6 +85,9 @@ object EventManager{
         }
     }
 
+    /** The date format of a form's date field, which a calendar event's date uses too. */
+    private const val DATE_PATTERN = "dd/MM/yyyy"
+
     fun evaluateEvent(
         context: Context,
         it: Event,
@@ -105,7 +109,7 @@ object EventManager{
             is RESTService -> {
                 EventManager.manage(context, it, data)
             }
-            is CalendarEvent -> openCalendar(context, it, data)
+            is CalendarEvent -> openCalendar(context, it, it.mapping?.let { mapping -> data?.getObject(mapping) } ?: data)
         }
     }
 
@@ -116,16 +120,19 @@ object EventManager{
     private fun openCalendar(context: Context, event: CalendarEvent, data: JSONObject?) {
         val date = event.date.matchReplace(data)
         val time = event.time?.matchReplace(data)?.takeIf { it.isNotBlank() }
+        // A timed event starts at that local time; an all-day one covers that day from UTC midnight to the next,
+        // as the calendar provider defines all-day events.
         val start = runCatching {
-            SimpleDateFormat(if (time != null) "dd/MM/yyyy HH:mm" else "dd/MM/yyyy", Locale.ROOT)
-                .apply { isLenient = false }
-                .parse(if (time != null) "$date $time" else date)
+            SimpleDateFormat(if (time != null) "$DATE_PATTERN HH:mm" else DATE_PATTERN, Locale.ENGLISH).apply {
+                isLenient = false
+                if (time == null) timeZone = TimeZone.getTimeZone("UTC")
+            }.parse(if (time != null) "$date $time" else date)
         }.getOrNull()
         if (start == null) {
             AlertUtils.showAlert(context, "The event's date and time must be dd/MM/yyyy and HH:mm, but they are \"$date${time?.let { " $it" }.orEmpty()}\".")
             return
         }
-        val end = if (time != null) start.time + (event.durationMinutes ?: 60) * 60_000L else start.time + 24 * 3_600_000L
+        val end = start.time + if (time != null) (event.durationMinutes ?: 60) * 60_000L else 24 * 3_600_000L
         val intent = Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
             .putExtra(CalendarContract.Events.TITLE, event.title.matchReplace(data))
             .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, start.time)

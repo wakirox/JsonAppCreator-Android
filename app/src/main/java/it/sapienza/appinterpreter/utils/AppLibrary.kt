@@ -5,32 +5,44 @@ import org.json.JSONObject
 
 /**
  * The apps the user has made or opened, kept on the phone under their names so they can be reopened, pinned to the
- * home screen, or deleted. An app saved again under the same name replaces the earlier version.
+ * home screen, or deleted. An app saved again under the same name replaces the earlier version. The bundled examples
+ * aren't saved here: they have their own list.
  */
 object AppLibrary {
-    data class SavedApp(val id: String, val name: String, val json: String, val savedAt: Long)
+    /** [configurationId] is kept so an app reopened later finds its saved or bundled API keys again. */
+    data class SavedApp(val id: String, val name: String, val json: String, val savedAt: Long, val configurationId: String)
 
-    fun save(context: Context, json: String) {
-        val name = runCatching { JSONObject(json).optString("name") }.getOrNull()?.takeIf { it.isNotBlank() } ?: return
-        preferences(context).edit()
-            .putString(idOf(name), JSONObject().put("name", name).put("json", json).put("savedAt", System.currentTimeMillis()).toString())
-            .apply()
+    /** Saves [json] under its name; nothing happens for an app whose name is missing or blank. */
+    fun save(context: Context, json: String, configurationId: String): SavedApp? {
+        val name = nameOf(json) ?: return null
+        val app = SavedApp(idOf(name), name, json, System.currentTimeMillis(), configurationId)
+        val entry = JSONObject()
+            .put("name", app.name).put("json", app.json).put("savedAt", app.savedAt).put("configurationId", configurationId)
+        preferences(context).edit().putString(app.id, entry.toString()).apply()
+        return app
     }
 
-    /** The saved apps, most recently saved first. */
-    fun all(context: Context): List<SavedApp> = preferences(context).all.mapNotNull { (id, value) ->
-        runCatching {
-            val entry = JSONObject(value as String)
-            SavedApp(id, entry.getString("name"), entry.getString("json"), entry.getLong("savedAt"))
-        }.getOrNull()
-    }.sortedByDescending { it.savedAt }
+    /** The saved apps, most recently opened first. */
+    fun all(context: Context): List<SavedApp> =
+        preferences(context).all.keys.mapNotNull { get(context, it) }.sortedByDescending { it.savedAt }
 
-    fun get(context: Context, id: String): SavedApp? = all(context).firstOrNull { it.id == id }
+    fun get(context: Context, id: String): SavedApp? = preferences(context).getString(id, null)?.let { value ->
+        runCatching {
+            val entry = JSONObject(value)
+            SavedApp(id, entry.getString("name"), entry.getString("json"), entry.getLong("savedAt"), entry.optString("configurationId"))
+        }.getOrNull()
+    }
 
     fun delete(context: Context, id: String) = preferences(context).edit().remove(id).apply()
 
-    /** A stable id for an app name: the shortcut and the library entry share it. */
+    /** "My app", or "My app 2", "My app 3"… when that name is taken, so a new app doesn't replace a saved one. */
+    fun freeName(context: Context, name: String): String =
+        generateSequence(1) { it + 1 }.map { if (it == 1) name else "$name $it" }.first { get(context, idOf(it)) == null }
+
+    /** A stable id for an app name: the shortcut and the library entry share it. Names differing only in case match. */
     fun idOf(name: String): String = "app:" + name.trim().lowercase()
+
+    fun nameOf(json: String): String? = runCatching { JSONObject(json).optString("name") }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
 
     private fun preferences(context: Context) = context.getSharedPreferences("AppLibrary", Context.MODE_PRIVATE)
 }
