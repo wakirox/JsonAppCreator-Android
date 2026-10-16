@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -60,6 +61,8 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -99,6 +102,9 @@ fun EditorScreen(
         issues = null
         delay(CHECK_DELAY_MS)
         issues = check(value.text)
+    }
+    val numberKeyboard = remember(value.text, value.selection) {
+        value.selection.collapsed && runCatching { suggestions.isNumberAt(value.text, value.selection.start) }.getOrDefault(false)
     }
     val chips = remember(value.text, value.selection) {
         if (value.selection.collapsed) {
@@ -182,6 +188,12 @@ fun EditorScreen(
                         fontFamily = FontFamily.Monospace, fontSize = 13.sp, lineHeight = 19.sp, color = colors.onSurface
                     ),
                     cursorBrush = SolidColor(colors.primary),
+                    // Code, not prose: no autocorrect or capitals, and digits where a number goes.
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrectEnabled = false,
+                        keyboardType = if (numberKeyboard) KeyboardType.Number else KeyboardType.Ascii
+                    ),
                     visualTransformation = remember(jsonColors, problems) { JsonHighlighting(jsonColors, problems) },
                     onTextLayout = { layout = it },
                     modifier = Modifier.fillMaxWidth().padding(16.dp).focusRequester(focus)

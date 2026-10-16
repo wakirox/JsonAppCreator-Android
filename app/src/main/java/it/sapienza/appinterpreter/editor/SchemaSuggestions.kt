@@ -79,6 +79,27 @@ class SchemaSuggestions(schemaJson: String) {
         return Suggestions(if (at.prefix.isEmpty()) heading else null, typed)
     }
 
+    /**
+     * Whether the cursor is on a number: a value the schema says is a number (and not text), or digits already typed
+     * outside a string. The editor shows the number keyboard there.
+     */
+    fun isNumberAt(text: String, cursor: Int): Boolean {
+        val at = JsonCursor.at(text, cursor)
+        if (at.inString || at.position != CursorPosition.VALUE) return false
+        val around = text.getOrNull(cursor - 1).isNumberChar() || text.getOrNull(cursor).isNumberChar()
+        if (around && at.prefix.all { it.isDigit() || it == '-' || it == '.' }) return true
+        val container = at.containers.lastOrNull()?.takeIf { it.isObject } ?: return false
+        val key = at.key ?: return false
+        val facts = at.containers.map { if (it.isObject) JsonCursor.objectFacts(text, it.start) else emptySet<String>() to null }
+        var schema: JsonNode? = root
+        for (i in 1 until at.containers.size) schema = schema?.let { child(it, facts[i - 1], at.containers[i].slot) }
+        val value = schema?.let { properties(it, facts.last())[key] }?.let(::resolve) ?: return false
+        val types = types(value)
+        return ("number" in types || "integer" in types) && "string" !in types && container.isObject
+    }
+
+    private fun Char?.isNumberChar() = this != null && (isDigit() || this == '.' || this == '-')
+
     /** The attributes the object doesn't have yet, required ones first. */
     private fun missing(schema: JsonNode, facts: Pair<Set<String>, String?>): List<Triple<String, JsonNode, Boolean>> {
         val required = required(schema, facts)

@@ -137,6 +137,20 @@ class EditorAssistTest {
     }
 
     @Test
+    fun numbersAreRecognisedFromTheSchemaAndFromTypedDigits() {
+        fun numberAt(textWithCursor: String): Boolean {
+            val cursor = textWithCursor.indexOf('|')
+            return suggestions.isNumberAt(textWithCursor.removeRange(cursor, cursor + 1), cursor)
+        }
+        assertTrue(numberAt("""{ "mainView": { "type": "text", "textSize": | } }"""))
+        assertTrue(numberAt("""{ "mainView": { "type": "text", "textSize": 2|0 } }"""))
+        assertTrue(numberAt("""{ "mainView": { "type": "image", "size": { "height": | } } }"""))
+        assertTrue(!numberAt("""{ "mainView": { "type": "text", "label": "2|0" } }"""))
+        assertTrue(!numberAt("""{ "mainView": { "type": "text", "label": | } }"""))
+        assertTrue(!numberAt("""{ "mainView": { "type": "text", | } }"""))
+    }
+
+    @Test
     fun anUnclosedStringIsExplainedInPlainWords() {
         val json = HELLO.replace("\"label\": \"Hello\"", "\"label\": \"Hello")
         assertEquals(
