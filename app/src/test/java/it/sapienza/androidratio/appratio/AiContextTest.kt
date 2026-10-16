@@ -68,6 +68,11 @@ class AiContextTest {
             "{ \"url\": \"${'$'}{thumb}\", \"title\": \"${'$'}{author}\\n${'$'}{genre}, ${'$'}{year}\" }",
             AiContext.extractJson("{ \"url\": \"{thumb}\", \"title\": \"{author}\\n{genre}, ${'$'}{year}\" }")
         )
+        // The space that went with the $ comes back after words and punctuation, but not in URLs.
+        assertEquals(
+            "{ \"t\": \"for ${'$'}{n} guests on ${'$'}{date}: ${'$'}{a} ${'$'}{b}\", \"u\": \"https://x/?c=${'$'}{c}&i=${'$'}{id}\" }",
+            AiContext.extractJson("{ \"t\": \"for {n} guests on{date}:{a}{b}\", \"u\": \"https://x/?c={c}&i={id}\" }")
+        )
         // Markdown escapes added when copying from a chat app are undone.
         assertEquals("{ \"a\": [1, 2] }", AiContext.extractJson("{ \"a\": \\[1, 2\\] }"))
     }

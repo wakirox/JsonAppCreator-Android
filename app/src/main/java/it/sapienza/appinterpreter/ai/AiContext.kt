@@ -207,7 +207,16 @@ object AiContext {
      * that render $...$ as maths can eat it too. JSON's own braces never enclose a bare name, so a {name} is always a
      * placeholder that lost its $, and gets it back.
      */
-    private fun restorePlaceholders(json: String) = BARE_PLACEHOLDER.replace(json) { "\${${it.groupValues[1]}}" }
+    private fun restorePlaceholders(json: String) = BARE_PLACEHOLDER.replace(json) { match ->
+        // The space before the $ often went with it ("guests on{date}", "24{ingredient}"): put it back after words
+        // and punctuation, but not inside URLs or names ("?c={category}", "item-{id}").
+        val before = json.getOrNull(match.range.first - 1)
+        val escape = json.getOrNull(match.range.first - 2) == '\\' // as in "\n{genre}": a line break, not a word
+        val space = if (before != null && !escape && (before.isLetterOrDigit() || before in SPACE_AFTER)) " " else ""
+        "$space\${${match.groupValues[1]}}"
+    }
+
+    private const val SPACE_AFTER = ":,;.!})•·"
 
     private val BARE_PLACEHOLDER = Regex("""(?<!\${'$'})\{([A-Za-z_][\w.]*)\}""")
 
