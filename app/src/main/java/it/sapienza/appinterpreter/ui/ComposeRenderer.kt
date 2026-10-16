@@ -43,6 +43,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElementImpl
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -644,37 +646,51 @@ private fun RenderForm(view: FormView, data: JSONObject?, modifier: Modifier) {
     val context = LocalContext.current
     val action = resolveAction(view.action)
     var error by remember { mutableStateOf<String?>(null) }
+    // This form's values on this screen, starting from the screen's data. The form's definition is shared (by list
+    // rows, and by screens opened again with other data), so it is only read, never written.
+    val values = remember(view, data) {
+        mutableStateMapOf<String, Any?>().apply { view.formElements.forEach { put(it.mapping, initialValue(it, data)) } }
+    }
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         view.title?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
         view.formElements.forEach { item ->
+            val onChange: (Any?) -> Unit = { values[item.mapping] = it }
             when (item) {
-                is CheckBox -> BooleanField(item, data)
-                is TextInput -> TextField(item, data)
-                is DateInput -> DateField(item, data)
-                is Selector -> SelectorField(item, data)
+                is CheckBox -> BooleanField(item, values[item.mapping] == true, onChange)
+                is TextInput -> TextField(item, values[item.mapping] as? String, onChange)
+                is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
+                is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = {
-            val missing = view.formElements.filterNot { it.isSet() }
+            val missing = view.formElements.filterNot { it.isSet(values[it.mapping]) }
             if (missing.isEmpty()) {
                 error = null
-                action?.event?.let { EventManager.evaluateEvent(context, it, formJson(view)) }
+                action?.event?.let { EventManager.evaluateEvent(context, it, formJson(view, values)) }
             } else error = "Please complete: " + missing.joinToString { it.title }
         }, modifier = Modifier.fillMaxWidth()) { Text(view.buttonTitle ?: "Submit") }
     }
 }
 
-@Composable
-private fun BooleanField(item: CheckBox, data: JSONObject?) {
-    var checked by remember(item, data) {
-        val initial = data?.getValue(item.mapping)?.toBooleanStrictOrNull() ?: item.value
-        item.value = initial
-        mutableStateOf(initial)
+/**
+ * A field's starting value: the screen's data when it fits the field, else the field's default. A checkbox takes
+ * true or false; a selector one of its options; a date is shown and submitted as written, even if not dd/MM/yyyy.
+ */
+private fun initialValue(item: FormElementImpl, data: JSONObject?): Any? {
+    val given = data?.getValue(item.mapping)?.takeUnless { it == "null" }
+    return when (item) {
+        is CheckBox -> given?.toBooleanStrictOrNull() ?: item.defaultValue()
+        is Selector -> given?.takeIf { it in item.options } ?: item.defaultValue()
+        else -> given ?: item.defaultValue()
     }
+}
+
+@Composable
+private fun BooleanField(item: CheckBox, checked: Boolean, onChange: (Any?) -> Unit) {
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Switch(checked, { checked = it; item.value = it })
+            Switch(checked, { onChange(it) })
             Spacer(Modifier.width(12.dp))
             Text(item.title, style = MaterialTheme.typography.titleMedium)
         }
@@ -683,12 +699,7 @@ private fun BooleanField(item: CheckBox, data: JSONObject?) {
 }
 
 @Composable
-private fun TextField(item: TextInput, data: JSONObject?) {
-    var value by remember(item, data) {
-        val initial = data?.getValue(item.mapping) ?: item.value.orEmpty()
-        item.value = initial.ifEmpty { null }
-        mutableStateOf(initial)
-    }
+private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit) {
     val keyboardType = when (item.textType) {
         TextType.numeric -> KeyboardType.Number
         TextType.email -> KeyboardType.Email
@@ -696,8 +707,8 @@ private fun TextField(item: TextInput, data: JSONObject?) {
         else -> KeyboardType.Text
     }
     OutlinedTextField(
-        value = value,
-        onValueChange = { value = it; item.value = it.ifEmpty { null } },
+        value = value.orEmpty(),
+        onValueChange = { onChange(it.ifEmpty { null }) },
         label = { Text(item.title) },
         placeholder = { item.placeholder?.let { Text(it) } },
         supportingText = if (item.description == null) null else {{ Text(item.description!!) }},
@@ -709,20 +720,15 @@ private fun TextField(item: TextInput, data: JSONObject?) {
 }
 
 @Composable
-private fun DateField(item: DateInput, data: JSONObject?) {
+private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit) {
     val context = LocalContext.current
-    var value by remember(item, data) {
-        data?.getValue(item.mapping)?.toDate()?.let { item.value = it }
-        mutableStateOf(item.value?.stringValue())
-    }
     Column {
         Text(item.title, style = MaterialTheme.typography.titleSmall)
         OutlinedButton(onClick = {
             val calendar = Calendar.getInstance().apply { value?.toDate()?.let { time = it } }
             DatePickerDialog(context, { _, year, month, day ->
                 calendar.set(year, month, day)
-                item.value = calendar.time
-                value = calendar.time.stringValue()
+                onChange(calendar.time.stringValue())
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply {
                 item.min?.let { datePicker.minDate = it.time }
                 item.max?.let { datePicker.maxDate = it.time }
@@ -733,18 +739,14 @@ private fun DateField(item: DateInput, data: JSONObject?) {
 }
 
 @Composable
-private fun SelectorField(item: Selector, data: JSONObject?) {
-    var selected by remember(item, data) {
-        data?.getValue(item.mapping)?.let { item.selection = it }
-        mutableStateOf(item.selection)
-    }
+private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(item.title, style = MaterialTheme.typography.titleSmall)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item.options.forEach { option ->
                 FilterChip(
                     selected = selected == option,
-                    onClick = { selected = option; item.selection = option },
+                    onClick = { onChange(option) },
                     label = { Text(option) }
                 )
             }
@@ -758,7 +760,7 @@ private fun Description(description: String?) {
     description?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
 
-private fun formJson(view: FormView): JSONObject {
+private fun formJson(view: FormView, values: Map<String, Any?>): JSONObject {
     val json = JSONObject()
     view.formElements.forEach { element ->
         val parts = element.mapping.split('.')
@@ -767,7 +769,7 @@ private fun formJson(view: FormView): JSONObject {
             if (!target.has(key)) target.put(key, JSONObject())
             target = target.getJSONObject(key)
         }
-        target.put(parts.last(), element.value())
+        target.put(parts.last(), values[element.mapping])
     }
     return json
 }
