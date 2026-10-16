@@ -5,9 +5,12 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
 
 object DomainController {
+    /** The example shown on first launch, and when the active configuration can't be used. */
+    val DEFAULT_CONFIGURATION = R.raw.v3_masterpieces
+
     fun jsonFile(context: Context): String {
         val preferences = preferences(context)
-        return preferences.getString(JSON_KEY, null) ?: read(R.raw.v3_app_sample, context)
+        return preferences.getString(JSON_KEY, null) ?: read(DEFAULT_CONFIGURATION, context)
     }
 
     fun configurationId(context: Context): String {
@@ -16,7 +19,7 @@ object DomainController {
             ?: if (preferences.contains(JSON_KEY)) {
                 ApiKeyPlaceholders.configurationId(jsonFile(context))
             } else {
-                bundledId(context.resources.getResourceEntryName(R.raw.v3_app_sample))
+                bundledId(context.resources.getResourceEntryName(DEFAULT_CONFIGURATION))
             }
     }
 
