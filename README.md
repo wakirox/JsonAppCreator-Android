@@ -40,6 +40,9 @@ three-dot menu:
   active one. The editor colours the JSON, suggests the properties and values the schema
   allows where the cursor is, checks the file as you type (tap a problem to jump to it),
   inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
+- **My apps** lists every app you have opened or made, most recently used first: open one,
+  add it to the home screen, or delete it. **Add to home screen** pins the current app as
+  a launcher shortcut with its own icon, so several apps can sit on your home screen.
 - **Load configuration from device** opens a UTF-8 JSON file in the v3 format.
 - **Use your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
   JSON App Creator has no AI inside and calls no AI service: it shares a complete prompt

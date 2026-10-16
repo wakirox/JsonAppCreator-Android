@@ -39,6 +39,8 @@ fun MainScreen(
     onChangelog: () -> Unit,
     onLoadConfiguration: () -> Unit,
     onEditConfiguration: () -> Unit,
+    onMyApps: () -> Unit,
+    onAddToHome: () -> Unit,
     onNewApp: () -> Unit,
     onAskAi: () -> Unit,
     onPasteFromAi: () -> Unit,
@@ -89,6 +91,19 @@ fun MainScreen(
                                 onClick = onChangelog
                             )
                         }
+
+                        ActionMenuItem(
+                            text = "Add to home screen",
+                            iconResource = R.drawable.baseline_account_tree_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onAddToHome
+                        )
+                        ActionMenuItem(
+                            text = "My apps",
+                            iconResource = R.drawable.baseline_view_list_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onMyApps
+                        )
 
                         HorizontalDivider()
                         MenuSectionLabel("JSON configuration")

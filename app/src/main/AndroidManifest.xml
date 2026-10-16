@@ -47,6 +47,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="it.sapienza.appinterpreter.activity.MyAppsActivity" />
+
         <activity
                 android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity"
                 android:exported="true" >

@@ -21,6 +21,8 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.ScreenRuntimeState
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.HomeShortcuts
+import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.ui.ApiKeyEntryDialog
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.MainScreen
@@ -87,7 +89,16 @@ class MainActivity : ComponentActivity() {
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 //            WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
+        // Opened from a home-screen shortcut: that saved app becomes the current one.
+        if (savedInstanceState == null) intent.getStringExtra(HomeShortcuts.EXTRA_APP_ID)?.let { id ->
+            AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this) }
+                ?: Toast.makeText(this, "That app was deleted", Toast.LENGTH_LONG).show()
+        }
         val screen = initializeScreen(savedInstanceState) ?: return
+        // The app opened at its first screen is saved in My apps, which lists the most recently used first.
+        if (savedInstanceState == null && intent.getStringExtra(EXTRA_VIEW_ID) == null) {
+            AppLibrary.save(this, DomainController.jsonFile(this))
+        }
         screenState = screen
         val appModel = checkNotNull(application.app())
         prepareActiveConfigurationApiKeys()
@@ -110,6 +121,8 @@ class MainActivity : ComponentActivity() {
                         onLoadConfiguration = { openJsonFile.launch("application/json") },
                         onEditConfiguration = { EditorActivity.edit(this) },
                         onNewApp = { EditorActivity.newApp(this) },
+                        onMyApps = { startActivity(Intent(this, MyAppsActivity::class.java)) },
+                        onAddToHome = { addToHomeScreen() },
                         onAskAi = { askingAi = true },
                         onPasteFromAi = {
                             val answer = AskAi.clipboardText(this)
@@ -249,6 +262,16 @@ class MainActivity : ComponentActivity() {
     private fun loadSampleConfiguration(resourceId: Int) {
         DomainController.setJsonFile(resourceId, this)
         spawnNew(this)
+    }
+
+    private fun addToHomeScreen() {
+        val json = DomainController.jsonFile(this)
+        AppLibrary.save(this, json)
+        val name = application.app()?.name.orEmpty()
+        val app = AppLibrary.get(this, AppLibrary.idOf(name))
+        if (app == null || !HomeShortcuts.pin(this, app)) {
+            Toast.makeText(this, "Your home screen app can't add shortcuts", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun prepareActiveConfigurationApiKeys() {

@@ -24,6 +24,7 @@ object DomainController {
     }
 
     fun setJsonFile(value: String, context: Context) {
+        AppLibrary.save(context, value)
         preferences(context).edit()
             .putString(JSON_KEY, value)
             .putString(CONFIGURATION_ID_KEY, ApiKeyPlaceholders.configurationId(value))
@@ -32,8 +33,10 @@ object DomainController {
 
     fun setJsonFile(resource: Int, context: Context) {
         val resourceName = context.resources.getResourceEntryName(resource)
+        val json = read(resource, context)
+        AppLibrary.save(context, json)
         preferences(context).edit()
-            .putString(JSON_KEY, read(resource, context))
+            .putString(JSON_KEY, json)
             .putString(CONFIGURATION_ID_KEY, bundledId(resourceName))
             .apply()
     }
