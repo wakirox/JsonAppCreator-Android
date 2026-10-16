@@ -6,10 +6,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.activity.MainActivity
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -76,11 +79,21 @@ class MissingApiKeyDialogTest {
         composeRule.onNodeWithText("Load configuration").assertIsNotEnabled()
     }
 
+    @Test
+    fun cancellingFallsBackToThePlainSampleInsteadOfClosingTheApp() {
+        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(PLAIN_SAMPLE_CONFIGURATION_ID, domainPreferences.getString(CONFIGURATION_ID_KEY, null))
+        assertTrue(domainPreferences.getString(JSON_KEY, null).orEmpty().contains("\"name\": \"App creator\""))
+    }
+
     private companion object {
         const val DOMAIN_PREFERENCES = "DomainController"
         const val ENCRYPTED_PREFERENCES = "encrypted_configuration_api_keys"
         const val JSON_KEY = "main_file_sav"
         const val CONFIGURATION_ID_KEY = "configuration_id"
         const val TMDB_CONFIGURATION_ID = "bundled:v3_the_movie_db"
+        const val PLAIN_SAMPLE_CONFIGURATION_ID = "bundled:v3_app_sample"
     }
 }

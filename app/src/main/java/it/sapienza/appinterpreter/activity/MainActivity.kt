@@ -135,7 +135,12 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         onDismiss = {
-                            if (pendingActiveConfiguration) finish() else clearPendingConfiguration()
+                            // Without its keys the active configuration can't run: fall back to the plain sample,
+                            // so the menu stays reachable and another configuration can be loaded.
+                            if (pendingActiveConfiguration) {
+                                clearPendingConfiguration()
+                                loadSampleConfiguration(R.raw.v3_app_sample)
+                            } else clearPendingConfiguration()
                         }
                     )
                 }
