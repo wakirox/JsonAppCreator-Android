@@ -2,8 +2,8 @@
   "schemaVersion": 3,
   "name": "THE MOVIE DB",
   "version": "beta.1",
-  "author": "Marius Gabriel Magadan",
-  "changelog": "Implemented a series of endpoint calls from the movie db.\nIf you find any problem send me an email at:\nwakirox@gmail.com with a description and possibly a screenshot of the problem.",
+  "author": "JSON App Creator",
+  "changelog": "Implemented a series of endpoint calls from the movie db.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
   "mainView": {
     "id": "l0",
     "type": "layout",

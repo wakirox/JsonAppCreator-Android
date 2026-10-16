@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "v3",
   "version": "0",
-  "author": "Gabriel",
+  "author": "JSON App Creator",
   "mainView": {
     "type": "list",
     "data" : {

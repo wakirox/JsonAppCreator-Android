@@ -1,0 +1,1 @@
+JSON App Creator 3: a new Material 3 design, the documented v3 format with full validation and clear errors, lists and forms backed by REST APIs, encrypted API keys, and four example apps.
