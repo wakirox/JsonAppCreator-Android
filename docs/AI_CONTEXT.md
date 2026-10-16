@@ -326,8 +326,8 @@ The list's items are in `data`; tapping one shows the reusable `artwork` view wi
           "year": "c. 1831",
           "medium": "Woodblock print",
           "where": "Japan",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=300",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=1000",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=330",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=960",
           "about": "A giant wave curls over three boats while Mount Fuji sits small in the distance."
         },
         {
@@ -336,8 +336,8 @@ The list's items are in `data`; tapping one shows the reusable `artwork` view wi
           "year": "c. 1665",
           "medium": "Oil on canvas",
           "where": "Mauritshuis, The Hague",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=300",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=1000",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=330",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=960",
           "about": "A girl in a blue and yellow turban turns toward us, a large pearl catching the light."
         },
         {
@@ -346,8 +346,8 @@ The list's items are in `data`; tapping one shows the reusable `artwork` view wi
           "year": "1877",
           "medium": "Oil on canvas",
           "where": "Art Institute of Chicago",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=300",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=1000",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=330",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=960",
           "about": "Umbrellas, wet cobblestones and new boulevards: Paris on a grey afternoon."
         }
       ]
