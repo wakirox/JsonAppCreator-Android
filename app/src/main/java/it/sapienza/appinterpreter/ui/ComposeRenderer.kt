@@ -656,10 +656,11 @@ private fun RenderForm(view: FormView, data: JSONObject?, modifier: Modifier) {
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = {
-            if (view.formElements.all { it.isSet() }) {
+            val missing = view.formElements.filterNot { it.isSet() }
+            if (missing.isEmpty()) {
                 error = null
                 action?.event?.let { EventManager.evaluateEvent(context, it, formJson(view)) }
-            } else error = "Please complete all required fields."
+            } else error = "Please complete: " + missing.joinToString { it.title }
         }, modifier = Modifier.fillMaxWidth()) { Text(view.buttonTitle ?: "Submit") }
     }
 }
@@ -667,7 +668,9 @@ private fun RenderForm(view: FormView, data: JSONObject?, modifier: Modifier) {
 @Composable
 private fun BooleanField(item: CheckBox, data: JSONObject?) {
     var checked by remember(item, data) {
-        mutableStateOf(data?.getValue(item.mapping)?.toBooleanStrictOrNull() ?: item.value)
+        val initial = data?.getValue(item.mapping)?.toBooleanStrictOrNull() ?: item.value
+        item.value = initial
+        mutableStateOf(initial)
     }
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -681,7 +684,11 @@ private fun BooleanField(item: CheckBox, data: JSONObject?) {
 
 @Composable
 private fun TextField(item: TextInput, data: JSONObject?) {
-    var value by remember(item, data) { mutableStateOf(data?.getValue(item.mapping) ?: item.value.orEmpty()) }
+    var value by remember(item, data) {
+        val initial = data?.getValue(item.mapping) ?: item.value.orEmpty()
+        item.value = initial.ifEmpty { null }
+        mutableStateOf(initial)
+    }
     val keyboardType = when (item.textType) {
         TextType.numeric -> KeyboardType.Number
         TextType.email -> KeyboardType.Email
@@ -704,7 +711,10 @@ private fun TextField(item: TextInput, data: JSONObject?) {
 @Composable
 private fun DateField(item: DateInput, data: JSONObject?) {
     val context = LocalContext.current
-    var value by remember(item, data) { mutableStateOf(data?.getValue(item.mapping) ?: item.value?.stringValue()) }
+    var value by remember(item, data) {
+        data?.getValue(item.mapping)?.toDate()?.let { item.value = it }
+        mutableStateOf(item.value?.stringValue())
+    }
     Column {
         Text(item.title, style = MaterialTheme.typography.titleSmall)
         OutlinedButton(onClick = {
@@ -724,7 +734,10 @@ private fun DateField(item: DateInput, data: JSONObject?) {
 
 @Composable
 private fun SelectorField(item: Selector, data: JSONObject?) {
-    var selected by remember(item, data) { mutableStateOf(data?.getValue(item.mapping) ?: item.selection) }
+    var selected by remember(item, data) {
+        data?.getValue(item.mapping)?.let { item.selection = it }
+        mutableStateOf(item.selection)
+    }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(item.title, style = MaterialTheme.typography.titleSmall)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

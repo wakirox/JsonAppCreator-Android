@@ -10,6 +10,6 @@ class Selector(
     description: String?,
     mapping: String
 ) : FormElementImpl(mandatory, title, description, mapping){
-    override fun isSet(): Boolean =  mandatory == false || selection != null
+    override fun isSet(): Boolean = !isRequired || selection != null
     override fun value(): Any? = selection
 }

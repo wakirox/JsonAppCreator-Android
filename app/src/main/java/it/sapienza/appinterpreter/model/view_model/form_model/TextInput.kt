@@ -12,6 +12,6 @@ class TextInput(
     description: String?,
     mapping: String
 ) : FormElementImpl(mandatory, title, description, mapping) {
-    override fun isSet(): Boolean =  mandatory == false || value != null
+    override fun isSet(): Boolean = !isRequired || !value.isNullOrBlank()
     override fun value(): Any? = value //TODO fare in maniera tale da gestire i numeri
 }

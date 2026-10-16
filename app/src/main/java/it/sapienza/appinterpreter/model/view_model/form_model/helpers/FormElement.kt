@@ -12,6 +12,9 @@ abstract class FormElementImpl(
     mapping: String
 ) : FormElement(title, mapping) {
 
+    /** `mandatory` defaults to false in the schema, so a missing value means optional. */
+    val isRequired: Boolean get() = mandatory == true
+
     abstract fun isSet(): Boolean
     abstract fun value(): Any?
 
