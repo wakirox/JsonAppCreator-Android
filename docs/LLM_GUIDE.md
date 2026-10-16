@@ -114,6 +114,9 @@ properties.
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
   fields of that one item, not to the whole response.
+- Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one
+  object in an array, open its view with a `show` event whose `mapping` selects it, such
+  as `"mapping": "meals.0"`.
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.

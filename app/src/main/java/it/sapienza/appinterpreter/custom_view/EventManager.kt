@@ -3,6 +3,7 @@ package it.sapienza.appinterpreter.custom_view
 import android.content.Context
 import it.sapienza.appinterpreter.activity.MainActivity
 import it.sapienza.appinterpreter.alerts.AlertUtils
+import it.sapienza.appinterpreter.extensions.getObject
 import it.sapienza.appinterpreter.extensions.matchReplace
 import it.sapienza.appinterpreter.model.event.*
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
@@ -92,7 +93,9 @@ object EventManager{
             }
             is ShowView -> {
                 val activity = context as MainActivity
-                activity.runOnUiThread { activity.pushScreen(it.view, data) }
+                // The view receives the part of the data the mapping selects, such as "meals.0".
+                val shown = it.mapping?.let { mapping -> data?.getObject(mapping) } ?: data
+                activity.runOnUiThread { activity.pushScreen(it.view, shown) }
             }
             is RESTService -> {
                 EventManager.manage(context, it, data)

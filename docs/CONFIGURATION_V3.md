@@ -299,6 +299,8 @@ Each rendered node receives a current JSON data object:
 - A node's own `data` replaces inherited data for that node and its descendants.
 - A list item receives that item object as its data.
 - A REST response becomes the data passed to its chained event.
+- A `show` event passes its current data to the view it opens, or only the part its
+  `mapping` selects, such as `meals.0` for the one item of a lookup response.
 - A form action receives the object assembled from the submitted fields.
 - An action's own `data`, when present, replaces the data from the clicked view.
 
@@ -318,7 +320,9 @@ interpolate data:
 }
 ```
 
-Dot paths traverse JSON objects. Array values used as text are joined with `, `. Missing
+Dot paths traverse JSON objects, and reach array items by index: `meals.0.strMeal` and
+`meals[0].strMeal` are the same. A list's `initData` URL can use placeholders too, filled
+from the data of the screen it is on. Array values used as text are joined with `, `. Missing
 values remain unreplaced in interpolated strings, so make sure every placeholder exists
 in the data available at that point.
 
