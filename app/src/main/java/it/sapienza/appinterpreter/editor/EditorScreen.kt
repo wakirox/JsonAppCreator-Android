@@ -36,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,10 +54,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -98,8 +101,9 @@ fun EditorScreen(
         issues = check(value.text)
     }
     val chips = remember(value.text, value.selection) {
-        if (value.selection.collapsed) runCatching { suggestions.at(value.text, value.selection.start) }.getOrDefault(emptyList())
-        else emptyList()
+        if (value.selection.collapsed) {
+            runCatching { suggestions.at(value.text, value.selection.start) }.getOrDefault(Suggestions.NONE)
+        } else Suggestions.NONE
     }
 
     fun replace(start: Int, end: Int, insert: String, cursor: Int) {
@@ -168,9 +172,8 @@ fun EditorScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             val colors = MaterialTheme.colorScheme
-            val jsonColors = remember(colors) {
-                JsonColors(key = colors.primary, string = colors.tertiary, literal = colors.secondary, punctuation = colors.outline)
-            }
+            val jsonColors = if (colors.surface.luminance() < 0.5f) JsonColors.Dark else JsonColors.Light
+            val problems = issues.orEmpty().mapNotNull { it.offset }
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(scroll)) {
                 BasicTextField(
                     value = value,
@@ -179,24 +182,16 @@ fun EditorScreen(
                         fontFamily = FontFamily.Monospace, fontSize = 13.sp, lineHeight = 19.sp, color = colors.onSurface
                     ),
                     cursorBrush = SolidColor(colors.primary),
-                    visualTransformation = remember(jsonColors) { JsonHighlighting(jsonColors) },
+                    visualTransformation = remember(jsonColors, problems) { JsonHighlighting(jsonColors, problems) },
                     onTextLayout = { layout = it },
                     modifier = Modifier.fillMaxWidth().padding(16.dp).focusRequester(focus)
                 )
             }
 
-            if (chips.isNotEmpty()) {
+            if (chips.items.isNotEmpty()) {
                 HorizontalDivider()
-                Row(
-                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    chips.forEach { suggestion ->
-                        SuggestionChip(
-                            onClick = { replace(suggestion.start, suggestion.end, suggestion.insert, suggestion.cursor) },
-                            label = { Text(suggestion.label, fontFamily = FontFamily.Monospace) }
-                        )
-                    }
+                SuggestionRow(chips) { suggestion ->
+                    replace(suggestion.start, suggestion.end, suggestion.insert, suggestion.cursor)
                 }
             }
 
@@ -218,6 +213,48 @@ fun EditorScreen(
             confirmButton = { TextButton(onClick = { confirmDiscard = false; onBack() }) { Text("Discard") } },
             dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Keep editing") } }
         )
+    }
+}
+
+/**
+ * The suggestions above the keyboard. With a heading they are the attributes the object can still take, required
+ * ones first and highlighted; tapping one adds it.
+ */
+@Composable
+private fun SuggestionRow(suggestions: Suggestions, onPick: (Suggestion) -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        suggestions.heading?.let {
+            Text(
+                "$it:",
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+        suggestions.items.forEach { suggestion ->
+            SuggestionChip(
+                onClick = { onPick(suggestion) },
+                label = {
+                    Text(
+                        if (suggestion.required) "${suggestion.label} *" else suggestion.label,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = if (suggestion.required) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                colors = if (suggestion.required) {
+                    SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = colors.errorContainer,
+                        labelColor = colors.onErrorContainer
+                    )
+                } else SuggestionChipDefaults.suggestionChipColors(),
+                border = if (suggestion.required) null else SuggestionChipDefaults.suggestionChipBorder(enabled = true)
+            )
+        }
     }
 }
 

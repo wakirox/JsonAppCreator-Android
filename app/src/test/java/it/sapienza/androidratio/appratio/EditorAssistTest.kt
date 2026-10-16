@@ -22,7 +22,7 @@ class EditorAssistTest {
     /** The text with "|" marking the cursor, and the labels suggested there. */
     private fun labelsAt(textWithCursor: String): List<String> {
         val cursor = textWithCursor.indexOf('|')
-        return suggestions.at(textWithCursor.removeRange(cursor, cursor + 1), cursor).map { it.label }
+        return suggestions.at(textWithCursor.removeRange(cursor, cursor + 1), cursor).items.map { it.label }
     }
 
     @Test
@@ -81,7 +81,7 @@ class EditorAssistTest {
     fun aPartialKeyIsCompletedWithItsValueTemplate() {
         val text = """{ "mainView": { "type": "layout", "views": [ { "type": "text", "textSt" } ] } }"""
         val cursor = text.indexOf("textSt") + "textSt".length
-        val suggestion = suggestions.at(text, cursor).single()
+        val suggestion = suggestions.at(text, cursor).items.single()
         assertEquals("textStyle", suggestion.label)
         assertEquals("\"textStyle\": \"\"", suggestion.insert)
         assertEquals(text.indexOf("\"textSt\""), suggestion.start)
@@ -99,6 +99,40 @@ class EditorAssistTest {
         )
         assertTrue(
             "thenDoOK" in labelsAt("""{ "actions": [ { "id": "a", "event": { "type": "alert", | } } ] }""")
+        )
+    }
+
+    @Test
+    fun requiredAttributesComeFirstAndAreMarked() {
+        val text = "{\n  \"schemaVersion\": 3,\n  \n}"
+        val result = suggestions.at(text, text.indexOf("  \n}") + 2)
+        assertEquals("app", result.heading)
+        assertEquals(listOf("name", "version", "mainView"), result.items.filter { it.required }.map { it.label })
+        assertEquals(listOf("name", "version", "mainView"), result.items.take(3).map { it.label })
+
+        val list = """{ "mainView": { "type": "list", | } }"""
+        val cursor = list.indexOf('|')
+        val listResult = suggestions.at(list.removeRange(cursor, cursor + 1), cursor)
+        assertEquals("list", listResult.heading)
+        assertEquals(listOf("itemView"), listResult.items.filter { it.required }.map { it.label })
+    }
+
+    @Test
+    fun whileWritingAValueTheObjectsMissingAttributesAreAddedAtItsEnd() {
+        val inline = """{ "mainView": { "type": "layout", "views": [ { "type": "image", "url": "https://x" } ] } }"""
+        val inValue = inline.indexOf("https://x") + 3
+        val result = suggestions.at(inline, inValue)
+        assertEquals("image", result.heading)
+        val size = result.items.first { it.label == "size" }
+        val applied = inline.replaceRange(size.start, size.end, size.insert)
+        assertTrue(applied, applied.contains("\"url\": \"https://x\", \"size\": {} }"))
+        assertEquals(applied.indexOf("{} }") + 1, size.start + size.cursor)
+
+        val multiline = "{\n  \"mainView\": {\n    \"type\": \"text\",\n    \"label\": \"Hi\"\n  }\n}"
+        val label = suggestions.at(multiline, multiline.indexOf("Hi") + 1).items.first { it.label == "textSize" }
+        assertEquals(
+            "{\n  \"mainView\": {\n    \"type\": \"text\",\n    \"label\": \"Hi\",\n    \"textSize\": \n  }\n}",
+            multiline.replaceRange(label.start, label.end, label.insert)
         )
     }
 

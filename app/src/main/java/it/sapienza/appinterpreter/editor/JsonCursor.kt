@@ -108,6 +108,21 @@ data class JsonCursor(
             return -1
         }
 
+        /** The index of the brace or bracket closing the one at [open], or -1 if it isn't closed. */
+        fun closeOf(text: String, open: Int): Int {
+            var depth = 0
+            var i = open
+            while (i < text.length) {
+                when (text[i]) {
+                    '{', '[' -> depth++
+                    '}', ']' -> { depth--; if (depth == 0) return i }
+                    '"' -> { val close = closingQuote(text, i, text.length); if (close < 0) return -1; i = close }
+                }
+                i++
+            }
+            return -1
+        }
+
         /**
          * The property names of the object starting at [start] and its "type" value, read to its closing brace (or
          * the end of the text). Strings that aren't closed on their line are skipped.

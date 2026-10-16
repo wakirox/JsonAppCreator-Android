@@ -5,21 +5,42 @@ import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * A suggestion for the cursor: replace [start] until [end] with [insert], then put the cursor [cursor] characters into
- * the inserted text.
+ * the inserted text. [required] marks a property the object can't do without.
  */
-data class Suggestion(val label: String, val start: Int, val end: Int, val insert: String, val cursor: Int)
+data class Suggestion(
+    val label: String,
+    val start: Int,
+    val end: Int,
+    val insert: String,
+    val cursor: Int,
+    val required: Boolean = false
+)
 
 /**
- * Autocomplete from the v3 JSON Schema: the property names an object may still have, and the allowed values of the
- * property being written. Views, form fields and events are told apart by their "type", as the schema does.
+ * The suggestions for the cursor. [heading] names the object they belong to (its type, or the property holding it)
+ * when they are the attributes it can still take; it is null for values and for completing a half-typed name.
+ */
+data class Suggestions(val heading: String?, val items: List<Suggestion>) {
+    companion object {
+        val NONE = Suggestions(null, emptyList())
+    }
+}
+
+/**
+ * Autocomplete from the v3 JSON Schema: the attributes an object may still have (required ones first) and the
+ * allowed values of the attribute being written. Views, form fields and events are told apart by their "type", as
+ * the schema does.
+ *
+ * Where a new attribute name goes, they complete it at the cursor. Anywhere else in an object, for example while
+ * writing a value, they list what the object is missing and add the chosen attribute at its end.
  */
 class SchemaSuggestions(schemaJson: String) {
     private val root: JsonNode = ObjectMapper().readTree(schemaJson)
     private val defs: JsonNode = root.path("\$defs")
 
-    fun at(text: String, cursor: Int, limit: Int = 12): List<Suggestion> {
+    fun at(text: String, cursor: Int, limit: Int = 16): Suggestions {
         val at = JsonCursor.at(text, cursor)
-        if (at.position == CursorPosition.NONE) return emptyList()
+        if (at.position == CursorPosition.NONE) return Suggestions.NONE
         // The object facts are read without the token being typed, so a half-written string doesn't confuse them.
         val facts = text.removeRange(at.replaceStart, at.replaceEnd).let { clean ->
             at.containers.map { if (it.isObject) JsonCursor.objectFacts(clean, it.start) else emptySet<String>() to null }
@@ -29,30 +50,86 @@ class SchemaSuggestions(schemaJson: String) {
         for (i in 1 until at.containers.size) {
             schema = schema?.let { child(it, facts[i - 1], at.containers[i].slot) }
         }
-        schema ?: return emptyList()
+        schema ?: return Suggestions.NONE
         val container = at.containers.last()
-        val (present, _) = facts.last()
+        val objectFacts = facts.last()
+        val heading = objectFacts.second ?: (container.slot as? String) ?: if (at.containers.size == 1) "app" else null
 
-        val candidates: List<Pair<String, String>> = when (at.position) {
-            CursorPosition.KEY -> keySuggestions(schema, facts.last())
-                .filter { (name, _) -> name !in present }
-                .map { (name, value) -> name to "\"$name\": ${template(value)}" }
-            CursorPosition.VALUE -> {
-                val valueSchema = if (container.isObject) at.key?.let { properties(schema, facts.last())[it] } else items(schema)
-                valueSchema?.let { values(it) }.orEmpty().map { it to literal(it, valueSchema!!) }
-            }
-            CursorPosition.NONE -> emptyList()
+        if (at.position == CursorPosition.VALUE) {
+            val valueSchema = if (container.isObject) at.key?.let { properties(schema, objectFacts)[it] } else items(schema)
+            val values = valueSchema?.let { values(it) }.orEmpty()
+                .filter { it.startsWith(at.prefix, ignoreCase = true) && it != at.prefix }
+                .take(limit)
+                .map { value -> suggestion(value, at.replaceStart, at.replaceEnd, literal(value, valueSchema!!)) }
+            if (values.isNotEmpty() || !container.isObject) return Suggestions(null, values)
+            // Nothing to complete here: offer what the object is still missing, added at its end.
+            val close = JsonCursor.closeOf(text, container.start).takeIf { it > 0 } ?: return Suggestions.NONE
+            return Suggestions(heading, missing(schema, objectFacts).take(limit).map { (name, value, required) ->
+                val (position, insert, inside) = memberAtEnd(text, container.start, close, "\"$name\": ${template(value)}")
+                Suggestion(name, position, position, insert, inside, required)
+            })
         }
-        return candidates
-            .filter { (label, _) -> label.startsWith(at.prefix, ignoreCase = true) && label != at.prefix }
+
+        val typed = missing(schema, objectFacts)
+            .filter { (name, _, _) -> name.startsWith(at.prefix, ignoreCase = true) && name != at.prefix }
             .take(limit)
-            .map { (label, insert) ->
-                // Inside an empty string, object or array value; otherwise after the insertion.
-                val inside = if (insert.endsWith("\"\"") || insert.endsWith("{}") || insert.endsWith("[]")) {
-                    insert.length - 1
-                } else insert.length
-                Suggestion(label, at.replaceStart, at.replaceEnd, insert, inside)
+            .map { (name, value, required) ->
+                suggestion(name, at.replaceStart, at.replaceEnd, "\"$name\": ${template(value)}", required)
             }
+        return Suggestions(if (at.prefix.isEmpty()) heading else null, typed)
+    }
+
+    /** The attributes the object doesn't have yet, required ones first. */
+    private fun missing(schema: JsonNode, facts: Pair<Set<String>, String?>): List<Triple<String, JsonNode, Boolean>> {
+        val required = required(schema, facts)
+        return keySuggestions(schema, facts)
+            .filter { (name, _) -> name !in facts.first }
+            .map { (name, value) -> Triple(name, value, name in required) }
+            .sortedByDescending { it.third }
+    }
+
+    private fun suggestion(label: String, start: Int, end: Int, insert: String, required: Boolean = false): Suggestion {
+        // Inside an empty string, object or array value; otherwise after the insertion.
+        val inside = if (insert.endsWith("\"\"") || insert.endsWith("{}") || insert.endsWith("[]")) insert.length - 1 else insert.length
+        return Suggestion(label, start, end, insert, inside, required)
+    }
+
+    /**
+     * Where and how to add [member] as the last attribute of the object between [open] and [close]: after its last
+     * attribute with a comma, on a new line like the others (or on the same line for a one-line object).
+     * Returns the insertion offset, the text to insert and where the cursor goes in it.
+     */
+    private fun memberAtEnd(text: String, open: Int, close: Int, member: String): Triple<Int, String, Int> {
+        var last = close - 1
+        while (last > open && text[last].isWhitespace()) last--
+        val empty = last == open
+        val multiline = text.substring(open, close).contains('\n')
+        val memberCursor = if (member.endsWith("\"\"") || member.endsWith("{}") || member.endsWith("[]")) member.length - 1 else member.length
+        if (!multiline) {
+            val prefix = if (empty) " " else ", "
+            return Triple(last + 1, prefix + member, prefix.length + memberCursor)
+        }
+        val indent = if (empty) Snippets.indentAt(text, open) + "  " else Snippets.indentAt(text, last)
+        val prefix = (if (empty) "" else ",") + "\n" + indent
+        return Triple(last + 1, prefix + member, prefix.length + memberCursor)
+    }
+
+    /** The attributes the object must have, given the keys it already has and its "type". */
+    private fun required(node: JsonNode, facts: Pair<Set<String>, String?>): Set<String> {
+        val schema = resolve(node)
+        val result = LinkedHashSet<String>()
+        if (schema.has("if")) {
+            val required = schema.path("if").path("required").map { it.asText() }
+            result += if (facts.first.containsAll(required)) required(schema.path("then"), facts) else required
+        }
+        schema.path("required").forEach { result += it.asText() }
+        schema.path("allOf").forEach { part ->
+            if (part.has("if")) {
+                val type = part.path("if").path("properties").path("type").path("const").asText(null)
+                if (type != null && type == facts.second) result += required(part.path("then"), facts)
+            } else result += required(part, facts)
+        }
+        return result
     }
 
     private fun resolve(node: JsonNode): JsonNode {
