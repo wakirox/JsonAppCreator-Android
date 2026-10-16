@@ -1,8 +1,13 @@
 package it.sapienza.appinterpreter.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,25 +38,19 @@ fun MainScreen(
     title: String,
     author: String?,
     version: String,
-    hasChangelog: Boolean,
+    changelog: String?,
     model: MView,
     modelData: JSONObject?,
     loading: Boolean,
-    onChangelog: () -> Unit,
-    onLoadConfiguration: () -> Unit,
-    onEditConfiguration: () -> Unit,
-    onMyApps: () -> Unit,
-    onAddToHome: () -> Unit,
+    onEditApp: () -> Unit,
     onNewApp: () -> Unit,
     onAskAi: () -> Unit,
     onPasteFromAi: () -> Unit,
-    onLoadMasterpiecesSample: () -> Unit,
-    onLoadPlainSample: () -> Unit,
-    onLoadFormSample: () -> Unit,
-    onLoadMovieSample: () -> Unit,
-    onLoadPokedexSample: () -> Unit
+    onMyApps: () -> Unit,
+    onAddToHome: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
+    var aboutOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -73,51 +73,11 @@ fun MainScreen(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
-                        author?.let {
-                            InformationMenuItem(
-                                text = "Author $it",
-                                iconResource = R.drawable.baseline_perm_identity_24
-                            )
-                        }
-                        InformationMenuItem(
-                            text = "Version $version",
-                            iconResource = R.drawable.baseline_merge_type_24
-                        )
-                        if (hasChangelog) {
-                            ActionMenuItem(
-                                text = "Changelog",
-                                iconResource = R.drawable.baseline_track_changes_24,
-                                closeMenu = { menuExpanded = false },
-                                onClick = onChangelog
-                            )
-                        }
-
                         ActionMenuItem(
-                            text = "Add to home screen",
-                            iconResource = R.drawable.baseline_account_tree_24,
-                            closeMenu = { menuExpanded = false },
-                            onClick = onAddToHome
-                        )
-                        ActionMenuItem(
-                            text = "My apps",
+                            text = "Edit this app",
                             iconResource = R.drawable.baseline_view_list_24,
                             closeMenu = { menuExpanded = false },
-                            onClick = onMyApps
-                        )
-
-                        HorizontalDivider()
-                        MenuSectionLabel("JSON configuration")
-                        ActionMenuItem(
-                            text = "Load configuration from device",
-                            iconResource = R.drawable.baseline_insert_drive_file_24,
-                            closeMenu = { menuExpanded = false },
-                            onClick = onLoadConfiguration
-                        )
-                        ActionMenuItem(
-                            text = "Edit configuration",
-                            iconResource = R.drawable.baseline_view_list_24,
-                            closeMenu = { menuExpanded = false },
-                            onClick = onEditConfiguration
+                            onClick = onEditApp
                         )
                         ActionMenuItem(
                             text = "New app",
@@ -126,46 +86,36 @@ fun MainScreen(
                             onClick = onNewApp
                         )
                         HorizontalDivider()
-                        MenuSectionLabel("With your AI app (no AI in this app)")
                         ActionMenuItem(
-                            text = "Use your AI app…",
+                            text = "Make an app with your AI app…",
                             iconResource = R.drawable.baseline_track_changes_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAskAi
                         )
                         ActionMenuItem(
                             text = "Paste answer from your AI app",
-                            iconResource = R.drawable.baseline_insert_drive_file_24,
+                            iconResource = R.drawable.baseline_merge_type_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onPasteFromAi
                         )
-
                         HorizontalDivider()
-                        MenuSectionLabel("Sample configurations")
                         ActionMenuItem(
-                            text = "Masterpieces",
+                            text = "My apps",
+                            iconResource = R.drawable.baseline_account_tree_24,
                             closeMenu = { menuExpanded = false },
-                            onClick = onLoadMasterpiecesSample
+                            onClick = onMyApps
                         )
                         ActionMenuItem(
-                            text = "Plain app",
+                            text = "Add to home screen",
+                            iconResource = R.drawable.baseline_add_photo_alternate_24,
                             closeMenu = { menuExpanded = false },
-                            onClick = onLoadPlainSample
+                            onClick = onAddToHome
                         )
                         ActionMenuItem(
-                            text = "Form example",
+                            text = "About this app",
+                            iconResource = R.drawable.baseline_perm_identity_24,
                             closeMenu = { menuExpanded = false },
-                            onClick = onLoadFormSample
-                        )
-                        ActionMenuItem(
-                            text = "THE MOVIE DB",
-                            closeMenu = { menuExpanded = false },
-                            onClick = onLoadMovieSample
-                        )
-                        ActionMenuItem(
-                            text = "KANTO POKÉDEX",
-                            closeMenu = { menuExpanded = false },
-                            onClick = onLoadPokedexSample
+                            onClick = { aboutOpen = true }
                         )
                     }
                 }
@@ -180,28 +130,32 @@ fun MainScreen(
             RendererScreen(model = model, data = modelData, loading = loading)
         }
     }
-}
 
-@Composable
-private fun MenuSectionLabel(text: String) {
-    Text(
-        text = text,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary
-    )
-}
-
-@Composable
-private fun InformationMenuItem(text: String, iconResource: Int) {
-    DropdownMenuItem(
-        text = { Text(text) },
-        onClick = {},
-        enabled = false,
-        leadingIcon = {
-            Icon(painterResource(iconResource), contentDescription = null)
-        }
-    )
+    if (aboutOpen) {
+        AlertDialog(
+            onDismissRequest = { aboutOpen = false },
+            title = { Text(title) },
+            text = {
+                Column(
+                    Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("Version $version", style = MaterialTheme.typography.bodyMedium)
+                    author?.let { Text("By $it", style = MaterialTheme.typography.bodyMedium) }
+                    changelog?.let {
+                        Text("What's new", style = MaterialTheme.typography.titleSmall)
+                        Text(it, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Text(
+                        "Made with JSON App Creator.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text("OK") } }
+        )
+    }
 }
 
 @Composable

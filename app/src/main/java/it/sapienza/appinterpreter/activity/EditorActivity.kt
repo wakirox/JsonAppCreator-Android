@@ -96,7 +96,7 @@ class EditorActivity : AppCompatActivity() {
                         received != null && fromFile -> "Opened file"
                         received != null -> "From your AI app"
                         newApp -> "New app"
-                        else -> "Edit configuration"
+                        else -> "Edit this app"
                     },
                     initialText = when {
                         received != null -> prettyJson(received)

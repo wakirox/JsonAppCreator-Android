@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,12 +19,12 @@ import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.ScreenRuntimeState
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
-import it.sapienza.appinterpreter.utils.DomainController
-import it.sapienza.appinterpreter.utils.HomeShortcuts
-import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.ui.ApiKeyEntryDialog
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.MainScreen
+import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.HomeShortcuts
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
 import org.json.JSONObject
@@ -67,20 +66,6 @@ class MainActivity : ComponentActivity() {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
     }
 
-    private val openJsonFile = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri ?: return@registerForActivityResult
-        try {
-            val text = contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-                ?: throw IllegalArgumentException("Unable to read the selected file")
-            prepareLoadedConfiguration(text)
-        } catch (e: Exception) {
-            AlertUtils.showAlert(
-                this,
-                "Configuration could not be loaded\n\n${e.message ?: "Unrecognized error"}"
-            )
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
@@ -109,20 +94,12 @@ class MainActivity : ComponentActivity() {
                         title = appModel.name,
                         author = appModel.author,
                         version = appModel.version,
-                        hasChangelog = appModel.changelog != null,
+                        changelog = appModel.changelog,
                         model = screen.definition,
                         modelData = screen.data,
                         loading = loading,
-                        onChangelog = {
-                            appModel.changelog?.let { changelog ->
-                                spawnInstance(context = this, changelog = changelog)
-                            }
-                        },
-                        onLoadConfiguration = { openJsonFile.launch("application/json") },
-                        onEditConfiguration = { EditorActivity.edit(this) },
+                        onEditApp = { EditorActivity.edit(this) },
                         onNewApp = { EditorActivity.newApp(this) },
-                        onMyApps = { startActivity(Intent(this, MyAppsActivity::class.java)) },
-                        onAddToHome = { addToHomeScreen() },
                         onAskAi = { askingAi = true },
                         onPasteFromAi = {
                             val answer = AskAi.clipboardText(this)
@@ -130,21 +107,8 @@ class MainActivity : ComponentActivity() {
                                 Toast.makeText(this, "The clipboard is empty: copy the answer in your AI app first", Toast.LENGTH_LONG).show()
                             } else EditorActivity.aiAnswer(this, answer)
                         },
-                        onLoadMasterpiecesSample = {
-                            loadSampleConfiguration(R.raw.v3_masterpieces)
-                        },
-                        onLoadPlainSample = {
-                            loadSampleConfiguration(R.raw.v3_app_sample)
-                        },
-                        onLoadFormSample = {
-                            loadSampleConfiguration(R.raw.v3_app_form)
-                        },
-                        onLoadMovieSample = {
-                            loadSampleConfiguration(R.raw.v3_the_movie_db)
-                        },
-                        onLoadPokedexSample = {
-                            loadSampleConfiguration(R.raw.v3_pokedex)
-                        }
+                        onMyApps = { startActivity(Intent(this, MyAppsActivity::class.java)) },
+                        onAddToHome = { addToHomeScreen() }
                     )
                 }
                 if (askingAi) {
@@ -159,21 +123,14 @@ class MainActivity : ComponentActivity() {
                         names = pendingApiKeyNames,
                         savedNames = savedApiKeyNames,
                         onConfirm = { values ->
-                            if (pendingActiveConfiguration) {
-                                ConfigurationApiKeys.saveForCurrentConfiguration(json, values)
-                                spawnNew(this)
-                            } else {
-                                ConfigurationApiKeys.save(json, values)
-                                commitLoadedConfiguration(json)
-                            }
+                            ConfigurationApiKeys.saveForCurrentConfiguration(json, values)
+                            spawnNew(this)
                         },
                         onDismiss = {
-                            // Without its keys the active configuration can't run: fall back to the default example,
-                            // so the menu stays reachable and another configuration can be loaded.
-                            if (pendingActiveConfiguration) {
-                                clearPendingConfiguration()
-                                loadSampleConfiguration(DomainController.DEFAULT_CONFIGURATION)
-                            } else clearPendingConfiguration()
+                            // Without its keys the current app can't run: fall back to the default example, so the
+                            // menu stays reachable and another app can be opened.
+                            clearPendingConfiguration()
+                            loadSampleConfiguration(DomainController.DEFAULT_CONFIGURATION)
                         }
                     )
                 }
@@ -284,26 +241,6 @@ class MainActivity : ComponentActivity() {
         pendingApiKeyNames = names
         savedApiKeyNames = availableNames
         pendingActiveConfiguration = true
-    }
-
-    private fun prepareLoadedConfiguration(json: String) {
-        configurationParser.parse(json)
-        val names = ConfigurationApiKeys.placeholderNames(json)
-        if (names.isEmpty()) {
-            commitLoadedConfiguration(json)
-            return
-        }
-        pendingConfiguration = json
-        pendingApiKeyNames = names
-        savedApiKeyNames = names.filterTo(mutableSetOf()) {
-            ConfigurationApiKeys.hasSavedValue(json, it)
-        }
-    }
-
-    private fun commitLoadedConfiguration(json: String) {
-        DomainController.setJsonFile(json, this)
-        clearPendingConfiguration()
-        spawnNew(this)
     }
 
     private fun clearPendingConfiguration() {

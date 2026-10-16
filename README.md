@@ -36,15 +36,16 @@ The app requires Android 8.1 (API 27) or newer.
 The app opens on **Masterpieces**, an example gallery of public-domain paintings. From the
 three-dot menu:
 
-- **New app** starts a small app in the built-in editor; **Edit configuration** opens the
-  active one. The editor colours the JSON, suggests the properties and values the schema
+- **Edit this app** opens the current app in the built-in editor; **New app** starts a
+  small one. The editor colours the JSON, suggests the properties and values the schema
   allows where the cursor is, checks the file as you type (tap a problem to jump to it),
   inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
-- **My apps** lists every app you have opened or made, most recently used first: open one,
-  add it to the home screen, or delete it. **Add to home screen** pins the current app as
-  a launcher shortcut with its own icon, so several apps can sit on your home screen.
-- **Load configuration from device** opens a UTF-8 JSON file in the v3 format.
-- **Use your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
+- **My apps** lists every app you have opened or made, most recently used first (open
+  one, add it to the home screen, or delete it), the bundled **Examples**, and **Open a
+  file…** for a UTF-8 JSON file in the v3 format. **Add to home screen** pins the current
+  app as a launcher shortcut with its own icon, so several apps can sit on your home
+  screen. **About this app** shows its version, author and what's new.
+- **Make an app with your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
   JSON App Creator has no AI inside and calls no AI service: it shares a complete prompt
   (the rules, a reference generated from the schema, worked examples and your request,
   optionally with the current app to change) to the app you pick. Chat there; the AI is
@@ -63,7 +64,7 @@ loaded file contains one, the app asks for the value and encrypts it in private 
 storage, scoped to that exact JSON file. The key is never inserted into the saved JSON.
 
 Android can also offer JSON App Creator when another app opens an `application/json`
-file. Use **Edit configuration** to see or change the active JSON.
+file. Use **Edit this app** to see or change the active JSON.
 
 ## Minimal configuration
 
