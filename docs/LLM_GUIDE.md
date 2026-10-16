@@ -104,6 +104,25 @@ Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressio
 conditional rendering, databases, arbitrary native components, or undocumented style
 properties.
 
+## Common mistakes
+
+- A button shows its `title` (or the value its `mapping` selects). A button's `label` is
+  not displayed.
+- A text view shows its `label` as a first line, then the `mapping` value or `title`, in
+  one style. Use `textStyle` and `textSize` for emphasis.
+- A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
+  from `data` on the list or a parent, or from `initData` for a REST endpoint.
+- Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
+  fields of that one item, not to the whole response.
+- `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
+  string, such as a URL or a label.
+- An inline action needs both `id` and `event`. To reuse one, define it in the root
+  `actions` and reference it with `{ "ref": "id" }`.
+- Form fields are `text`, `selector`, `date` and `checkbox`; there is no `input`,
+  `dropdown` or `switch`. Dates are `dd/MM/yyyy`.
+- Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
+- JSON has no comments and no trailing commas.
+
 ## Validate generated output
 
 When repository tools are available, run:
@@ -116,7 +135,15 @@ Treat every reported path as a required correction. Do not suppress validation e
 by deleting useful definitions or weakening references; repair the configuration's
 structure and data flow.
 
+In the app, the editor's live check shows the same problems; **Copy problems for AI**
+turns them into a message to send back to the model.
+
 ## Recommended prompt
+
+The app's **Ask an AI** command builds a complete, self-contained prompt: these rules, a
+reference of every view, field and event generated from the schema, and worked examples.
+The same context is in [AI_CONTEXT.md](AI_CONTEXT.md) for use outside the app; attach it
+to a prompt like this one:
 
 ```text
 Create a JSON App Creator v3 configuration for the following application.
@@ -124,6 +151,6 @@ Create a JSON App Creator v3 configuration for the following application.
 Requirements:
 <describe screens, data, endpoints, and interactions>
 
-Follow docs/LLM_GUIDE.md and schema/v3.schema.json. Use schemaVersion 3 and explicit
+Follow the attached AI_CONTEXT.md. Use schemaVersion 3 and explicit
 { "ref": "..." } references. Return only valid JSON, without Markdown or commentary.
 ```
