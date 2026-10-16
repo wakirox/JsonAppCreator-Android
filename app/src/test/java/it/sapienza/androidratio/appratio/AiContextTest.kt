@@ -97,7 +97,7 @@ class AiContextTest {
             "https://gemini.google.com/share/bd594c962c63",
             "https://chatgpt.com/share/6800000a-0000-8000-8000-000000000000",
             "https://chatgpt.com/s/t_6ad26cad135481918a0e6afe3d5f1b94",
-            "https://grok.com/share/bGVnYWN5_abc"
+            "https://grok.com/share/c2hhcmQtMw_089b839b-0e1a-4876-b4a0-ddb4bf410bcf"
         ).forEach { assertEquals(it, ShareLinks.find("Look: $it")) }
         assertNull(ShareLinks.find("https://example.com/share/abc"))
         assertEquals("Gemini", ShareLinks.service("https://share.gemini.google/x"))
