@@ -52,11 +52,14 @@
       "additionalProperties": false
     },
     "view": {
-      "oneOf": [
-        { "$ref": "#/$defs/viewDefinition" },
-        { "$ref": "#/$defs/explicitViewReference" },
-        { "$ref": "#/$defs/legacyViewReference" }
-      ]
+      "description": "A view definition (it has a type), an explicit reference (ref) or a legacy ID-only reference.",
+      "if": { "type": "object", "required": ["type"] },
+      "then": { "$ref": "#/$defs/viewDefinition" },
+      "else": {
+        "if": { "type": "object", "required": ["ref"] },
+        "then": { "$ref": "#/$defs/explicitViewReference" },
+        "else": { "$ref": "#/$defs/legacyViewReference" }
+      }
     },
     "explicitViewReference": {
       "title": "Explicit view reference (preferred)",
@@ -80,13 +83,17 @@
       "deprecated": true
     },
     "viewDefinition": {
-      "oneOf": [
-        { "$ref": "#/$defs/layoutView" },
-        { "$ref": "#/$defs/textView" },
-        { "$ref": "#/$defs/buttonView" },
-        { "$ref": "#/$defs/imageView" },
-        { "$ref": "#/$defs/listView" },
-        { "$ref": "#/$defs/formView" }
+      "description": "A view, chosen by its type: only that type's rules apply, so a mistake is reported once.",
+      "type": "object",
+      "required": ["type"],
+      "properties": { "type": { "enum": ["layout", "text", "button", "image", "list", "form"] } },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "layout" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/layoutView" } },
+        { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textView" } },
+        { "if": { "properties": { "type": { "const": "button" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/buttonView" } },
+        { "if": { "properties": { "type": { "const": "image" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/imageView" } },
+        { "if": { "properties": { "type": { "const": "list" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/listView" } },
+        { "if": { "properties": { "type": { "const": "form" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/formView" } }
       ]
     },
     "layoutView": {
@@ -208,11 +215,15 @@
       "additionalProperties": false
     },
     "formElement": {
-      "oneOf": [
-        { "$ref": "#/$defs/textInput" },
-        { "$ref": "#/$defs/selectorInput" },
-        { "$ref": "#/$defs/dateInput" },
-        { "$ref": "#/$defs/checkboxInput" }
+      "description": "A form field, chosen by its type.",
+      "type": "object",
+      "required": ["type"],
+      "properties": { "type": { "enum": ["text", "selector", "date", "checkbox"] } },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textInput" } },
+        { "if": { "properties": { "type": { "const": "selector" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/selectorInput" } },
+        { "if": { "properties": { "type": { "const": "date" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/dateInput" } },
+        { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } }
       ]
     },
     "textInput": {
@@ -284,11 +295,14 @@
       "additionalProperties": false
     },
     "action": {
-      "oneOf": [
-        { "$ref": "#/$defs/actionDefinition" },
-        { "$ref": "#/$defs/explicitActionReference" },
-        { "$ref": "#/$defs/legacyActionReference" }
-      ]
+      "description": "An action definition (it has an event), an explicit reference (ref) or a legacy ID-only reference.",
+      "if": { "type": "object", "required": ["event"] },
+      "then": { "$ref": "#/$defs/actionDefinition" },
+      "else": {
+        "if": { "type": "object", "required": ["ref"] },
+        "then": { "$ref": "#/$defs/explicitActionReference" },
+        "else": { "$ref": "#/$defs/legacyActionReference" }
+      }
     },
     "explicitActionReference": {
       "title": "Explicit action reference (preferred)",
@@ -325,10 +339,14 @@
       "additionalProperties": false
     },
     "event": {
-      "oneOf": [
-        { "$ref": "#/$defs/restEvent" },
-        { "$ref": "#/$defs/showEvent" },
-        { "$ref": "#/$defs/alertEvent" }
+      "description": "An event, chosen by its type.",
+      "type": "object",
+      "required": ["type"],
+      "properties": { "type": { "enum": ["rest", "show", "alert"] } },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
+        { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
+        { "if": { "properties": { "type": { "const": "alert" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/alertEvent" } }
       ]
     },
     "restEvent": {
