@@ -25,6 +25,9 @@ class EventObject(val type : ElementType.EventType){
             ElementType.EventType.show -> {
                 jacksonObjectMapper().convertValue<ShowView>(additionalProperties)
             }
+            ElementType.EventType.calendar -> {
+                jacksonObjectMapper().convertValue<CalendarEvent>(additionalProperties)
+            }
         }
 
 

@@ -364,6 +364,25 @@ Action properties:
 current event data is passed to the destination view. Android's Back button returns to
 the previous view.
 
+### Add an event to the calendar
+
+```json
+{
+  "type": "calendar",
+  "title": "Dinner: ${cuisine}",
+  "date": "${date}",
+  "time": "19:30",
+  "durationMinutes": 180,
+  "location": "Home",
+  "description": "${guests} guests, hosted by ${name}"
+}
+```
+
+Opens the phone's calendar app on a new event, filled in; the user reviews and saves it
+there, so the app needs no calendar permission. `date` is `dd/MM/yyyy`, as a form's
+`date` field submits it, and `time` is `HH:mm`; without `time` the event lasts all day.
+A timed event lasts `durationMinutes`, 60 by default. Every text may use `${...}`.
+
 ### Call a REST endpoint
 
 ```json

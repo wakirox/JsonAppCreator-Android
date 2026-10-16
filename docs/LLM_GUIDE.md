@@ -90,6 +90,7 @@ Events:
 - `show`
 - `rest`
 - `alert`
+- `calendar` (opens the phone's calendar app on a new event, for the user to save)
 
 Other enums:
 

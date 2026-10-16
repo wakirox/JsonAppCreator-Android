@@ -32,7 +32,7 @@ class AiContextTest {
 
     @Test
     fun theContextDescribesEveryViewFieldAndEvent() {
-        listOf("layout", "text", "button", "image", "list", "form", "selector", "date", "checkbox", "rest", "show", "alert")
+        listOf("layout", "text", "button", "image", "list", "form", "selector", "date", "checkbox", "rest", "show", "alert", "calendar")
             .forEach { assertTrue("missing #### `$it`", context.contains("#### `$it`")) }
         assertTrue(context.contains("## Common mistakes"))
         assertTrue("repository-only sections are left out", !context.contains("./gradlew"))
