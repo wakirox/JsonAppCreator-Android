@@ -27,11 +27,16 @@ object EventManager{
         event: RESTService,
         data: JSONObject?,
         callbackConsumer: Consumer<JSONObject>,
-        showLoading: Boolean = true
+        showLoading: Boolean = true,
+        failureConsumer: Consumer<String>? = null
     ): Call? {
         val url = event.url.matchReplace(data)
 
         val activity = (context as? MainActivity)
+
+        fun reportFailure(message: String) {
+            failureConsumer?.accept(message) ?: AlertUtils.showAlert(context, message)
+        }
 
         if (showLoading) activity?.showLoading()
 
@@ -40,21 +45,20 @@ object EventManager{
                 if (showLoading) activity?.hideLoading()
                 response.use {
                     if (!response.isSuccessful) {
-                        AlertUtils.showAlert(
-                            context,
-                            "Request failed with ${response.code}"
-                        )
+                        reportFailure("Request failed with ${response.code}")
                         return
                     }
-                    response.body?.let { body ->
-                        callbackConsumer.accept(JSONObject(body.string()))
-                    } ?: AlertUtils.showAlert(context, "No body in response")
+                    try {
+                        callbackConsumer.accept(JSONObject(response.body.string()))
+                    } catch (error: Exception) {
+                        reportFailure(error.message ?: "Unable to read the response")
+                    }
                 }
             }
             override fun onFailure(call: Call, e: IOException) {
                 if (showLoading) activity?.hideLoading()
                 if (call.isCanceled()) return
-                AlertUtils.showAlert(context,e.message ?: "An error occurred")
+                reportFailure(e.message ?: "An error occurred")
             }
         }
         return try {
@@ -69,7 +73,7 @@ object EventManager{
             }
         } catch (error: IllegalStateException) {
             if (showLoading) activity?.hideLoading()
-            AlertUtils.showAlert(context, error.message ?: "A configuration API key is missing")
+            reportFailure(error.message ?: "A configuration API key is missing")
             null
         }
     }

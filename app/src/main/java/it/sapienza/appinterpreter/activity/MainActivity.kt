@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
     private var pendingConfiguration by mutableStateOf<String?>(null)
     private var pendingApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var savedApiKeyNames by mutableStateOf<Set<String>>(emptySet())
+    private var pendingActiveConfiguration by mutableStateOf(false)
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
     }
@@ -85,47 +86,57 @@ class MainActivity : ComponentActivity() {
         val screen = initializeScreen(savedInstanceState) ?: return
         screenState = screen
         val appModel = checkNotNull(application.app())
+        prepareActiveConfigurationApiKeys()
         setContent {
             AppTheme {
-                MainScreen(
-                    title = appModel.name,
-                    author = appModel.author,
-                    version = appModel.version,
-                    hasChangelog = appModel.changelog != null,
-                    model = screen.definition,
-                    modelData = screen.data,
-                    loading = loading,
-                    onChangelog = {
-                        appModel.changelog?.let { changelog ->
-                            spawnInstance(context = this, changelog = changelog)
+                if (!pendingActiveConfiguration) {
+                    MainScreen(
+                        title = appModel.name,
+                        author = appModel.author,
+                        version = appModel.version,
+                        hasChangelog = appModel.changelog != null,
+                        model = screen.definition,
+                        modelData = screen.data,
+                        loading = loading,
+                        onChangelog = {
+                            appModel.changelog?.let { changelog ->
+                                spawnInstance(context = this, changelog = changelog)
+                            }
+                        },
+                        onLoadConfiguration = { openJsonFile.launch("application/json") },
+                        onViewConfiguration = {
+                            startActivity(Intent(this, JsonActivity::class.java))
+                        },
+                        onLoadPlainSample = {
+                            loadSampleConfiguration(R.raw.v3_app_sample)
+                        },
+                        onLoadFormSample = {
+                            loadSampleConfiguration(R.raw.v3_app_form)
+                        },
+                        onLoadMovieSample = {
+                            loadSampleConfiguration(R.raw.v3_the_movie_db)
+                        },
+                        onLoadPokedexSample = {
+                            loadSampleConfiguration(R.raw.v3_pokedex)
                         }
-                    },
-                    onLoadConfiguration = { openJsonFile.launch("application/json") },
-                    onViewConfiguration = {
-                        startActivity(Intent(this, JsonActivity::class.java))
-                    },
-                    onLoadPlainSample = {
-                        loadSampleConfiguration(R.raw.v3_app_sample)
-                    },
-                    onLoadFormSample = {
-                        loadSampleConfiguration(R.raw.v3_app_form)
-                    },
-                    onLoadMovieSample = {
-                        loadSampleConfiguration(R.raw.v3_the_movie_db)
-                    },
-                    onLoadPokedexSample = {
-                        loadSampleConfiguration(R.raw.v3_pokedex)
-                    }
-                )
+                    )
+                }
                 pendingConfiguration?.let { json ->
                     ApiKeyEntryDialog(
                         names = pendingApiKeyNames,
                         savedNames = savedApiKeyNames,
                         onConfirm = { values ->
-                            ConfigurationApiKeys.save(json, values)
-                            commitLoadedConfiguration(json)
+                            if (pendingActiveConfiguration) {
+                                ConfigurationApiKeys.saveForCurrentConfiguration(json, values)
+                                spawnNew(this)
+                            } else {
+                                ConfigurationApiKeys.save(json, values)
+                                commitLoadedConfiguration(json)
+                            }
                         },
-                        onDismiss = { clearPendingConfiguration() }
+                        onDismiss = {
+                            if (pendingActiveConfiguration) finish() else clearPendingConfiguration()
+                        }
                     )
                 }
             }
@@ -215,6 +226,18 @@ class MainActivity : ComponentActivity() {
         spawnNew(this)
     }
 
+    private fun prepareActiveConfigurationApiKeys() {
+        val json = DomainController.jsonFile(this)
+        val names = ConfigurationApiKeys.placeholderNames(json)
+        val availableNames = ConfigurationApiKeys.availableNamesForCurrentConfiguration(json)
+        if (names.all(availableNames::contains)) return
+
+        pendingConfiguration = json
+        pendingApiKeyNames = names
+        savedApiKeyNames = availableNames
+        pendingActiveConfiguration = true
+    }
+
     private fun prepareLoadedConfiguration(json: String) {
         configurationParser.parse(json)
         val names = ConfigurationApiKeys.placeholderNames(json)
@@ -239,6 +262,7 @@ class MainActivity : ComponentActivity() {
         pendingConfiguration = null
         pendingApiKeyNames = emptySet()
         savedApiKeyNames = emptySet()
+        pendingActiveConfiguration = false
     }
 
     fun pushViewWithId(id: String, obj: JSONObject?) {

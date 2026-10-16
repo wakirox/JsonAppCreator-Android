@@ -97,6 +97,13 @@ class TmdbScreenshotTest {
     }
 
     @Test
+    @Config(qualifiers = DARK_QUALIFIERS)
+    fun homeDark() {
+        awaitHome()
+        assertScreenshot("tmdb_home_dark")
+    }
+
+    @Test
     fun searchResults() {
         awaitHome()
         composeRule.onNode(hasSetTextAction()).performTextInput("northstar")
@@ -106,7 +113,23 @@ class TmdbScreenshotTest {
         awaitText("Search results")
         awaitTag("image-101")
         awaitTag("image-102")
+        assertImageFillsCardHeight("101")
         assertScreenshot("tmdb_search_results")
+    }
+
+    @Test
+    @Config(qualifiers = DARK_QUALIFIERS)
+    fun searchResultsDark() {
+        awaitHome()
+        composeRule.onNode(hasSetTextAction()).performTextInput("northstar")
+        composeRule.onNodeWithText("Search").performClick()
+        launchNextActivity()
+
+        awaitText("Search results")
+        awaitTag("image-101")
+        awaitTag("image-102")
+        assertImageFillsCardHeight("101")
+        assertScreenshot("tmdb_search_results_dark")
     }
 
     @Test
@@ -123,6 +146,20 @@ class TmdbScreenshotTest {
     }
 
     @Test
+    @Config(qualifiers = DARK_QUALIFIERS)
+    fun movieDetailsDark() {
+        awaitHome()
+        composeRule.onNodeWithTag("list-item-101").performClick()
+        launchNextActivity()
+
+        awaitText("A cartographer follows a signal beyond the mapped sky.")
+        awaitTag("image-101")
+        awaitTag("image-201")
+        awaitTag("image-202")
+        assertScreenshot("tmdb_movie_details_dark")
+    }
+
+    @Test
     fun actorDetails() {
         awaitHome()
         composeRule.onNodeWithTag("list-item-201").performClick()
@@ -133,6 +170,20 @@ class TmdbScreenshotTest {
         awaitTag("image-101")
         awaitTag("image-102")
         assertScreenshot("tmdb_actor_details")
+    }
+
+    @Test
+    @Config(qualifiers = DARK_QUALIFIERS)
+    fun actorDetailsDark() {
+        awaitHome()
+        composeRule.onNodeWithTag("list-item-201").performClick()
+        launchNextActivity()
+
+        awaitText("Mira Vale builds quiet, character-led science fiction.")
+        awaitTag("image-201")
+        awaitTag("image-101")
+        awaitTag("image-102")
+        assertScreenshot("tmdb_actor_details_dark")
     }
 
     private fun launchNextActivity() {
@@ -173,6 +224,16 @@ class TmdbScreenshotTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.waitForIdle()
+    }
+
+    private fun assertImageFillsCardHeight(itemId: String) {
+        val cardBounds = composeRule.onNodeWithTag("list-item-$itemId", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val imageBounds = composeRule.onNodeWithTag("image-$itemId", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+
+        assertEquals("Image top should meet the card top", cardBounds.top, imageBounds.top, 0.5f)
+        assertEquals("Image bottom should meet the card bottom", cardBounds.bottom, imageBounds.bottom, 0.5f)
     }
 
     private fun assertScreenshot(name: String) {
@@ -301,7 +362,7 @@ class TmdbScreenshotTest {
                   "title": "Northstar",
                   "release_date": "2025-11-14",
                   "vote_average": "8.4",
-                  "overview": "A cartographer follows a signal beyond the mapped sky.",
+                  "overview": "A cartographer follows a signal beyond the mapped sky, where every new discovery redraws the route home and tests the limits of the crew.",
                   "poster_path": "${baseUrl}images/poster_northstar.png"
                 },
                 {
@@ -386,6 +447,7 @@ class TmdbScreenshotTest {
         private const val PREFERENCES_NAME = "DomainController"
         private const val CONFIGURATION_KEY = "main_file_sav"
         private const val RECORD_ARGUMENT = "recordScreenshots"
+        private const val DARK_QUALIFIERS = "w448dp-h900dp-night-mdpi"
         private const val WAIT_TIMEOUT_MS = 30_000L
         private const val CHANNEL_TOLERANCE = 12
         private const val MAX_CHANGED_FRACTION = 0.005

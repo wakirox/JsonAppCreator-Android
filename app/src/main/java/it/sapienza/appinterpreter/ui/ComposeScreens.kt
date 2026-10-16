@@ -1,22 +1,33 @@
 package it.sapienza.appinterpreter.ui
 
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
@@ -43,10 +55,20 @@ private val DarkColorScheme = darkColorScheme()
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
     MaterialTheme(
-        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+        colorScheme = colorScheme
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -82,7 +104,8 @@ fun JsonScreen(json: JSONObject) {
 }
 
 @Composable
-fun PhotoScreen(url: String?) {
+@OptIn(ExperimentalMaterial3Api::class)
+fun PhotoScreen(url: String?, onBack: () -> Unit) {
     val context = LocalContext.current
     val bitmap by produceState<ImageBitmap?>(null, url) {
         value = runCatching {
@@ -95,17 +118,42 @@ fun PhotoScreen(url: String?) {
         scale = (scale * zoom).coerceIn(1f, 6f)
         offset += pan
     }
-    bitmap?.let {
-        Image(
-            bitmap = it,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize().graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                translationX = offset.x
-                translationY = offset.y
-            }.transformable(transform)
-        )
-    } ?: Text("Image unavailable", modifier = Modifier.padding(24.dp))
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    scrolledContainerColor = androidx.compose.ui.graphics.Color.Transparent
+                )
+            )
+        }
+    ) { _ ->
+        Box(Modifier.fillMaxSize()) {
+            bitmap?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize().graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = offset.x
+                        translationY = offset.y
+                    }.transformable(transform)
+                )
+            } ?: Text("Image unavailable", modifier = Modifier.padding(24.dp))
+        }
+    }
 }

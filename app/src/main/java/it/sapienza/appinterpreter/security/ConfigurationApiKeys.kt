@@ -23,7 +23,22 @@ object ConfigurationApiKeys {
         encryptedStore.read(ApiKeyPlaceholders.configurationId(json), name) != null
 
     fun save(json: String, values: Map<String, String>) {
-        val configurationId = ApiKeyPlaceholders.configurationId(json)
+        save(ApiKeyPlaceholders.configurationId(json), json, values)
+    }
+
+    fun saveForCurrentConfiguration(json: String, values: Map<String, String>) {
+        save(DomainController.configurationId(applicationContext), json, values)
+    }
+
+    fun availableNamesForCurrentConfiguration(json: String): Set<String> {
+        val configurationId = DomainController.configurationId(applicationContext)
+        val bundledConfiguration = bundledName(configurationId)?.let(bundledValues::get).orEmpty()
+        return ApiKeyPlaceholders.names(json).filterTo(mutableSetOf()) { name ->
+            name in bundledConfiguration || encryptedStore.read(configurationId, name) != null
+        }
+    }
+
+    private fun save(configurationId: String, json: String, values: Map<String, String>) {
         values.forEach { (name, value) ->
             require(name in ApiKeyPlaceholders.names(json)) {
                 "Cannot save an API key that is not declared by the configuration"

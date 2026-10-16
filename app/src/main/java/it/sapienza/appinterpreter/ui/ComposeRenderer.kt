@@ -8,10 +8,12 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -87,6 +89,8 @@ import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -97,6 +101,14 @@ import java.util.function.Consumer
 private class ListUiState(initiallyWaiting: Boolean) {
     val items = mutableStateListOf<JSONObject>()
     var waiting by mutableStateOf(initiallyWaiting)
+    var errorMessage by mutableStateOf<String?>(null)
+    var retryKey by mutableStateOf(0)
+
+    fun retry() {
+        errorMessage = null
+        waiting = true
+        retryKey += 1
+    }
 }
 
 private const val HORIZONTAL_LAZY_THRESHOLD = 8
@@ -286,7 +298,8 @@ private fun RenderImage(
     data: JSONObject?,
     modifier: Modifier,
     allowImagePreview: Boolean,
-    edgeToEdge: Boolean = false
+    edgeToEdge: Boolean = false,
+    fillParentHeight: Boolean = false
 ) {
     val context = LocalContext.current
     val mapped = view.mapping?.let { data?.getValue(it) }
@@ -315,8 +328,13 @@ private fun RenderImage(
     val openPreview: (() -> Unit)? = if (allowImagePreview) {
         { url?.let { context.startActivity(createIntentPhotoActivity(context, it)) } }
     } else null
+    val heightModifier = if (fillParentHeight) {
+        Modifier.fillMaxHeight()
+    } else {
+        view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier.height(220.dp)
+    }
     val imageModifier = modifier
-        .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier.height(220.dp))
+        .then(heightModifier)
         .clip(if (edgeToEdge) RectangleShape else RoundedCornerShape(16.dp))
         .then(actionModifier(view.action, data, openPreview))
     if (bitmap == null) {
@@ -342,6 +360,7 @@ private fun RenderList(view: ListView, data: JSONObject?, modifier: Modifier) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         when {
             state.waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty(), state::retry)
             state.items.isEmpty() -> Text("No data available", style = MaterialTheme.typography.bodyMedium)
             view.orientation == LayoutOrientation.horizontal &&
                 state.items.size > HORIZONTAL_LAZY_THRESHOLD -> LazyRow(
@@ -381,12 +400,24 @@ private fun rememberListUiState(view: ListView, data: JSONObject?): ListUiState 
     val context = LocalContext.current
     val dataKey = data?.toString().orEmpty()
     val state = remember(view, dataKey) { ListUiState(view.initData != null) }
-    DisposableEffect(view, dataKey) {
+    val activity = context as MainActivity
+    val retryKey = state.retryKey
+    DisposableEffect(activity, state) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START && state.errorMessage != null) {
+                state.retry()
+            }
+        }
+        activity.lifecycle.addObserver(observer)
+        onDispose { activity.lifecycle.removeObserver(observer) }
+    }
+    DisposableEffect(view, dataKey, retryKey) {
         state.items.clear()
+        state.errorMessage = null
         state.waiting = view.initData != null
         val accept: (JSONObject) -> Unit = { response ->
             val array = view.mapping?.let { response.getArray(it) } ?: view.dataObjArr
-            (context as MainActivity).runOnUiThread {
+            activity.runOnUiThread {
                 state.items.clear()
                 array?.let { values ->
                     for (index in 0 until values.length()) {
@@ -402,7 +433,13 @@ private fun rememberListUiState(view: ListView, data: JSONObject?): ListUiState 
                 event = event,
                 data = data,
                 callbackConsumer = Consumer { accept(it) },
-                showLoading = false
+                showLoading = false,
+                failureConsumer = Consumer { message ->
+                    activity.runOnUiThread {
+                        state.waiting = false
+                        state.errorMessage = listLoadErrorMessage(message)
+                    }
+                }
             )
         }
         if (call == null) accept(data ?: JSONObject())
@@ -418,6 +455,9 @@ private fun LazyListScope.verticalListItems(view: ListView, state: ListUiState) 
                 CircularProgressIndicator()
             }
         }
+        state.errorMessage != null -> item(key = "list-error-${System.identityHashCode(view)}") {
+            ListLoadError(state.errorMessage.orEmpty(), state::retry)
+        }
         state.items.isEmpty() -> item(key = "list-empty-${System.identityHashCode(view)}") {
             Text("No data available", style = MaterialTheme.typography.bodyMedium)
         }
@@ -430,6 +470,26 @@ private fun LazyListScope.verticalListItems(view: ListView, state: ListUiState) 
     }
 }
 
+@Composable
+private fun ListLoadError(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("list-load-error"),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(message, style = MaterialTheme.typography.bodyMedium)
+        OutlinedButton(onClick = onRetry) { Text("Retry") }
+    }
+}
+
+private fun listLoadErrorMessage(message: String): String = when {
+    message.contains("resolve host", ignoreCase = true) ||
+        message.contains("failed to connect", ignoreCase = true) ||
+        message.contains("timeout", ignoreCase = true) ->
+        "Unable to load data. Check your connection and try again."
+    else -> "Unable to load data. $message"
+}
+
 private fun listItemKey(view: ListView, index: Int, item: JSONObject): String =
     "${System.identityHashCode(view)}-$index-${item.optString("id")}"
 
@@ -439,22 +499,40 @@ private fun ListCard(view: ListView, item: JSONObject, modifier: Modifier) {
         modifier.then(actionModifier(view.action, item))
             .testTag("list-item-${item.optString("id")}"),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        ListCardContent(view.itemView, item)
+        ListCardContent(
+            itemView = view.itemView,
+            item = item,
+            allowImagePreview = view.action == null
+        )
     }
 }
 
 @Composable
-private fun ListCardContent(itemView: MView, item: JSONObject) {
+private fun ListCardContent(
+    itemView: MView,
+    item: JSONObject,
+    allowImagePreview: Boolean
+) {
     val context = LocalContext.current
     val app = (context.applicationContext as AppRatioApplication).app
     val resolvedItem = app?.viewBy(itemView) ?: itemView
     val resolvedLayout = resolvedItem as? Layout
     val resolvedChildren = resolvedLayout?.views?.map { app?.viewBy(it) ?: it }
 
-    if (
+    if (resolvedItem is ImageView) {
+        RenderImage(
+            view = resolvedItem,
+            data = item,
+            modifier = Modifier.fillMaxWidth(),
+            allowImagePreview = allowImagePreview,
+            edgeToEdge = true
+        )
+    } else if (
         resolvedLayout?.orientation == LayoutOrientation.vertical &&
         resolvedChildren?.firstOrNull() is ImageView
     ) {
@@ -486,16 +564,27 @@ private fun ListCardContent(itemView: MView, item: JSONObject) {
     ) {
         val image = resolvedChildren.first() as ImageView
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            RenderImage(
-                view = image,
-                data = item,
-                modifier = image.size?.width?.let { Modifier.width(it.dp) } ?: Modifier.width(112.dp),
-                allowImagePreview = false,
-                edgeToEdge = true
-            )
+            Box(
+                modifier = (image.size?.width?.let { Modifier.width(it.dp) } ?: Modifier.width(112.dp))
+                    .fillMaxHeight()
+            ) {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(image.size?.height?.dp ?: 220.dp)
+                )
+                RenderImage(
+                    view = image,
+                    data = item,
+                    modifier = Modifier.matchParentSize(),
+                    allowImagePreview = false,
+                    edgeToEdge = true,
+                    fillParentHeight = true
+                )
+            }
             Column(Modifier.weight(1f)) {
                 resolvedChildren.drop(1).forEach { child ->
                     when (child) {
