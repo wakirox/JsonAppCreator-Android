@@ -32,7 +32,8 @@ Install it on an Android device running Android 8.1 (API 27) or newer.
 2. Open JSON App Creator.
 3. Open the three-dot menu.
 4. Select **Load configuration from device** and choose the file.
-5. Use **View current configuration** to inspect the active JSON.
+5. Use **Edit configuration** to see or change the active JSON, or **New app** to write
+   one in the app's editor.
 
 The selected configuration is saved locally and restored the next time the app opens.
 Android can also offer JSON App Creator when opening an `application/json` file from
@@ -627,5 +628,5 @@ Common failures:
 - **Destination does not open:** the view ID is missing or does not match a reusable
   view definition.
 
-Use the app menu's **View current configuration** command to confirm which JSON is
-currently loaded.
+Use the app menu's **Edit configuration** command to confirm which JSON is currently
+loaded; its live check shows the same problems the app reports when loading.

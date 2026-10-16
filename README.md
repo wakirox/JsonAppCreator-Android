@@ -33,10 +33,14 @@ The app requires Android 8.1 (API 27) or newer.
 
 ## Try it
 
-1. Create a UTF-8 JSON file using the v3 format.
-2. Open JSON App Creator and open the three-dot menu.
-3. Select **Load configuration from device**.
-4. Choose the JSON file.
+The app opens on **Masterpieces**, an example gallery of public-domain paintings. From the
+three-dot menu:
+
+- **New app** starts a small app in the built-in editor; **Edit configuration** opens the
+  active one. The editor colours the JSON, suggests the properties and values the schema
+  allows where the cursor is, checks the file as you type (tap a problem to jump to it),
+  inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
+- **Load configuration from device** opens a UTF-8 JSON file in the v3 format.
 
 The app validates the complete file before saving or displaying it. Invalid files show
 path-based feedback such as `$.mainView.views[1].type`. The last valid configuration
@@ -47,7 +51,7 @@ loaded file contains one, the app asks for the value and encrypts it in private 
 storage, scoped to that exact JSON file. The key is never inserted into the saved JSON.
 
 Android can also offer JSON App Creator when another app opens an `application/json`
-file. Use **View current configuration** to inspect the active JSON.
+file. Use **Edit configuration** to see or change the active JSON.
 
 ## Minimal configuration
 
