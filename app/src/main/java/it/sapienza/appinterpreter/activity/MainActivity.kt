@@ -134,9 +134,9 @@ class MainActivity : ComponentActivity() {
                                 commitLoadedConfiguration(json)
                             }
                         },
-                        onDismiss = {
-                            if (pendingActiveConfiguration) finish() else clearPendingConfiguration()
-                        }
+                        // Cancelled: the app opens without its keys (what needs them can't load) and stays saved, with
+                        // the menu reachable to add them later or open another app.
+                        onDismiss = { clearPendingConfiguration() }
                     )
                 }
             }

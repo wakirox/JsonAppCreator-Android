@@ -286,8 +286,10 @@ Supported form elements:
 | `checkbox` | `mapping`, `title`, `description`, `value`, `mandatory` |
 
 `textType` is `plain` (default), `numeric`, `email`, or `password`. Dates shown through
-mapped form data use `dd/MM/yyyy`. `mandatory: true` blocks submission until a text,
-selector, or date value is set. A checkbox is always considered set.
+mapped form data use `dd/MM/yyyy`. `mandatory: true` blocks submission until a text
+(not just spaces), selector, or date value is set, or a checkbox is checked; the error
+names the missing fields. Without `mandatory`, a field is optional. Values filled in from
+the screen's data count as set and are submitted.
 
 ## Data binding
 

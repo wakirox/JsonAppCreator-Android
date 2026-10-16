@@ -6,10 +6,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.activity.MainActivity
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -74,6 +77,16 @@ class MissingApiKeyDialogTest {
         composeRule.onNodeWithText("Configuration API keys").assertIsDisplayed()
         composeRule.onNodeWithText("TMDB_API_KEY").assertIsDisplayed()
         composeRule.onNodeWithText("Load configuration").assertIsNotEnabled()
+    }
+
+    @Test
+    fun cancellingKeepsTheAppAndShowsIt() {
+        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.waitForIdle()
+
+        assertEquals(TMDB_CONFIGURATION_ID, domainPreferences.getString(CONFIGURATION_ID_KEY, null))
+        assertTrue(domainPreferences.getString(JSON_KEY, null).orEmpty().contains("THE MOVIE DB"))
+        composeRule.onNodeWithText("THE MOVIE DB").assertExists()
     }
 
     private companion object {

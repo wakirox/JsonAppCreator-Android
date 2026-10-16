@@ -47,7 +47,15 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
+import com.fasterxml.jackson.core.util.Separators
+import com.fasterxml.jackson.databind.ObjectMapper
 
 private val LightColorScheme = lightColorScheme()
 private val DarkColorScheme = darkColorScheme()
@@ -83,25 +91,73 @@ fun AppTheme(
 }
 
 @Composable
-fun PlainTextScreen(text: String) {
-    SelectionContainer {
+fun PlainTextScreen(text: String, onBack: () -> Unit) {
+    SecondaryScreen(title = "Changelog", onBack = onBack) {
+        Text(text = text, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+/** The active configuration as its author wrote it: pretty-printed, monospaced and coloured, without escaped slashes. */
+@Composable
+fun JsonScreen(json: String, onBack: () -> Unit) {
+    val keyColor = MaterialTheme.colorScheme.primary
+    val stringColor = MaterialTheme.colorScheme.tertiary
+    val punctuationColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val pretty = remember(json) { prettyJson(json) }
+    val highlighted = remember(pretty, keyColor, stringColor, punctuationColor) {
+        highlightJson(pretty, keyColor, stringColor, punctuationColor)
+    }
+    SecondaryScreen(title = "Configuration", onBack = onBack) {
         Text(
-            text = text,
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(10.dp)
+            text = highlighted,
+            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, lineHeight = 18.sp)
         )
     }
 }
 
 @Composable
-fun JsonScreen(json: JSONObject) {
-    SelectionContainer {
-        Text(
-            text = json.toString(2),
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SecondaryScreen(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        SelectionContainer(
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp)
+        ) { content() }
     }
 }
+
+private fun prettyJson(json: String): String = runCatching {
+    val printer = DefaultPrettyPrinter().withSeparators(
+        Separators.createDefaultInstance().withObjectFieldValueSpacing(Separators.Spacing.AFTER)
+    )
+    ObjectMapper().writer(printer).writeValueAsString(ObjectMapper().readTree(json))
+}.getOrDefault(json)
+
+private val JSON_TOKEN = Regex(""""(?:[^"\\]|\\.)*"(\s*:)?|[{}\[\],]""")
+
+private fun highlightJson(json: String, key: Color, string: Color, punctuation: Color): AnnotatedString =
+    buildAnnotatedString {
+        append(json)
+        JSON_TOKEN.findAll(json).forEach { match ->
+            val color = when {
+                match.value.startsWith("\"") && match.groupValues[1].isNotEmpty() -> key
+                match.value.startsWith("\"") -> string
+                else -> punctuation
+            }
+            val end = if (match.groupValues[1].isNotEmpty()) match.range.last + 1 - match.groupValues[1].length else match.range.last + 1
+            addStyle(SpanStyle(color = color), match.range.first, end)
+        }
+    }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)

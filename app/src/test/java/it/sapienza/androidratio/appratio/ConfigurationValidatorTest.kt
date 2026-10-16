@@ -107,6 +107,46 @@ class ConfigurationValidatorTest {
     }
 
     @Test
+    fun aMistakeDeepInsideAViewIsReportedOnceWhereItIs() {
+        val result = validator.validate(
+            """
+            {
+              "schemaVersion": 3,
+              "name": "One typo",
+              "version": "1.0",
+              "mainView": {
+                "type": "layout",
+                "views": [
+                  { "type": "text", "label": "Title" },
+                  {
+                    "type": "list",
+                    "mapping": "items",
+                    "itemView": {
+                      "type": "layout",
+                      "views": [
+                        { "type": "picture", "url": "https://example.com/a.png" },
+                        { "type": "text", "label": "${'$'}{name}", "action": { "event": { "type": "alert", "colour": "red" } } }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """.trimIndent()
+        )
+
+        assertEquals(
+            formatIssues(result.issues),
+            listOf(
+                "$.mainView.views[1].itemView.views[0].type",
+                "$.mainView.views[1].itemView.views[1].action",
+                "$.mainView.views[1].itemView.views[1].action.event"
+            ),
+            result.issues.map { it.path }
+        )
+    }
+
+    @Test
     fun combinedParserReturnsAllStructuralIssuesForDisplay() {
         val error = assertThrows(ConfigurationSchemaException::class.java) {
             configurationParser.parse(

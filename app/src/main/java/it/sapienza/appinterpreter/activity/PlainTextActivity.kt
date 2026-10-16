@@ -19,10 +19,9 @@ class PlainTextActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTheme(R.style.AppTheme)
-        title = "Changelog"
+        setTheme(R.style.AppTheme_Compose)
         setContent {
-            AppTheme { PlainTextScreen(intent.getStringExtra("value").orEmpty()) }
+            AppTheme { PlainTextScreen(text = intent.getStringExtra("value").orEmpty(), onBack = ::finish) }
         }
 
     }
