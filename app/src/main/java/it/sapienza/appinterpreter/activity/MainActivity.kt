@@ -16,11 +16,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
@@ -38,6 +35,8 @@ import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import org.json.JSONObject
 
 
@@ -66,9 +65,7 @@ fun spawnNew(context: Context) {
 class MainActivity : ComponentActivity() {
 
     private val alerts: AlertsViewModel by viewModels()
-    private val screen: ScreenViewModel by viewModels {
-        viewModelFactory { initializer { ScreenViewModel(application, createSavedStateHandle(), alerts) } }
-    }
+    private val screen: ScreenViewModel by viewModel { parametersOf(alerts) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_Compose)
