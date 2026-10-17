@@ -117,7 +117,7 @@ class HomeActivity : AppCompatActivity() {
                                 ActionMenuItem(stringResource(R.string.menu_ask_ai), close, { askingAi = true }, R.drawable.baseline_track_changes_24)
                                 ActionMenuItem(stringResource(R.string.menu_paste_ai), close, ::pasteFromAi, R.drawable.baseline_merge_type_24)
                                 HorizontalDivider()
-                                ActionMenuItem(stringResource(R.string.home_open_file), close, { openFile.launch("application/json") }, R.drawable.baseline_account_tree_24)
+                                ActionMenuItem(stringResource(R.string.home_open_file), close, { openFile.launch("application/json") }, R.drawable.baseline_folder_open_24)
                                 ActionMenuItem(stringResource(R.string.home_menu_about), close, { aboutOpen = true }, R.drawable.baseline_perm_identity_24)
                             }
                         }
@@ -276,7 +276,7 @@ class HomeActivity : AppCompatActivity() {
 private fun HowItWorks(expanded: Boolean, onToggle: () -> Unit) {
     Card(
         Modifier.fillMaxWidth().padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Row(
             Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),

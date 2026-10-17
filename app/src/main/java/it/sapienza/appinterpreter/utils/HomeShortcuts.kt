@@ -59,8 +59,10 @@ object HomeShortcuts {
         return bitmap
     }
 
+    // Twelve clearly different hues, dark enough for a white letter. With twelve, the five built-in examples all differ.
     private val PALETTE = intArrayOf(
-        0xFFE5604F.toInt(), 0xFF3F6E8C.toInt(), 0xFF2E7D32.toInt(), 0xFF8E24AA.toInt(),
-        0xFFC25E00.toInt(), 0xFF00838F.toInt(), 0xFF5D4037.toInt(), 0xFF3949AB.toInt()
+        0xFF1565C0.toInt(), 0xFFC62828.toInt(), 0xFF2E7D32.toInt(), 0xFFAD1457.toInt(),
+        0xFF5D4037.toInt(), 0xFF00695C.toInt(), 0xFFE65100.toInt(), 0xFF455A64.toInt(),
+        0xFF558B2F.toInt(), 0xFF6A1B9A.toInt(), 0xFF00838F.toInt(), 0xFF283593.toInt()
     )
 }
