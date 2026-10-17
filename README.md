@@ -199,7 +199,7 @@ app/src/main/java/.../runtime/     Per-screen runtime state
 app/src/main/java/.../ui/          Jetpack Compose renderer
 app/src/main/res/raw/              Bundled sample configurations
 app/src/test/                      Parser, validator, state, and screenshot tests
-samples/                           Shareable APK and full configuration example
+samples/                           Full configuration example
 ```
 
 The app is written in Kotlin and rendered with Jetpack Compose. JSON is parsed with

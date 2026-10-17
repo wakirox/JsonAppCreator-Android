@@ -25,21 +25,21 @@ LLM. This README documents the currently supported **v3 configuration format**.
 
 ## Try it
 
-A prebuilt APK is available at [`samples/AppInterpreter.apk`](../samples/AppInterpreter.apk).
-Install it on an Android device running Android 8.1 (API 27) or newer.
+Install [JSON App Creator from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
+It needs Android 8.1 (API 27) or newer.
 
-1. Create a UTF-8 JSON file using the format below.
-2. Open JSON App Creator.
-3. On the home page, open the three-dot menu, tap **Open a file…** and choose the file.
-4. Use **Edit this app** to see or change the active JSON, or **New app** to write
-   one in the app's editor.
+1. Write a UTF-8 JSON file using the format below.
+2. Open JSON App Creator, open the three-dot menu on its home page, tap **Open a file…**
+   and choose the file. Android can also offer JSON App Creator when you open an
+   `application/json` file from another app.
+3. Inside the app, its three-dot menu has **Edit this app** to see or change the JSON.
+   **New app** on the home page starts one from scratch in the built-in editor.
 
-The selected configuration is saved locally and restored the next time the app opens.
-Android can also offer JSON App Creator when opening an `application/json` file from
-another app.
+Every app you open or edit is kept under **Your apps** on the home page.
 
-The menu includes plain, form, TMDb, and Pokédex sample configurations. Source copies
-are under [`app/src/main/res/raw`](../app/src/main/res/raw); the most complete example is
+The home page also lists the bundled examples: Masterpieces, Hello, Summer Run, Kanto
+Pokédex, and The Movie DB. Their source is under
+[`app/src/main/res/raw`](../app/src/main/res/raw); the most complete one is
 [`samples/v3_the_movie_db.json`](../samples/v3_the_movie_db.json).
 
 ## Minimal configuration
