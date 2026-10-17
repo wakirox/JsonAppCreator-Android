@@ -34,8 +34,8 @@ shoot() {
     --virtual-time-budget=4000 --window-size="$2,$3" --screenshot="$4" "file://$tools/$1" >/dev/null 2>&1
 }
 
-shots=(home ai gallery detail form alert editor)
-raws=(home ai gallery detail form alert editor)
+shots=(home ai gallery detail form shortcut editor)
+raws=(home ai gallery detail form shortcut editor)
 dir="$play/en-US/graphics"
 rm -f "$dir"/phone-screenshots/*.png  # no stale shots when the list gets shorter
 for i in "${!shots[@]}"; do

@@ -77,11 +77,18 @@ class StoreScreenshots {
         settle(800)
         shoot("form")
 
-        device.findObject(By.text("Sign me up")).click()
-        waitFor("OK")
-        settle(800)
-        shoot("alert")
-        device.findObject(By.text("OK")).click()
+        // Both saved apps on the phone's home screen, each through the launcher's Add to home screen sheet.
+        start(HomeActivity::class.java)
+        waitFor("Your apps")
+        repeat(2) { index ->
+            device.findObjects(By.desc("Add to home screen"))[index].click()
+            waitFor("Add to home screen", exact = true)
+            device.findObject(By.text("Add to home screen")).click()
+            device.wait(Until.gone(By.text("Add to home screen")), 5_000)
+        }
+        device.pressHome()
+        settle(2000)
+        shoot("shortcut", clearStatusBar = false)
 
         EditorActivity.edit(context.applicationContext.let { ContextWrapperWithNewTask(it) })
         waitFor("Edit this app")
@@ -97,8 +104,8 @@ class StoreScreenshots {
     }
 
     /** Waits for [text] anywhere on screen; a failure leaves the screen in store/failed.png. */
-    private fun waitFor(text: String) {
-        if (!device.wait(Until.hasObject(By.textContains(text)), 15_000)) {
+    private fun waitFor(text: String, exact: Boolean = false) {
+        if (!device.wait(Until.hasObject(if (exact) By.text(text) else By.textContains(text)), 15_000)) {
             shoot("failed")
             error("\"$text\" didn't appear")
         }
@@ -115,13 +122,13 @@ class StoreScreenshots {
     }
 
     /**
-     * Saves the screen with the status bar painted over in the colour just below it: some emulator renderers draw
-     * the status bar clipped, and the store shots don't need its icons.
+     * Saves the screen, with the status bar painted over in the colour just below it when [clearStatusBar]: some
+     * emulator renderers draw the status bar clipped, and the app's shots don't need its icons.
      */
-    private fun shoot(name: String) {
+    private fun shoot(name: String, clearStatusBar: Boolean = true) {
         val screen = instrumentation.uiAutomation.takeScreenshot().copy(Bitmap.Config.ARGB_8888, true)
         val id = context.resources.getIdentifier("status_bar_height", "dimen", "android")
-        val bar = if (id != 0) context.resources.getDimensionPixelSize(id) else 0
+        val bar = if (id != 0 && clearStatusBar) context.resources.getDimensionPixelSize(id) else 0
         val below = IntArray(screen.width).also { screen.getPixels(it, 0, screen.width, 0, bar, screen.width, 1) }
         for (y in 0 until bar) screen.setPixels(below, 0, screen.width, 0, y, screen.width, 1)
         File(out, "$name.png").outputStream().use { screen.compress(Bitmap.CompressFormat.PNG, 100, it) }

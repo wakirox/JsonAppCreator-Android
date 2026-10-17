@@ -7,7 +7,7 @@ const CAPTIONS = {
     gallery: { kicker: "Lists and pictures", headline: "Galleries, catalogues and more from the web" },
     detail: { kicker: "Every item", headline: "Tap one to see it up close" },
     form: { kicker: "Forms", headline: "Sign-ups that check every field" },
-    alert: { kicker: "Buttons", headline: "Answers with what people typed" },
+    shortcut: { kicker: "On your home screen", headline: "Each app gets its own icon" },
     editor: { kicker: "For the curious", headline: "Every app is one file you can change" },
   },
 };

@@ -12,9 +12,9 @@
   html, body { margin: 0; overflow: hidden; }
   body { width: 1080px; height: 1920px; background: var(--bg); color: var(--ink); font-family: GSF, sans-serif;
     position: relative; }
-  /* The icon's slash, large and faint, behind everything. */
-  body::before { content: ""; position: absolute; width: 260px; height: 2300px; right: 120px; top: -200px;
-    background: var(--slate); opacity: .16; transform: rotate(14deg); }
+  /* The icon's tiles, large and faint, behind everything. */
+  body::before { content: ""; position: absolute; width: 1210px; height: 1000px; left: 330px; top: 760px;
+    background: url("tiles.svg") center / contain no-repeat; }
   .caption { position: absolute; left: 84px; right: 84px; top: 96px; }
   .kicker { font-size: 42px; color: var(--coral); margin-bottom: 18px;
     font-variation-settings: "wght" 600, "ROND" 100; }
@@ -53,7 +53,8 @@
   const border = parseFloat(getComputedStyle(device).borderTopWidth);
 
   document.fonts.ready.then(() => {
-    let top = document.getElementById("caption").getBoundingClientRect().bottom + 64;
+    // The phone starts at the same height whether the caption takes one line or two, so every shot is the same size.
+    let top = Math.max(document.getElementById("caption").getBoundingClientRect().bottom + 64, 412);
     // The prompt bubble first, under the caption.
     if (c.prompt) {
       const bubble = document.createElement("div");

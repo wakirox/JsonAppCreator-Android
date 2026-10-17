@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="31 35 46 38">
+  <!-- The icon's three tiles, faint, as a backdrop for the store graphics. -->
+  <g opacity=".13">
+    <rect x="31" y="35" width="26" height="38" rx="8" fill="#ef6b57"/>
+    <rect x="61" y="35" width="16" height="17" rx="5" fill="#7fa3b0"/>
+    <rect x="61" y="56" width="16" height="17" rx="5" fill="#f4b740"/>
+  </g>
+</svg>

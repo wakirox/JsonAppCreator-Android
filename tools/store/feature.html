@@ -6,8 +6,9 @@
   html, body { margin: 0; overflow: hidden; }
   body { width: 1024px; height: 500px; background: #121417; color: #f4f1ee; font-family: GSF, sans-serif;
     position: relative; }
-  body::before { content: ""; position: absolute; width: 150px; height: 900px; right: 250px; top: -200px;
-    background: #4d6b75; opacity: .18; transform: rotate(14deg); }
+  /* The icon's tiles, large and faint, off the right edge. */
+  body::before { content: ""; position: absolute; width: 605px; height: 500px; right: -170px; top: 120px;
+    background: url("tiles.svg") center / contain no-repeat; }
   .icon { position: absolute; left: 64px; top: 150px; width: 200px; height: 200px; border-radius: 44px;
     background: url("../../app/src/main/play/listings/en-US/graphics/icon/icon.png") center / cover; }
   .text { position: absolute; left: 310px; right: 56px; top: 50%; transform: translateY(-50%); }
