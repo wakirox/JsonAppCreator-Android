@@ -6,10 +6,11 @@
   html, body { margin: 0; overflow: hidden; }
   body { width: 1024px; height: 500px; background: #121417; color: #f4f1ee; font-family: GSF, sans-serif;
     position: relative; }
-  body::before { content: ""; position: absolute; width: 150px; height: 900px; right: 250px; top: -200px;
-    background: #4d6b75; opacity: .18; transform: rotate(14deg); }
+  /* The icon's tiles, large and faint, in the top right corner. */
+  body::before { content: ""; position: absolute; width: 400px; height: 330px; right: -50px; top: -40px;
+    background: url("tiles.svg") center / contain no-repeat; }
   .icon { position: absolute; left: 64px; top: 150px; width: 200px; height: 200px; border-radius: 44px;
-    background: #000 url("../../app/src/main/app_icon2-playstore.png") center / cover; }
+    background: url("../../app/src/main/play/listings/en-US/graphics/icon/icon.png") center / cover; }
   .text { position: absolute; left: 310px; right: 56px; top: 50%; transform: translateY(-50%); }
   .title { font-size: 76px; line-height: 1; font-variation-settings: "wght" 850, "wdth" 85, "opsz" 144; }
   .tag { margin-top: 22px; font-size: 33px; line-height: 1.2; color: #ef6b57;

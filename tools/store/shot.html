@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
   One Play Store phone screenshot (1080×1920): a caption on top and the app screen in a phone frame below it.
-  Shots with `code` in captions.js show a JSON excerpt beside the phone; `prompt` adds a chat bubble above the JSON.
+  Shots with `code` in captions.js show a JSON excerpt beside the phone; `prompt` adds a chat bubble under the caption.
   Query: ?shot=gallery&src=raw/gallery.png. Rendered by render.sh with headless Chrome.
 -->
 <html><head><meta charset="utf-8">
@@ -12,9 +12,9 @@
   html, body { margin: 0; overflow: hidden; }
   body { width: 1080px; height: 1920px; background: var(--bg); color: var(--ink); font-family: GSF, sans-serif;
     position: relative; }
-  /* The icon's slash, large and faint, behind everything. */
-  body::before { content: ""; position: absolute; width: 260px; height: 2300px; right: 120px; top: -200px;
-    background: var(--slate); opacity: .16; transform: rotate(14deg); }
+  /* The icon's tiles, large and faint, in the top right corner behind the caption. */
+  body::before { content: ""; position: absolute; width: 520px; height: 430px; right: -60px; top: -70px;
+    background: url("tiles.svg") center / contain no-repeat; }
   .caption { position: absolute; left: 84px; right: 84px; top: 96px; }
   .kicker { font-size: 42px; color: var(--coral); margin-bottom: 18px;
     font-variation-settings: "wght" 600, "ROND" 100; }
@@ -35,7 +35,7 @@
 <div class="device" id="device"><img id="screen"></div>
 <script>
   const q = new URLSearchParams(location.search);
-  const shot = q.get("shot") || "gallery";
+  const shot = q.get("shot") || "home";
   const c = CAPTIONS.en[shot];
   document.getElementById("kicker").textContent = c.kicker;
   document.getElementById("headline").textContent = c.headline;
@@ -53,16 +53,9 @@
   const border = parseFloat(getComputedStyle(device).borderTopWidth);
 
   document.fonts.ready.then(() => {
-    let top = document.getElementById("caption").getBoundingClientRect().bottom + 64;
-    if (!c.code) {
-      // The whole phone, centred, from under the caption to the bottom margin.
-      const inner = 1920 - 56 - top - 2 * border, width = inner / ratio;
-      Object.assign(device.style, { width: width + "px", height: inner + "px", top: top + "px",
-        left: (1080 - width) / 2 - border + "px" });
-      return;
-    }
-    // The prompt bubble first, under the caption; then the phone on the right, running off the bottom edge, and the
-    // JSON card over its lower part on the left, so the top of the app stays visible.
+    // The phone starts at the same height whether the caption takes one line or two, so every shot is the same size.
+    let top = Math.max(document.getElementById("caption").getBoundingClientRect().bottom + 64, 412);
+    // The prompt bubble first, under the caption.
     if (c.prompt) {
       const bubble = document.createElement("div");
       bubble.className = "bubble";
@@ -71,6 +64,15 @@
       document.body.appendChild(bubble);
       top = bubble.getBoundingClientRect().bottom + 44;
     }
+    if (!c.code) {
+      // The whole phone, centred, from under the caption (and bubble) to the bottom margin.
+      const inner = 1920 - 56 - top - 2 * border, width = inner / ratio;
+      Object.assign(device.style, { width: width + "px", height: inner + "px", top: top + "px",
+        left: (1080 - width) / 2 - border + "px" });
+      return;
+    }
+    // The phone on the right, running off the bottom edge, and the JSON card over its lower part on the left, so the
+    // top of the app stays visible.
     const width = 620, inner = width * ratio;
     Object.assign(device.style, { width: width + "px", height: inner + "px", top: top + "px",
       right: "48px" });
