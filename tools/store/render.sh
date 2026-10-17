@@ -35,7 +35,7 @@ shoot() {
 }
 
 shots=(home ai gallery detail form alert editor)
-raws=(home form gallery detail form alert editor)
+raws=(home ai gallery detail form alert editor)
 dir="$play/en-US/graphics"
 rm -f "$dir"/phone-screenshots/*.png  # no stale shots when the list gets shorter
 for i in "${!shots[@]}"; do

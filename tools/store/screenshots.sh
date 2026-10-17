@@ -43,7 +43,7 @@ result=$("$adb" -s "$serial" shell am instrument -w -e store true \
 grep -q "OK (1 test)" <<< "$result" || { echo "$result" >&2; exit 1; }
 
 mkdir -p "$raw"
-for shot in home gallery detail form alert editor; do
+for shot in home ai gallery detail form alert editor; do
   "$adb" -s "$serial" pull "/sdcard/Android/data/$package/files/store/$shot.png" "$raw/$shot.png" > /dev/null 2>&1
 done
 echo "Captured $raw"

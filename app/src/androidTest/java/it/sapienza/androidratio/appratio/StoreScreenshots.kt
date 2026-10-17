@@ -47,6 +47,12 @@ class StoreScreenshots {
         waitFor("Your apps")
         shoot("home")
 
+        device.findObject(By.text("Ask your AI app")).click()
+        waitFor("Describe your app")
+        device.findObject(By.clazz("android.widget.EditText")).text = "A sign-up form for a 10 km run in Rome"
+        hideKeyboard()
+        shoot("ai")
+
         DomainController.setJsonFile(R.raw.v3_masterpieces, context)
         start(MainActivity::class.java)
         waitFor("The Great Wave off Kanagawa")

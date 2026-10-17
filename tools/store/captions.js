@@ -3,8 +3,7 @@
 const CAPTIONS = {
   en: {
     home: { kicker: "Appkin", headline: "Your own little apps, all in one place" },
-    ai: { kicker: "With your AI app", headline: "Describe it there, open it here",
-      prompt: "Make a sign-up form for a 10 km run in Rome" },
+    ai: { kicker: "With your AI app", headline: "Describe it here, your AI app makes it" },
     gallery: { kicker: "Lists and pictures", headline: "Galleries, catalogues and more from the web" },
     detail: { kicker: "Every item", headline: "Tap one to see it up close" },
     form: { kicker: "Forms", headline: "Sign-ups that check every field" },
