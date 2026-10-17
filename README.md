@@ -33,16 +33,18 @@ The app requires Android 8.1 (API 27) or newer.
 
 ## Try it
 
-The app opens on **Masterpieces**, an example gallery of public-domain paintings. From the
-three-dot menu:
+The app opens on its home page: a short **How it works**, **Your apps** (every app you
+have opened or made, most recently used first: open one, add it to the home screen, or
+delete it), the bundled **Examples** (start with **Masterpieces**, a gallery of
+public-domain paintings), **New app**, **Ask your AI app** and **Open a file…** for a
+UTF-8 JSON file in the v3 format. A home-screen shortcut skips the home page and opens
+its app directly. Inside an app, from the three-dot menu:
 
 - **Edit this app** opens the current app in the built-in editor; **New app** starts a
   small one. The editor colours the JSON, suggests the properties and values the schema
   allows where the cursor is, checks the file as you type (tap a problem to jump to it),
   inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
-- **My apps** lists every app you have opened or made, most recently used first (open
-  one, add it to the home screen, or delete it), the bundled **Examples**, and **Open a
-  file…** for a UTF-8 JSON file in the v3 format. **Add to home screen** pins the current
+- **Home** goes back to the home page. **Add to home screen** pins the current
   app as a launcher shortcut with its own icon, so several apps can sit on your home
   screen. **About this app** shows its version, author and what's new.
 - **Make an app with your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).

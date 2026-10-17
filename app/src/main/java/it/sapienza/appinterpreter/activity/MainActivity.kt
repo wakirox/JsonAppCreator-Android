@@ -46,10 +46,11 @@ private fun screenIntent(context: Context, viewId: String, payload: JSONObject?)
         payload?.let { putExtra(EXTRA_SCREEN_PAYLOAD, it.toString()) }
     }
 
+/** Opens the current app in a fresh task on top of the home page, so Back leads there. */
 fun spawnNew(context: Context) {
-    val intent = Intent(context, MainActivity::class.java)
-    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    context.startActivity(intent)
+    val home = Intent(context, HomeActivity::class.java)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    context.startActivities(arrayOf(home, Intent(context, MainActivity::class.java)))
 }
 
 class MainActivity : ComponentActivity() {
@@ -76,7 +77,7 @@ class MainActivity : ComponentActivity() {
         // Opened from a home-screen shortcut: that saved app becomes the current one.
         if (savedInstanceState == null) intent.getStringExtra(HomeShortcuts.EXTRA_APP_ID)?.let { id ->
             AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this, it.configurationId) }
-                ?: Toast.makeText(this, "That app was deleted", Toast.LENGTH_LONG).show()
+                ?: Toast.makeText(this, R.string.app_deleted, Toast.LENGTH_LONG).show()
         }
         val screen = initializeScreen(savedInstanceState) ?: return
         screenState = screen
@@ -99,10 +100,10 @@ class MainActivity : ComponentActivity() {
                         onPasteFromAi = {
                             val answer = AskAi.clipboardText(this)
                             if (answer == null) {
-                                Toast.makeText(this, "The clipboard is empty: copy the answer in your AI app first", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this, R.string.clipboard_empty, Toast.LENGTH_LONG).show()
                             } else EditorActivity.aiAnswer(this, answer)
                         },
-                        onMyApps = { startActivity(Intent(this, MyAppsActivity::class.java)) },
+                        onHome = { HomeActivity.open(this) },
                         onAddToHome = { addToHomeScreen() }
                     )
                 }
@@ -134,7 +135,7 @@ class MainActivity : ComponentActivity() {
                 if (isTaskRoot) {
                     AlertUtils.showAlert(
                         this@MainActivity,
-                        "Are you sure you want to close the app?",
+                        getString(R.string.confirm_close),
                         Runnable { finish() },
                         Runnable { }
                     )
@@ -158,7 +159,7 @@ class MainActivity : ComponentActivity() {
             appModel.viewBy(appModel.mainView) ?: appModel.mainView
         } else {
             appModel.viewBy(viewId) ?: run {
-                AlertUtils.showAlert(this, "View '$viewId' does not exist in this configuration")
+                AlertUtils.showAlert(this, getString(R.string.view_missing, viewId))
                 return null
             }
         }
@@ -167,7 +168,7 @@ class MainActivity : ComponentActivity() {
         val payload = try {
             payloadText?.let(::JSONObject)
         } catch (e: Exception) {
-            AlertUtils.showAlert(this, "Unable to restore screen data\n${e.message.orEmpty()}")
+            AlertUtils.showAlert(this, getString(R.string.screen_data_unrestorable, e.message.orEmpty()))
             return null
         }
         return ScreenRuntimeState.create(definition, payload, navigatedViewId = viewId)
@@ -178,8 +179,7 @@ class MainActivity : ComponentActivity() {
     } catch (e: Exception) {
         AlertUtils.showAlert(
             this,
-            """The saved configuration is invalid
-                |${e.message ?: "Unrecognized error"}""".trimMargin()
+            getString(R.string.configuration_invalid, e.message ?: getString(R.string.error_unrecognized))
         )
         null
     }
@@ -211,8 +211,8 @@ class MainActivity : ComponentActivity() {
     private fun addToHomeScreen() {
         val app = AppLibrary.save(this, DomainController.jsonFile(this), DomainController.configurationId(this))
         val message = when {
-            app == null -> "This app needs a name to be added to the home screen"
-            !HomeShortcuts.pin(this, app) -> "Your home screen app can't add shortcuts"
+            app == null -> R.string.shortcut_needs_name
+            !HomeShortcuts.pin(this, app) -> R.string.shortcuts_unsupported
             else -> null
         }
         message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
@@ -238,7 +238,7 @@ class MainActivity : ComponentActivity() {
     fun pushViewWithId(id: String, obj: JSONObject?) {
         val view = application.app()?.viewBy(id)
         if (view == null) {
-            AlertUtils.showAlert(this, "View '$id' does not exist in this configuration")
+            AlertUtils.showAlert(this, getString(R.string.view_missing, id))
             return
         }
         spawnInstance(this, view, obj ?: view.dataObj)
@@ -247,7 +247,7 @@ class MainActivity : ComponentActivity() {
     fun pushScreen(view: MView, obj: JSONObject?) {
         val definition = application.app()?.viewBy(view)
         if (definition == null) {
-            AlertUtils.showAlert(this, "View '${view.id.orEmpty()}' does not exist in this configuration")
+            AlertUtils.showAlert(this, getString(R.string.view_missing, view.id.orEmpty()))
             return
         }
         spawnInstance(this, definition, obj ?: definition.dataObj)

@@ -38,20 +38,24 @@ object HomeShortcuts {
     fun disable(context: Context, id: String) =
         ShortcutManagerCompat.disableShortcuts(context, listOf(id), "This app was deleted in JSON App Creator")
 
+    /** The colour of [name]'s icon; the home page's list uses it too, so an app looks the same in both places. */
+    fun colorOf(name: String): Int = PALETTE[Math.floorMod(name.hashCode(), PALETTE.size)]
+
+    fun letterOf(name: String): String = name.trim().firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?"
+
     /** An adaptive icon: the app's first letter on a colour chosen from its name. */
     private fun letterIcon(name: String): Bitmap {
         val size = 432 // 108 dp at 4x; the visible part is the middle 72 dp
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        canvas.drawColor(PALETTE[Math.floorMod(name.hashCode(), PALETTE.size)])
+        canvas.drawColor(colorOf(name))
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             textSize = size * 0.38f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        val letter = name.trim().firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?"
-        canvas.drawText(letter, size / 2f, size / 2f - (paint.descent() + paint.ascent()) / 2, paint)
+        canvas.drawText(letterOf(name),size / 2f, size / 2f - (paint.descent() + paint.ascent()) / 2, paint)
         return bitmap
     }
 

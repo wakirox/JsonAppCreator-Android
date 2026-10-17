@@ -15,7 +15,7 @@ MAKE IT WITH YOUR AI APP
 JSON App Creator has no AI inside. It hands complete instructions to the AI app you already use, such as ChatGPT, Gemini, Grok or Claude. Chat there, then bring the result back: open the file it makes, share or paste its answer, or share a link to the chat. The app opens it checked and ready to run, and can send any problems back to your AI app for a fix.
 
 YOUR APPS ON YOUR HOME SCREEN
-Keep every app you make in My apps, and add each one to the home screen with its own icon.
+Every app you make is kept on the home page, and each one can go on your phone's home screen with its own icon.
 
 READY-MADE EXAMPLES
 Start from a gallery of famous paintings, a race sign-up form, a Pokédex loaded from a public API or a movie catalogue, and change any of them in the editor.

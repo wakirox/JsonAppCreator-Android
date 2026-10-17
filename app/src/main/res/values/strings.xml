@@ -1,3 +1,73 @@
 <resources>
     <string name="app_name">JSON App Creator</string>
+
+    <!-- Home page -->
+    <string name="home_open_file">Open a file…</string>
+    <string name="home_new_app">New app</string>
+    <string name="home_ask_ai">Ask your AI app</string>
+    <string name="home_your_apps">Your apps</string>
+    <string name="home_your_apps_empty">The apps you open or make are kept here. Start with an example below.</string>
+    <string name="home_open_now">Open now · %1$s</string>
+    <string name="home_opened">Opened %1$s</string>
+    <string name="home_add_to_home_screen">Add to home screen</string>
+    <string name="home_delete">Delete</string>
+    <string name="home_delete_title">Delete %1$s?</string>
+    <string name="home_delete_text">It\'s removed from Your apps, and its home-screen shortcut stops working.</string>
+    <string name="home_cancel">Cancel</string>
+    <string name="home_examples">Examples</string>
+    <string name="home_examples_note">Change an example with Edit this app in its ⋮ menu, and your version is kept under Your apps.</string>
+
+    <!-- Home page: how it works -->
+    <string name="how_title">How it works</string>
+    <string name="how_show">Show</string>
+    <string name="how_hide">Hide</string>
+    <string name="how_step_file_title">Every app is one file</string>
+    <string name="how_step_file_text">A JSON file is plain text that describes an app: its screens, the words and pictures on them, lists, forms and buttons, and what happens when you tap something.</string>
+    <string name="how_step_run_title">JSON App Creator brings it to life</string>
+    <string name="how_step_run_text">Open a file and it runs straight away as a real app on your phone. Nothing to install, build or sign up for.</string>
+    <string name="how_step_get_title">Get apps your way</string>
+    <string name="how_step_get_text">Try an example below, open a file someone sent you, write one in the built-in editor, or ask the AI app you already use (ChatGPT, Gemini, Claude…) to make one for you.</string>
+    <string name="how_step_keep_title">Keep the ones you like</string>
+    <string name="how_step_keep_text">Every app you open is kept under Your apps. Put any of them on your phone\'s home screen with its own icon: tapping it opens that app directly.</string>
+    <string name="how_menu_note">Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, put it on your home screen, or come back here.</string>
+
+    <!-- Bundled examples -->
+    <string name="example_masterpieces">Masterpieces</string>
+    <string name="example_masterpieces_about">A gallery of famous paintings with a screen for each</string>
+    <string name="example_hello">Hello</string>
+    <string name="example_hello_about">The smallest app: one screen of text</string>
+    <string name="example_summer_run">Summer Run</string>
+    <string name="example_summer_run_about">A race sign-up form with required fields</string>
+    <string name="example_form">Form</string>
+    <string name="example_form_about">Every kind of form field</string>
+    <string name="example_pokedex">Kanto Pokédex</string>
+    <string name="example_pokedex_about">A list loaded from the web, with details</string>
+    <string name="example_movie_db">The Movie DB</string>
+    <string name="example_movie_db_about">Movies from an online API (needs your own API key)</string>
+
+    <!-- An app's menu and About dialog -->
+    <string name="menu_open">Open application menu</string>
+    <string name="menu_edit_app">Edit this app</string>
+    <string name="menu_new_app">New app</string>
+    <string name="menu_ask_ai">Make an app with your AI app…</string>
+    <string name="menu_paste_ai">Paste answer from your AI app</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_add_to_home_screen">Add to home screen</string>
+    <string name="menu_about">About this app</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_author">By %1$s</string>
+    <string name="about_whats_new">What\'s new</string>
+    <string name="about_made_with">Made with JSON App Creator.</string>
+    <string name="about_ok">OK</string>
+
+    <!-- Messages while running an app -->
+    <string name="app_deleted">That app was deleted</string>
+    <string name="clipboard_empty">The clipboard is empty: copy the answer in your AI app first</string>
+    <string name="confirm_close">Are you sure you want to close the app?</string>
+    <string name="view_missing">View \'%1$s\' does not exist in this configuration</string>
+    <string name="screen_data_unrestorable">Unable to restore screen data\n%1$s</string>
+    <string name="configuration_invalid">The saved configuration is invalid\n%1$s</string>
+    <string name="error_unrecognized">Unrecognized error</string>
+    <string name="shortcut_needs_name">This app needs a name to be added to the home screen</string>
+    <string name="shortcuts_unsupported">Your home screen app can\'t add shortcuts</string>
 </resources>
