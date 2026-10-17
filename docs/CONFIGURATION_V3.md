@@ -30,9 +30,8 @@ Install it on an Android device running Android 8.1 (API 27) or newer.
 
 1. Create a UTF-8 JSON file using the format below.
 2. Open JSON App Creator.
-3. Open the three-dot menu.
-4. Select **My apps**, then **Open a file…**, and choose the file.
-5. Use **Edit this app** to see or change the active JSON, or **New app** to write
+3. On the home page, open the three-dot menu, tap **Open a file…** and choose the file.
+4. Use **Edit this app** to see or change the active JSON, or **New app** to write
    one in the app's editor.
 
 The selected configuration is saved locally and restored the next time the app opens.

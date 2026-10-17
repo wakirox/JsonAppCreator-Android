@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import it.sapienza.androidratio.appratio.R
@@ -46,7 +47,7 @@ fun MainScreen(
     onNewApp: () -> Unit,
     onAskAi: () -> Unit,
     onPasteFromAi: () -> Unit,
-    onMyApps: () -> Unit,
+    onHome: () -> Unit,
     onAddToHome: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -66,7 +67,7 @@ fun MainScreen(
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             painter = painterResource(R.drawable.baseline_more_vert_24),
-                            contentDescription = "Open application menu"
+                            contentDescription = stringResource(R.string.menu_open)
                         )
                     }
                     DropdownMenu(
@@ -74,45 +75,45 @@ fun MainScreen(
                         onDismissRequest = { menuExpanded = false }
                     ) {
                         ActionMenuItem(
-                            text = "Edit this app",
+                            text = stringResource(R.string.menu_edit_app),
                             iconResource = R.drawable.baseline_view_list_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onEditApp
                         )
                         ActionMenuItem(
-                            text = "New app",
+                            text = stringResource(R.string.menu_new_app),
                             iconResource = R.drawable.baseline_insert_drive_file_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onNewApp
                         )
                         HorizontalDivider()
                         ActionMenuItem(
-                            text = "Make an app with your AI app…",
+                            text = stringResource(R.string.menu_ask_ai),
                             iconResource = R.drawable.baseline_track_changes_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAskAi
                         )
                         ActionMenuItem(
-                            text = "Paste answer from your AI app",
+                            text = stringResource(R.string.menu_paste_ai),
                             iconResource = R.drawable.baseline_merge_type_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onPasteFromAi
                         )
                         HorizontalDivider()
                         ActionMenuItem(
-                            text = "My apps",
+                            text = stringResource(R.string.menu_home),
                             iconResource = R.drawable.baseline_account_tree_24,
                             closeMenu = { menuExpanded = false },
-                            onClick = onMyApps
+                            onClick = onHome
                         )
                         ActionMenuItem(
-                            text = "Add to home screen",
+                            text = stringResource(R.string.menu_add_to_home_screen),
                             iconResource = R.drawable.baseline_add_photo_alternate_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAddToHome
                         )
                         ActionMenuItem(
-                            text = "About this app",
+                            text = stringResource(R.string.menu_about),
                             iconResource = R.drawable.baseline_perm_identity_24,
                             closeMenu = { menuExpanded = false },
                             onClick = { aboutOpen = true }
@@ -140,26 +141,27 @@ fun MainScreen(
                     Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Version $version", style = MaterialTheme.typography.bodyMedium)
-                    author?.let { Text("By $it", style = MaterialTheme.typography.bodyMedium) }
+                    Text(stringResource(R.string.about_version, version), style = MaterialTheme.typography.bodyMedium)
+                    author?.let { Text(stringResource(R.string.about_author, it), style = MaterialTheme.typography.bodyMedium) }
                     changelog?.let {
-                        Text("What's new", style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.about_whats_new), style = MaterialTheme.typography.titleSmall)
                         Text(it, style = MaterialTheme.typography.bodyMedium)
                     }
                     Text(
-                        "Made with JSON App Creator.",
+                        stringResource(R.string.about_made_with),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },
-            confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text("OK") } }
+            confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } }
         )
     }
 }
 
+/** A ⋮ menu entry that closes the menu, then acts. The home page's menu uses it too. */
 @Composable
-private fun ActionMenuItem(
+fun ActionMenuItem(
     text: String,
     closeMenu: () -> Unit,
     onClick: () -> Unit,

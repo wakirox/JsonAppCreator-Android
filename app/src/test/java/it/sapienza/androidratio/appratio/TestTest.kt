@@ -52,7 +52,7 @@ class TestTest() {
         listOf(
             "v3_masterpieces.json",
             "v3_app_sample.json",
-            "v3_app_form.json",
+            "v3_race_signup.json",
             "v3_the_movie_db.json",
             "v3_pokedex.json"
         ).forEach { name ->
