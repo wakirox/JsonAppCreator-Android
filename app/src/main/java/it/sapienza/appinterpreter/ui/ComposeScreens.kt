@@ -44,16 +44,12 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * Material 3 Expressive: the wallpaper's colours where the phone offers them, and springy motion. [surface] false
- * leaves out the full-screen background, for content drawn over a screen, such as a dialog.
- */
+/** Material 3 Expressive: the wallpaper's colours where the phone offers them, and springy motion. */
 @Composable
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    surface: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -64,7 +60,9 @@ fun AppTheme(
     }
     MaterialExpressiveTheme(colorScheme = colorScheme, motionScheme = MotionScheme.expressive()) {
         // Edge to edge: the surface reaches behind the system bars, and each screen keeps its content clear of them.
-        if (surface) Surface(modifier = Modifier.fillMaxSize()) { content() } else content()
+        Surface(modifier = Modifier.fillMaxSize()) {
+            content()
+        }
     }
 }
 

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +15,9 @@ import androidx.compose.runtime.setValue
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
+import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
+import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.extensions.app
 import it.sapienza.appinterpreter.extensions.setApp
 import it.sapienza.appinterpreter.model.view_model.helper.MView
@@ -63,6 +66,7 @@ class MainActivity : ComponentActivity() {
     private var pendingApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var savedApiKeyNames by mutableStateOf<Set<String>>(emptySet())
     private var askingAi by mutableStateOf(false)
+    private val alerts: AlertsViewModel by viewModels()
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
         ValidatedConfigurationParser(ConfigurationValidator.fromAssets(this))
     }
@@ -71,6 +75,7 @@ class MainActivity : ComponentActivity() {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState != null) alerts.activityRecreated()
 
 //        requestWindowFeature(Window.FEATURE_NO_TITLE)
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -81,7 +86,11 @@ class MainActivity : ComponentActivity() {
             AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this, it.configurationId) }
                 ?: Toast.makeText(this, R.string.app_deleted, Toast.LENGTH_LONG).show()
         }
-        val screen = initializeScreen(savedInstanceState) ?: return
+        val screen = initializeScreen(savedInstanceState) ?: run {
+            // Nothing to show but the alert that says why.
+            setContent { AppTheme { AlertHost(alerts) } }
+            return
+        }
         screenState = screen
         val appModel = checkNotNull(application.app())
         prepareActiveConfigurationApiKeys()
@@ -129,6 +138,7 @@ class MainActivity : ComponentActivity() {
                         onDismiss = { clearPendingConfiguration() }
                     )
                 }
+                AlertHost(alerts)
             }
         }
 

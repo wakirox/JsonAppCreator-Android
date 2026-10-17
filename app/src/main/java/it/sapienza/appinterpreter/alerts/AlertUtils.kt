@@ -2,49 +2,28 @@ package it.sapienza.appinterpreter.alerts
 
 import android.app.Activity
 import android.content.Context
-import android.view.ViewGroup
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import it.sapienza.appinterpreter.extensions.getValue
 import it.sapienza.appinterpreter.extensions.matchReplace
 import it.sapienza.appinterpreter.model.event.AlertMessage
-import it.sapienza.appinterpreter.ui.AppTheme
 import org.json.JSONObject
 
 
 object AlertUtils {
 
     /**
-     * A Material 3 dialog in the app's theme, over whatever the activity shows: [text], OK, and Cancel when [ko] is
-     * given. It closes only through its buttons.
+     * Shows [text] with OK, and Cancel when [ko] is given, through the activity's [AlertsViewModel]: the activity
+     * draws it with [AlertHost]. Callable from any thread, such as a network callback.
      */
     fun showAlert(context: Context, text: String, ok: Runnable? = null, ko: Runnable? = null) {
         val activity = context as Activity
-        activity.runOnUiThread {
-            val root = activity.findViewById<ViewGroup>(android.R.id.content)
-            val host = ComposeView(activity)
-            fun close(then: Runnable?) {
-                root.removeView(host)
-                then?.run()
-            }
-            host.setContent {
-                AppTheme(surface = false) {
-                    AlertDialog(
-                        onDismissRequest = {},
-                        text = { Text(text) },
-                        confirmButton = { TextButton(onClick = { close(ok) }) { Text(stringResource(android.R.string.ok)) } },
-                        dismissButton = ko?.let {
-                            { TextButton(onClick = { close(it) }) { Text(stringResource(android.R.string.cancel)) } }
-                        }
-                    )
-                }
-            }
-            root.addView(host)
-        }
+        activity.runOnUiThread { alertsOf(activity).show(text, ok, ko) }
     }
+
+    /** The [AlertsViewModel] of [activity], which hosts it. */
+    fun alertsOf(activity: Activity): AlertsViewModel =
+        ViewModelProvider(activity as ViewModelStoreOwner)[AlertsViewModel::class.java]
 
     fun showAlert(context: Context, event: AlertMessage, data: JSONObject?, ok : Runnable? = null, ko : Runnable? = null) {
         val message = event.mapping?.let {
