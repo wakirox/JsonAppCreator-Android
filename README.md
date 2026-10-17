@@ -27,9 +27,12 @@ LLMs, then validated before the app loads it.
 
 ## Download
 
-Download the latest signed APK and its SHA-256 checksum from
-[GitHub Releases](https://github.com/wakirox/JsonAppCreator-Android/releases/latest).
+Install [JSON App Creator from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
 The app requires Android 8.1 (API 27) or newer.
+
+Signed APKs with SHA-256 checksums are attached to
+[GitHub Releases](https://github.com/wakirox/JsonAppCreator-Android/releases) when a
+version is tagged (see [Automation](#automation)).
 
 ## Try it
 
@@ -199,7 +202,7 @@ app/src/main/java/.../runtime/     Per-screen runtime state
 app/src/main/java/.../ui/          Jetpack Compose renderer
 app/src/main/res/raw/              Bundled sample configurations
 app/src/test/                      Parser, validator, state, and screenshot tests
-samples/                           Shareable APK and full configuration example
+samples/                           Full configuration example
 ```
 
 The app is written in Kotlin and rendered with Jetpack Compose. JSON is parsed with

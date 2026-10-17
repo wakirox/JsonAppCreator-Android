@@ -15,6 +15,7 @@
     <string name="home_delete_text">It\'s removed from Your apps, and its home-screen shortcut stops working.</string>
     <string name="home_cancel">Cancel</string>
     <string name="home_examples">Examples</string>
+    <string name="home_format_guide">JSON format guide</string>
     <string name="home_menu_about">About JSON App Creator</string>
     <string name="home_about_text">Open source under the MIT licence, with no ads, no account and no data collected. The format reference, a guide for AI apps and more examples are on GitHub.</string>
     <string name="home_about_github">Open GitHub</string>
@@ -32,6 +33,7 @@
     <string name="how_step_get_text">Try an example below, open a file someone sent you, write one in the built-in editor, or ask the AI app you already use (ChatGPT, Gemini, Claude…) to make one for you.</string>
     <string name="how_step_keep_title">Keep the ones you like</string>
     <string name="how_step_keep_text">Every app you open is kept under Your apps. Put any of them on your phone\'s home screen with its own icon: tapping it opens that app directly.</string>
+    <string name="how_format_guide">Write one yourself: read the JSON format guide</string>
     <string name="how_menu_note">Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, put it on your home screen, or come back here.</string>
 
     <!-- Bundled examples -->

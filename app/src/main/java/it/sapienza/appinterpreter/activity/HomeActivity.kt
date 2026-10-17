@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -121,6 +122,7 @@ class HomeActivity : AppCompatActivity() {
                                 ActionMenuItem(stringResource(R.string.menu_paste_ai), close, ::pasteFromAi, R.drawable.baseline_merge_type_24)
                                 HorizontalDivider()
                                 ActionMenuItem(stringResource(R.string.home_open_file), close, { openFile.launch("application/json") }, R.drawable.baseline_folder_open_24)
+                                ActionMenuItem(stringResource(R.string.home_format_guide), close, ::openFormatGuide, R.drawable.baseline_menu_book_24)
                                 ActionMenuItem(stringResource(R.string.home_menu_about), close, { aboutOpen = true }, R.drawable.baseline_perm_identity_24)
                             }
                         }
@@ -132,7 +134,7 @@ class HomeActivity : AppCompatActivity() {
                             HowItWorks(expanded = explained, onToggle = {
                                 explained = !explained
                                 preferences().edit { putBoolean(EXPLAINED_KEY, explained) }
-                            })
+                            }, onOpenGuide = ::openFormatGuide)
                         }
                         item {
                             Row(
@@ -259,6 +261,8 @@ class HomeActivity : AppCompatActivity() {
         else EditorActivity.aiAnswer(this, answer)
     }
 
+    private fun openFormatGuide() = startActivity(Intent(Intent.ACTION_VIEW, FORMAT_GUIDE.toUri()))
+
     private fun openCurrentApp() = startActivity(Intent(this, MainActivity::class.java))
 
     private fun preferences() = getSharedPreferences("Home", Context.MODE_PRIVATE)
@@ -266,6 +270,8 @@ class HomeActivity : AppCompatActivity() {
     companion object {
         private const val EXPLAINED_KEY = "how_it_works_open"
         private const val GITHUB = "https://github.com/wakirox/JsonAppCreator-Android"
+        /** The format reference written for people; docs/LLM_GUIDE.md is the one for AI apps. */
+        private const val FORMAT_GUIDE = "$GITHUB/blob/master/docs/CONFIGURATION_V3.md"
 
         /** The home page as the only screen, from an app opened here or from a home-screen shortcut. */
         fun open(context: Context) = context.startActivity(
@@ -276,7 +282,7 @@ class HomeActivity : AppCompatActivity() {
 
 /** What the app does, in plain words. Open until it's closed once. */
 @Composable
-private fun HowItWorks(expanded: Boolean, onToggle: () -> Unit) {
+private fun HowItWorks(expanded: Boolean, onToggle: () -> Unit, onOpenGuide: () -> Unit) {
     Card(
         Modifier.fillMaxWidth().padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -301,6 +307,9 @@ private fun HowItWorks(expanded: Boolean, onToggle: () -> Unit) {
                     stringResource(R.string.how_menu_note),
                     style = MaterialTheme.typography.bodySmall
                 )
+                TextButton(onClick = onOpenGuide, contentPadding = PaddingValues(0.dp)) {
+                    Text(stringResource(R.string.how_format_guide))
+                }
             }
         }
     }
