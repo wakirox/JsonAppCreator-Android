@@ -2,14 +2,14 @@
 // `code` shows a JSON excerpt beside the phone; `prompt` puts a chat bubble above it.
 const CAPTIONS = {
   en: {
-    gallery: { kicker: "JSON in, app out", headline: "Write a JSON file. Get a real app.",
-      code: "gallery" },
-    detail: { kicker: "Lists and images", headline: "Tap an item, open its own screen" },
-    form: { kicker: "Forms", headline: "Text, email, dates, choices and switches" },
-    alert: { kicker: "Actions", headline: "Buttons that answer with your data" },
-    editor: { kicker: "Built-in editor", headline: "Suggestions and live checking on your phone" },
+    home: { kicker: "Appkin", headline: "Your own little apps, all in one place" },
     ai: { kicker: "With your AI app", headline: "Describe it there, open it here",
-      prompt: "Make a sign-up form for a 10 km run in Rome", code: "form" },
+      prompt: "Make a sign-up form for a 10 km run in Rome" },
+    gallery: { kicker: "Lists and pictures", headline: "Galleries, catalogues and more from the web" },
+    detail: { kicker: "Every item", headline: "Tap one to see it up close" },
+    form: { kicker: "Forms", headline: "Sign-ups that check every field" },
+    alert: { kicker: "Buttons", headline: "Answers with what people typed" },
+    editor: { kicker: "For the curious", headline: "Every app is one file you can change" },
   },
 };
 

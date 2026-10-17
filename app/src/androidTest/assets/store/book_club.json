@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 3,
+  "name": "Book club",
+  "author": "Appkin",
+  "version": "1.0.0",
+  "mainView": {
+    "type": "layout",
+    "data": {
+      "books": [
+        { "title": "The Leopard", "author": "Giuseppe Tomasi di Lampedusa", "month": "November" },
+        { "title": "Middlemarch", "author": "George Eliot", "month": "December" }
+      ]
+    },
+    "views": [
+      { "type": "text", "title": "This season's books", "textStyle": "bold", "textSize": 22 },
+      {
+        "type": "list",
+        "mapping": "books",
+        "itemView": {
+          "type": "layout",
+          "views": [
+            { "type": "text", "mapping": "title", "textStyle": "bold" },
+            { "type": "text", "mapping": "author" },
+            { "type": "text", "mapping": "month" }
+          ]
+        }
+      }
+    ]
+  }
+}
