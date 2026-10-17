@@ -1,7 +1,7 @@
 # Appkin
 
-[![CI](https://github.com/wakirox/Appkin-Android/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wakirox/Appkin-Android/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/wakirox/Appkin-Android)](https://github.com/wakirox/Appkin-Android/releases/latest)
+[![CI](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/wakirox/JsonAppCreator-Android)](https://github.com/wakirox/JsonAppCreator-Android/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Android API 27+](https://img.shields.io/badge/Android-API%2027%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/tools/releases/platforms#8.1)
 
@@ -31,7 +31,7 @@ Install [Appkin from Google Play](https://play.google.com/store/apps/details?id=
 The app requires Android 8.1 (API 27) or newer.
 
 Signed APKs with SHA-256 checksums are attached to
-[GitHub Releases](https://github.com/wakirox/Appkin-Android/releases) when a
+[GitHub Releases](https://github.com/wakirox/JsonAppCreator-Android/releases) when a
 version is tagged (see [Automation](#automation)).
 
 ## Try it
