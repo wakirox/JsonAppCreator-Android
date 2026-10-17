@@ -3,7 +3,7 @@
 [![CI](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/wakirox/JsonAppCreator-Android)](https://github.com/wakirox/JsonAppCreator-Android/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Android API 27+](https://img.shields.io/badge/Android-API%2027%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/tools/releases/platforms#8.1)
+[![Android API 33+](https://img.shields.io/badge/Android-API%2033%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/tools/releases/platforms#13)
 
 Appkin is an Android interpreter that turns a JSON configuration into a
 native, interactive app. Configurations can define layouts, text, images, lists,
@@ -28,7 +28,7 @@ LLMs, then validated before the app loads it.
 ## Download
 
 Install [Appkin from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
-The app requires Android 8.1 (API 27) or newer.
+The app requires Android 13 (API 33) or newer.
 
 Signed APKs with SHA-256 checksums are attached to
 [GitHub Releases](https://github.com/wakirox/JsonAppCreator-Android/releases) when a
@@ -134,7 +134,7 @@ Requirements:
 
 - JDK 17
 - Android SDK with API 36 installed
-- An Android device or emulator running API 27+
+- An Android device or emulator running API 33+
 
 Build the debug APK:
 

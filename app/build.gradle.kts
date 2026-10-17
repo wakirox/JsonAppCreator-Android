@@ -156,7 +156,7 @@ android {
 
     defaultConfig {
         applicationId = "it.sapienza.androidratio.appratio"
-        minSdk = 27
+        minSdk = 33
         targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName
@@ -256,14 +256,20 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material3:material3")
+    // 1.5 makes Material 3 Expressive (MaterialExpressiveTheme, MotionScheme) public; 1.4 keeps it internal.
+    implementation("androidx.compose.material3:material3:1.5.0-beta01")
 
-    implementation("com.github.bumptech.glide:glide:5.0.9")
+    implementation(platform("io.insert-koin:koin-bom:4.2.2"))
+    implementation("io.insert-koin:koin-android")
+    implementation("io.coil-kt.coil3:coil-compose:3.6.3")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2")
     implementation("com.networknt:json-schema-validator:3.0.7")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation(platform("io.insert-koin:koin-bom:4.2.2"))
+    testImplementation("io.insert-koin:koin-test-junit4")
     testImplementation("org.robolectric:robolectric:4.16.1")
     testImplementation("androidx.test:core-ktx:1.7.0")
     testImplementation("androidx.compose.ui:ui-test-junit4")

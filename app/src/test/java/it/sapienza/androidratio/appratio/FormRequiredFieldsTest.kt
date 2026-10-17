@@ -12,15 +12,12 @@ import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.activity.MainActivity
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowAlertDialog
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], qualifiers = "w448dp-h900dp-mdpi")
@@ -64,7 +61,7 @@ class FormRequiredFieldsTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Please complete: I accept the rules").assertExists()
-        assertNull(ShadowAlertDialog.getLatestAlertDialog())
+        composeRule.onNodeWithText("Welcome", substring = true).assertDoesNotExist()
     }
 
     @Test
@@ -75,8 +72,7 @@ class FormRequiredFieldsTest {
 
         assertEquals(0, composeRule.onAllNodesWithText("Please complete", substring = true)
             .fetchSemanticsNodes().size)
-        val dialog = checkNotNull(ShadowAlertDialog.getLatestAlertDialog())
-        assertEquals("Welcome, Alex (10 km)", shadowOf(dialog).message.toString())
+        composeRule.onNodeWithText("Welcome, Alex (10 km)").assertExists()
     }
 
     companion object {

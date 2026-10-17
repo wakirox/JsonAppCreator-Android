@@ -23,6 +23,9 @@ import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.imageDecoderEnabled
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -59,6 +62,8 @@ class TmdbScreenshotTest {
 
     @Before
     fun setUp() {
+        // Robolectric has no ImageDecoder, which Coil uses on Android 10 and up: decode with BitmapFactory here.
+        SingletonImageLoader.setUnsafe(ImageLoader.Builder(targetContext).imageDecoderEnabled(false).build())
         hadOriginalConfiguration = preferences.contains(CONFIGURATION_KEY)
         originalConfiguration = preferences.getString(CONFIGURATION_KEY, null)
 

@@ -9,6 +9,7 @@
     <string name="home_your_apps_empty">The apps you open or make are kept here. Start with an example below.</string>
     <string name="home_open_now">Open now · %1$s</string>
     <string name="home_opened">Opened %1$s</string>
+    <string name="home_opened_just_now">Opened just now</string>
     <string name="home_add_to_home_screen">Add to home screen</string>
     <string name="home_delete">Delete</string>
     <string name="home_delete_title">Delete %1$s?</string>
@@ -68,6 +69,7 @@
     <string name="clipboard_empty">The clipboard is empty: copy the answer in your AI app first</string>
     <string name="confirm_close">Are you sure you want to close the app?</string>
     <string name="view_missing">View \'%1$s\' does not exist in this configuration</string>
+    <string name="no_calendar_app">There is no calendar app on this phone to add the event to.</string>
     <string name="screen_data_unrestorable">Unable to restore screen data\n%1$s</string>
     <string name="configuration_invalid">The saved configuration is invalid\n%1$s</string>
     <string name="error_unrecognized">Unrecognized error</string>
