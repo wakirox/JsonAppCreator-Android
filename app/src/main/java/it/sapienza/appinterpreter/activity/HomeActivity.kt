@@ -76,7 +76,7 @@ import it.sapienza.appinterpreter.utils.HomeShortcuts
 import org.json.JSONObject
 
 /**
- * The first screen: what JSON App Creator does, the saved apps (open one, add it to the home screen, or delete it),
+ * The first screen: what Appkin does, the saved apps (open one, add it to the home screen, or delete it),
  * the examples, and the ways to get a new app. An app opens on top of it, so Back comes back here. Home-screen
  * shortcuts skip it and open their app directly.
  */

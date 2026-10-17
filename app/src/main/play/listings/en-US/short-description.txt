@@ -1,1 +1,1 @@
-Turn a JSON file into a real Android app: screens, forms, lists and live APIs.
+Make your own little apps with the AI app you already use, and run them at once.

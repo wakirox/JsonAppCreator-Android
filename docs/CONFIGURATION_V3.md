@@ -1,9 +1,9 @@
-# JSON App Creator v3 Configuration Reference
+# Appkin v3 Configuration Reference
 
 [Back to the project README](../README.md) · [LLM generation guide](LLM_GUIDE.md) ·
 [JSON Schema](../schema/v3.schema.json)
 
-JSON App Creator is an Android app that turns a JSON configuration into a native,
+Appkin is an Android app that turns a JSON configuration into a native,
 interactive interface. A configuration can describe layouts, text, images, lists,
 forms, navigation, alerts, and REST requests without creating a new Android project.
 
@@ -25,12 +25,12 @@ LLM. This README documents the currently supported **v3 configuration format**.
 
 ## Try it
 
-Install [JSON App Creator from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
+Install [Appkin from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
 It needs Android 8.1 (API 27) or newer.
 
 1. Write a UTF-8 JSON file using the format below.
-2. Open JSON App Creator, open the three-dot menu on its home page, tap **Open a file…**
-   and choose the file. Android can also offer JSON App Creator when you open an
+2. Open Appkin, open the three-dot menu on its home page, tap **Open a file…**
+   and choose the file. Android can also offer Appkin when you open an
    `application/json` file from another app.
 3. Inside the app, its three-dot menu has **Edit this app** to see or change the JSON.
    **New app** on the home page starts one from scratch in the built-in editor.

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "App creator",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "version": "alpha-01",
   "mainView": {
     "type": "layout",

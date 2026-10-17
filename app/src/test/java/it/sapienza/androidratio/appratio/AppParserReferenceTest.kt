@@ -241,7 +241,7 @@ class AppParserReferenceTest {
         """
         {
           "name": "Reference test",
-          "author": "JsonAppCreator",
+          "author": "Appkin",
           "version": "1.0",
           $body
         }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">JSON App Creator</string>
+    <string name="app_name">Appkin</string>
 
     <!-- Home page -->
     <string name="home_open_file">Open a file…</string>
@@ -16,7 +16,7 @@
     <string name="home_cancel">Cancel</string>
     <string name="home_examples">Examples</string>
     <string name="home_format_guide">JSON format guide</string>
-    <string name="home_menu_about">About JSON App Creator</string>
+    <string name="home_menu_about">About Appkin</string>
     <string name="home_about_text">Open source under the MIT licence, with no ads, no account and no data collected. The format reference, a guide for AI apps and more examples are on GitHub.</string>
     <string name="home_about_github">Open GitHub</string>
     <string name="home_examples_note">Change an example with Edit this app in its ⋮ menu, and your version is kept under Your apps.</string>
@@ -27,7 +27,7 @@
     <string name="how_hide">Hide</string>
     <string name="how_step_file_title">Every app is one file</string>
     <string name="how_step_file_text">A JSON file is plain text that describes an app: its screens, the words and pictures on them, lists, forms and buttons, and what happens when you tap something.</string>
-    <string name="how_step_run_title">JSON App Creator brings it to life</string>
+    <string name="how_step_run_title">Appkin brings it to life</string>
     <string name="how_step_run_text">Open a file and it runs straight away as a real app on your phone. Nothing to install, build or sign up for.</string>
     <string name="how_step_get_title">Get apps your way</string>
     <string name="how_step_get_text">Try an example below, open a file someone sent you, write one in the built-in editor, or ask the AI app you already use (ChatGPT, Gemini, Claude…) to make one for you.</string>
@@ -60,7 +60,7 @@
     <string name="about_version">Version %1$s</string>
     <string name="about_author">By %1$s</string>
     <string name="about_whats_new">What\'s new</string>
-    <string name="about_made_with">Made with JSON App Creator.</string>
+    <string name="about_made_with">Made with Appkin.</string>
     <string name="about_ok">OK</string>
 
     <!-- Messages while running an app -->

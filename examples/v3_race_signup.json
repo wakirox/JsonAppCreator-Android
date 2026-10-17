@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "Summer Run 2026",
   "version": "1.0.0",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "mainView": {
     "type": "layout",
     "views": [

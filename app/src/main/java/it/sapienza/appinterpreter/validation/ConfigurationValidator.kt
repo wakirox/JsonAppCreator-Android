@@ -30,7 +30,7 @@ data class ConfigurationValidationResult(
 }
 
 /**
- * Validates JSON App Creator input before it is converted into the Kotlin model.
+ * Validates Appkin input before it is converted into the Kotlin model.
  *
  * The validator is immutable and may be reused. It deliberately reports schema
  * failures as values so callers can show all useful paths instead of surfacing

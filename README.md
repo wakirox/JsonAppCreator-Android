@@ -1,11 +1,11 @@
-# JSON App Creator
+# Appkin
 
 [![CI](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wakirox/JsonAppCreator-Android/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/wakirox/JsonAppCreator-Android)](https://github.com/wakirox/JsonAppCreator-Android/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Android API 27+](https://img.shields.io/badge/Android-API%2027%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/tools/releases/platforms#8.1)
 
-JSON App Creator is an Android interpreter that turns a JSON configuration into a
+Appkin is an Android interpreter that turns a JSON configuration into a
 native, interactive app. Configurations can define layouts, text, images, lists,
 forms, navigation, alerts, data binding, and REST requests without creating another
 Android project.
@@ -27,7 +27,7 @@ LLMs, then validated before the app loads it.
 
 ## Download
 
-Install [JSON App Creator from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
+Install [Appkin from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
 The app requires Android 8.1 (API 27) or newer.
 
 Signed APKs with SHA-256 checksums are attached to
@@ -41,7 +41,7 @@ have opened or made, most recently used first: open one, add it to the home scre
 delete it), the bundled **Examples** (start with **Masterpieces**, a gallery of
 public-domain paintings), **New app** and **Ask your AI app**. Its three-dot menu also has
 **Paste answer from your AI app**, **Open a file…** for a UTF-8 JSON file in the v3 format,
-and **About JSON App Creator**. A home-screen shortcut skips the home page and opens
+and **About Appkin**. A home-screen shortcut skips the home page and opens
 its app directly. Inside an app, from the three-dot menu:
 
 - **Edit this app** opens the current app in the built-in editor; **New app** starts a
@@ -52,7 +52,7 @@ its app directly. Inside an app, from the three-dot menu:
   app as a launcher shortcut with its own icon, so several apps can sit on your home
   screen. **About this app** shows its version, author and what's new.
 - **Make an app with your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
-  JSON App Creator has no AI inside and calls no AI service: it shares a complete prompt
+  Appkin has no AI inside and calls no AI service: it shares a complete prompt
   (the rules, a reference generated from the schema, worked examples and your request,
   optionally with the current app to change) to the app you pick. Chat there; the AI is
   asked for a downloadable `.json` file when it can make one. Open that file in JSON App
@@ -69,7 +69,7 @@ Configurations may use named API-key placeholders such as `__TMDB_API_KEY__`. Wh
 loaded file contains one, the app asks for the value and encrypts it in private app
 storage, scoped to that exact JSON file. The key is never inserted into the saved JSON.
 
-Android can also offer JSON App Creator when another app opens an `application/json`
+Android can also offer Appkin when another app opens an `application/json`
 file. Use **Edit this app** to see or change the active JSON.
 
 ## Minimal configuration
@@ -211,4 +211,4 @@ images are loaded with Glide. Gradle configuration uses Kotlin DSL.
 
 ## License
 
-JSON App Creator is available under the [MIT License](LICENSE).
+Appkin is available under the [MIT License](LICENSE).

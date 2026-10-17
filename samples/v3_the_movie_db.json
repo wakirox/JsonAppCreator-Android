@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "THE MOVIE DB",
   "version": "beta.1",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "changelog": "Implemented a series of endpoint calls from the movie db.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
   "mainView": {
     "id": "l0",

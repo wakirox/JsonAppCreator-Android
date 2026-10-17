@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "Masterpieces",
   "version": "1.0.0",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "changelog": "Public-domain paintings; images from Wikimedia Commons.",
   "mainView": {
     "type": "layout",
