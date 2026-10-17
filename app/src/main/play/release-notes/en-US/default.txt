@@ -1,0 +1,1 @@
+JSON App Creator is now Appkin. A new home page with your apps and examples; make apps with the AI app you already use (no AI inside) and bring them back by file, answer or chat link; a built-in editor with suggestions and live checking; apps on your home screen; calendar events; clearer error messages.

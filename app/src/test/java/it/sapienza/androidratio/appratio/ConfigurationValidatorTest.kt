@@ -22,8 +22,9 @@ class ConfigurationValidatorTest {
     @Test
     fun menuConfigurationsPassTheInAppValidator() {
         val menuConfigs = listOf(
+            "v3_masterpieces.json",
             "v3_app_sample.json",
-            "v3_app_form.json",
+            "v3_race_signup.json",
             "v3_the_movie_db.json",
             "v3_pokedex.json"
         )
@@ -104,6 +105,46 @@ class ConfigurationValidatorTest {
         assertTrue(result.issues.any { it.path == "$.schemaVersion" })
         assertTrue(result.issues.any { it.path == "$.mainView.orientation" })
         assertTrue(result.issues.size >= 2)
+    }
+
+    @Test
+    fun aMistakeDeepInsideAViewIsReportedOnceWhereItIs() {
+        val result = validator.validate(
+            """
+            {
+              "schemaVersion": 3,
+              "name": "One typo",
+              "version": "1.0",
+              "mainView": {
+                "type": "layout",
+                "views": [
+                  { "type": "text", "label": "Title" },
+                  {
+                    "type": "list",
+                    "mapping": "items",
+                    "itemView": {
+                      "type": "layout",
+                      "views": [
+                        { "type": "picture", "url": "https://example.com/a.png" },
+                        { "type": "text", "label": "${'$'}{name}", "action": { "event": { "type": "alert", "colour": "red" } } }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """.trimIndent()
+        )
+
+        assertEquals(
+            formatIssues(result.issues),
+            listOf(
+                "$.mainView.views[1].itemView.views[0].type",
+                "$.mainView.views[1].itemView.views[1].action",
+                "$.mainView.views[1].itemView.views[1].action.event"
+            ),
+            result.issues.map { it.path }
+        )
     }
 
     @Test

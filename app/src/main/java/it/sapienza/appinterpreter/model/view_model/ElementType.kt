@@ -11,7 +11,7 @@ interface ElementType {
     }
 
     enum class EventType {
-        rest, alert, show
+        rest, alert, show, calendar
     }
 
 }

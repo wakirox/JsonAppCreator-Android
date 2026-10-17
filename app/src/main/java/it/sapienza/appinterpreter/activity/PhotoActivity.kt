@@ -3,9 +3,9 @@ package it.sapienza.appinterpreter.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
-import it.sapienza.appinterpreter.extensions.app
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.PhotoScreen
 
@@ -19,9 +19,15 @@ class PhotoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val url = intent.getStringExtra("url")
-        setContent { AppTheme { PhotoScreen(url) } }
-
-        supportActionBar?.title = application.app()?.name
+        setContent {
+            AppTheme {
+                PhotoScreen(
+                    url = url,
+                    onBack = ::finish
+                )
+            }
+        }
     }
 }

@@ -1,0 +1,24 @@
+Ask the AI app you already use for an app, and Appkin runs it on your phone: a reading list, a recipe collection, a sign-up form for your club, a gallery of your favourite paintings. No coding, no account, nothing to install.
+
+MAKE IT WITH YOUR AI APP
+Describe the app you want. Appkin hands complete instructions to ChatGPT, Gemini, Grok, Claude or any AI app you use, so it knows exactly what to write. Bring the result back by opening the file it makes, sharing or pasting its answer, or sharing a link to the chat. Appkin checks it and opens it straight away. If something's wrong, one tap sends the problems back to your AI app for a fix.
+
+Appkin has no AI inside: your chats stay in the AI app you chose.
+
+KEEP YOUR APPS CLOSE
+Every app you open or make is kept under Your apps. Put any of them on your phone's home screen with its own icon, and tapping it opens that app directly.
+
+WHAT YOUR APPS CAN DO
+• Screens with text, buttons and pictures
+• Lists, typed in or loaded from the web, with a page for each item
+• Forms with text, numbers, dates, choices and switches
+• Moving between screens, alerts, and adding events to your calendar
+
+START FROM AN EXAMPLE
+Try a gallery of famous paintings, a race sign-up form, a Pokédex or a movie catalogue, and change any of them to make it yours.
+
+FOR THE CURIOUS
+Every app is one plain JSON file. A built-in editor shows it with colours, suggestions and a live check, and the format guide on GitHub explains every part.
+
+PRIVATE AND OPEN SOURCE
+No ads, no account, no data collected. If an app needs an API key, Appkin asks for it once and keeps it encrypted on your phone. Appkin is open source under the MIT licence: github.com/wakirox/JsonAppCreator-Android

@@ -1,4 +1,4 @@
-# Releasing JSON App Creator
+# Releasing Appkin
 
 Releases are built by `.github/workflows/release.yml`. The workflow tests the tagged
 source, validates the public example configuration, builds a signed release APK,
@@ -103,14 +103,14 @@ rerun updates existing release assets instead of creating a duplicate release.
 Download the APK and its `.sha256` file from the same GitHub Release, then run:
 
 ```sh
-sha256sum --check JsonAppCreator-v1.0.0.apk.sha256
+sha256sum --check Appkin-v1.0.0.apk.sha256
 ```
 
 On macOS, use `shasum -a 256` and compare its output with the checksum file. To verify
 the Android signature with installed Android SDK build tools:
 
 ```sh
-apksigner verify --verbose --print-certs JsonAppCreator-v1.0.0.apk
+apksigner verify --verbose --print-certs Appkin-v1.0.0.apk
 ```
 
 Compare the certificate digest with a separately recorded trusted digest from a

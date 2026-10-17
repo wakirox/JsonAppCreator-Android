@@ -27,9 +27,9 @@
     </style>
 
     <style name="AppTheme.Launcher">
-        <item name="android:windowBackground">@drawable/app_logo</item>
-        <!-- Optional, on Android 5+ you can modify the colorPrimaryDark color to match the windowBackground color for further branding-->
-        <!-- <item name="colorPrimaryDark">@android:color/white</item> -->
+        <!-- The splash screen: the Appkin icon on its own cream. -->
+        <item name="android:windowSplashScreenBackground">@color/ic_appkin_background</item>
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
     </style>
 
 

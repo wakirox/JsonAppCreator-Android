@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Appkin: a family of app tiles. 108dp canvas; the tiles sit inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#EF6B57" android:pathData="M39,35h10a8,8 0,0 1,8 8v22a8,8 0,0 1,-8 8h-10a8,8 0,0 1,-8 -8v-22a8,8 0,0 1,8 -8z" />
+    <path android:fillColor="#4D6B75" android:pathData="M66,35h6a5,5 0,0 1,5 5v7a5,5 0,0 1,-5 5h-6a5,5 0,0 1,-5 -5v-7a5,5 0,0 1,5 -5z" />
+    <path android:fillColor="#F4B740" android:pathData="M66,56h6a5,5 0,0 1,5 5v7a5,5 0,0 1,-5 5h-6a5,5 0,0 1,-5 -5v-7a5,5 0,0 1,5 -5z" />
+</vector>

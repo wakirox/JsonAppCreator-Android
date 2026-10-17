@@ -5,9 +5,12 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
 
 object DomainController {
+    /** The example shown on first launch, and when the active configuration can't be used. */
+    val DEFAULT_CONFIGURATION = R.raw.v3_masterpieces
+
     fun jsonFile(context: Context): String {
         val preferences = preferences(context)
-        return preferences.getString(JSON_KEY, null) ?: read(R.raw.v3_app_sample, context)
+        return preferences.getString(JSON_KEY, null) ?: read(DEFAULT_CONFIGURATION, context)
     }
 
     fun configurationId(context: Context): String {
@@ -16,19 +19,26 @@ object DomainController {
             ?: if (preferences.contains(JSON_KEY)) {
                 ApiKeyPlaceholders.configurationId(jsonFile(context))
             } else {
-                bundledId(context.resources.getResourceEntryName(R.raw.v3_app_sample))
+                bundledId(context.resources.getResourceEntryName(DEFAULT_CONFIGURATION))
             }
     }
 
-    fun setJsonFile(value: String, context: Context) {
+    /**
+     * Makes [value] the current app and saves it in Your apps on the home page. [configurationId] keeps an app's
+     * identity, and with it its saved or bundled API keys (for an app reopened from Your apps, or run unchanged); by
+     * default it comes from the JSON itself.
+     */
+    fun setJsonFile(value: String, context: Context, configurationId: String = ApiKeyPlaceholders.configurationId(value)) {
+        AppLibrary.save(context, value, configurationId)
         preferences(context).edit()
             .putString(JSON_KEY, value)
-            .putString(CONFIGURATION_ID_KEY, ApiKeyPlaceholders.configurationId(value))
+            .putString(CONFIGURATION_ID_KEY, configurationId)
             .apply()
     }
 
     fun setJsonFile(resource: Int, context: Context) {
         val resourceName = context.resources.getResourceEntryName(resource)
+        // An example: not saved in Your apps, since the home page lists the examples separately.
         preferences(context).edit()
             .putString(JSON_KEY, read(resource, context))
             .putString(CONFIGURATION_ID_KEY, bundledId(resourceName))

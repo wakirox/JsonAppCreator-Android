@@ -13,6 +13,6 @@ class DateInput(
     description: String?,
     mapping: String
 ) : FormElementImpl(mandatory, title, description, mapping) {
-    override fun isSet(): Boolean = mandatory == false || value != null
-    override fun value(): Any? = value?.stringValue()
+    override fun isSet(value: Any?): Boolean = !isRequired || !(value as? String).isNullOrBlank()
+    override fun defaultValue(): Any? = value?.stringValue()
 }

@@ -1,9 +1,9 @@
-# JSON App Creator v3 Configuration Reference
+# Appkin v3 Configuration Reference
 
 [Back to the project README](../README.md) · [LLM generation guide](LLM_GUIDE.md) ·
 [JSON Schema](../schema/v3.schema.json)
 
-JSON App Creator is an Android app that turns a JSON configuration into a native,
+Appkin is an Android app that turns a JSON configuration into a native,
 interactive interface. A configuration can describe layouts, text, images, lists,
 forms, navigation, alerts, and REST requests without creating a new Android project.
 
@@ -25,21 +25,21 @@ LLM. This README documents the currently supported **v3 configuration format**.
 
 ## Try it
 
-A prebuilt APK is available at [`samples/AppInterpreter.apk`](../samples/AppInterpreter.apk).
-Install it on an Android device running Android 8.1 (API 27) or newer.
+Install [Appkin from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
+It needs Android 13 (API 33) or newer.
 
-1. Create a UTF-8 JSON file using the format below.
-2. Open JSON App Creator.
-3. Open the three-dot menu.
-4. Select **Load configuration from device** and choose the file.
-5. Use **View current configuration** to inspect the active JSON.
+1. Write a UTF-8 JSON file using the format below.
+2. Open Appkin, open the three-dot menu on its home page, tap **Open a file…**
+   and choose the file. Android can also offer Appkin when you open an
+   `application/json` file from another app.
+3. Inside the app, its three-dot menu has **Edit this app** to see or change the JSON.
+   **New app** on the home page starts one from scratch in the built-in editor.
 
-The selected configuration is saved locally and restored the next time the app opens.
-Android can also offer JSON App Creator when opening an `application/json` file from
-another app.
+Every app you open or edit is kept under **Your apps** on the home page.
 
-The menu includes plain, form, TMDb, and Pokédex sample configurations. Source copies
-are under [`app/src/main/res/raw`](../app/src/main/res/raw); the most complete example is
+The home page also lists the bundled examples: Masterpieces, Hello, Summer Run, Kanto
+Pokédex, and The Movie DB. Their source is under
+[`app/src/main/res/raw`](../app/src/main/res/raw); the most complete one is
 [`samples/v3_the_movie_db.json`](../samples/v3_the_movie_db.json).
 
 ## Minimal configuration
@@ -286,8 +286,10 @@ Supported form elements:
 | `checkbox` | `mapping`, `title`, `description`, `value`, `mandatory` |
 
 `textType` is `plain` (default), `numeric`, `email`, or `password`. Dates shown through
-mapped form data use `dd/MM/yyyy`. `mandatory: true` blocks submission until a text,
-selector, or date value is set. A checkbox is always considered set.
+mapped form data use `dd/MM/yyyy`. `mandatory: true` blocks submission until a text
+(not just spaces), selector, or date value is set, or a checkbox is checked; the error
+names the missing fields. Without `mandatory`, a field is optional. Values filled in from
+the screen's data count as set and are submitted.
 
 ## Data binding
 
@@ -296,6 +298,8 @@ Each rendered node receives a current JSON data object:
 - A node's own `data` replaces inherited data for that node and its descendants.
 - A list item receives that item object as its data.
 - A REST response becomes the data passed to its chained event.
+- A `show` event passes its current data to the view it opens, or only the part its
+  `mapping` selects, such as `meals.0` for the one item of a lookup response.
 - A form action receives the object assembled from the submitted fields.
 - An action's own `data`, when present, replaces the data from the clicked view.
 
@@ -315,7 +319,9 @@ interpolate data:
 }
 ```
 
-Dot paths traverse JSON objects. Array values used as text are joined with `, `. Missing
+Dot paths traverse JSON objects, and reach array items by index: `meals.0.strMeal` and
+`meals[0].strMeal` are the same. A list's `initData` URL can use placeholders too, filled
+from the data of the screen it is on. Array values used as text are joined with `, `. Missing
 values remain unreplaced in interpolated strings, so make sure every placeholder exists
 in the data available at that point.
 
@@ -356,6 +362,25 @@ Action properties:
 `view` can be a `ref` object targeting a root `views` entry or a complete inline view. The
 current event data is passed to the destination view. Android's Back button returns to
 the previous view.
+
+### Add an event to the calendar
+
+```json
+{
+  "type": "calendar",
+  "title": "Dinner: ${cuisine}",
+  "date": "${date}",
+  "time": "19:30",
+  "durationMinutes": 180,
+  "location": "Home",
+  "description": "${guests} guests, hosted by ${name}"
+}
+```
+
+Opens the phone's calendar app on a new event, filled in; the user reviews and saves it
+there, so the app needs no calendar permission. `date` is `dd/MM/yyyy`, as a form's
+`date` field submits it, and `time` is `HH:mm`; without `time` the event lasts all day.
+A timed event lasts `durationMinutes`, 60 by default. Every text may use `${...}`.
 
 ### Call a REST endpoint
 
@@ -443,8 +468,10 @@ An `initData` object on a list uses the same REST fields but does not need a `ty
 ```
 
 Use `value` for a literal/interpolated message, or `mapping` to read the message from
-the current data. `thenDoOK` runs from the **OK** button. When `thenDoKO` is present, the
-dialog also shows a **NO** button and runs that branch when selected.
+the current data. `thenDoOK` runs from the **OK** button. An alert with `thenDoOK` or
+`thenDoKO` also shows a **Cancel** button, which runs `thenDoKO` when there is one and
+otherwise just closes the alert, so a question such as "Add it to your calendar?" can be
+declined.
 
 ## Reusing views and actions
 
@@ -625,5 +652,5 @@ Common failures:
 - **Destination does not open:** the view ID is missing or does not match a reusable
   view definition.
 
-Use the app menu's **View current configuration** command to confirm which JSON is
-currently loaded.
+Use the app menu's **Edit this app** command to confirm which JSON is currently
+loaded; its live check shows the same problems the app reports when loading.

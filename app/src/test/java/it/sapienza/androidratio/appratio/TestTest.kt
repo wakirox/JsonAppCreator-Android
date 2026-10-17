@@ -10,7 +10,7 @@ class TestTest() {
     @test fun simple(){
         val parser = AppParser("""{
           "name": "My first app",
-          "author": "JsonAppCreator",
+          "author": "Appkin",
           "version": "1.0",
           "mainView": {
             "type": "layout",
@@ -26,7 +26,7 @@ class TestTest() {
     @test fun parsesChainedRestAction() {
         val parser = AppParser("""{
           "name": "REST app",
-          "author": "JsonAppCreator",
+          "author": "Appkin",
           "version": "1.0",
           "mainView": {
             "type": "layout",
@@ -50,8 +50,9 @@ class TestTest() {
 
     @test fun parsesMenuSamples() {
         listOf(
+            "v3_masterpieces.json",
             "v3_app_sample.json",
-            "v3_app_form.json",
+            "v3_race_signup.json",
             "v3_the_movie_db.json",
             "v3_pokedex.json"
         ).forEach { name ->
