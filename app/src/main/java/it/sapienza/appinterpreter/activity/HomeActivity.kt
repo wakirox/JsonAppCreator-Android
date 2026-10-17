@@ -21,8 +21,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -39,6 +40,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -57,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -151,7 +154,7 @@ class HomeActivity : AppCompatActivity() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        items(apps, key = { it.id }) { app ->
+                        itemsIndexed(apps, key = { _, app -> app.id }) { index, app ->
                             ListItem(
                                 headlineContent = { Text(app.name) },
                                 supportingContent = {
@@ -171,26 +174,26 @@ class HomeActivity : AppCompatActivity() {
                                         }
                                     }
                                 },
-                                modifier = Modifier.clickable {
+                                colors = groupedItemColors(),
+                                modifier = Modifier.inGroup(index, apps.size).clickable {
                                     DomainController.setJsonFile(app.json, this@HomeActivity, app.configurationId)
                                     openCurrentApp()
                                 }
                             )
-                            HorizontalDivider()
                         }
                         item { SectionHeader(stringResource(R.string.home_examples)) }
-                        items(EXAMPLES) { (name, about, resource) ->
+                        itemsIndexed(EXAMPLES) { index, (name, about, resource) ->
                             val title = stringResource(name)
                             ListItem(
                                 headlineContent = { Text(title) },
                                 supportingContent = { Text(stringResource(about)) },
                                 leadingContent = { LetterIcon(title) },
-                                modifier = Modifier.clickable {
+                                colors = groupedItemColors(),
+                                modifier = Modifier.inGroup(index, EXAMPLES.size).clickable {
                                     DomainController.setJsonFile(resource, this@HomeActivity)
                                     openCurrentApp()
                                 }
                             )
-                            HorizontalDivider()
                         }
                         item {
                             Text(
@@ -320,6 +323,18 @@ private fun Step(number: Int, title: String, text: String) {
 }
 
 /** The app's first letter on the colour its home-screen shortcut gets. */
+/** A list row as one piece of a rounded group: round at the group's ends, nearly square where rows meet. */
+private fun Modifier.inGroup(index: Int, count: Int): Modifier {
+    fun corner(end: Boolean): Dp = if (end) 20.dp else 4.dp
+    val first = index == 0
+    val last = index == count - 1
+    val shape = RoundedCornerShape(corner(first), corner(first), corner(last), corner(last))
+    return padding(start = 16.dp, end = 16.dp, bottom = if (last) 0.dp else 2.dp).clip(shape)
+}
+
+@Composable
+private fun groupedItemColors() = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+
 @Composable
 private fun LetterIcon(name: String) {
     Box(
