@@ -1,6 +1,5 @@
 package it.sapienza.appinterpreter.ui
 
-import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -11,9 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,30 +44,27 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val LightColorScheme = lightColorScheme()
-private val DarkColorScheme = darkColorScheme()
-
+/**
+ * Material 3 Expressive: the wallpaper's colours where the phone offers them, and springy motion. [surface] false
+ * leaves out the full-screen background, for content drawn over a screen, such as a dialog.
+ */
 @Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
+    surface: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        dynamicColor -> if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        darkTheme -> darkColorScheme()
+        else -> lightColorScheme()
     }
-    MaterialTheme(
-        colorScheme = colorScheme
-    ) {
+    MaterialExpressiveTheme(colorScheme = colorScheme, motionScheme = MotionScheme.expressive()) {
         // Edge to edge: the surface reaches behind the system bars, and each screen keeps its content clear of them.
-        Surface(modifier = Modifier.fillMaxSize()) {
-            content()
-        }
+        if (surface) Surface(modifier = Modifier.fillMaxSize()) { content() } else content()
     }
 }
 

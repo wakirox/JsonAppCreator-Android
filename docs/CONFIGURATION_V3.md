@@ -26,7 +26,7 @@ LLM. This README documents the currently supported **v3 configuration format**.
 ## Try it
 
 Install [Appkin from Google Play](https://play.google.com/store/apps/details?id=it.sapienza.androidratio.appratio).
-It needs Android 8.1 (API 27) or newer.
+It needs Android 13 (API 33) or newer.
 
 1. Write a UTF-8 JSON file using the format below.
 2. Open Appkin, open the three-dot menu on its home page, tap **Open a file…**
