@@ -2,9 +2,9 @@
 // `code` shows a JSON excerpt beside the phone; `prompt` puts a chat bubble above it.
 const CAPTIONS = {
   en: {
-    home: { kicker: "Appkin", headline: "Your own little apps, all in one place" },
+    home: { kicker: "Your apps", headline: "All in one place, ready to open" },
     ai: { kicker: "With your AI app", headline: "Describe it here, your AI app makes it" },
-    gallery: { kicker: "Lists and pictures", headline: "Galleries, catalogues and more from the web" },
+    gallery: { kicker: "Appkin", headline: "Make your own little apps, like this gallery" },
     detail: { kicker: "Every item", headline: "Tap one to see it up close" },
     form: { kicker: "Forms", headline: "Sign-ups that check every field" },
     shortcut: { kicker: "On your home screen", headline: "Each app gets its own icon" },
