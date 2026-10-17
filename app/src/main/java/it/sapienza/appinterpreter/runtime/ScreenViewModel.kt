@@ -26,8 +26,10 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.usecase.CreateCalendarEventUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
+import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
+import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -36,7 +38,7 @@ import org.json.JSONObject
 
 /**
  * One screen of a JSON app. It loads the screen, keeps its forms ([FormsState]) and lists ([ListsState]), and runs
- * its events; the use cases do the work. It outlives the activity's recreation, and leaving the screen cancels its
+ * its events; the use cases, which Koin provides (see AppModule), do the work. It outlives the activity's recreation, and leaving the screen cancels its
  * requests, which run in [viewModelScope].
  *
  * [saved] starts with the activity's intent extras: [EXTRA_VIEW_ID] names the view to show (none: the app's main
@@ -46,10 +48,13 @@ class ScreenViewModel(
     application: Application,
     saved: SavedStateHandle,
     val alerts: AlertsViewModel,
-    private val fetchJson: FetchJsonUseCase = FetchJsonUseCase(),
-    private val createCalendarEvent: CreateCalendarEventUseCase = CreateCalendarEventUseCase(),
-    findMissingApiKeys: FindMissingApiKeysUseCase = FindMissingApiKeysUseCase(application),
-    loadScreen: LoadScreenUseCase = LoadScreenUseCase(application),
+    private val fetchJson: FetchJsonUseCase,
+    loadListItems: LoadListItemsUseCase,
+    initialFormValues: InitialFormValuesUseCase,
+    submitForm: SubmitFormUseCase,
+    private val createCalendarEvent: CreateCalendarEventUseCase,
+    findMissingApiKeys: FindMissingApiKeysUseCase,
+    loadScreen: LoadScreenUseCase,
 ) : AndroidViewModel(application) {
 
     /** One-off things only the activity can do. */
@@ -70,8 +75,8 @@ class ScreenViewModel(
     /** What this screen shows, or null when it can't be shown (an alert says why). */
     val screen: ScreenRuntimeState? = (loaded as? LoadScreenUseCase.Result.Ready)?.screen
 
-    val forms = FormsState(saved)
-    val lists = ListsState(viewModelScope, LoadListItemsUseCase(fetchJson))
+    val forms = FormsState(saved, initialFormValues, submitForm)
+    val lists = ListsState(viewModelScope, loadListItems)
 
     /** The app's API keys this phone lacks: asked for before the screen shows, unless skipped. */
     var missingKeys by mutableStateOf(screen?.let { findMissingApiKeys() })

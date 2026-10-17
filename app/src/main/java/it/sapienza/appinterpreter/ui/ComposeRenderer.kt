@@ -48,7 +48,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -60,8 +59,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import java.util.Date
@@ -75,7 +72,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumptech.glide.Glide
+import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
 import it.sapienza.appinterpreter.extensions.getValue
 import it.sapienza.appinterpreter.extensions.matchReplace
@@ -99,9 +97,6 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.time.Instant
 import java.time.ZoneId
@@ -307,27 +302,6 @@ private fun RenderImage(
     val context = LocalContext.current
     val mapped = view.mapping?.let { data?.getValue(it) }
     val url = (mapped ?: view.url)?.matchReplace(data)
-    var imageFailed by remember(url) { mutableStateOf(false) }
-    val bitmap by produceState<ImageBitmap?>(null, url) {
-        imageFailed = false
-        value = url?.let { imageUrl ->
-            var loaded: ImageBitmap? = null
-            repeat(3) { attempt ->
-                loaded = runCatching {
-                    withContext(Dispatchers.IO) {
-                        Glide.with(context).asBitmap().load(imageUrl).submit().get().asImageBitmap()
-                    }
-                }.getOrNull()
-                if (loaded != null) return@let loaded
-                if (attempt < 2) delay(200L * (attempt + 1))
-            }
-            null
-        }.also { loaded ->
-            if (url != null && loaded == null) {
-                imageFailed = true
-            }
-        }
-    }
     val openPreview: (() -> Unit)? = if (allowImagePreview) {
         { url?.let { context.startActivity(createIntentPhotoActivity(context, it)) } }
     } else null
@@ -340,19 +314,37 @@ private fun RenderImage(
         .then(heightModifier)
         .clip(if (edgeToEdge) RectangleShape else RoundedCornerShape(16.dp))
         .then(actionModifier(view.action, data, openPreview))
-    if (bitmap == null) {
-        Card(imageModifier) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                if (url != null && !imageFailed) CircularProgressIndicator(Modifier.size(32.dp)) else Text("Image unavailable")
-            }
-        }
-    } else {
-        androidx.compose.foundation.Image(
-            bitmap = bitmap!!,
+    if (url == null) {
+        ImagePlaceholder(imageModifier) { Text("Image unavailable") }
+        return
+    }
+    // A plain AsyncImage, not SubcomposeAsyncImage: list cards size their rows to their content, which a
+    // subcomposition can't report. Loading and failure are drawn over it.
+    var state by remember(url) { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
+    Box(imageModifier) {
+        AsyncImage(
+            model = url,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = imageModifier.testTag("image-${data?.optString("id").orEmpty()}")
+            onState = { state = it },
+            // The tag marks a loaded image, which tests wait for.
+            modifier = Modifier.matchParentSize().then(
+                if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-${data?.optString("id").orEmpty()}")
+                else Modifier
+            )
         )
+        when (state) {
+            is AsyncImagePainter.State.Success -> {}
+            is AsyncImagePainter.State.Error -> ImagePlaceholder(Modifier.matchParentSize()) { Text("Image unavailable") }
+            else -> ImagePlaceholder(Modifier.matchParentSize()) { CircularProgressIndicator(Modifier.size(32.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun ImagePlaceholder(modifier: Modifier, content: @Composable () -> Unit) {
+    Card(modifier) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { content() }
     }
 }
 

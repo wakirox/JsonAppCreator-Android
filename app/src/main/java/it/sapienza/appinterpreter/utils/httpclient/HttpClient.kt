@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.utils.httpclient
 
+import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -14,7 +15,19 @@ import kotlin.coroutines.resumeWithException
 
 object HttpClient{
     val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()
-    private var client: OkHttpClient = OkHttpClient.Builder().build()
+
+    /**
+     * The one OkHttp client for the app's requests and its images (Coil uses it too). It names the app in every
+     * request's User-Agent, as sites such as Wikimedia require: they refuse OkHttp's default one.
+     */
+    val client: OkHttpClient = OkHttpClient.Builder()
+        .addNetworkInterceptor { chain ->
+            chain.proceed(chain.request().newBuilder().header("User-Agent", USER_AGENT).build())
+        }
+        .build()
+
+    private val USER_AGENT =
+        "Appkin/${BuildConfig.VERSION_NAME} (Android; https://github.com/wakirox/JsonAppCreator-Android)"
 
     fun get(url: String, callback: Callback): Call {
         val request = Request.Builder()
