@@ -2,10 +2,14 @@ package it.sapienza.appinterpreter.utils.httpclient
 
 import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 object HttpClient{
@@ -33,6 +37,30 @@ object HttpClient{
         call.enqueue(callback)
         return call
 
+    }
+
+    /**
+     * Requests [url], by POST with [body] when [post], and returns the JSON it answers. Cancelling the coroutine
+     * cancels the request. A failure is an exception whose message says what went wrong, such as a missing API key.
+     */
+    suspend fun request(url: String, post: Boolean, body: JSONObject?): JSONObject = suspendCancellableCoroutine { continuation ->
+        val callback = object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) {
+                        continuation.resumeWithException(IOException("Request failed with ${response.code}"))
+                        return
+                    }
+                    runCatching { JSONObject(response.body.string()) }
+                        .onSuccess(continuation::resume)
+                        .onFailure { continuation.resumeWithException(IOException(it.message ?: "Unable to read the response")) }
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) = continuation.resumeWithException(e)
+        }
+        val call = if (post) post(url, body, callback) else get(url, callback)
+        continuation.invokeOnCancellation { call.cancel() }
     }
 
     private fun withConfigurationApiKeys(url: String): String {
