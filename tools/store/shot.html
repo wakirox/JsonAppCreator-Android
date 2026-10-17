@@ -12,8 +12,8 @@
   html, body { margin: 0; overflow: hidden; }
   body { width: 1080px; height: 1920px; background: var(--bg); color: var(--ink); font-family: GSF, sans-serif;
     position: relative; }
-  /* The icon's tiles, large and faint, behind everything. */
-  body::before { content: ""; position: absolute; width: 1210px; height: 1000px; left: 330px; top: 760px;
+  /* The icon's tiles, large and faint, in the top right corner behind the caption. */
+  body::before { content: ""; position: absolute; width: 520px; height: 430px; right: -60px; top: -70px;
     background: url("tiles.svg") center / contain no-repeat; }
   .caption { position: absolute; left: 84px; right: 84px; top: 96px; }
   .kicker { font-size: 42px; color: var(--coral); margin-bottom: 18px;
