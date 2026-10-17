@@ -160,7 +160,10 @@ class HomeActivity : AppCompatActivity() {
                             ListItem(
                                 headlineContent = { Text(app.name) },
                                 supportingContent = {
-                                    val opened = stringResource(R.string.home_opened, DateUtils.getRelativeTimeSpanString(app.savedAt))
+                                    // Under a minute, "0 minutes ago" reads oddly.
+                                    val opened = if (System.currentTimeMillis() - app.savedAt < DateUtils.MINUTE_IN_MILLIS)
+                                        stringResource(R.string.home_opened_just_now)
+                                    else stringResource(R.string.home_opened, DateUtils.getRelativeTimeSpanString(app.savedAt))
                                     Text(if (app.name == current) stringResource(R.string.home_open_now, opened) else opened)
                                 },
                                 leadingContent = { LetterIcon(app.name) },

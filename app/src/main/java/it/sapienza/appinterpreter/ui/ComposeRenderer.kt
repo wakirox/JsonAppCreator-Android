@@ -2,7 +2,6 @@
 
 package it.sapienza.appinterpreter.ui
 
-import android.app.DatePickerDialog
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -32,12 +31,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -57,6 +63,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import java.util.Date
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -97,7 +106,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.util.Calendar
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.function.Consumer
 
 private class ListUiState(initiallyWaiting: Boolean) {
@@ -689,8 +700,12 @@ private fun initialValue(item: FormElementImpl, data: JSONObject?): Any? {
 @Composable
 private fun BooleanField(item: CheckBox, checked: Boolean, onChange: (Any?) -> Unit) {
     Column {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Switch(checked, { onChange(it) })
+        // The whole row toggles, label included.
+        Row(
+            Modifier.fillMaxWidth().toggleable(value = checked, role = Role.Switch, onValueChange = { onChange(it) }),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Switch(checked, onCheckedChange = null)
             Spacer(Modifier.width(12.dp))
             Text(item.title, style = MaterialTheme.typography.titleMedium)
         }
@@ -720,23 +735,42 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit) {
-    val context = LocalContext.current
+    var picking by remember { mutableStateOf(false) }
     Column {
         Text(item.title, style = MaterialTheme.typography.titleSmall)
-        OutlinedButton(onClick = {
-            val calendar = Calendar.getInstance().apply { value?.toDate()?.let { time = it } }
-            DatePickerDialog(context, { _, year, month, day ->
-                calendar.set(year, month, day)
-                onChange(calendar.time.stringValue())
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply {
-                item.min?.let { datePicker.minDate = it.time }
-                item.max?.let { datePicker.maxDate = it.time }
-            }.show()
-        }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
+        OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
         Description(item.description)
     }
+    if (!picking) return
+    val min = item.min?.let(::utcDay)
+    val max = item.max?.let(::utcDay)
+    val state = rememberDatePickerState(
+        initialSelectedDateMillis = value?.toDate()?.let(::utcDay),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) =
+                (min == null || utcTimeMillis >= min) && (max == null || utcTimeMillis <= max)
+        }
+    )
+    DatePickerDialog(
+        onDismissRequest = { picking = false },
+        confirmButton = {
+            TextButton(onClick = {
+                state.selectedDateMillis?.let { onChange(localDay(it).stringValue()) }
+                picking = false
+            }) { Text(stringResource(android.R.string.ok)) }
+        },
+        dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } }
+    ) { DatePicker(state) }
 }
+
+/** The picker counts days in UTC; the form's dates are local midnights. */
+private fun utcDay(date: Date): Long =
+    date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+private fun localDay(utcMillis: Long): Date =
+    Date.from(Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant())
 
 @Composable
 private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) -> Unit) {

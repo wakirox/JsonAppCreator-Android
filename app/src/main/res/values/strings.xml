@@ -9,6 +9,7 @@
     <string name="home_your_apps_empty">The apps you open or make are kept here. Start with an example below.</string>
     <string name="home_open_now">Open now · %1$s</string>
     <string name="home_opened">Opened %1$s</string>
+    <string name="home_opened_just_now">Opened just now</string>
     <string name="home_add_to_home_screen">Add to home screen</string>
     <string name="home_delete">Delete</string>
     <string name="home_delete_title">Delete %1$s?</string>
