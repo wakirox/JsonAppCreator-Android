@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "Masterpieces",
+  "icon": "🖼️",
   "version": "1.0.0",
   "author": "Appkin",
   "changelog": "Public-domain paintings; images from Wikimedia Commons.",

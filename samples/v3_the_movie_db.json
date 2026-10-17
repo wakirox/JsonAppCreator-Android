@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "THE MOVIE DB",
+  "icon": "🎬",
   "version": "beta.1",
   "author": "Appkin",
   "changelog": "Implemented a series of endpoint calls from the movie db.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
