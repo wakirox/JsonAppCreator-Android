@@ -7,7 +7,7 @@ import it.sapienza.appinterpreter.editor.EditorIssue
 import it.sapienza.appinterpreter.editor.prettyJson
 
 /**
- * Everything an AI assistant needs to write a JSON App Creator configuration, in one Markdown text: the rules from
+ * Everything an AI assistant needs to write an Appkin configuration, in one Markdown text: the rules from
  * docs/LLM_GUIDE.md, a reference of every view, form field and event generated from the schema (so it can't drift
  * from it), complete examples, and optionally the app to change and what to build.
  */
@@ -22,10 +22,10 @@ object AiContext {
         currentApp: String? = null,
         request: String? = null
     ): String = buildString {
-        appendLine("# JSON App Creator: context for AI assistants")
+        appendLine("# Appkin: context for AI assistants")
         appendLine()
         appendLine(
-            "JSON App Creator is an Android app that turns a JSON configuration into a native app. You write the " +
+            "Appkin is an Android app that turns a JSON configuration into a native app. You write the " +
                 "configuration; the app validates it against the v3 schema and runs it. This document is the " +
                 "complete contract: use only what it describes."
         )
@@ -59,14 +59,14 @@ object AiContext {
         val what = request?.trim()?.takeIf { it.isNotEmpty() } ?: "<describe the app: its screens, data and actions>"
         appendLine(
             if (currentApp != null) "Change the current configuration: $what"
-            else "Create a JSON App Creator v3 configuration for this app: $what"
+            else "Create an Appkin v3 configuration for this app: $what"
         )
         appendLine()
         append(
             "If you can create files, give me the complete configuration as a downloadable file named " +
                 "${fileName(currentApp)}, containing only the JSON. If you can't, reply with only the " +
                 "complete JSON, starting with { and ending with }: no comments or explanations. I will open your " +
-                "file or share your answer in the JSON App Creator app, which runs it; if it reports problems, I " +
+                "file or share your answer in the Appkin app, which runs it; if it reports problems, I " +
                 "will send them to you to fix."
         )
         appendLine()
@@ -235,7 +235,7 @@ object AiContext {
 
     /** A message asking a model to fix the problems the editor found, with their lines and paths, and the JSON. */
     fun fixRequest(json: String, issues: List<EditorIssue>): String = buildString {
-        appendLine("JSON App Creator reports these problems in the configuration below:")
+        appendLine("Appkin reports these problems in the configuration below:")
         appendLine()
         issues.forEach { issue ->
             val line = issue.offset?.let { ConfigurationChecker.lineOf(json, it) }

@@ -1,27 +1,24 @@
-Describe an app in a JSON file and JSON App Creator runs it as a native Android app. No Android Studio, no build, nothing to compile.
-
-WHAT YOU CAN BUILD
-• Screens with text, buttons and images from the web, in vertical and horizontal layouts
-• Lists, written in the file or loaded from a REST API, with a detail screen for each item
-• Forms with text, number, email, password, date, choice and switch fields, and required fields
-• Navigation between screens, alerts, and GET or POST requests whose response opens the next screen
-• Events added to your calendar, filled in from a form
-• Data binding with ${placeholders}
-
-A BUILT-IN EDITOR
-Write and change apps on your phone: syntax colours, suggestions for what each part can still contain (required ones first), a live check that points at every mistake, ready-made views to insert, and one tap to run.
+Ask the AI app you already use for an app, and Appkin runs it on your phone: a reading list, a recipe collection, a sign-up form for your club, a gallery of your favourite paintings. No coding, no account, nothing to install.
 
 MAKE IT WITH YOUR AI APP
-JSON App Creator has no AI inside. It hands complete instructions to the AI app you already use, such as ChatGPT, Gemini, Grok or Claude. Chat there, then bring the result back: open the file it makes, share or paste its answer, or share a link to the chat. The app opens it checked and ready to run, and can send any problems back to your AI app for a fix.
+Describe the app you want. Appkin hands complete instructions to ChatGPT, Gemini, Grok, Claude or any AI app you use, so it knows exactly what to write. Bring the result back by opening the file it makes, sharing or pasting its answer, or sharing a link to the chat. Appkin checks it and opens it straight away. If something's wrong, one tap sends the problems back to your AI app for a fix.
 
-YOUR APPS ON YOUR HOME SCREEN
-Every app you make is kept on the home page, and each one can go on your phone's home screen with its own icon.
+Appkin has no AI inside: your chats stay in the AI app you chose.
 
-READY-MADE EXAMPLES
-Start from a gallery of famous paintings, a race sign-up form, a Pokédex loaded from a public API or a movie catalogue, and change any of them in the editor.
+KEEP YOUR APPS CLOSE
+Every app you open or make is kept under Your apps. Put any of them on your phone's home screen with its own icon, and tapping it opens that app directly.
 
-YOUR API KEYS STAY ON YOUR PHONE
-If an app needs an API key, JSON App Creator asks for it once and keeps it encrypted on your phone, tied to that app. It is never written into the JSON.
+WHAT YOUR APPS CAN DO
+• Screens with text, buttons and pictures
+• Lists, typed in or loaded from the web, with a page for each item
+• Forms with text, numbers, dates, choices and switches
+• Moving between screens, alerts, and adding events to your calendar
 
-OPEN SOURCE, NO ACCOUNT
-No ads, no account, no data collected. JSON App Creator is open source under the MIT licence; the format reference, a guide for AI assistants and examples are on GitHub: github.com/wakirox/JsonAppCreator-Android
+START FROM AN EXAMPLE
+Try a gallery of famous paintings, a race sign-up form, a Pokédex or a movie catalogue, and change any of them to make it yours.
+
+FOR THE CURIOUS
+Every app is one plain JSON file. A built-in editor shows it with colours, suggestions and a live check, and the format guide on GitHub explains every part.
+
+PRIVATE AND OPEN SOURCE
+No ads, no account, no data collected. If an app needs an API key, Appkin asks for it once and keeps it encrypted on your phone. Appkin is open source under the MIT licence: github.com/wakirox/Appkin-Android

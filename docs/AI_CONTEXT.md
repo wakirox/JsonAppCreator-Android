@@ -1,6 +1,6 @@
-# JSON App Creator: context for AI assistants
+# Appkin: context for AI assistants
 
-JSON App Creator is an Android app that turns a JSON configuration into a native app. You write the configuration; the app validates it against the v3 schema and runs it. This document is the complete contract: use only what it describes.
+Appkin is an Android app that turns a JSON configuration into a native app. You write the configuration; the app validates it against the v3 schema and runs it. This document is the complete contract: use only what it describes.
 
 ## Output contract
 
@@ -137,7 +137,7 @@ Generated from the v3 JSON Schema. Unknown properties are rejected. **Required**
 
 ### Root object
 
-Machine-readable contract for a JSON App Creator v3 application. schemaVersion is optional for backward compatibility; new configurations should set it to 3.
+Machine-readable contract for an Appkin v3 application. schemaVersion is optional for backward compatibility; new configurations should set it to 3.
 
 - `schemaVersion`: always `3`. Configuration-language version. Optional only for compatibility with configurations created before schema versioning was introduced
 - `name` **(required)**: text (not empty)
@@ -328,7 +328,7 @@ The list's items are in `data`; tapping one shows the reusable `artwork` view wi
   "schemaVersion": 3,
   "name": "Masterpieces",
   "version": "1.0.0",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "changelog": "Public-domain paintings; images from Wikimedia Commons.",
   "mainView": {
     "type": "layout",
@@ -474,7 +474,7 @@ Submitting runs the form's action with the filled-in values, so the alert can us
   "schemaVersion": 3,
   "name": "Summer Run 2026",
   "version": "1.0.0",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "mainView": {
     "type": "layout",
     "views": [
@@ -569,7 +569,7 @@ Submitting runs the form's action with the filled-in values, so the alert can us
   "schemaVersion": 3,
   "name": "KANTO POKÉDEX",
   "version": "1.0",
-  "author": "JsonAppCreator",
+  "author": "Appkin",
   "changelog": "A Pokédex for the original 151 Pokémon. Catalog data comes from the open PokemonGO-Pokedex dataset, with artwork provided by the PokéAPI sprites repository.",
   "mainView": {
     "id": "pokedex_home",
@@ -706,6 +706,6 @@ Submitting runs the form's action with the filled-in values, so the alert can us
 
 ## Your task
 
-Create a JSON App Creator v3 configuration for this app: <describe the app: its screens, data and actions>
+Create an Appkin v3 configuration for this app: <describe the app: its screens, data and actions>
 
-If you can create files, give me the complete configuration as a downloadable file named app.json, containing only the JSON. If you can't, reply with only the complete JSON, starting with { and ending with }: no comments or explanations. I will open your file or share your answer in the JSON App Creator app, which runs it; if it reports problems, I will send them to you to fix.
+If you can create files, give me the complete configuration as a downloadable file named app.json, containing only the JSON. If you can't, reply with only the complete JSON, starting with { and ending with }: no comments or explanations. I will open your file or share your answer in the Appkin app, which runs it; if it reports problems, I will send them to you to fix.

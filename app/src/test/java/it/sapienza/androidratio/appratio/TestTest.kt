@@ -10,7 +10,7 @@ class TestTest() {
     @test fun simple(){
         val parser = AppParser("""{
           "name": "My first app",
-          "author": "JsonAppCreator",
+          "author": "Appkin",
           "version": "1.0",
           "mainView": {
             "type": "layout",
@@ -26,7 +26,7 @@ class TestTest() {
     @test fun parsesChainedRestAction() {
         val parser = AppParser("""{
           "name": "REST app",
-          "author": "JsonAppCreator",
+          "author": "Appkin",
           "version": "1.0",
           "mainView": {
             "type": "layout",

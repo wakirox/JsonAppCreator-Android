@@ -32,7 +32,7 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 
 /**
- * Working with an AI app the user already has. JSON App Creator contains no AI: it shares instructions to the AI app
+ * Working with an AI app the user already has. Appkin contains no AI: it shares instructions to the AI app
  * through Android's share sheet, and receives the AI's answer back the same way (see EditorActivity).
  */
 object AskAi {
@@ -63,7 +63,7 @@ object AskAi {
             putExtra(Intent.EXTRA_TEXT, text)
         }
         val chooser = Intent.createChooser(send, "Share to your AI app")
-        // Not to JSON App Creator itself, which receives AI answers through the same share sheet.
+        // Not to Appkin itself, which receives AI answers through the same share sheet.
         chooser.putExtra(
             Intent.EXTRA_EXCLUDE_COMPONENTS,
             arrayOf(ComponentName(context, "it.sapienza.appinterpreter.activity.EditorActivity"))
@@ -73,7 +73,7 @@ object AskAi {
 
     fun copy(context: Context, text: String, done: String) {
         context.getSystemService(ClipboardManager::class.java)
-            .setPrimaryClip(ClipData.newPlainText("JSON App Creator", text))
+            .setPrimaryClip(ClipData.newPlainText("Appkin", text))
         Toast.makeText(context, done, Toast.LENGTH_LONG).show()
     }
 
@@ -89,7 +89,7 @@ object AskAi {
 }
 
 /**
- * Starts working with an AI app: says plainly that there is no AI in JSON App Creator, explains the round trip, then
+ * Starts working with an AI app: says plainly that there is no AI in Appkin, explains the round trip, then
  * shares (or copies) the instructions and the request. [currentApp], when given, can be included so the AI changes
  * it instead of starting over.
  */
@@ -106,7 +106,7 @@ fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss:
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    "JSON App Creator has no AI inside. It hands instructions to an AI app you already use, " +
+                    "Appkin has no AI inside. It hands instructions to an AI app you already use, " +
                         "such as ChatGPT, Claude or Gemini, and nothing is sent anywhere else.",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
@@ -114,7 +114,7 @@ fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss:
                 Text(
                     "1. Describe your app and share it to your AI app.\n" +
                         "2. Chat there until you like the result.\n" +
-                        "3. Bring the result back: open the file it makes in JSON App Creator, or share or copy " +
+                        "3. Bring the result back: open the file it makes in Appkin, or share or copy " +
                         "its answer, or a share link of the chat, here. It opens in the editor, checked and ready " +
                         "to run.",
                     style = MaterialTheme.typography.bodyMedium

@@ -12,7 +12,7 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import it.sapienza.appinterpreter.activity.MainActivity
 
-/** Home-screen shortcuts that open JSON App Creator straight into one saved app. */
+/** Home-screen shortcuts that open Appkin straight into one saved app. */
 object HomeShortcuts {
     const val EXTRA_APP_ID = "app_id"
 
@@ -36,7 +36,7 @@ object HomeShortcuts {
 
     /** A deleted app's pinned shortcut stays on the home screen, greyed out, and says so when tapped. */
     fun disable(context: Context, id: String) =
-        ShortcutManagerCompat.disableShortcuts(context, listOf(id), "This app was deleted in JSON App Creator")
+        ShortcutManagerCompat.disableShortcuts(context, listOf(id), "This app was deleted in Appkin")
 
     /** The colour of [name]'s icon; the home page's list uses it too, so an app looks the same in both places. */
     fun colorOf(name: String): Int = PALETTE[Math.floorMod(name.hashCode(), PALETTE.size)]

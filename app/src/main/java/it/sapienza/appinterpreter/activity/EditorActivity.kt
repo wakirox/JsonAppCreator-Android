@@ -212,7 +212,7 @@ private fun ReadingChat(link: String, onBack: () -> Unit) {
         CircularProgressIndicator()
         Text("Reading your shared ${ShareLinks.service(link)} chat…", style = MaterialTheme.typography.titleMedium)
         Text(
-            "JSON App Creator opens the public page of the link, as a browser would, and takes the last app the AI " +
+            "Appkin opens the public page of the link, as a browser would, and takes the last app the AI " +
                 "wrote in it. There is no AI in this app.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
@@ -228,7 +228,7 @@ private fun ChatNotReadDialog(service: String, onDismiss: () -> Unit) {
         title = { Text("No app found in the chat") },
         text = {
             Text(
-                "JSON App Creator couldn't read an app from that $service chat: the page may have changed, be " +
+                "Appkin couldn't read an app from that $service chat: the page may have changed, be " +
                     "private, or have no JSON app in the AI's answers. In $service, copy the AI's answer (or open " +
                     "the file it made), then use Paste answer from your AI app."
             )

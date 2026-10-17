@@ -1,6 +1,6 @@
-# Generating JSON App Creator configurations with an LLM
+# Generating Appkin configurations with an LLM
 
-This file is the generation contract for JSON App Creator v3. For individual field
+This file is the generation contract for Appkin v3. For individual field
 definitions, read the [v3 configuration reference](CONFIGURATION_V3.md) and the
 [canonical JSON Schema](../schema/v3.schema.json).
 
@@ -158,7 +158,7 @@ The same context is in [AI_CONTEXT.md](AI_CONTEXT.md) for use outside the app; a
 to a prompt like this one:
 
 ```text
-Create a JSON App Creator v3 configuration for the following application.
+Create an Appkin v3 configuration for the following application.
 
 Requirements:
 <describe screens, data, endpoints, and interactions>

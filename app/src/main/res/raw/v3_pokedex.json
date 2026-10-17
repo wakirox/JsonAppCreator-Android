@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "KANTO POKÉDEX",
   "version": "1.0",
-  "author": "JsonAppCreator",
+  "author": "Appkin",
   "changelog": "A Pokédex for the original 151 Pokémon. Catalog data comes from the open PokemonGO-Pokedex dataset, with artwork provided by the PokéAPI sprites repository.",
   "mainView": {
     "id": "pokedex_home",

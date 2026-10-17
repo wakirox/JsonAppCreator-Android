@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "Hello JSON",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "version": "1.0.0",
   "mainView": {
     "type": "layout",

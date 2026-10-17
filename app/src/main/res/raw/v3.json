@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "name": "v3",
   "version": "0",
-  "author": "JSON App Creator",
+  "author": "Appkin",
   "mainView": {
     "type": "list",
     "data" : {

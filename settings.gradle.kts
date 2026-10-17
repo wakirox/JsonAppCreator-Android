@@ -17,5 +17,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "JsonAppCreator"
+rootProject.name = "Appkin"
 include(":app")
