@@ -16,6 +16,8 @@ class ModelApplication (
     var debugMode : Boolean? = false,
     var version : String,
     var changelog : String?,
+    /** One emoji for the app's icon; without it, the icon is the name's first letter. */
+    var icon : String? = null,
     @JsonProperty("mainView") mainViewObject : ViewObject,
     @JsonProperty("views") viewObjects: MutableList<ViewObject> = mutableListOf(),
     var actions : MutableList<Action> = mutableListOf()

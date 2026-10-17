@@ -69,6 +69,7 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.ui.ActionMenuItem
+import it.sapienza.appinterpreter.ui.AppIconView
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
@@ -99,6 +100,7 @@ class HomeActivity : AppCompatActivity() {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState == null) HomeShortcuts.refreshPinned(this)
         setContent {
             AppTheme {
                 var deleting by remember { mutableStateOf<AppLibrary.SavedApp?>(null) }
@@ -166,7 +168,7 @@ class HomeActivity : AppCompatActivity() {
                                     else stringResource(R.string.home_opened, DateUtils.getRelativeTimeSpanString(app.savedAt))
                                     Text(if (app.name == current) stringResource(R.string.home_open_now, opened) else opened)
                                 },
-                                leadingContent = { LetterIcon(app.name) },
+                                leadingContent = { AppIconView(app.name, app.icon) },
                                 trailingContent = {
                                     Row {
                                         IconButton(onClick = {
@@ -187,12 +189,12 @@ class HomeActivity : AppCompatActivity() {
                             )
                         }
                         item { SectionHeader(stringResource(R.string.home_examples)) }
-                        itemsIndexed(EXAMPLES) { index, (name, about, resource) ->
+                        itemsIndexed(EXAMPLES) { index, (name, about, resource, icon) ->
                             val title = stringResource(name)
                             ListItem(
                                 headlineContent = { Text(title) },
                                 supportingContent = { Text(stringResource(about)) },
-                                leadingContent = { LetterIcon(title) },
+                                leadingContent = { AppIconView(title, icon) },
                                 colors = groupedItemColors(),
                                 modifier = Modifier.inGroup(index, EXAMPLES.size).clickable {
                                     DomainController.setJsonFile(resource, this@HomeActivity)
@@ -348,16 +350,6 @@ private fun Modifier.inGroup(index: Int, count: Int): Modifier {
 private fun groupedItemColors() = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
 
 @Composable
-private fun LetterIcon(name: String) {
-    Box(
-        Modifier.size(40.dp).clip(CircleShape).background(Color(HomeShortcuts.colorOf(name))),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(HomeShortcuts.letterOf(name), color = Color.White, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
 private fun SectionHeader(text: String) {
     Text(
         text,
@@ -375,11 +367,13 @@ private val STEPS = listOf(
     R.string.how_step_keep_title to R.string.how_step_keep_text
 )
 
-/** The bundled examples: name, what they show, and the configuration. */
+/** A bundled example: its name, what it shows, its configuration, and the icon that configuration sets. */
+private data class Example(val name: Int, val about: Int, val configuration: Int, val icon: String)
+
 private val EXAMPLES = listOf(
-    Triple(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces),
-    Triple(R.string.example_hello, R.string.example_hello_about, R.raw.v3_app_sample),
-    Triple(R.string.example_summer_run, R.string.example_summer_run_about, R.raw.v3_race_signup),
-    Triple(R.string.example_pokedex, R.string.example_pokedex_about, R.raw.v3_pokedex),
-    Triple(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db)
+    Example(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces, "🖼️"),
+    Example(R.string.example_hello, R.string.example_hello_about, R.raw.v3_app_sample, "👋"),
+    Example(R.string.example_summer_run, R.string.example_summer_run_about, R.raw.v3_race_signup, "🏃"),
+    Example(R.string.example_pokedex, R.string.example_pokedex_about, R.raw.v3_pokedex, "⚡"),
+    Example(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db, "🎬")
 )

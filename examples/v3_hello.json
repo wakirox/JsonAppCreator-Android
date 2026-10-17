@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "Hello JSON",
+  "icon": "👋",
   "author": "Appkin",
   "version": "1.0.0",
   "mainView": {
