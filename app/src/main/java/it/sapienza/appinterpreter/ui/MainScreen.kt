@@ -159,8 +159,9 @@ fun MainScreen(
     }
 }
 
+/** A ⋮ menu entry that closes the menu, then acts. The home page's menu uses it too. */
 @Composable
-private fun ActionMenuItem(
+fun ActionMenuItem(
     text: String,
     closeMenu: () -> Unit,
     onClick: () -> Unit,

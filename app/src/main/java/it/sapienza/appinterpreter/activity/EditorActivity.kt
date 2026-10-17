@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +64,7 @@ class EditorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val newApp = intent.getBooleanExtra(EXTRA_NEW_APP, false)
         // Shared from an AI app (or any app): the JSON in what was shared, if there is one.
         val shared = incomingText() ?: if (intent.action == Intent.ACTION_SEND) sharedText() else null

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -69,6 +70,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
 //        requestWindowFeature(Window.FEATURE_NO_TITLE)
 //        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -52,12 +54,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import androidx.core.net.toUri
+import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
+import it.sapienza.appinterpreter.ui.ActionMenuItem
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
@@ -87,19 +94,37 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             AppTheme {
                 var deleting by remember { mutableStateOf<AppLibrary.SavedApp?>(null) }
                 var askingAi by remember { mutableStateOf(false) }
+                var menuExpanded by remember { mutableStateOf(false) }
+                var aboutOpen by remember { mutableStateOf(false) }
                 var explained by remember { mutableStateOf(preferences().getBoolean(EXPLAINED_KEY, true)) }
 
                 Scaffold(topBar = {
                     TopAppBar(
                         title = { Text(stringResource(R.string.app_name)) },
-                        actions = { TextButton(onClick = { openFile.launch("application/json") }) { Text(stringResource(R.string.home_open_file)) } }
+                        actions = {
+                            IconButton(onClick = { menuExpanded = true }) {
+                                Icon(painterResource(R.drawable.baseline_more_vert_24), contentDescription = stringResource(R.string.menu_open))
+                            }
+                            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                                val close = { menuExpanded = false }
+                                ActionMenuItem(stringResource(R.string.menu_new_app), close, { EditorActivity.newApp(this@HomeActivity) }, R.drawable.baseline_insert_drive_file_24)
+                                HorizontalDivider()
+                                ActionMenuItem(stringResource(R.string.menu_ask_ai), close, { askingAi = true }, R.drawable.baseline_track_changes_24)
+                                ActionMenuItem(stringResource(R.string.menu_paste_ai), close, ::pasteFromAi, R.drawable.baseline_merge_type_24)
+                                HorizontalDivider()
+                                ActionMenuItem(stringResource(R.string.home_open_file), close, { openFile.launch("application/json") }, R.drawable.baseline_account_tree_24)
+                                ActionMenuItem(stringResource(R.string.home_menu_about), close, { aboutOpen = true }, R.drawable.baseline_perm_identity_24)
+                            }
+                        }
                     )
                 }) { padding ->
-                    LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    // The list scrolls behind the navigation bar, ending clear of it.
+                    LazyColumn(Modifier.fillMaxSize(), contentPadding = padding) {
                         item {
                             HowItWorks(expanded = explained, onToggle = {
                                 explained = !explained
@@ -178,6 +203,24 @@ class HomeActivity : AppCompatActivity() {
                     }
                 }
 
+                if (aboutOpen) {
+                    AlertDialog(
+                        onDismissRequest = { aboutOpen = false },
+                        title = { Text(stringResource(R.string.app_name)) },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME))
+                                Text(stringResource(R.string.home_about_text))
+                            }
+                        },
+                        confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                startActivity(Intent(Intent.ACTION_VIEW, GITHUB.toUri()))
+                            }) { Text(stringResource(R.string.home_about_github)) }
+                        }
+                    )
+                }
                 if (askingAi) {
                     AskAiDialog(currentApp = null, changeCurrentByDefault = false, onDismiss = { askingAi = false })
                 }
@@ -207,12 +250,19 @@ class HomeActivity : AppCompatActivity() {
         current = runCatching { JSONObject(DomainController.jsonFile(this)).optString("name") }.getOrNull()
     }
 
+    private fun pasteFromAi() {
+        val answer = AskAi.clipboardText(this)
+        if (answer == null) Toast.makeText(this, R.string.clipboard_empty, Toast.LENGTH_LONG).show()
+        else EditorActivity.aiAnswer(this, answer)
+    }
+
     private fun openCurrentApp() = startActivity(Intent(this, MainActivity::class.java))
 
     private fun preferences() = getSharedPreferences("Home", Context.MODE_PRIVATE)
 
     companion object {
         private const val EXPLAINED_KEY = "how_it_works_open"
+        private const val GITHUB = "https://github.com/wakirox/JsonAppCreator-Android"
 
         /** The home page as the only screen, from an app opened here or from a home-screen shortcut. */
         fun open(context: Context) = context.startActivity(
@@ -303,7 +353,6 @@ private val EXAMPLES = listOf(
     Triple(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces),
     Triple(R.string.example_hello, R.string.example_hello_about, R.raw.v3_app_sample),
     Triple(R.string.example_summer_run, R.string.example_summer_run_about, R.raw.v3_race_signup),
-    Triple(R.string.example_form, R.string.example_form_about, R.raw.v3_app_form),
     Triple(R.string.example_pokedex, R.string.example_pokedex_about, R.raw.v3_pokedex),
     Triple(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db)
 )

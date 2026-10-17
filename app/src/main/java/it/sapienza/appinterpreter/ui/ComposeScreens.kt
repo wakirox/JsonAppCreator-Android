@@ -6,11 +6,8 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,18 +59,12 @@ fun AppTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-
     MaterialTheme(
         colorScheme = colorScheme
     ) {
+        // Edge to edge: the surface reaches behind the system bars, and each screen keeps its content clear of them.
         Surface(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
-            ) {
-                content()
-            }
+            content()
         }
     }
 }

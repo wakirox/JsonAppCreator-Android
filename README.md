@@ -36,8 +36,9 @@ The app requires Android 8.1 (API 27) or newer.
 The app opens on its home page: a short **How it works**, **Your apps** (every app you
 have opened or made, most recently used first: open one, add it to the home screen, or
 delete it), the bundled **Examples** (start with **Masterpieces**, a gallery of
-public-domain paintings), **New app**, **Ask your AI app** and **Open a file…** for a
-UTF-8 JSON file in the v3 format. A home-screen shortcut skips the home page and opens
+public-domain paintings), **New app** and **Ask your AI app**. Its three-dot menu also has
+**Paste answer from your AI app**, **Open a file…** for a UTF-8 JSON file in the v3 format,
+and **About JSON App Creator**. A home-screen shortcut skips the home page and opens
 its app directly. Inside an app, from the three-dot menu:
 
 - **Edit this app** opens the current app in the built-in editor; **New app** starts a
