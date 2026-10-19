@@ -130,6 +130,9 @@ properties.
   other view, such as a button that needs a field, give it `"visibleIf": "field"` (shown only
   when the field has a value) or `"visibleIf": "!field"` (only when it hasn't). It is a path,
   never a comparison.
+- In a URL, Appkin percent-encodes what each `${...}` inserts: write `?q=${q}`, never encode
+  a placeholder yourself. Fixed text in a URL is sent as written, so encode it
+  (`type=Arms%20and%20Armor`).
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.

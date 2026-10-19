@@ -31,6 +31,15 @@ class FetchJsonUseCaseTest {
     }
 
     @Test
+    fun valuesAreSentPercentEncodedAndOnlyOnce() = runTest {
+        val form = JsonText.parse("""{ "type": "arms & armor", "q": "São #1" }""") as JsonObject
+
+        fetch(RESTService("https://example.com/api/?type=${'$'}{type}&q=${'$'}{q}&has_image=1"), form)
+
+        assertEquals(listOf("https://example.com/api/?type=arms%20%26%20armor&q=S%C3%A3o%20%231&has_image=1"), requested)
+    }
+
+    @Test
     fun aUrlWithAMissingValueIsNotRequested() = runTest {
         val error = assertFailsWith<MissingValueException> {
             fetch(RESTService("https://example.com/creators/${'$'}{creatorsless.0.id}?q=${'$'}{q}"), artwork)

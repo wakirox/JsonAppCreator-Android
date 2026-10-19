@@ -336,6 +336,13 @@ A placeholder with no value (missing or `null`) becomes empty text: `"By ${artis
 missing, such as "This item has no creators.0.id", instead of asking for the wrong address.
 An image whose `url` has a placeholder with no value shows "Image unavailable".
 
+In a REST `url`, an `initData` URL or an image `url`, each value a placeholder inserts is
+percent-encoded, so `?type=${type}` with `arms & armor` requests `?type=arms%20%26%20armor`
+and a value can't add parameters of its own. The rest of the address is used exactly as
+written, so encode any fixed text in it yourself (`department=Japanese%20Art`). A placeholder
+that starts the address, such as `"url": "${images.web.url}"`, supplies a whole address and
+is used as it is.
+
 ### Showing views only with data
 
 Any view, and a `{ "ref": … }` reference, can have `visibleIf`: a path in the view's data. The
