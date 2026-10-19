@@ -27,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,6 +43,8 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
@@ -65,6 +68,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import java.util.Date
+import android.text.format.DateFormat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
@@ -99,6 +103,9 @@ import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
+import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
+import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
+import it.sapienza.appinterpreter.utils.FormDates
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
@@ -615,6 +622,9 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
                 is TextInput -> TextField(item, values[item.mapping] as? String, onChange)
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
+                is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
+                // A hidden field only sends its value.
+                is HiddenInput -> Unit
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -692,6 +702,35 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
     ) { DatePicker(state) }
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit) {
+    var picking by remember { mutableStateOf(false) }
+    Column {
+        Text(item.title, style = MaterialTheme.typography.titleSmall)
+        OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
+        Description(item.description)
+    }
+    if (!picking) return
+    val (hour, minute) = value?.let(FormDates::parseTime) ?: (12 to 0)
+    val state = rememberTimePickerState(
+        initialHour = hour,
+        initialMinute = minute,
+        is24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    )
+    AlertDialog(
+        onDismissRequest = { picking = false },
+        confirmButton = {
+            TextButton(onClick = {
+                onChange(FormDates.formatTime(state.hour, state.minute))
+                picking = false
+            }) { Text(stringResource(android.R.string.ok)) }
+        },
+        dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } },
+        text = { TimePicker(state) }
+    )
+}
+
 /** The picker counts days in UTC; the form's dates are local midnights. */
 private fun utcDay(date: Date): Long =
     date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
@@ -706,9 +745,9 @@ private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) ->
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item.options.forEach { option ->
                 FilterChip(
-                    selected = selected == option,
-                    onClick = { onChange(option) },
-                    label = { Text(option) }
+                    selected = selected == option.value,
+                    onClick = { onChange(option.value) },
+                    label = { Text(option.label) }
                 )
             }
         }

@@ -82,13 +82,33 @@ fun String.missingPlaceholders(data: JsonObject?): List<String> =
  * address would ask for something else, so it isn't used. Each value is percent-encoded ("arms & armor" becomes
  * "arms%20%26%20armor"), so it can't change the address around it; the template itself is left as written. A
  * placeholder that starts the address, as in "${'$'}{images.web.url}", supplies the address itself and isn't encoded.
+ * A query parameter that is one placeholder, as "&type=${'$'}{type}", is an optional filter: without a value, or with
+ * an empty one, it is left out (see [withoutEmptyFilters]).
  */
 fun String.fillAddress(data: JsonObject?): String? {
-    if (missingPlaceholders(data).isNotEmpty()) return null
-    return PLACEHOLDER.replace(this) { match ->
+    val template = withoutEmptyFilters(data)
+    if (template.missingPlaceholders(data).isNotEmpty()) return null
+    return PLACEHOLDER.replace(template) { match ->
         val value = data?.getValue(match.groupValues[1]).orEmpty()
         if (match.range.first == 0) value else UriEncoding.encode(value)
     }
+}
+
+/** The placeholders an address needs and [data] lacks, once its optional filters are left out. */
+fun String.missingAddressPlaceholders(data: JsonObject?): List<String> = withoutEmptyFilters(data).missingPlaceholders(data)
+
+private val FILTER = Regex("^[^=]+=\\$\\{([^}]+)\\}$")
+
+/** This address without the query parameters "name=${'$'}{path}" whose path has no value, or an empty one, in [data]. */
+fun String.withoutEmptyFilters(data: JsonObject?): String {
+    val queryStart = indexOf('?').takeIf { it >= 0 } ?: return this
+    val fragmentStart = indexOf('#', queryStart).takeIf { it >= 0 } ?: length
+    val kept = substring(queryStart + 1, fragmentStart).split('&').filter { parameter ->
+        val path = FILTER.find(parameter)?.groupValues?.get(1) ?: return@filter true
+        !data?.getValue(path).isNullOrEmpty()
+    }
+    val query = if (kept.isEmpty()) "" else "?" + kept.joinToString("&")
+    return substring(0, queryStart) + query + substring(fragmentStart)
 }
 
 /**

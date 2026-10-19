@@ -1,7 +1,7 @@
 package it.sapienza.appinterpreter.runtime.usecase
 
 import it.sapienza.appinterpreter.json.fillAddress
-import it.sapienza.appinterpreter.json.missingPlaceholders
+import it.sapienza.appinterpreter.json.missingAddressPlaceholders
 import it.sapienza.appinterpreter.model.event.OpenLink
 import kotlinx.serialization.json.JsonObject
 
@@ -19,7 +19,7 @@ class OpenLinkUseCase {
 
     operator fun invoke(event: OpenLink, data: JsonObject?): Result {
         val url = event.url.fillAddress(data)?.trim()
-            ?: return Result.Missing(event.url.missingPlaceholders(data).first())
+            ?: return Result.Missing(event.url.missingAddressPlaceholders(data).first())
         val scheme = url.substringBefore(':', missingDelimiterValue = "").lowercase()
         if (scheme !in SCHEMES || url.length == scheme.length + 1) return Result.NotAllowed(url)
         return Result.Ready(url, scheme)

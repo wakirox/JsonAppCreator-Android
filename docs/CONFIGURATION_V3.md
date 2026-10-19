@@ -291,12 +291,35 @@ Supported form elements:
 | `selector` | `mapping`, `title`, `description`, `options`, `selection`, `mandatory` |
 | `date` | `mapping`, `title`, `description`, `value`, `min`, `max`, `mandatory` |
 | `checkbox` | `mapping`, `title`, `description`, `value`, `mandatory` |
+| `time` | `mapping`, `title`, `description`, `value` (`HH:mm`), `mandatory` |
+| `hidden` | `mapping`, `value` |
 
 `textType` is `plain` (default), `numeric`, `email`, or `password`. Dates shown through
 mapped form data use `dd/MM/yyyy`. `mandatory: true` blocks submission until a text
 (not just spaces), selector, or date value is set, or a checkbox is checked; the error
 names the missing fields. Without `mandatory`, a field is optional. Values filled in from
 the screen's data count as set and are submitted.
+
+A selector's `options` are strings, each shown and submitted as it is, or objects that
+show one thing and submit another:
+
+```json
+"options": [ { "label": "Any type", "value": "" }, "Painting", "Print" ]
+```
+
+`selection` and values from the screen's data are option values, not labels.
+
+A `time` field opens a clock and submits `HH:mm` on a 24-hour clock, which a calendar
+event's `time` takes: `"time": "${time}"`.
+
+A `hidden` field isn't shown; it sends `value` with the form, with placeholders filled in
+from the screen's data, such as `{ "type": "hidden", "mapping": "id", "value": "${id}" }`.
+Without `value` it sends the screen data's value at `mapping`. Its value is sent as text.
+
+In a request URL, a query parameter that is a single placeholder, such as
+`&type=${type}`, is optional: when that value is missing or empty (an optional field left
+blank, or an "Any type" option with the value `""`), the parameter is left out rather than
+sent empty.
 
 ## Data binding
 

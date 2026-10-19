@@ -244,12 +244,14 @@
       "description": "A form field, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["text", "selector", "date", "checkbox"] } },
+      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textInput" } },
         { "if": { "properties": { "type": { "const": "selector" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/selectorInput" } },
         { "if": { "properties": { "type": { "const": "date" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/dateInput" } },
-        { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } }
+        { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } },
+        { "if": { "properties": { "type": { "const": "time" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/timeInput" } },
+        { "if": { "properties": { "type": { "const": "hidden" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/hiddenInput" } }
       ]
     },
     "textInput": {
@@ -281,10 +283,24 @@
         "description": { "$ref": "#/$defs/nullableString" },
         "mandatory": { "type": ["boolean", "null"], "default": false },
         "options": {
+          "description": "The choices: each is a string, shown and submitted, or { \"label\": shown, \"value\": submitted }, such as { \"label\": \"Any type\", \"value\": \"\" }",
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "required": ["value"],
+                "properties": {
+                  "label": { "description": "What the option shows; its value by default", "type": "string" },
+                  "value": { "description": "What the form submits when it's chosen", "type": "string" }
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
         },
-        "selection": { "$ref": "#/$defs/nullableString" }
+        "selection": { "description": "The value chosen at first", "$ref": "#/$defs/nullableString" }
       },
       "additionalProperties": false
     },
@@ -306,6 +322,35 @@
     "dateValue": {
       "description": "A date string accepted by Jackson or an epoch-millisecond number.",
       "type": ["string", "number", "null"]
+    },
+    "timeInput": {
+      "type": "object",
+      "description": "A time of day, picked on a clock and submitted as HH:mm, as a calendar event's time takes it.",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "time" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "type": "string" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "value": {
+          "description": "The time at first, HH:mm",
+          "type": ["string", "null"],
+          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hiddenInput": {
+      "type": "object",
+      "description": "A value the form sends without showing it, such as the id of the item on screen.",
+      "required": ["type", "mapping"],
+      "properties": {
+        "type": { "const": "hidden" },
+        "mapping": { "description": "Key of the submitted object that receives the value", "$ref": "#/$defs/nonEmptyString" },
+        "value": { "description": "The value, sent as text; may use ${field} placeholders filled in from the screen's data. Without it, the data's value at mapping is sent.", "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
     },
     "checkboxInput": {
       "type": "object",
