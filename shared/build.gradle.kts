@@ -25,6 +25,8 @@ kotlin {
         commonMain.dependencies {
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
             api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+            // JSON Schema draft 2020-12 in common code, on kotlinx.serialization (replaces networknt + Jackson).
+            implementation("io.github.optimumcode:json-schema-validator:0.5.5")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -32,3 +34,63 @@ kotlin {
         }
     }
 }
+
+/** A Kotlin string literal holding [text] exactly. */
+fun kotlinString(text: String): String = buildString {
+    append('"')
+    text.forEach { c ->
+        when (c) {
+            '\\' -> append("\\\\")
+            '"' -> append("\\\"")
+            '$' -> append("\\$")
+            '\n' -> append("\\n")
+            '\r' -> append("\\r")
+            '\t' -> append("\\t")
+            else -> append(c)
+        }
+    }
+    append('"')
+}
+
+// The v3 schema as a constant, so every platform validates with the repository's one copy of it.
+val generateSchemaSource by tasks.registering {
+    val schema = rootProject.file("schema/v3.schema.json")
+    val output = layout.buildDirectory.dir("generated/schema/kotlin")
+    inputs.file(schema)
+    outputs.dir(output)
+    doLast {
+        val file = output.get().file("it/sapienza/appinterpreter/validation/V3Schema.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            "package it.sapienza.appinterpreter.validation\n\n" +
+                "/** schema/v3.schema.json, copied in at build time. */\n" +
+                "object V3Schema {\n    const val JSON: String = ${kotlinString(schema.readText())}\n}\n"
+        )
+    }
+}
+
+// The bundled configurations, for the common tests (which can't read files on every platform).
+val generateTestFixtures by tasks.registering {
+    val directories = listOf("examples", "samples", "app/src/main/res/raw").map { rootProject.file(it) }
+    val output = layout.buildDirectory.dir("generated/fixtures/kotlin")
+    directories.forEach { inputs.dir(it) }
+    outputs.dir(output)
+    doLast {
+        val entries = directories.flatMap { directory ->
+            directory.listFiles { file -> file.name.endsWith(".json") }.orEmpty().sortedBy { it.name }
+                .map { "${directory.name}/${it.name}" to it.readText() }
+        }
+        val file = output.get().file("it/sapienza/appinterpreter/Fixtures.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            "package it.sapienza.appinterpreter\n\n" +
+                "/** Every bundled configuration (examples/, samples/ and the app's raw resources) by \"folder/name.json\". */\n" +
+                "object Fixtures {\n    val configurations: Map<String, String> = mapOf(\n" +
+                entries.joinToString(",\n") { (name, text) -> "        ${kotlinString(name)} to ${kotlinString(text)}" } +
+                "\n    )\n}\n"
+        )
+    }
+}
+
+kotlin.sourceSets.commonMain { kotlin.srcDir(generateSchemaSource) }
+kotlin.sourceSets.commonTest { kotlin.srcDir(generateTestFixtures) }

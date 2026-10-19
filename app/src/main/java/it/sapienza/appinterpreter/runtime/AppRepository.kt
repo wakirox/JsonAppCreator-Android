@@ -1,5 +1,7 @@
 package it.sapienza.appinterpreter.runtime
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import android.content.Context
 import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.utils.DomainController

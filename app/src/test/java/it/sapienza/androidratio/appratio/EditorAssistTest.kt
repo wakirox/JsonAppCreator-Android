@@ -1,5 +1,7 @@
 package it.sapienza.androidratio.appratio
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.SchemaSuggestions
 import it.sapienza.appinterpreter.editor.JsonColors

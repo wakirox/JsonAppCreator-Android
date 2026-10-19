@@ -1,5 +1,7 @@
 package it.sapienza.appinterpreter.activity
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge

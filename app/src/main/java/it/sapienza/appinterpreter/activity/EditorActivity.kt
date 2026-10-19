@@ -1,5 +1,7 @@
 package it.sapienza.appinterpreter.activity
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import android.content.Context
 import android.content.Intent
 import android.net.Uri

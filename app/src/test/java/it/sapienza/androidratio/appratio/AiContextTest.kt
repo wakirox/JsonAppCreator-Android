@@ -1,5 +1,7 @@
 package it.sapienza.androidratio.appratio
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.ShareLinks
 import it.sapienza.appinterpreter.editor.ConfigurationChecker

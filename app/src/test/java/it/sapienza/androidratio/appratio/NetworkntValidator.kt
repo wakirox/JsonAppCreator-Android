@@ -1,6 +1,5 @@
-package it.sapienza.appinterpreter.validation
+package it.sapienza.androidratio.appratio
 
-import android.content.Context
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.networknt.schema.InputFormat
@@ -9,34 +8,20 @@ import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SchemaRegistryConfig
 import com.networknt.schema.SpecificationVersion
 import com.networknt.schema.path.PathType
+import it.sapienza.appinterpreter.validation.ConfigurationIssue
+import it.sapienza.appinterpreter.validation.ConfigurationIssueKind
+import it.sapienza.appinterpreter.validation.ConfigurationValidationResult
 import java.io.InputStream
 
-enum class ConfigurationIssueKind {
-    MALFORMED_JSON,
-    SCHEMA
-}
-
-data class ConfigurationIssue(
-    val path: String,
-    val message: String,
-    val kind: ConfigurationIssueKind
-)
-
-data class ConfigurationValidationResult(
-    val issues: List<ConfigurationIssue>
-) {
-    val isValid: Boolean
-        get() = issues.isEmpty()
-}
-
 /**
- * Validates Appkin input before it is converted into the Kotlin model.
+ * The validator the app used until it moved to the multiplatform one (networknt on Jackson), kept for the parity
+ * test only: it is the reference the new validator's paths are compared with.
  *
  * The validator is immutable and may be reused. It deliberately reports schema
  * failures as values so callers can show all useful paths instead of surfacing
  * only the first Jackson conversion exception.
  */
-class ConfigurationValidator private constructor(
+class NetworkntValidator private constructor(
     private val schema: Schema,
     private val mapper: ObjectMapper = ObjectMapper()
 ) {
@@ -92,12 +77,7 @@ class ConfigurationValidator private constructor(
     }
 
     companion object {
-        const val ASSET_PATH = "v3.schema.json"
-
-        fun fromAssets(context: Context): ConfigurationValidator =
-            context.assets.open(ASSET_PATH).use { fromSchema(it) }
-
-        fun fromSchema(schemaInput: InputStream): ConfigurationValidator {
+        fun fromSchema(schemaInput: InputStream): NetworkntValidator {
             val schema = SchemaRegistry
                 .withDefaultDialect(SpecificationVersion.DRAFT_2020_12) { builder ->
                     builder.schemaRegistryConfig(
@@ -107,7 +87,7 @@ class ConfigurationValidator private constructor(
                     )
                 }
                 .getSchema(schemaInput)
-            return ConfigurationValidator(schema)
+            return NetworkntValidator(schema)
         }
     }
 }
