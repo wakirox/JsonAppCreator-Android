@@ -45,8 +45,15 @@ The optional root fields are `author`, `changelog`, `debugMode`, `views`, and
 10. For every list, provide `itemView` and a `mapping` selecting an array of objects.
 11. If a list has `initData`, ensure its endpoint returns a JSON object containing the
     mapped array.
-12. Use HTTPS endpoints that require no custom headers. Never embed private API keys,
-    tokens, passwords, or other secrets.
+12. Use HTTPS endpoints that require no custom headers. Never write a real API key,
+    token, password, or other secret into the JSON. When an API needs a key in its URL
+    (a query parameter or a path segment), write a named placeholder instead: two
+    underscores, an uppercase name, two underscores, for example
+    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__`. Appkin asks the user
+    for each placeholder's value when the app opens, stores it encrypted on the device,
+    and fills it into every request URL. Use one name per key and reuse it in every URL
+    that needs it. A key that the API accepts only in a header can't be used: pick
+    another API.
 13. Make every mapping and placeholder match the real data exactly, including case and
     nesting.
 14. Prefer a small working configuration over speculative or undocumented fields.
@@ -108,7 +115,9 @@ properties.
 - A button shows its `title` (or the value its `mapping` selects). A button's `label` is
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
-  one style. Use `textStyle` and `textSize` for emphasis.
+  one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
+  a text view (`https://...`) becomes a link that opens in the browser; this is the only
+  way to link to a web page.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
@@ -567,39 +576,39 @@ Submitting runs the form's action with the filled-in values, so the alert can us
 ```json
 {
   "schemaVersion": 3,
-  "name": "KANTO POKÉDEX",
+  "name": "PUBLIC DOMAIN ART",
   "version": "1.0",
   "author": "Appkin",
-  "changelog": "A Pokédex for the original 151 Pokémon. Catalog data comes from the open PokemonGO-Pokedex dataset, with artwork provided by the PokéAPI sprites repository.",
+  "changelog": "Public-domain paintings from the Cleveland Museum of Art. Data and images from its Open Access API (CC0).",
   "mainView": {
-    "id": "pokedex_home",
+    "id": "art_home",
     "type": "layout",
     "views": [
       {
         "type": "text",
-        "label": "Kanto Pokédex",
-        "title": "Explore the original 151 Pokémon. Tap a Pokémon to open its full entry.",
+        "label": "Public domain art",
+        "title": "Paintings from the Cleveland Museum of Art. Tap one to see it larger.",
         "textStyle": "bold",
         "textSize": 18
       },
       {
         "type": "list",
-        "mapping": "pokemon",
+        "mapping": "data",
         "initData": {
-          "url": "https://raw.githubusercontent.com/Biuni/PokemonGO-Pokedex/master/pokedex.json",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&type=Painting&limit=30&fields=id,title,creation_date,technique,creators,images",
           "method": "get"
         },
         "action": {
-          "id": "show_pokemon_detail"
+          "id": "show_artwork_detail"
         },
         "itemView": {
-          "id": "pokemon_list_item",
+          "id": "artwork_list_item",
           "type": "layout",
           "orientation": "horizontal",
           "views": [
             {
               "type": "image",
-              "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+              "url": "${images.web.url}",
               "size": {
                 "width": 112,
                 "height": 112
@@ -607,96 +616,59 @@ Submitting runs the form's action with the filled-in values, so the alert can us
             },
             {
               "type": "text",
-              "label": "#${num}  ${name}",
-              "title": "Type: ${type}\n${height}  •  ${weight}"
+              "label": "${title}",
+              "title": "${creation_date}"
             }
           ]
         }
       },
       {
         "type": "text",
-        "title": "Data: PokemonGO-Pokedex • Artwork: PokéAPI sprites",
+        "title": "Data and images: Cleveland Museum of Art Open Access (CC0)",
         "textStyle": "italic"
       }
     ]
   },
   "views": [
     {
-      "id": "pokemon_detail",
+      "id": "artwork_detail",
       "type": "layout",
       "views": [
         {
           "type": "image",
-          "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+          "url": "${images.web.url}",
           "size": {
             "height": 300
           }
         },
         {
           "type": "text",
-          "label": "#${num}  ${name}",
-          "title": "${type}",
+          "label": "${title}",
+          "title": "${creation_date}",
           "textStyle": "bold",
           "textSize": 24
         },
         {
-          "type": "layout",
-          "orientation": "horizontal",
-          "views": [
-            {
-              "type": "text",
-              "label": "Height",
-              "mapping": "height"
-            },
-            {
-              "type": "text",
-              "label": "Weight",
-              "mapping": "weight"
-            }
-          ]
+          "type": "text",
+          "label": "Artist",
+          "mapping": "creators.0.description"
         },
         {
           "type": "text",
-          "label": "Candy",
-          "mapping": "candy"
-        },
-        {
-          "type": "text",
-          "label": "Weaknesses",
-          "mapping": "weaknesses"
-        },
-        {
-          "type": "layout",
-          "orientation": "horizontal",
-          "views": [
-            {
-              "type": "text",
-              "label": "Egg",
-              "mapping": "egg"
-            },
-            {
-              "type": "text",
-              "label": "Spawn time",
-              "mapping": "spawn_time"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "label": "Spawn chance",
-          "title": "${spawn_chance}%"
+          "label": "Technique",
+          "mapping": "technique"
         }
       ]
     }
   ],
   "actions": [
     {
-      "id": "show_pokemon_detail",
+      "id": "show_artwork_detail",
       "type": "click",
       "event": {
         "type": "show",
         "view": {
-          "id": "pokemon_detail"
+          "id": "artwork_detail"
         }
       }
     }

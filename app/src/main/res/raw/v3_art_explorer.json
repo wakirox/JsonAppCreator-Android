@@ -1,0 +1,533 @@
+{
+  "schemaVersion": 3,
+  "name": "ART EXPLORER",
+  "version": "1.0",
+  "author": "Appkin",
+  "changelog": "A museum collection, live: public-domain artworks from the Cleveland Museum of Art's Open Access API (CC0 data and images). Search it, browse it by type, read about a work and its artist, and plan a visit in your calendar.",
+  "mainView": {
+    "id": "explorer_home",
+    "type": "layout",
+    "views": [
+      {
+        "type": "text",
+        "label": "Art Explorer",
+        "title": "Thousands of public-domain artworks, live from the Cleveland Museum of Art. Swipe a row, tap a work, or search the whole collection.",
+        "textStyle": "bold",
+        "textSize": 18
+      },
+      {
+        "type": "text",
+        "label": "Highlights",
+        "title": "The museum's most celebrated works"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&highlight=1&limit=20",
+          "method": "get"
+        },
+        "mapping": "data",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "ref": "artwork_tile"
+        }
+      },
+      {
+        "type": "form",
+        "id": "search_form",
+        "title": "Search the collection",
+        "buttonTitle": "Search",
+        "formElements": [
+          {
+            "type": "text",
+            "mapping": "q",
+            "title": "Search",
+            "placeholder": "Monet, armor, cats…",
+            "description": "An artist, a subject or a place",
+            "mandatory": true
+          }
+        ],
+        "action": {
+          "ref": "search"
+        }
+      },
+      {
+        "type": "form",
+        "id": "browse_form",
+        "title": "Browse by type",
+        "buttonTitle": "Browse",
+        "formElements": [
+          {
+            "type": "selector",
+            "mapping": "type",
+            "title": "Type",
+            "options": [
+              "Painting",
+              "Drawing",
+              "Print",
+              "Photograph",
+              "Sculpture",
+              "Ceramic",
+              "Glass",
+              "Jewelry",
+              "Textile",
+              "Arms and Armor",
+              "Manuscript"
+            ],
+            "selection": "Painting",
+            "mandatory": true
+          }
+        ],
+        "action": {
+          "ref": "browse"
+        }
+      },
+      {
+        "type": "text",
+        "label": "Japanese prints",
+        "title": "Woodblock prints from Edo-period Japan"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Japanese%20Art&type=Print&limit=12",
+          "method": "get"
+        },
+        "mapping": "data",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "ref": "artwork_tile"
+        }
+      },
+      {
+        "type": "text",
+        "label": "Ancient Egypt",
+        "title": "Amulets, statues and coffins, some over 4,000 years old"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Egyptian%20and%20Ancient%20Near%20Eastern%20Art&limit=12",
+          "method": "get"
+        },
+        "mapping": "data",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "ref": "artwork_tile"
+        }
+      },
+      {
+        "type": "text",
+        "label": "Arms and armor",
+        "title": "Helmets, swords and armor for man and horse"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&type=Arms%20and%20Armor&limit=12",
+          "method": "get"
+        },
+        "mapping": "data",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "ref": "artwork_tile"
+        }
+      },
+      {
+        "type": "text",
+        "label": "European paintings",
+        "title": "From the Impressionists to the early 1900s"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "initData": {
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Modern%20European%20Painting%20and%20Sculpture&type=Painting&limit=12",
+          "method": "get"
+        },
+        "mapping": "data",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "ref": "artwork_tile"
+        }
+      },
+      {
+        "type": "text",
+        "title": "Data and images: Cleveland Museum of Art Open Access (CC0). Art Explorer isn't affiliated with the museum.\nhttps://openaccess-api.clevelandart.org/",
+        "textStyle": "italic"
+      }
+    ]
+  },
+  "views": [
+    {
+      "id": "artwork_tile",
+      "type": "layout",
+      "orientation": "vertical",
+      "views": [
+        {
+          "type": "image",
+          "url": "${images.web.url}",
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "action": {
+            "ref": "open_artwork"
+          }
+        },
+        {
+          "type": "text",
+          "title": "${title}",
+          "size": {
+            "width": 150,
+            "height": 48
+          }
+        }
+      ]
+    },
+    {
+      "id": "artwork_row",
+      "type": "layout",
+      "orientation": "horizontal",
+      "views": [
+        {
+          "type": "image",
+          "url": "${images.web.url}",
+          "size": {
+            "width": 112,
+            "height": 112
+          }
+        },
+        {
+          "type": "text",
+          "label": "${title}",
+          "title": "${creation_date}"
+        }
+      ]
+    },
+    {
+      "id": "artwork_detail",
+      "type": "layout",
+      "views": [
+        {
+          "type": "image",
+          "url": "${images.web.url}",
+          "size": {
+            "height": 320
+          }
+        },
+        {
+          "type": "text",
+          "label": "${title}",
+          "title": "${creation_date}",
+          "textStyle": "bold",
+          "textSize": 24
+        },
+        {
+          "type": "text",
+          "label": "Artist (tap for more)",
+          "mapping": "creators.0.description",
+          "action": {
+            "ref": "open_artist"
+          }
+        },
+        {
+          "type": "text",
+          "label": "Did you know?",
+          "mapping": "did_you_know",
+          "textStyle": "italic"
+        },
+        {
+          "type": "text",
+          "label": "Technique",
+          "mapping": "technique"
+        },
+        {
+          "type": "text",
+          "label": "Culture",
+          "mapping": "culture"
+        },
+        {
+          "type": "text",
+          "label": "Size",
+          "mapping": "measurements"
+        },
+        {
+          "type": "text",
+          "label": "Collection",
+          "mapping": "department"
+        },
+        {
+          "type": "text",
+          "label": "On view",
+          "mapping": "current_location"
+        },
+        {
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "button",
+              "title": "Museum label",
+              "action": {
+                "ref": "museum_label"
+              }
+            },
+            {
+              "type": "button",
+              "title": "Plan a visit",
+              "action": {
+                "ref": "plan_visit"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "label": "On the museum's website",
+          "mapping": "url"
+        }
+      ]
+    },
+    {
+      "id": "artist_detail",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "title": "${name}",
+          "textStyle": "bold",
+          "textSize": 26
+        },
+        {
+          "type": "text",
+          "mapping": "description"
+        },
+        {
+          "type": "text",
+          "mapping": "biography"
+        },
+        {
+          "type": "button",
+          "title": "Their works with images",
+          "action": {
+            "ref": "artist_works"
+          }
+        },
+        {
+          "type": "text",
+          "label": "Everything by them in the collection",
+          "title": "Tap one to open it.",
+          "textStyle": "bold"
+        },
+        {
+          "type": "list",
+          "mapping": "artworks",
+          "action": {
+            "ref": "open_collection_work"
+          },
+          "itemView": {
+            "id": "collection_work",
+            "type": "layout",
+            "views": [
+              {
+                "type": "text",
+                "label": "${title}",
+                "mapping": "tombstone"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "search_results",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "label": "Results",
+          "title": "${info.total} public-domain works with images. Tap one to open it.",
+          "textStyle": "bold"
+        },
+        {
+          "type": "list",
+          "mapping": "data",
+          "action": {
+            "ref": "open_artwork"
+          },
+          "itemView": {
+            "ref": "artwork_row"
+          }
+        }
+      ]
+    },
+    {
+      "id": "visit_planner",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "label": "Plan a visit",
+          "title": "Pick a day and Appkin opens your calendar with the visit filled in. Check the museum's website for opening hours and what's on view.\nhttps://www.clevelandart.org/visit"
+        },
+        {
+          "type": "form",
+          "id": "visit_form",
+          "buttonTitle": "Add to calendar",
+          "formElements": [
+            {
+              "type": "text",
+              "mapping": "title",
+              "title": "Artwork to see",
+              "mandatory": true
+            },
+            {
+              "type": "date",
+              "mapping": "date",
+              "title": "Day",
+              "mandatory": true
+            }
+          ],
+          "action": {
+            "ref": "add_visit"
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "open_artwork",
+      "type": "click",
+      "event": {
+        "type": "show",
+        "view": {
+          "ref": "artwork_detail"
+        }
+      }
+    },
+    {
+      "id": "search",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&limit=40",
+        "thenDo": {
+          "type": "show",
+          "view": {
+            "ref": "search_results"
+          }
+        }
+      }
+    },
+    {
+      "id": "browse",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&type=${type}&limit=40",
+        "thenDo": {
+          "type": "show",
+          "view": {
+            "ref": "search_results"
+          }
+        }
+      }
+    },
+    {
+      "id": "open_artist",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/creators/${creators.0.id}",
+        "thenDo": {
+          "type": "show",
+          "mapping": "data",
+          "view": {
+            "ref": "artist_detail"
+          }
+        }
+      }
+    },
+    {
+      "id": "artist_works",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&artists=${name}&limit=40",
+        "thenDo": {
+          "type": "show",
+          "view": {
+            "ref": "search_results"
+          }
+        }
+      }
+    },
+    {
+      "id": "museum_label",
+      "type": "click",
+      "event": {
+        "type": "alert",
+        "value": "${tombstone}"
+      }
+    },
+    {
+      "id": "plan_visit",
+      "type": "click",
+      "event": {
+        "type": "show",
+        "view": {
+          "ref": "visit_planner"
+        }
+      }
+    },
+    {
+      "id": "add_visit",
+      "type": "click",
+      "event": {
+        "type": "calendar",
+        "title": "Cleveland Museum of Art: ${title}",
+        "date": "${date}",
+        "time": "11:00",
+        "durationMinutes": 120,
+        "location": "Cleveland Museum of Art, 11150 East Blvd, Cleveland, OH 44106",
+        "description": "Go and see ${title}."
+      }
+    },
+    {
+      "id": "open_collection_work",
+      "type": "click",
+      "event": {
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/${id}",
+        "thenDo": {
+          "type": "show",
+          "mapping": "data",
+          "view": {
+            "ref": "artwork_detail"
+          }
+        }
+      }
+    }
+  ]
+}
