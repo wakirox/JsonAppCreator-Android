@@ -209,7 +209,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // The published release isn't minified. -Pminify=true builds it with R8, to measure and smoke-test that.
+            isMinifyEnabled = providers.gradleProperty("minify").orNull == "true"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
