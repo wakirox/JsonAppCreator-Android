@@ -25,7 +25,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&highlight=1&limit=20",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&highlight=1&limit=20",
           "method": "get"
         },
         "mapping": "data",
@@ -99,7 +99,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Japanese%20Art&type=Print&limit=12",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Japanese%20Art&type=Print&limit=12",
           "method": "get"
         },
         "mapping": "data",
@@ -119,7 +119,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Egyptian%20and%20Ancient%20Near%20Eastern%20Art&limit=12",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Egyptian%20and%20Ancient%20Near%20Eastern%20Art&limit=12",
           "method": "get"
         },
         "mapping": "data",
@@ -139,7 +139,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&type=Arms%20and%20Armor&limit=12",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&type=Arms%20and%20Armor&limit=12",
           "method": "get"
         },
         "mapping": "data",
@@ -159,7 +159,7 @@
         "type": "list",
         "orientation": "horizontal",
         "initData": {
-          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Modern%20European%20Painting%20and%20Sculpture&type=Painting&limit=12",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&department=Modern%20European%20Painting%20and%20Sculpture&type=Painting&limit=12",
           "method": "get"
         },
         "mapping": "data",
@@ -439,7 +439,7 @@
           "mapping": "data",
           "emptyText": "Nothing with an image here. Try other words.",
           "initData": {
-            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
+            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
             "method": "get",
             "nextPage": {
               "parameter": "skip",
@@ -482,7 +482,7 @@
           "columns": 2,
           "emptyText": "Nothing with an image here. Try other words.",
           "initData": {
-            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,description,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
+            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
             "method": "get",
             "nextPage": {
               "parameter": "skip",
@@ -548,11 +548,17 @@
       "id": "open_artwork",
       "type": "click",
       "event": {
-        "type": "show",
-        "view": {
-          "ref": "artwork_detail"
-        },
-        "title": "${department}"
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/${id}",
+        "thenDo": {
+          "type": "show",
+          "mapping": "data",
+          "view": {
+            "ref": "artwork_detail"
+          },
+          "title": "${department}"
+        }
       }
     },
     {
