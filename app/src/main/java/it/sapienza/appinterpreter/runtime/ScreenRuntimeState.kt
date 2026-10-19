@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.runtime
 
+import it.sapienza.appinterpreter.model.dataObj
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import org.json.JSONObject
 

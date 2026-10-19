@@ -1,8 +1,11 @@
 package it.sapienza.androidratio.appratio
 
+import it.sapienza.appinterpreter.model.dataObj
 import it.sapienza.appinterpreter.activity.MainActivity
 import it.sapienza.appinterpreter.activity.spawnInstance
-import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.model.view_model.TextView
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -20,7 +23,7 @@ class ScreenNavigationIntentTest {
     @Test
     fun navigationSerializesPayloadWithoutWritingToDefinition() {
         val activity = Robolectric.buildActivity(MainActivity::class.java).get()
-        val definition = MView(id = "details", data = mutableMapOf("kind" to "configured"))
+        val definition = TextView(id = "details", data = JsonObject(mapOf("kind" to JsonPrimitive("configured"))))
         val payload = JSONObject().put("kind", "runtime")
 
         spawnInstance(activity, definition, payload)

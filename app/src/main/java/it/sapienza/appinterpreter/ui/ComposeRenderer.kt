@@ -2,6 +2,7 @@
 
 package it.sapienza.appinterpreter.ui
 
+import it.sapienza.appinterpreter.model.dataObj
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +89,7 @@ import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ImageView
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.TextView
+import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
@@ -238,7 +240,7 @@ private fun RowScope.rowChildModifier(model: MView): Modifier {
 }
 
 private fun MView.explicitWidth(): Int? = when (this) {
-    is TextView -> size?.width
+    is TextualView -> size?.width
     is ImageView -> size?.width
     is Layout -> when (orientation) {
         LayoutOrientation.horizontal -> views.mapNotNull { it.explicitWidth() }.takeIf { it.size == views.size }?.sum()
@@ -249,7 +251,7 @@ private fun MView.explicitWidth(): Int? = when (this) {
 
 @Composable
 private fun RenderText(
-    view: TextView,
+    view: TextualView,
     data: JSONObject?,
     modifier: Modifier,
     contentPadding: PaddingValues = PaddingValues(6.dp)
@@ -481,7 +483,8 @@ private fun ListCardContent(
                         allowImagePreview = false,
                         edgeToEdge = true
                     )
-                    child is TextView -> RenderText(
+                    // A button among a card's texts is drawn as text, as it always was (ButtonView was a TextView).
+                    child is TextualView -> RenderText(
                         view = child,
                         data = item,
                         modifier = Modifier.fillMaxWidth(),
@@ -523,7 +526,7 @@ private fun ListCardContent(
             Column(Modifier.weight(1f)) {
                 resolvedChildren.drop(1).forEach { child ->
                     when (child) {
-                        is TextView -> RenderHorizontalCardText(
+                        is TextualView -> RenderHorizontalCardText(
                             view = child,
                             data = item,
                             modifier = Modifier.fillMaxWidth()
@@ -543,7 +546,7 @@ private fun ListCardContent(
 }
 
 @Composable
-private fun RenderHorizontalCardText(view: TextView, data: JSONObject?, modifier: Modifier) {
+private fun RenderHorizontalCardText(view: TextualView, data: JSONObject?, modifier: Modifier) {
     val title = view.label?.matchReplace(data).orEmpty()
     val supportingText = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty())
         .matchReplace(data)
@@ -643,8 +646,8 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
         Description(item.description)
     }
     if (!picking) return
-    val min = item.min?.let(::utcDay)
-    val max = item.max?.let(::utcDay)
+    val min = item.min?.let { utcDay(Date(it)) }
+    val max = item.max?.let { utcDay(Date(it)) }
     val state = rememberDatePickerState(
         initialSelectedDateMillis = value?.toDate()?.let(::utcDay),
         selectableDates = object : SelectableDates {

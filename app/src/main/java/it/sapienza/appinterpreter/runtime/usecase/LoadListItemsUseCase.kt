@@ -1,5 +1,7 @@
 package it.sapienza.appinterpreter.runtime.usecase
 
+import it.sapienza.appinterpreter.model.dataObjArr
+import it.sapienza.appinterpreter.model.dataObj
 import it.sapienza.appinterpreter.extensions.getArray
 import it.sapienza.appinterpreter.model.view_model.ListView
 import org.json.JSONObject

@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.activity
 
+import it.sapienza.appinterpreter.model.dataObj
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent

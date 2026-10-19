@@ -1,6 +1,9 @@
 package it.sapienza.androidratio.appratio
 
-import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.model.dataObj
+import it.sapienza.appinterpreter.model.view_model.TextView
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import it.sapienza.appinterpreter.runtime.ScreenRuntimeState
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -18,7 +21,7 @@ class ScreenRuntimeStateTest {
 
     @Test
     fun payloadIsIndependentFromDefinitionAndCaller() {
-        val definition = MView(id = "details", data = mutableMapOf("name" to "configured"))
+        val definition = TextView(id = "details", data = JsonObject(mapOf("name" to JsonPrimitive("configured"))))
         val navigationPayload = JSONObject().put("name", "first")
 
         val screen = ScreenRuntimeState.create(definition, navigationPayload)
@@ -30,7 +33,7 @@ class ScreenRuntimeStateTest {
 
     @Test
     fun screensUsingTheSameDefinitionKeepSeparatePayloads() {
-        val definition = MView(id = "details")
+        val definition = TextView(id = "details")
 
         val first = ScreenRuntimeState.create(definition, JSONObject().put("id", 1))
         val second = ScreenRuntimeState.create(definition, JSONObject().put("id", 2))
@@ -42,7 +45,7 @@ class ScreenRuntimeStateTest {
 
     @Test
     fun configuredDataIsUsedWhenNavigationHasNoPayload() {
-        val definition = MView(id = "about", data = mutableMapOf("title" to "About"))
+        val definition = TextView(id = "about", data = JsonObject(mapOf("title" to JsonPrimitive("About"))))
 
         val screen = ScreenRuntimeState.create(definition, null)
 
