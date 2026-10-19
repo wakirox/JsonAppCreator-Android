@@ -34,6 +34,7 @@ import it.sapienza.appinterpreter.ui.MainScreen
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
+import it.sapienza.appinterpreter.utils.ShareApp
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -113,6 +114,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onHome = { HomeActivity.open(this) },
                             onAddToHome = { addToHomeScreen() },
+                            onShare = { ShareApp.share(this, app.name, DomainController.jsonFile(this)) },
                             // Opened from a home-screen shortcut, the first screen has nothing to go back to.
                             onBack = if (isTaskRoot) null else onBackPressedDispatcher::onBackPressed
                         )

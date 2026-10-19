@@ -51,6 +51,7 @@ fun MainScreen(
     onPasteFromAi: () -> Unit,
     onHome: () -> Unit,
     onAddToHome: () -> Unit,
+    onShare: () -> Unit,
     /** Back to the previous screen; null on a screen with nothing before it, which shows no arrow. */
     onBack: (() -> Unit)? = null
 ) {
@@ -125,6 +126,12 @@ fun MainScreen(
                             iconResource = R.drawable.baseline_add_photo_alternate_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAddToHome
+                        )
+                        ActionMenuItem(
+                            text = stringResource(R.string.menu_share_app),
+                            iconResource = R.drawable.baseline_share_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onShare
                         )
                         ActionMenuItem(
                             text = stringResource(R.string.menu_about),

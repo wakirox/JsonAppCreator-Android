@@ -11,6 +11,7 @@
     <string name="home_opened">Opened %1$s</string>
     <string name="home_opened_just_now">Opened just now</string>
     <string name="home_add_to_home_screen">Add to home screen</string>
+    <string name="home_share">Share</string>
     <string name="home_delete">Delete</string>
     <string name="home_delete_title">Delete %1$s?</string>
     <string name="home_delete_text">It\'s removed from Your apps, and its home-screen shortcut stops working.</string>
@@ -59,6 +60,21 @@
     <string name="menu_home">Home</string>
     <string name="menu_add_to_home_screen">Add to home screen</string>
     <string name="menu_about">About this app</string>
+    <string name="menu_share_app">Share this app</string>
+
+    <!-- Sharing an app: it travels as its JSON file -->
+    <string name="share_app_title">Share %1$s</string>
+    <string name="received_by">By %1$s · version %2$s</string>
+    <string name="received_version">Version %1$s</string>
+    <string name="received_web">It connects to: %1$s</string>
+    <string name="received_offline">It doesn\'t connect to any website.</string>
+    <string name="received_keys">It needs your own API key for %1$s: keys never travel with a shared app.</string>
+    <string name="received_same_name">You already have an app called %1$s. Replace it, or keep both.</string>
+    <string name="received_open">Open</string>
+    <string name="received_replace">Replace</string>
+    <string name="received_keep_both">Keep both</string>
+    <string name="received_edit">Look at it in the editor</string>
+    <string name="received_cancel">Cancel</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_author">By %1$s</string>
     <string name="about_whats_new">What\'s new</string>

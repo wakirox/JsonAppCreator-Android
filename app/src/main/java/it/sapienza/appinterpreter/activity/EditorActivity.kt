@@ -136,7 +136,7 @@ class EditorActivity : AppCompatActivity() {
         }
     }
 
-    /** Text handed over by [aiAnswer] or [fileWithProblems], through a file because it can be large. */
+    /** Text handed over by [aiAnswer] or [openedFile], through a file because it can be large. */
     private fun incomingText(): String? = intent.getStringExtra(EXTRA_INCOMING_FILE)?.let { path ->
         runCatching { File(path).readText() }.getOrNull()
     }
@@ -165,8 +165,8 @@ class EditorActivity : AppCompatActivity() {
         fun aiAnswer(context: Context, answer: String) =
             context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_INCOMING_FILE, incoming(context, answer)))
 
-        /** Opens a file's configuration that has problems, so they can be fixed or sent to the AI app. */
-        fun fileWithProblems(context: Context, json: String) = context.startActivity(
+        /** Opens a file's configuration: one with problems, to fix or send to the AI app, or one to look at first. */
+        fun openedFile(context: Context, json: String) = context.startActivity(
             Intent(context, EditorActivity::class.java)
                 .putExtra(EXTRA_INCOMING_FILE, incoming(context, json))
                 .putExtra(EXTRA_FROM_FILE, true)
