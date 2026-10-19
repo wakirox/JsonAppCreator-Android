@@ -50,6 +50,7 @@
     <string name="example_movie_db_about">Movies from an online API</string>
 
     <!-- An app's menu and About dialog -->
+    <string name="navigate_back">Back</string>
     <string name="menu_open">Open application menu</string>
     <string name="menu_edit_app">Edit this app</string>
     <string name="menu_new_app">New app</string>

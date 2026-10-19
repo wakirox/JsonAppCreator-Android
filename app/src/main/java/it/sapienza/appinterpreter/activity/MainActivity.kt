@@ -112,7 +112,9 @@ class MainActivity : ComponentActivity() {
                                 } else EditorActivity.aiAnswer(this, answer)
                             },
                             onHome = { HomeActivity.open(this) },
-                            onAddToHome = { addToHomeScreen() }
+                            onAddToHome = { addToHomeScreen() },
+                            // Opened from a home-screen shortcut, the first screen has nothing to go back to.
+                            onBack = if (isTaskRoot) null else onBackPressedDispatcher::onBackPressed
                         )
                     }
                 }

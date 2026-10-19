@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -48,7 +50,9 @@ fun MainScreen(
     onAskAi: () -> Unit,
     onPasteFromAi: () -> Unit,
     onHome: () -> Unit,
-    onAddToHome: () -> Unit
+    onAddToHome: () -> Unit,
+    /** Back to the previous screen; null on a screen with nothing before it, which shows no arrow. */
+    onBack: (() -> Unit)? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var aboutOpen by remember { mutableStateOf(false) }
@@ -62,6 +66,16 @@ fun MainScreen(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                },
+                navigationIcon = {
+                    if (onBack != null) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.navigate_back)
+                            )
+                        }
+                    }
                 },
                 actions = {
                     IconButton(onClick = { menuExpanded = true }) {
