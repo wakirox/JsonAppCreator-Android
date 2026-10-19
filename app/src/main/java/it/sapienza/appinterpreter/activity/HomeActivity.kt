@@ -380,6 +380,5 @@ private val EXAMPLES = listOf(
     Triple(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces),
     Triple(R.string.example_hello, R.string.example_hello_about, R.raw.v3_app_sample),
     Triple(R.string.example_summer_run, R.string.example_summer_run_about, R.raw.v3_race_signup),
-    Triple(R.string.example_pokedex, R.string.example_pokedex_about, R.raw.v3_pokedex),
     Triple(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db)
 )

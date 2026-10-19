@@ -44,10 +44,8 @@
     <string name="example_hello_about">The smallest app: one screen of text</string>
     <string name="example_summer_run">Summer Run</string>
     <string name="example_summer_run_about">A race sign-up form with required fields</string>
-    <string name="example_pokedex">Kanto Pokédex</string>
-    <string name="example_pokedex_about">A list loaded from the web, with details</string>
     <string name="example_movie_db">The Movie DB</string>
-    <string name="example_movie_db_about">Movies from an online API (needs your own API key)</string>
+    <string name="example_movie_db_about">Movies from an online API</string>
 
     <!-- An app's menu and About dialog -->
     <string name="menu_open">Open application menu</string>

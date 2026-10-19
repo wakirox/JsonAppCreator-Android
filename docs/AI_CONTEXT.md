@@ -574,39 +574,39 @@ Submitting runs the form's action with the filled-in values, so the alert can us
 ```json
 {
   "schemaVersion": 3,
-  "name": "KANTO POKÉDEX",
+  "name": "PUBLIC DOMAIN ART",
   "version": "1.0",
   "author": "Appkin",
-  "changelog": "A Pokédex for the original 151 Pokémon. Catalog data comes from the open PokemonGO-Pokedex dataset, with artwork provided by the PokéAPI sprites repository.",
+  "changelog": "Public-domain paintings from the Cleveland Museum of Art. Data and images from its Open Access API (CC0).",
   "mainView": {
-    "id": "pokedex_home",
+    "id": "art_home",
     "type": "layout",
     "views": [
       {
         "type": "text",
-        "label": "Kanto Pokédex",
-        "title": "Explore the original 151 Pokémon. Tap a Pokémon to open its full entry.",
+        "label": "Public domain art",
+        "title": "Paintings from the Cleveland Museum of Art. Tap one to see it larger.",
         "textStyle": "bold",
         "textSize": 18
       },
       {
         "type": "list",
-        "mapping": "pokemon",
+        "mapping": "data",
         "initData": {
-          "url": "https://raw.githubusercontent.com/Biuni/PokemonGO-Pokedex/master/pokedex.json",
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&type=Painting&limit=30&fields=id,title,creation_date,technique,creators,images",
           "method": "get"
         },
         "action": {
-          "id": "show_pokemon_detail"
+          "id": "show_artwork_detail"
         },
         "itemView": {
-          "id": "pokemon_list_item",
+          "id": "artwork_list_item",
           "type": "layout",
           "orientation": "horizontal",
           "views": [
             {
               "type": "image",
-              "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+              "url": "${images.web.url}",
               "size": {
                 "width": 112,
                 "height": 112
@@ -614,96 +614,59 @@ Submitting runs the form's action with the filled-in values, so the alert can us
             },
             {
               "type": "text",
-              "label": "#${num}  ${name}",
-              "title": "Type: ${type}\n${height}  •  ${weight}"
+              "label": "${title}",
+              "title": "${creation_date}"
             }
           ]
         }
       },
       {
         "type": "text",
-        "title": "Data: PokemonGO-Pokedex • Artwork: PokéAPI sprites",
+        "title": "Data and images: Cleveland Museum of Art Open Access (CC0)",
         "textStyle": "italic"
       }
     ]
   },
   "views": [
     {
-      "id": "pokemon_detail",
+      "id": "artwork_detail",
       "type": "layout",
       "views": [
         {
           "type": "image",
-          "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+          "url": "${images.web.url}",
           "size": {
             "height": 300
           }
         },
         {
           "type": "text",
-          "label": "#${num}  ${name}",
-          "title": "${type}",
+          "label": "${title}",
+          "title": "${creation_date}",
           "textStyle": "bold",
           "textSize": 24
         },
         {
-          "type": "layout",
-          "orientation": "horizontal",
-          "views": [
-            {
-              "type": "text",
-              "label": "Height",
-              "mapping": "height"
-            },
-            {
-              "type": "text",
-              "label": "Weight",
-              "mapping": "weight"
-            }
-          ]
+          "type": "text",
+          "label": "Artist",
+          "mapping": "creators.0.description"
         },
         {
           "type": "text",
-          "label": "Candy",
-          "mapping": "candy"
-        },
-        {
-          "type": "text",
-          "label": "Weaknesses",
-          "mapping": "weaknesses"
-        },
-        {
-          "type": "layout",
-          "orientation": "horizontal",
-          "views": [
-            {
-              "type": "text",
-              "label": "Egg",
-              "mapping": "egg"
-            },
-            {
-              "type": "text",
-              "label": "Spawn time",
-              "mapping": "spawn_time"
-            }
-          ]
-        },
-        {
-          "type": "text",
-          "label": "Spawn chance",
-          "title": "${spawn_chance}%"
+          "label": "Technique",
+          "mapping": "technique"
         }
       ]
     }
   ],
   "actions": [
     {
-      "id": "show_pokemon_detail",
+      "id": "show_artwork_detail",
       "type": "click",
       "event": {
         "type": "show",
         "view": {
-          "id": "pokemon_detail"
+          "id": "artwork_detail"
         }
       }
     }
