@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "Summer Run 2026",
+  "icon": "🏃",
   "version": "1.0.0",
   "author": "Appkin",
   "mainView": {

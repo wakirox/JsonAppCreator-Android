@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "App creator",
+  "icon": "👋",
   "author": "Appkin",
   "version": "alpha-01",
   "mainView": {
