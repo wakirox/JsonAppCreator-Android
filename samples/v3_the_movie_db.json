@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "THE MOVIE DB",
+  "icon": "🎬",
   "version": "beta.1",
   "author": "Appkin",
   "changelog": "Movies and people from The Movie Database (TMDB). This product uses the TMDB API but is not endorsed or certified by TMDB.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",

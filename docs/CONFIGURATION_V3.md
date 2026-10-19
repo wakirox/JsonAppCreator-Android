@@ -69,7 +69,7 @@ Save this as `hello.json` and load it from the app:
 
 `schemaVersion`, `name`, `version`, and `mainView` are required for new configurations.
 The validator accepts a missing `schemaVersion` only for backward compatibility.
-`author`, `changelog`, `debugMode`, `views`, and `actions` are optional.
+`author`, `icon`, `changelog`, `debugMode`, `views`, and `actions` are optional.
 
 ## Configuration model
 
@@ -83,6 +83,7 @@ The validator accepts a missing `schemaVersion` only for backward compatibility.
 | `mainView` | view | yes | First screen. Usually an inline `layout`. |
 | `author` | string | no | Author displayed in the app menu. |
 | `changelog` | string | no | Adds a menu item that opens this text. |
+| `icon` | string | no | One emoji for the app's icon on the home page and the home screen, such as `"🏍️"`. Without it, the icon is the name's first letter. |
 | `debugMode` | boolean | no | Reserved; currently has no visible behavior. |
 | `views` | view[] | no | Reusable views. Give every entry a unique `id`. |
 | `actions` | action[] | no | Reusable actions. IDs must be unique. |

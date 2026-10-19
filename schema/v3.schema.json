@@ -15,6 +15,11 @@
     "author": { "$ref": "#/$defs/nullableString" },
     "debugMode": { "type": ["boolean", "null"], "default": false },
     "version": { "$ref": "#/$defs/nonEmptyString" },
+    "icon": {
+      "type": ["string", "null"],
+      "maxLength": 32,
+      "description": "One emoji for the app's icon on the home page and the phone's home screen, such as \"🏍️\". Without it, the icon is the name's first letter."
+    },
     "changelog": { "$ref": "#/$defs/nullableString" },
     "mainView": { "$ref": "#/$defs/view" },
     "views": {

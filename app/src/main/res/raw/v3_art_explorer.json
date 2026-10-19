@@ -1,6 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "ART EXPLORER",
+  "icon": "🏛️",
   "version": "1.0",
   "author": "Appkin",
   "changelog": "A museum collection, live: public-domain artworks from the Cleveland Museum of Art's Open Access API (CC0 data and images). Search it, browse it by type, read about a work and its artist, and plan a visit in your calendar.",

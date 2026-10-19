@@ -21,7 +21,7 @@ Every new configuration must begin with these root fields:
 }
 ```
 
-The optional root fields are `author`, `changelog`, `debugMode`, `views`, and
+The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`, and
 `actions`.
 
 ## Generation rules
@@ -133,9 +133,15 @@ properties.
 - Form fields are `text`, `selector`, `date` and `checkbox`; there is no `input`,
   `dropdown` or `switch`. Dates are `dd/MM/yyyy`.
 - Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
+- Give every app an `icon`: one emoji that fits what it is about, such as `"🏍️"` for a
+  motorcycle guide or `"📚"` for a book club. It is the app's icon on the home page and the
+  phone's home screen.
 - Don't invent image addresses or IDs (such as cover IDs): a made-up one shows a different
   picture or none. Use addresses the user gives, fields of a REST response, or images you
   are certain of; otherwise leave the image out and say so.
+- The same goes for every link (images, `rest` URLs, web pages): write an address only in a
+  form you know works, exactly as it is published. Never build one by guessing its parts
+  (folders, file names, IDs, hashes, sizes): a guessed address almost never loads.
 - A screen opened with a `show` event already has the system Back gesture and button:
   don't add "Back" buttons or alerts that only explain how to go back.
 - JSON has no comments and no trailing commas.
@@ -153,6 +159,7 @@ Machine-readable contract for an Appkin v3 application. schemaVersion is optiona
 - `author`: text
 - `debugMode`: `true` or `false`
 - `version` **(required)**: text (not empty)
+- `icon`: text. One emoji for the app's icon on the home page and the phone's home screen, such as "🏍️". Without it, the icon is the name's first letter
 - `changelog`: text
 - `mainView` **(required)**: a view (or `{ "ref": "id" }`)
 - `views`: an array; each item is a view. Reusable view definitions. References are not valid in this registry
@@ -336,6 +343,7 @@ The list's items are in `data`; tapping one shows the reusable `artwork` view wi
 {
   "schemaVersion": 3,
   "name": "Masterpieces",
+  "icon": "🖼️",
   "version": "1.0.0",
   "author": "Appkin",
   "changelog": "Public-domain paintings; images from Wikimedia Commons.",
@@ -482,6 +490,7 @@ Submitting runs the form's action with the filled-in values, so the alert can us
 {
   "schemaVersion": 3,
   "name": "Summer Run 2026",
+  "icon": "🏃",
   "version": "1.0.0",
   "author": "Appkin",
   "mainView": {

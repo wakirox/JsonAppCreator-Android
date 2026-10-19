@@ -16,7 +16,10 @@ import kotlin.time.Clock
  */
 class AppLibrary(private val store: AppStore, private val now: () -> Long = { Clock.System.now().toEpochMilliseconds() }) {
     /** [configurationId] is kept so an app reopened later finds its saved or bundled API keys again. */
-    data class SavedApp(val id: String, val name: String, val json: String, val savedAt: Long, val configurationId: String)
+    data class SavedApp(val id: String, val name: String, val json: String, val savedAt: Long, val configurationId: String) {
+        /** The emoji the app chose for its icon, if any. */
+        val icon: String? by lazy { iconOf(json) }
+    }
 
     /** Saves [json] under its name; nothing happens for an app whose name is missing or blank. */
     fun save(json: String, configurationId: String): SavedApp? {
@@ -59,6 +62,9 @@ class AppLibrary(private val store: AppStore, private val now: () -> Long = { Cl
     companion object {
         /** A stable id for an app name: the shortcut and the library entry share it. Names differing only in case match. */
         fun idOf(name: String): String = "app:" + name.trim().lowercase()
+
+        fun iconOf(json: String): String? =
+            runCatching { (JsonText.parse(json) as JsonObject).optString("icon") }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
 
         fun nameOf(json: String): String? =
             runCatching { (JsonText.parse(json) as JsonObject).optString("name") }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }

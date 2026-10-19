@@ -1,7 +1,7 @@
 package it.sapienza.appinterpreter.storage
 
 import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
-import it.sapienza.appinterpreter.utils.AppIcons
+import it.sapienza.appinterpreter.utils.AppIcon
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.BundledConfiguration
 import it.sapienza.appinterpreter.utils.CurrentApp
@@ -72,10 +72,28 @@ class AppLibraryTest {
 
     @Test
     fun iconsHaveALetterAndAColourFromTheName() {
-        assertEquals("B", AppIcons.letterOf("  books"))
-        assertEquals("?", AppIcons.letterOf("!!"))
-        assertEquals(AppIcons.colorOf("Books"), AppIcons.colorOf("Books"))
-        assertNotEquals(AppIcons.colorOf("Masterpieces"), AppIcons.colorOf("Race sign-up"))
-        assertTrue(AppIcons.colorOf("x") ushr 24 == 0xFF)
+        assertEquals("B", AppIcon.letter("  books"))
+        assertEquals("?", AppIcon.letter("!!"))
+        assertEquals(AppIcon.tileColor("Books"), AppIcon.tileColor("Books"))
+        assertNotEquals(AppIcon.tileColor("Masterpieces"), AppIcon.tileColor("Race sign-up"))
+        assertTrue(AppIcon.tileColor("x") ushr 24 == 0xFF)
+    }
+
+    @Test
+    fun anAppsEmojiIsItsIcon() {
+        val json = """{ "name": "Top Motorcycles", "icon": " 🏍️ ", "version": "1.0", "mainView": { "type": "text" } }"""
+        assertEquals("🏍️", AppLibrary.iconOf(json))
+        assertEquals("🏍️", library.save(json, "file:1")!!.icon)
+        assertNull(AppLibrary.iconOf(app("Book club")))
+        assertNull(AppLibrary.iconOf("not json"))
+        assertNull(AppIcon.emoji("  "))
+        assertEquals("🍕", AppIcon.emoji(" 🍕"))
+    }
+
+    @Test
+    fun theSoftColourIsTheTileColourMostlyWhite() {
+        // Channel by channel (checked against androidx's ColorUtils.blendARGB in :app's AppIconTest).
+        assertEquals(0xFF323232.toInt(), AppIcon.blend(0xFF000000.toInt(), 0xFF646464.toInt(), 0.5f))
+        assertEquals(AppIcon.blend(AppIcon.tileColor("Books"), 0xFFFFFFFF.toInt(), 0.82f), AppIcon.softColor("Books"))
     }
 }

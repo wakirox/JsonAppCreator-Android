@@ -15,6 +15,8 @@ class ModelApplication(
     val debugMode: Boolean? = false,
     val version: String,
     val changelog: String? = null,
+    /** One emoji for the app's icon; without it, the icon is the name's first letter. */
+    val icon: String? = null,
     val mainView: MView,
     @SerialName("views") private val declaredViews: List<MView> = emptyList(),
     @SerialName("actions") private val declaredActions: List<Action> = emptyList()

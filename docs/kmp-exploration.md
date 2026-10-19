@@ -1,8 +1,8 @@
 # Kotlin Multiplatform exploration
 
-Branch `explore/kmp-shared`, based on master `66c02ba`. This is an exploration. It isn't
-meant to be merged until the owner decides whether Appkin goes multiplatform. It
-contains no iOS UI and no Swift code. The goal was to find out whether the engine can be
+Branch `explore/kmp-shared`, based on master `66c02ba`, with master merged in up to
+`c6160e6` (#18, #19, #20, #21, #24, ported to `:shared`). The owner decided to go ahead
+with it. It contains no iOS UI and no Swift code. The goal was to find out whether the engine can be
 shared and what that costs, with Android behaving exactly as before.
 
 ## Result
@@ -16,7 +16,8 @@ shared and what that costs, with Android behaving exactly as before.
   framework needs a Mac.
 - Jackson, org.json (in the engine) and networknt are gone from the app. They are
   replaced by kotlinx.serialization, OptimumCode's json-schema-validator and Ktor.
-- All tests pass: 97 before, 144 after (86 common, 58 Android). Two pieces of output
+- All tests pass: 97 before, 144 after (86 common, 58 Android). With master's later
+  changes merged in, 168 (96 common, 72 Android). Two pieces of output
   were compared exactly. Validator messages match networknt's, and
   `docs/AI_CONTEXT.md` is reproduced byte for byte.
 - The minified release (R8) works on an emulator. Masterpieces, the detail screen, the
@@ -40,6 +41,7 @@ shared and what that costs, with Android behaving exactly as before.
 | `JsonHttpClient` (Ktor), `ShareLinks` (Ktor) | `HttpClient`: the one OkHttp client shared by Ktor and Coil |
 | `editor/`: checker, suggestions, cursor, snippets, `prettyJson` | |
 | `ai/AiContext` | `AskAi` (Android resources, share sheet) |
+| `SharedApps` (file name, websites, arrival, rename), `AppIcon` (colours, letter, emoji) | `ShareApp` (FileProvider, share sheet), `ReceivedAppDialog`, `AppIcon.bitmap`, `AppIconView`, `Links` (Compose) |
 
 Platform seams are common interfaces with Android implementations: `AppStore`,
 `SecretStore`, `CalendarWriter`, `HomeScreenShortcuts` and `RuntimeStrings`. Common
@@ -113,6 +115,9 @@ Small differences, all on invalid input or edge cases:
 - RFC 1123 dates ("Fri, 01 May 2026 …") in date fields are no longer accepted.
 - A calendar time that falls in a DST gap moves forward instead of being rejected.
 - A POST that is redirected is followed with Ktor's rules.
+- A shared app kept next to a saved one of the same name ("Keep both") is written in the
+  editor's JSON format (`"key": value`, numbers as written) instead of Jackson's default
+  pretty printer (`"key" : value`, arrays on one line, 0.10 as 0.1).
 
 ## Risks
 
