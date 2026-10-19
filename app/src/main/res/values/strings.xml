@@ -38,6 +38,8 @@
     <string name="how_menu_note">Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, put it on your home screen, or come back here.</string>
 
     <!-- Bundled examples -->
+    <string name="example_art_explorer">Art Explorer</string>
+    <string name="example_art_explorer_about">A live museum collection: search it, meet the artists, plan a visit</string>
     <string name="example_masterpieces">Masterpieces</string>
     <string name="example_masterpieces_about">A gallery of famous paintings with a screen for each</string>
     <string name="example_hello">Hello</string>
