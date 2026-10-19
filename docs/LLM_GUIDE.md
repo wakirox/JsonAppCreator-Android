@@ -138,11 +138,9 @@ properties.
 - Don't invent image addresses or IDs (such as cover IDs): a made-up one shows a different
   picture or none. Use addresses the user gives, fields of a REST response, or images you
   are certain of; otherwise leave the image out and say so.
-- For a Wikimedia Commons picture, write
-  `https://commons.wikimedia.org/wiki/Special:FilePath/<exact file name>?width=640`, with the
-  name of a file you know exists on Commons (spaces as underscores). Never write an
-  `upload.wikimedia.org/.../thumb/...` address: its folders come from a hash of the file name,
-  which can't be guessed, so a made-up one never loads.
+- The same goes for every link (images, `rest` URLs, web pages): write an address only in a
+  form you know works, exactly as it is published. Never build one by guessing its parts
+  (folders, file names, IDs, hashes, sizes): a guessed address almost never loads.
 - A screen opened with a `show` event already has the system Back gesture and button:
   don't add "Back" buttons or alerts that only explain how to go back.
 - JSON has no comments and no trailing commas.
