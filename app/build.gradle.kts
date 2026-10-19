@@ -209,7 +209,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // The published release isn't minified. -Pminify=true builds it with R8, to measure and smoke-test that.
+            isMinifyEnabled = providers.gradleProperty("minify").orNull == "true"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -233,17 +234,10 @@ android {
             assets.directories.add(aiGuideAssets.get().asFile.absolutePath)
         }
     }
-
-    packaging {
-        resources.pickFirsts += setOf(
-            "META-INF/FastDoubleParser-LICENSE",
-            "META-INF/FastDoubleParser-ThirdParty-LICENSE",
-            "META-INF/Schubfach-LICENSE"
-        )
-    }
 }
 
 dependencies {
+    implementation(project(":shared"))
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.activity:activity-compose:1.13.0")
@@ -264,8 +258,9 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.6.3")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.3")
-    implementation("com.networknt:json-schema-validator:3.0.8")
+    // Only for ValidatorParityTest: the app validates with the multiplatform validator in :shared.
+    testImplementation("com.networknt:json-schema-validator:3.0.8")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.22.3")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(platform("io.insert-koin:koin-bom:4.2.2"))

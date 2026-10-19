@@ -1,5 +1,7 @@
 package it.sapienza.androidratio.appratio
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import it.sapienza.appinterpreter.validation.ConfigurationIssueKind
 import it.sapienza.appinterpreter.validation.ConfigurationSchemaException
 import it.sapienza.appinterpreter.validation.ConfigurationValidator

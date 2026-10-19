@@ -7,14 +7,13 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import it.sapienza.appinterpreter.activity.MainActivity
 
-/** Home-screen shortcuts that open Appkin straight into one saved app. */
-object HomeShortcuts {
-    const val EXTRA_APP_ID = "app_id"
+/** Home-screen shortcuts that open Appkin straight into one saved app: pinned launcher shortcuts. */
+class HomeShortcuts(private val context: Context) : HomeScreenShortcuts {
 
     /** Asks the launcher to pin a shortcut for [app]; false if the launcher can't pin shortcuts. */
-    fun pin(context: Context, app: AppLibrary.SavedApp): Boolean {
+    override fun pin(app: AppLibrary.SavedApp): Boolean {
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(context)) return false
-        val shortcut = shortcut(context, app)
+        val shortcut = shortcut(app)
         // Re-enable it in case this app was deleted and saved again, and give an already pinned one today's icon.
         ShortcutManagerCompat.enableShortcuts(context, listOf(shortcut))
         ShortcutManagerCompat.updateShortcuts(context, listOf(shortcut))
@@ -25,13 +24,14 @@ object HomeShortcuts {
      * Gives every pinned shortcut its app's current name and icon: launchers keep a shortcut's icon until the app
      * updates it, so shortcuts pinned before an app (or Appkin) changed would otherwise look old forever.
      */
-    fun refreshPinned(context: Context) {
+    fun refreshPinned() {
+        val library = AppLibrary.of(context)
         val pinned = ShortcutManagerCompat.getShortcuts(context, ShortcutManagerCompat.FLAG_MATCH_PINNED)
-        val current = pinned.filter { it.isEnabled }.mapNotNull { AppLibrary.get(context, it.id) }.map { shortcut(context, it) }
+        val current = pinned.filter { it.isEnabled }.mapNotNull { library.get(it.id) }.map(::shortcut)
         if (current.isNotEmpty()) ShortcutManagerCompat.updateShortcuts(context, current)
     }
 
-    private fun shortcut(context: Context, app: AppLibrary.SavedApp): ShortcutInfoCompat {
+    private fun shortcut(app: AppLibrary.SavedApp): ShortcutInfoCompat {
         val intent = Intent(context, MainActivity::class.java)
             .setAction(Intent.ACTION_VIEW)
             .putExtra(EXTRA_APP_ID, app.id)
@@ -45,6 +45,10 @@ object HomeShortcuts {
     }
 
     /** A deleted app's pinned shortcut stays on the home screen, greyed out, and says so when tapped. */
-    fun disable(context: Context, id: String) =
+    override fun disable(id: String) =
         ShortcutManagerCompat.disableShortcuts(context, listOf(id), "This app was deleted in Appkin")
+
+    companion object {
+        const val EXTRA_APP_ID = "app_id"
+    }
 }

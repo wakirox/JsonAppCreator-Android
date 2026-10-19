@@ -73,10 +73,13 @@ import it.sapienza.appinterpreter.ui.ActionMenuItem
 import it.sapienza.appinterpreter.ui.AppIconView
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
+import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.json.optString
+import kotlinx.serialization.json.JsonObject
 import it.sapienza.appinterpreter.utils.ShareApp
-import org.json.JSONObject
 
 /**
  * The first screen: what Appkin does, the saved apps (open one, add it to the home screen, or delete it),
@@ -102,7 +105,7 @@ class HomeActivity : AppCompatActivity() {
         setTheme(R.style.AppTheme_Compose)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (savedInstanceState == null) HomeShortcuts.refreshPinned(this)
+        if (savedInstanceState == null) HomeShortcuts(this).refreshPinned()
         setContent {
             AppTheme {
                 var deleting by remember { mutableStateOf<AppLibrary.SavedApp?>(null) }
@@ -174,7 +177,7 @@ class HomeActivity : AppCompatActivity() {
                                 trailingContent = {
                                     Row {
                                         IconButton(onClick = {
-                                            if (!HomeShortcuts.pin(this@HomeActivity, app)) {
+                                            if (!HomeShortcuts(this@HomeActivity).pin(app)) {
                                                 Toast.makeText(this@HomeActivity, R.string.shortcuts_unsupported, Toast.LENGTH_LONG).show()
                                             }
                                         }) { Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.home_add_to_home_screen)) }
@@ -246,9 +249,9 @@ class HomeActivity : AppCompatActivity() {
                         text = { Text(stringResource(R.string.home_delete_text)) },
                         confirmButton = {
                             TextButton(onClick = {
-                                AppLibrary.delete(this, app.id)
-                                HomeShortcuts.disable(this, app.id)
-                                apps = AppLibrary.all(this)
+                                AppLibrary.of(this).delete(app.id)
+                                HomeShortcuts(this).disable(app.id)
+                                apps = AppLibrary.of(this).all()
                                 deleting = null
                             }) { Text(stringResource(R.string.home_delete), color = MaterialTheme.colorScheme.error) }
                         },
@@ -261,8 +264,8 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        apps = AppLibrary.all(this)
-        current = runCatching { JSONObject(DomainController.jsonFile(this)).optString("name") }.getOrNull()
+        apps = AppLibrary.of(this).all()
+        current = runCatching { (JsonText.parse(DomainController.jsonFile(this)) as JsonObject).optString("name") }.getOrNull()
     }
 
     private fun pasteFromAi() {

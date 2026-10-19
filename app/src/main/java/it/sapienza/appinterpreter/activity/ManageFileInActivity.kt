@@ -1,5 +1,7 @@
 package it.sapienza.appinterpreter.activity
 
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,6 +21,7 @@ import it.sapienza.appinterpreter.ui.ReceivedApp
 import it.sapienza.appinterpreter.ui.ReceivedAppDialog
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.SharedApps
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
@@ -48,7 +51,7 @@ class ManageFileInActivity : AppCompatActivity() {
                     ReceivedAppDialog(
                         app = app,
                         onOpen = { received = null; open(app.json) },
-                        onKeepBoth = { received = null; open(SharedApps.renamed(app.json, AppLibrary.freeName(this, app.name))) },
+                        onKeepBoth = { received = null; open(SharedApps.renamed(app.json, AppLibrary.of(this).freeName(app.name))) },
                         onEdit = {
                             EditorActivity.openedFile(this, app.json)
                             finish()
@@ -96,7 +99,7 @@ class ManageFileInActivity : AppCompatActivity() {
                 version = app.version,
                 webAddresses = SharedApps.webAddresses(text),
                 apiKeys = ConfigurationApiKeys.placeholderNames(text),
-                arrival = SharedApps.arrival(text, AppLibrary.get(this, AppLibrary.idOf(app.name)))
+                arrival = SharedApps.arrival(text, AppLibrary.of(this).get(AppLibrary.idOf(app.name)))
             )
         } catch (e: Exception) {
             AlertUtils.showAlert(

@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.model.view_model.helper.MView
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +43,7 @@ fun MainScreen(
     version: String,
     changelog: String?,
     model: MView,
-    modelData: JSONObject?,
+    modelData: JsonObject?,
     loading: Boolean,
     onEditApp: () -> Unit,
     onNewApp: () -> Unit,

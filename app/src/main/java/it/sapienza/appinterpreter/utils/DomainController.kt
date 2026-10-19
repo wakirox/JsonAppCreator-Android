@@ -2,58 +2,36 @@ package it.sapienza.appinterpreter.utils
 
 import android.content.Context
 import it.sapienza.androidratio.appratio.R
-import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
 
+/** The current app on Android: [CurrentApp] on the "DomainController" preferences, with the raw-resource examples. */
 object DomainController {
     /** The example shown on first launch, and when the active configuration can't be used. */
     val DEFAULT_CONFIGURATION = R.raw.v3_masterpieces
 
-    fun jsonFile(context: Context): String {
-        val preferences = preferences(context)
-        return preferences.getString(JSON_KEY, null) ?: read(DEFAULT_CONFIGURATION, context)
-    }
+    fun jsonFile(context: Context): String = current(context).json()
 
-    fun configurationId(context: Context): String {
-        val preferences = preferences(context)
-        return preferences.getString(CONFIGURATION_ID_KEY, null)
-            ?: if (preferences.contains(JSON_KEY)) {
-                ApiKeyPlaceholders.configurationId(jsonFile(context))
-            } else {
-                bundledId(context.resources.getResourceEntryName(DEFAULT_CONFIGURATION))
-            }
-    }
+    fun configurationId(context: Context): String = current(context).configurationId()
 
     /**
      * Makes [value] the current app and saves it in Your apps on the home page. [configurationId] keeps an app's
      * identity, and with it its saved or bundled API keys (for an app reopened from Your apps, or run unchanged); by
      * default it comes from the JSON itself.
      */
-    fun setJsonFile(value: String, context: Context, configurationId: String = ApiKeyPlaceholders.configurationId(value)) {
-        AppLibrary.save(context, value, configurationId)
-        preferences(context).edit()
-            .putString(JSON_KEY, value)
-            .putString(CONFIGURATION_ID_KEY, configurationId)
-            .apply()
+    fun setJsonFile(value: String, context: Context, configurationId: String? = null) {
+        if (configurationId == null) current(context).set(value) else current(context).set(value, configurationId)
     }
 
-    fun setJsonFile(resource: Int, context: Context) {
-        val resourceName = context.resources.getResourceEntryName(resource)
-        // An example: not saved in Your apps, since the home page lists the examples separately.
-        preferences(context).edit()
-            .putString(JSON_KEY, read(resource, context))
-            .putString(CONFIGURATION_ID_KEY, bundledId(resourceName))
-            .apply()
-    }
+    fun setJsonFile(resource: Int, context: Context) = current(context).set(bundled(resource, context))
 
-    private fun read(resource: Int, context: Context): String =
+    private fun current(context: Context) = CurrentApp(
+        SharedPreferencesStore(context, PREFERENCES_NAME),
+        AppLibrary.of(context)
+    ) { bundled(DEFAULT_CONFIGURATION, context) }
+
+    private fun bundled(resource: Int, context: Context) = BundledConfiguration(
+        context.resources.getResourceEntryName(resource),
         context.resources.openRawResource(resource).bufferedReader().use { it.readText() }
-
-    private fun preferences(context: Context) =
-        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-
-    private fun bundledId(resourceName: String) = "bundled:$resourceName"
+    )
 
     private const val PREFERENCES_NAME = "DomainController"
-    private const val JSON_KEY = "main_file_sav"
-    private const val CONFIGURATION_ID_KEY = "configuration_id"
 }

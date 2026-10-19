@@ -11,10 +11,11 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-internal class EncryptedApiKeyStore(context: Context) {
+/** The [SecretStore] on Android: AES-GCM values in private preferences, with a non-exportable Keystore key. */
+internal class EncryptedApiKeyStore(context: Context) : SecretStore {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    fun read(configurationId: String, name: String): String? {
+    override fun read(configurationId: String, name: String): String? {
         val encoded = preferences.getString(storageKey(configurationId, name), null) ?: return null
         return try {
             val parts = encoded.split('.', limit = 2)
@@ -32,7 +33,7 @@ internal class EncryptedApiKeyStore(context: Context) {
         }
     }
 
-    fun write(configurationId: String, name: String, value: String) {
+    override fun write(configurationId: String, name: String, value: String) {
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, encryptionKey())
         val encoded = listOf(

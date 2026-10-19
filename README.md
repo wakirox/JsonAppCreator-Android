@@ -170,20 +170,25 @@ properties content. If both contain a TMDB value, `TMDB_API_KEY` takes precedenc
 Key values are not logged, but build-time credentials are compiled into the APK and
 can be extracted. Use restricted, non-privileged keys and rotate them if exposed.
 
-Run all unit and screenshot tests:
+Run all unit and screenshot tests (the shared engine's, then the app's):
 
 ```sh
-./gradlew testDebugUnitTest
+./gradlew :shared:testAndroidHostTest :app:testDebugUnitTest
 ```
 
 Run the configuration-focused tests:
 
 ```sh
-./gradlew testDebugUnitTest \
+./gradlew :shared:testAndroidHostTest \
   --tests '*ConfigurationValidatorTest' \
-  --tests '*ConfigSchemaValidationTest' \
   --tests '*AppParserReferenceTest'
+./gradlew :app:testDebugUnitTest \
+  --tests '*ConfigSchemaValidationTest' \
+  --tests '*ValidatorParityTest'
 ```
+
+The shared module also compiles for iOS (`./gradlew :shared:compileKotlinIosArm64`, which
+works on Linux); linking an iOS framework needs a Mac.
 
 ## Automation
 
@@ -197,21 +202,26 @@ documented in [the release guide](docs/RELEASING.md).
 ## Project structure
 
 ```text
-schema/                            Versioned machine-readable contracts
-docs/                              Configuration and LLM documentation
-examples/                          Small focused v3 configurations
-app/src/main/java/.../model/       JSON-backed application definitions
-app/src/main/java/.../validation/  Runtime schema validation
-app/src/main/java/.../runtime/     Per-screen runtime state
-app/src/main/java/.../ui/          Jetpack Compose renderer
-app/src/main/res/raw/              Bundled sample configurations
-app/src/test/                      Parser, validator, state, and screenshot tests
-samples/                           Full configuration example
+schema/                                  Versioned machine-readable contracts
+docs/                                    Configuration and LLM documentation
+examples/                                Small focused v3 configurations
+shared/src/commonMain/kotlin/.../        Kotlin Multiplatform engine (Android, iOS-ready):
+  model/  utils/  validation/              the model, parser and schema validation
+  runtime/  alerts/  calendar/             per-screen state and use cases
+  editor/  ai/  json/  security/           editor logic, AI prompt, JSON, API keys
+shared/src/commonTest/                   Tests of the engine
+app/src/main/java/.../ui/                Jetpack Compose renderer
+app/src/main/java/.../activity/          Android screens; Android implementations of the engine's seams
+app/src/main/res/raw/                    Bundled sample configurations
+app/src/test/                            Android, validator parity and screenshot tests
+samples/                                 Full configuration example
 ```
 
-The app is written in Kotlin and rendered with Jetpack Compose. JSON is parsed with
-Jackson, JSON Schema validation uses NetworkNT, HTTP requests use OkHttp, and remote
-images are loaded with Glide. Gradle configuration uses Kotlin DSL.
+The app is written in Kotlin and rendered with Jetpack Compose. The engine in `:shared`
+is Kotlin Multiplatform: JSON is read with kotlinx.serialization, JSON Schema validation
+uses OptimumCode's json-schema-validator, and HTTP requests use Ktor on OkHttp. Remote
+images are loaded with Coil. Gradle configuration uses Kotlin DSL. See
+[the Kotlin Multiplatform exploration](docs/kmp-exploration.md).
 
 ## License
 

@@ -1,6 +1,5 @@
 package it.sapienza.appinterpreter.activity
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -20,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
+import it.sapienza.appinterpreter.calendar.AndroidCalendarWriter
 import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
@@ -32,21 +32,23 @@ import it.sapienza.appinterpreter.ui.LocalScreen
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.MainScreen
 import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
 import it.sapienza.appinterpreter.utils.ShareApp
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import androidx.compose.runtime.collectAsState
 
 
-fun spawnInstance(context: Context, model: MView, payload: JSONObject? = model.dataObj) {
+fun spawnInstance(context: Context, model: MView, payload: JsonObject? = model.data) {
     val viewId = requireNotNull(model.id) { "A navigated view must have an id" }
     context.startActivity(screenIntent(context, viewId, payload))
 }
 
-private fun screenIntent(context: Context, viewId: String, payload: JSONObject?): Intent =
+private fun screenIntent(context: Context, viewId: String, payload: JsonObject?): Intent =
     Intent(context, MainActivity::class.java).apply {
         putExtra(ScreenViewModel.EXTRA_VIEW_ID, viewId)
         payload?.let { putExtra(ScreenViewModel.EXTRA_SCREEN_PAYLOAD, it.toString()) }
@@ -76,7 +78,7 @@ class MainActivity : ComponentActivity() {
 
         // Opened from a home-screen shortcut: that saved app becomes the current one, before the screen loads it.
         if (savedInstanceState == null) intent.getStringExtra(HomeShortcuts.EXTRA_APP_ID)?.let { id ->
-            AppLibrary.get(this, id)?.let { DomainController.setJsonFile(it.json, this, it.configurationId) }
+            AppLibrary.of(this).get(id)?.let { DomainController.setJsonFile(it.json, this, it.configurationId) }
                 ?: Toast.makeText(this, R.string.app_deleted, Toast.LENGTH_LONG).show()
         }
         val shown = screen.screen
@@ -92,7 +94,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 var askingAi by rememberSaveable { mutableStateOf(false) }
-                val missingKeys = screen.missingKeys
+                val missingKeys by screen.missingKeys.collectAsState()
+                val loading by screen.loading.collectAsState()
                 if (missingKeys == null) {
                     CompositionLocalProvider(LocalScreen provides screen) {
                         MainScreen(
@@ -102,7 +105,7 @@ class MainActivity : ComponentActivity() {
                             changelog = app.changelog,
                             model = shown.definition,
                             modelData = shown.data,
-                            loading = screen.loading,
+                            loading = loading,
                             onEditApp = { EditorActivity.edit(this) },
                             onNewApp = { EditorActivity.newApp(this) },
                             onAskAi = { askingAi = true },
@@ -162,18 +165,15 @@ class MainActivity : ComponentActivity() {
 
     private fun handle(effect: ScreenViewModel.Effect) = when (effect) {
         is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload)
-        is ScreenViewModel.Effect.AddToCalendar -> try {
-            startActivity(effect.intent)
-        } catch (_: ActivityNotFoundException) {
-            alerts.show(getString(R.string.no_calendar_app))
-        }
+        is ScreenViewModel.Effect.AddToCalendar ->
+            if (!AndroidCalendarWriter(this).add(effect.entry)) alerts.show(getString(R.string.no_calendar_app)) else Unit
     }
 
     private fun addToHomeScreen() {
-        val app = AppLibrary.save(this, DomainController.jsonFile(this), DomainController.configurationId(this))
+        val app = AppLibrary.of(this).save(DomainController.jsonFile(this), DomainController.configurationId(this))
         val message = when {
             app == null -> R.string.shortcut_needs_name
-            !HomeShortcuts.pin(this, app) -> R.string.shortcuts_unsupported
+            !HomeShortcuts(this).pin(app) -> R.string.shortcuts_unsupported
             else -> null
         }
         message?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
