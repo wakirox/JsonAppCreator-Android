@@ -1,9 +1,7 @@
 package it.sapienza.appinterpreter.editor
 
-import com.fasterxml.jackson.core.JsonFactory
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.core.JsonToken
-import com.fasterxml.jackson.databind.ObjectMapper
+import it.sapienza.appinterpreter.json.JsonSyntaxException
+import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.utils.ConfigurationValidationException
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
@@ -18,14 +16,14 @@ data class EditorIssue(val offset: Int?, val path: String, val message: String)
 class ConfigurationChecker(private val validator: ConfigurationValidator) {
 
     fun check(json: String): List<EditorIssue> {
-        try {
-            ObjectMapper().readTree(json) ?: return listOf(EditorIssue(0, "$", "The configuration is empty"))
-        } catch (error: JsonProcessingException) {
-            val offset = error.location?.charOffset?.toInt()?.coerceIn(0, json.length)
-            return listOf(EditorIssue(offset, "$", syntaxMessage(error.originalMessage)))
+        // An empty text goes on to the validator, which says the configuration is empty.
+        val tree = try {
+            JsonText.parse(json)
+        } catch (error: JsonSyntaxException) {
+            return listOf(EditorIssue(error.offset.coerceIn(0, json.length), "$", syntaxMessage(error.reason)))
         }
 
-        val schemaIssues = validator.validate(json).issues
+        val schemaIssues = if (tree == null) validator.validate(json).issues else validator.validate(tree).issues
         if (schemaIssues.isNotEmpty()) {
             val offsets = pathOffsets(json)
             return schemaIssues.map { issue ->
@@ -37,7 +35,7 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
         }
 
         return try {
-            AppParser(json).parseApplication2()
+            AppParser(json).parse(tree)
             emptyList()
         } catch (error: ConfigurationValidationException) {
             listOf(EditorIssue(offsetOf(error.jsonPath, pathOffsets(json)), error.jsonPath, error.detail))
@@ -53,35 +51,12 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
          * Where each JSON path starts in the text, as "$.mainView.views[1].type": a property at its key, an array
          * element at its first character.
          */
-        fun pathOffsets(json: String): Map<String, Int> {
-            val offsets = HashMap<String, Int>()
-            try {
-                JsonFactory().createParser(json).use { parser ->
-                    while (true) {
-                        val token = parser.nextToken() ?: break
-                        val context = parser.parsingContext
-                        // On "{" or "[" Jackson has already entered the new container, so an array element that is
-                        // a container is found through its parent.
-                        val elementOf = when (token) {
-                            JsonToken.FIELD_NAME -> context
-                            JsonToken.START_OBJECT, JsonToken.START_ARRAY -> context.parent?.takeIf { it.inArray() }
-                            JsonToken.END_OBJECT, JsonToken.END_ARRAY -> null
-                            else -> context.takeIf { it.inArray() }
-                        } ?: continue
-                        offsets.putIfAbsent(elementOf.toPath(), parser.currentTokenLocation().charOffset.toInt())
-                    }
-                }
-            } catch (_: JsonProcessingException) {
-                // A partial map still places the issues before the syntax error.
-            }
-            offsets.putIfAbsent("$", 0)
-            return offsets
-        }
+        fun pathOffsets(json: String): Map<String, Int> = JsonText.pathOffsets(json)
 
         /** The 1-based line of [offset] in [text]. */
         fun lineOf(text: String, offset: Int): Int = text.take(offset).count { it == '\n' } + 1
 
-        /** Jackson's parser messages, in plain words for the common mistakes. */
+        /** The JSON reader's messages (worded as Jackson's were), in plain words for the common mistakes. */
         fun syntaxMessage(original: String): String = when {
             "CTRL-CHAR, code 10" in original -> "A text value isn't closed: add a quote (\") before the end of the line"
             original.startsWith("Unexpected end-of-input") -> "The JSON ends too early: a } or ] is missing"
@@ -102,19 +77,6 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
                 if (cut <= 0) return offsets["$"]
                 current = current.substring(0, cut)
             }
-        }
-
-        private fun com.fasterxml.jackson.core.JsonStreamContext.toPath(): String {
-            val segments = ArrayDeque<String>()
-            var context: com.fasterxml.jackson.core.JsonStreamContext? = this
-            while (context != null && !context.inRoot()) {
-                when {
-                    context.inObject() -> context.currentName?.let { segments.addFirst(".$it") }
-                    context.inArray() -> segments.addFirst("[${maxOf(context.currentIndex, 0)}]")
-                }
-                context = context.parent
-            }
-            return "$" + segments.joinToString("")
         }
     }
 }

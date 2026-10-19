@@ -1,7 +1,11 @@
 package it.sapienza.appinterpreter.ai
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import it.sapienza.appinterpreter.json.JsonNode
+import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.json.sameValue
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.EditorIssue
 import it.sapienza.appinterpreter.editor.prettyJson
@@ -77,16 +81,12 @@ object AiContext {
      * items), a form with an alert, and a list loaded from a REST API.
      */
     fun examples(masterpieces: String, signUpForm: String, restList: String): List<Example> {
-        val mapper = ObjectMapper()
-        val gallery = mapper.readTree(masterpieces).also { tree ->
-            (tree.path("mainView").path("data").path("artworks") as? com.fasterxml.jackson.databind.node.ArrayNode)
-                ?.let { artworks -> while (artworks.size() > 3) artworks.remove(artworks.size() - 1) }
-        }
+        val gallery = shortened(JsonText.parse(masterpieces)!!)
         return listOf(
             Example(
                 "a static list with a detail screen",
                 "The list's items are in `data`; tapping one shows the reusable `artwork` view with that item.",
-                prettyJson(mapper.writeValueAsString(gallery))
+                written(gallery)
             ),
             Example(
                 "a form with required fields and an alert",
@@ -100,6 +100,22 @@ object AiContext {
             )
         )
     }
+
+    /** [masterpieces] with only its first three artworks. */
+    private fun shortened(tree: JsonElement): JsonElement {
+        val root = tree as? JsonObject ?: return tree
+        val mainView = root["mainView"] as? JsonObject ?: return tree
+        val data = mainView["data"] as? JsonObject ?: return tree
+        val artworks = data["artworks"] as? JsonArray ?: return tree
+        val shorter = JsonObject(data + ("artworks" to JsonArray(artworks.take(3))))
+        return JsonObject(root + ("mainView" to JsonObject(mainView + ("data" to shorter))))
+    }
+
+    /**
+     * A tree as the app wrote it with Jackson's default mapper and then formatted it: decimals as a Double prints
+     * them, then pretty-printed.
+     */
+    private fun written(tree: JsonElement): String = prettyJson(JsonText.withDoubleNumbers(tree).toString())
 
     /** A file name for the configuration: from its "name", else "app.json". */
     fun fileName(json: String?): String {
@@ -123,7 +139,7 @@ object AiContext {
      * last }. Null when there is none.
      */
     fun extractJson(answer: String): String? {
-        val candidate = Regex("```[a-zA-Z]*\\s*\\n(.*?)```", RegexOption.DOT_MATCHES_ALL).findAll(answer)
+        val candidate = Regex("(?s)```[a-zA-Z]*\\s*\\n(.*?)```").findAll(answer)
             .map { it.groupValues[1].trim() }
             .firstOrNull { it.startsWith("{") }
             ?: answer.indexOf('{').let { start ->
@@ -143,22 +159,18 @@ object AiContext {
      * is returned whatever its name, even one changed from an example.
      */
     fun lastConfiguration(page: String, promptExamples: Collection<String> = emptyList()): String? {
-        val mapper = ObjectMapper()
-        val examples = promptExamples.mapNotNull { runCatching { mapper.readTree(it) }.getOrNull() }.toSet()
+        val examples = promptExamples.mapNotNull { runCatching { JsonText.parse(it) }.getOrNull() }
         var text = page
         repeat(MAX_ESCAPING) {
-            val chars = text.toCharArray()
             var at = text.lastIndexOf("\"schemaVersion\"")
             while (at >= 0) {
                 var start = text.lastIndexOf('{', at)
                 var tries = 0
                 while (start >= 0 && tries < 64) {
-                    val node = runCatching {
-                        mapper.factory.createParser(chars, start, chars.size - start).use { mapper.readTree<JsonNode>(it) }
-                    }.getOrNull()
-                    if (node != null && node.isObject && node.has("schemaVersion") && node.has("mainView")) {
-                        if (node !in examples && node.path("name").asText() != GUIDE_SKELETON) {
-                            return restorePlaceholders(prettyJson(mapper.writeValueAsString(node)))
+                    val node = runCatching { JsonText.parseAt(text, start) }.getOrNull() as? JsonObject
+                    if (node != null && "schemaVersion" in node && "mainView" in node) {
+                        if (examples.none { JsonText.sameValue(it, node) } && JsonNode(node).path("name").asText() != GUIDE_SKELETON) {
+                            return restorePlaceholders(written(node))
                         }
                         break
                     }
@@ -231,7 +243,7 @@ object AiContext {
 
     private val MARKDOWN_ESCAPE = Regex("""\\([\[\]{}()_*#`~<>!|+.-])""")
 
-    private fun parses(json: String) = runCatching { ObjectMapper().readTree(json) }.isSuccess
+    private fun parses(json: String) = runCatching { JsonText.parse(json) }.isSuccess
 
     /** A message asking a model to fix the problems the editor found, with their lines and paths, and the JSON. */
     fun fixRequest(json: String, issues: List<EditorIssue>): String = buildString {
@@ -257,7 +269,7 @@ object AiContext {
 
 /** A readable reference of the v3 schema: the root, every view, form field and event, actions and references. */
 private class SchemaReference(schemaJson: String) {
-    private val root: JsonNode = ObjectMapper().readTree(schemaJson)
+    private val root: JsonNode = JsonNode.parse(schemaJson)
     private val defs: JsonNode = root.path("\$defs")
 
     fun markdown(): String = buildString {
@@ -337,7 +349,7 @@ private class SchemaReference(schemaJson: String) {
         node.path("oneOf").takeIf { it.isArray }?.let { options ->
             options.firstOrNull { it.path("type").asText() != "null" }?.let { return describe(it) }
         }
-        node.path("const").takeIf { !it.isMissingNode }?.let { return "always `$it`" }
+        node.path("const").takeIf { !it.isMissing }?.let { return "always `$it`" }
         node.path("enum").takeIf { it.isArray }?.let { values ->
             return "one of " + values.filterNot { it.isNull }.joinToString(", ") { "`$it`" }
         }

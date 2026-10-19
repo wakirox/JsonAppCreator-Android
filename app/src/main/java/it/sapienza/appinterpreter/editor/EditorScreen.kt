@@ -69,7 +69,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fasterxml.jackson.databind.ObjectMapper
+import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.ai.AskAiDialog
@@ -187,7 +187,7 @@ fun EditorScreen(
                     DropdownMenu(expanded = moreOpen, onDismissRequest = { moreOpen = false }) {
                         DropdownMenuItem(text = { Text("Format") }, onClick = {
                             moreOpen = false
-                            if (runCatching { ObjectMapper().readTree(value.text) }.isFailure) {
+                            if (runCatching { JsonText.parse(value.text) }.isFailure) {
                                 Toast.makeText(context, "Fix the JSON syntax first", Toast.LENGTH_SHORT).show()
                             } else value = TextFieldValue(prettyJson(value.text), TextRange(0))
                         })

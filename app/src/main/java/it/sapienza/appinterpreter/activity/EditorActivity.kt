@@ -32,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
-import com.fasterxml.jackson.databind.ObjectMapper
+import io.ktor.client.engine.okhttp.OkHttp
+import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.json.sameValue
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.AskAi
@@ -52,6 +54,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /** Edits the active configuration, or writes a new app from a template, and runs the result. */
+/** Reads shared chat pages with its own OkHttp client: a browser User-Agent, unlike the app's requests. */
+private val shareLinkClient by lazy { ShareLinks.client(OkHttp.create()) }
+
 class EditorActivity : AppCompatActivity() {
 
     private var pendingSave: String? = null
@@ -89,7 +94,7 @@ class EditorActivity : AppCompatActivity() {
                     } else {
                         ReadingChat(chatLink, onBack = ::finish)
                         LaunchedEffect(chatLink) {
-                            val found = runCatching { ShareLinks.configuration(chatLink, AskAi.promptExamples(this@EditorActivity)) }.getOrNull()
+                            val found = runCatching { ShareLinks.configuration(shareLinkClient, chatLink, AskAi.promptExamples(this@EditorActivity)) }.getOrNull()
                             if (found != null) fromChat = found else chatUnreadable = true
                         }
                     }
@@ -145,7 +150,7 @@ class EditorActivity : AppCompatActivity() {
     }
 
     private fun sameJson(a: String, b: String): Boolean =
-        runCatching { ObjectMapper().readTree(a) == ObjectMapper().readTree(b) }.getOrDefault(false)
+        runCatching { JsonText.sameValue(JsonText.parse(a), JsonText.parse(b)) }.getOrDefault(false)
 
     /** The text shared to the app: the message, or the content of a shared text or JSON file. */
     private fun sharedText(): String? {

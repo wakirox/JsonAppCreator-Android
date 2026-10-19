@@ -233,14 +233,6 @@ android {
             assets.directories.add(aiGuideAssets.get().asFile.absolutePath)
         }
     }
-
-    packaging {
-        resources.pickFirsts += setOf(
-            "META-INF/FastDoubleParser-LICENSE",
-            "META-INF/FastDoubleParser-ThirdParty-LICENSE",
-            "META-INF/Schubfach-LICENSE"
-        )
-    }
 }
 
 dependencies {
@@ -265,9 +257,9 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.6.3")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2")
     // Only for ValidatorParityTest: the app validates with the multiplatform validator in :shared.
     testImplementation("com.networknt:json-schema-validator:3.0.7")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.22.2")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(platform("io.insert-koin:koin-bom:4.2.2"))

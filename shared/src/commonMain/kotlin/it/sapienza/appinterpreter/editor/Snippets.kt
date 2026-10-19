@@ -1,8 +1,5 @@
 package it.sapienza.appinterpreter.editor
 
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
-
 /** Ready-made pieces for the editor's Insert menu: a view, a form field or an action, as valid v3 JSON. */
 object Snippets {
     /** [formField] snippets go in a form's "formElements"; the others are views. */
@@ -88,21 +85,22 @@ object Snippets {
     }
 
     /**
-     * [new] with a just-typed line break indented like the line above (one level more after { or [), and an empty
-     * {} or [] opened onto its own lines.
+     * [new] (the text after an edit, with the cursor at [cursor]) with a just-typed line break indented like the line
+     * above (one level more after { or [), and an empty {} or [] opened onto its own lines: the new text and cursor,
+     * or null when the edit wasn't a typed line break.
      */
-    fun withAutoIndent(old: TextFieldValue, new: TextFieldValue): TextFieldValue {
-        val at = new.selection.start
-        val typedNewline = new.selection.collapsed && new.text.length == old.text.length + 1 && at > 0 &&
-            new.text[at - 1] == '\n' && new.text.removeRange(at - 1, at) == old.text
-        if (!typedNewline) return new
-        val indent = indentAt(new.text, at - 1)
-        val before = new.text.getOrNull(at - 2)
-        val after = new.text.getOrNull(at)
+    fun autoIndent(old: String, new: String, cursor: Int, collapsed: Boolean = true): Pair<String, Int>? {
+        val at = cursor
+        val typedNewline = collapsed && new.length == old.length + 1 && at > 0 &&
+            new[at - 1] == '\n' && new.removeRange(at - 1, at) == old
+        if (!typedNewline) return null
+        val indent = indentAt(new, at - 1)
+        val before = new.getOrNull(at - 2)
+        val after = new.getOrNull(at)
         val opens = before == '{' || before == '['
         val inner = if (opens) "$indent  " else indent
         val insert = if (opens && (after == '}' || after == ']')) "$inner\n$indent" else inner
-        return TextFieldValue(new.text.replaceRange(at, at, insert), TextRange(at + inner.length))
+        return new.replaceRange(at, at, insert) to at + inner.length
     }
 
     /** [json] with every line after the first indented by [indent], to sit where it is inserted. */

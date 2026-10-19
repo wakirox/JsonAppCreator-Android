@@ -1,7 +1,6 @@
 package it.sapienza.appinterpreter.editor
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import it.sapienza.appinterpreter.json.JsonNode
 
 /**
  * A suggestion for the cursor: replace [start] until [end] with [insert], then put the cursor [cursor] characters into
@@ -35,7 +34,7 @@ data class Suggestions(val heading: String?, val items: List<Suggestion>) {
  * writing a value, they list what the object is missing and add the chosen attribute at its end.
  */
 class SchemaSuggestions(schemaJson: String) {
-    private val root: JsonNode = ObjectMapper().readTree(schemaJson)
+    private val root: JsonNode = JsonNode.parse(schemaJson)
     private val defs: JsonNode = root.path("\$defs")
 
     /** What the editor needs at the cursor, worked out from one reading of the text. */
@@ -215,14 +214,14 @@ class SchemaSuggestions(schemaJson: String) {
         val then = resolve(schema.path("then"))
         schema.path("if").path("required").forEach { key ->
             val name = key.asText()
-            result += name to (then.path("properties").path(name).takeUnless { it.isMissingNode } ?: then)
+            result += name to (then.path("properties").path(name).takeUnless { it.isMissing } ?: then)
         }
         val otherwise = resolve(schema.path("else"))
         if (otherwise.has("if")) result += chooserKeys(otherwise)
         return result
     }
 
-    private fun items(node: JsonNode): JsonNode? = resolve(node).path("items").takeUnless { it.isMissingNode }
+    private fun items(node: JsonNode): JsonNode? = resolve(node).path("items").takeUnless { it.isMissing }
 
     private fun child(node: JsonNode, facts: Pair<Set<String>, String?>, slot: Any?): JsonNode? = when (slot) {
         is String -> properties(node, facts)[slot]

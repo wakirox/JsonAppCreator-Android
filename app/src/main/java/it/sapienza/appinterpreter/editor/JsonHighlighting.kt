@@ -6,33 +6,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
-import com.fasterxml.jackson.core.StreamReadFeature
-import com.fasterxml.jackson.core.util.DefaultIndenter
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
-import com.fasterxml.jackson.core.util.Separators
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-
-/**
- * [json] re-indented with two spaces, keys in their order, numbers as written (0.10 stays 0.10) and without escaped
- * slashes. Unchanged if it isn't valid JSON, or has a key twice (formatting would silently keep only one).
- */
-fun prettyJson(json: String): String = runCatching {
-    val indenter = DefaultIndenter("  ", "\n")
-    val printer = DefaultPrettyPrinter()
-        .withSeparators(Separators.createDefaultInstance().withObjectFieldValueSpacing(Separators.Spacing.AFTER))
-        .withObjectIndenter(indenter)
-        .withArrayIndenter(indenter)
-    MAPPER.writer(printer).writeValueAsString(MAPPER.readTree(json))
-}.getOrDefault(json)
-
-private val MAPPER: ObjectMapper = JsonMapper.builder()
-    .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-    .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
-    .nodeFactory(JsonNodeFactory.withExactBigDecimals(true))
-    .build()
 
 // Possessive (*+, ++), so a very long string can't make the regex engine recurse until the stack overflows.
 private val JSON_TOKEN = Regex(""""(?:[^"\\\n]++|\\.)*+"?(\s*:)?|[{}\[\],:]|-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b|\btrue\b|\bfalse\b|\bnull\b""")
