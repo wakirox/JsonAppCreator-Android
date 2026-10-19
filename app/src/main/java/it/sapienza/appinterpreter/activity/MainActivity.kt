@@ -1,6 +1,5 @@
 package it.sapienza.appinterpreter.activity
 
-import it.sapienza.appinterpreter.model.dataObj
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -39,15 +38,16 @@ import it.sapienza.appinterpreter.utils.HomeShortcuts
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import androidx.compose.runtime.collectAsState
 
 
-fun spawnInstance(context: Context, model: MView, payload: JSONObject? = model.dataObj) {
+fun spawnInstance(context: Context, model: MView, payload: JsonObject? = model.data) {
     val viewId = requireNotNull(model.id) { "A navigated view must have an id" }
     context.startActivity(screenIntent(context, viewId, payload))
 }
 
-private fun screenIntent(context: Context, viewId: String, payload: JSONObject?): Intent =
+private fun screenIntent(context: Context, viewId: String, payload: JsonObject?): Intent =
     Intent(context, MainActivity::class.java).apply {
         putExtra(ScreenViewModel.EXTRA_VIEW_ID, viewId)
         payload?.let { putExtra(ScreenViewModel.EXTRA_SCREEN_PAYLOAD, it.toString()) }
@@ -93,7 +93,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 var askingAi by rememberSaveable { mutableStateOf(false) }
-                val missingKeys = screen.missingKeys
+                val missingKeys by screen.missingKeys.collectAsState()
+                val loading by screen.loading.collectAsState()
                 if (missingKeys == null) {
                     CompositionLocalProvider(LocalScreen provides screen) {
                         MainScreen(
@@ -103,7 +104,7 @@ class MainActivity : ComponentActivity() {
                             changelog = app.changelog,
                             model = shown.definition,
                             modelData = shown.data,
-                            loading = screen.loading,
+                            loading = loading,
                             onEditApp = { EditorActivity.edit(this) },
                             onNewApp = { EditorActivity.newApp(this) },
                             onAskAi = { askingAi = true },

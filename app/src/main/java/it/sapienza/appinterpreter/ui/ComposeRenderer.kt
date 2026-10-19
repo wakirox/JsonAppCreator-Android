@@ -2,7 +2,6 @@
 
 package it.sapienza.appinterpreter.ui
 
-import it.sapienza.appinterpreter.model.dataObj
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +45,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,8 +76,9 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
-import it.sapienza.appinterpreter.extensions.getValue
-import it.sapienza.appinterpreter.extensions.matchReplace
+import it.sapienza.appinterpreter.json.getValue
+import it.sapienza.appinterpreter.json.matchReplace
+import it.sapienza.appinterpreter.json.optString
 import it.sapienza.appinterpreter.extensions.toDate
 import it.sapienza.appinterpreter.form.extensions.stringValue
 import it.sapienza.appinterpreter.model.Layout
@@ -99,7 +100,7 @@ import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -110,7 +111,7 @@ private const val HORIZONTAL_LAZY_THRESHOLD = 8
 val LocalScreen = staticCompositionLocalOf<ScreenViewModel> { error("RendererScreen needs LocalScreen") }
 
 @Composable
-fun RendererScreen(model: MView, data: JSONObject? = model.dataObj, loading: Boolean) {
+fun RendererScreen(model: MView, data: JsonObject? = model.data, loading: Boolean) {
     val screen = LocalScreen.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle, screen) {
@@ -134,22 +135,24 @@ fun RendererScreen(model: MView, data: JSONObject? = model.dataObj, loading: Boo
 }
 
 @Composable
-private fun RenderRoot(model: MView, screenData: JSONObject?) {
+private fun RenderRoot(model: MView, screenData: JsonObject?) {
     val screen = LocalScreen.current
     val resolved = screen.resolve(model)
-    val data = remember(resolved, resolved.data, screenData) { screenData ?: resolved.dataObj }
+    val data = remember(resolved, resolved.data, screenData) { screenData ?: resolved.data }
 
     when {
         resolved is Layout && resolved.orientation != LayoutOrientation.horizontal -> {
             val children = remember(resolved) { resolved.views.map(screen::resolve) }
             val listStates = children.map { child ->
                 if (child is ListView && child.orientation != LayoutOrientation.horizontal) {
-                    val childData = remember(child, child.data, data) { child.dataObj ?: data }
+                    val childData = remember(child, child.data, data) { child.data ?: data }
                     screen.lists.get(child, childData)
                 } else {
                     null
                 }
             }
+            // The lists' content, observed here: the lazy column's items are built from it.
+            val listContents = listStates.map { entry -> entry?.let { it.content.collectAsState().value } }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(12.dp),
@@ -157,8 +160,9 @@ private fun RenderRoot(model: MView, screenData: JSONObject?) {
             ) {
                 children.forEachIndexed { index, child ->
                     val listState = listStates[index]
-                    if (child is ListView && listState != null) {
-                        verticalListItems(child, listState)
+                    val listContent = listContents[index]
+                    if (child is ListView && listState != null && listContent != null) {
+                        verticalListItems(child, listState, listContent)
                     } else {
                         item(key = "root-$index-${child.id.orEmpty()}") {
                             RenderNode(child, data, columnChildModifier(child))
@@ -168,13 +172,14 @@ private fun RenderRoot(model: MView, screenData: JSONObject?) {
             }
         }
         resolved is ListView && resolved.orientation != LayoutOrientation.horizontal -> {
-            val state = screen.lists.get(resolved, data)
+            val entry = screen.lists.get(resolved, data)
+            val content by entry.content.collectAsState()
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                verticalListItems(resolved, state)
+                verticalListItems(resolved, entry, content)
             }
         }
         else -> {
@@ -191,12 +196,12 @@ private fun RenderRoot(model: MView, screenData: JSONObject?) {
 @Composable
 private fun RenderNode(
     model: MView,
-    parentData: JSONObject?,
+    parentData: JsonObject?,
     modifier: Modifier = Modifier,
     allowImagePreview: Boolean = true
 ) {
     val resolved = LocalScreen.current.resolve(model)
-    val data = remember(resolved, resolved.data, parentData) { resolved.dataObj ?: parentData }
+    val data = remember(resolved, resolved.data, parentData) { resolved.data ?: parentData }
     when (resolved) {
         is Layout -> RenderLayout(resolved, data, modifier, allowImagePreview)
         is ButtonView -> RenderButton(resolved, data, modifier)
@@ -210,7 +215,7 @@ private fun RenderNode(
 @Composable
 private fun RenderLayout(
     layout: Layout,
-    data: JSONObject?,
+    data: JsonObject?,
     modifier: Modifier,
     allowImagePreview: Boolean
 ) {
@@ -252,7 +257,7 @@ private fun MView.explicitWidth(): Int? = when (this) {
 @Composable
 private fun RenderText(
     view: TextualView,
-    data: JSONObject?,
+    data: JsonObject?,
     modifier: Modifier,
     contentPadding: PaddingValues = PaddingValues(6.dp)
 ) {
@@ -277,7 +282,7 @@ private fun RenderText(
 }
 
 @Composable
-private fun RenderButton(view: ButtonView, data: JSONObject?, modifier: Modifier) {
+private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
     val action = screen.resolve(view.action)
     val title = (view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty().matchReplace(data)
@@ -295,7 +300,7 @@ private fun RenderButton(view: ButtonView, data: JSONObject?, modifier: Modifier
 @Composable
 private fun RenderImage(
     view: ImageView,
-    data: JSONObject?,
+    data: JsonObject?,
     modifier: Modifier,
     allowImagePreview: Boolean,
     edgeToEdge: Boolean = false,
@@ -351,14 +356,15 @@ private fun ImagePlaceholder(modifier: Modifier, content: @Composable () -> Unit
 }
 
 @Composable
-private fun RenderList(view: ListView, data: JSONObject?, modifier: Modifier) {
+private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
-    val state = screen.lists.get(view, data)
+    val entry = screen.lists.get(view, data)
+    val state by entry.content.collectAsState()
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         when {
             state.waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-            state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(state) }
+            state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
             state.items.isEmpty() -> Text("No data available", style = MaterialTheme.typography.bodyMedium)
             view.orientation == LayoutOrientation.horizontal &&
                 state.items.size > HORIZONTAL_LAZY_THRESHOLD -> LazyRow(
@@ -393,7 +399,7 @@ private fun RenderList(view: ListView, data: JSONObject?, modifier: Modifier) {
     }
 }
 
-private fun LazyListScope.verticalListItems(view: ListView, state: ListsState.Entry) {
+private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.Entry, state: ListsState.Content) {
     when {
         state.waiting -> item(key = "list-loading-${System.identityHashCode(view)}") {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -402,7 +408,7 @@ private fun LazyListScope.verticalListItems(view: ListView, state: ListsState.En
         }
         state.errorMessage != null -> item(key = "list-error-${System.identityHashCode(view)}") {
             val screen = LocalScreen.current
-            ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(state) }
+            ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
         }
         state.items.isEmpty() -> item(key = "list-empty-${System.identityHashCode(view)}") {
             Text("No data available", style = MaterialTheme.typography.bodyMedium)
@@ -428,11 +434,11 @@ private fun ListLoadError(message: String, onRetry: () -> Unit) {
     }
 }
 
-private fun listItemKey(view: ListView, index: Int, item: JSONObject): String =
+private fun listItemKey(view: ListView, index: Int, item: JsonObject): String =
     "${System.identityHashCode(view)}-$index-${item.optString("id")}"
 
 @Composable
-private fun ListCard(view: ListView, item: JSONObject, modifier: Modifier) {
+private fun ListCard(view: ListView, item: JsonObject, modifier: Modifier) {
     Card(
         modifier.then(actionModifier(view.action, item))
             .testTag("list-item-${item.optString("id")}"),
@@ -453,7 +459,7 @@ private fun ListCard(view: ListView, item: JSONObject, modifier: Modifier) {
 @Composable
 private fun ListCardContent(
     itemView: MView,
-    item: JSONObject,
+    item: JsonObject,
     allowImagePreview: Boolean
 ) {
     val screen = LocalScreen.current
@@ -546,7 +552,7 @@ private fun ListCardContent(
 }
 
 @Composable
-private fun RenderHorizontalCardText(view: TextualView, data: JSONObject?, modifier: Modifier) {
+private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modifier: Modifier) {
     val title = view.label?.matchReplace(data).orEmpty()
     val supportingText = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty())
         .matchReplace(data)
@@ -578,9 +584,11 @@ private fun RenderHorizontalCardText(view: TextualView, data: JSONObject?, modif
 }
 
 @Composable
-private fun RenderForm(view: FormView, data: JSONObject?, modifier: Modifier) {
+private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
-    val values = screen.forms.values(view, data)
+    val form = screen.forms.state(view, data)
+    val values by form.values.collectAsState()
+    val error by form.error.collectAsState()
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         view.title?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
         view.formElements.forEach { item ->
@@ -592,7 +600,7 @@ private fun RenderForm(view: FormView, data: JSONObject?, modifier: Modifier) {
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
             }
         }
-        screen.forms.error(view, data)?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(onClick = { screen.onSubmit(view, data) }, modifier = Modifier.fillMaxWidth()) {
             Text(view.buttonTitle ?: "Submit")
         }
@@ -697,7 +705,7 @@ private fun Description(description: String?) {
 }
 
 @Composable
-private fun actionModifier(actionRef: Action?, data: JSONObject?, fallback: (() -> Unit)? = null): Modifier {
+private fun actionModifier(actionRef: Action?, data: JsonObject?, fallback: (() -> Unit)? = null): Modifier {
     val screen = LocalScreen.current
     val action = screen.resolve(actionRef)
     return if (action != null || fallback != null) Modifier.combinedClickable(

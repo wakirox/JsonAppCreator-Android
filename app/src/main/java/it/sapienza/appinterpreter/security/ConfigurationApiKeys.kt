@@ -5,7 +5,9 @@ import it.sapienza.appinterpreter.utils.DomainController
 
 /** The configurations' API keys on Android: [ConfigurationKeys] on the Keystore-encrypted [EncryptedApiKeyStore]. */
 object ConfigurationApiKeys {
-    private lateinit var keys: ConfigurationKeys
+    /** The shared logic, once [initialize] has run (the Application does, first). */
+    lateinit var keys: ConfigurationKeys
+        private set
 
     fun initialize(context: Context, encodedBundledValues: String) {
         val applicationContext = context.applicationContext

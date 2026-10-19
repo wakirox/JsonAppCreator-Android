@@ -74,7 +74,9 @@ import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
-import org.json.JSONObject
+import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.json.optString
+import kotlinx.serialization.json.JsonObject
 
 /**
  * The first screen: what Appkin does, the saved apps (open one, add it to the home screen, or delete it),
@@ -256,7 +258,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         apps = AppLibrary.of(this).all()
-        current = runCatching { JSONObject(DomainController.jsonFile(this)).optString("name") }.getOrNull()
+        current = runCatching { (JsonText.parse(DomainController.jsonFile(this)) as JsonObject).optString("name") }.getOrNull()
     }
 
     private fun pasteFromAi() {

@@ -1,10 +1,9 @@
-package it.sapienza.androidratio.appratio
+package it.sapienza.appinterpreter.alerts
 
-import it.sapienza.appinterpreter.alerts.AlertsViewModel
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.Test
 
 class AlertsViewModelTest {
     private val alerts = AlertsViewModel()

@@ -29,6 +29,9 @@ kotlin {
             implementation("io.github.optimumcode:json-schema-validator:0.5.5")
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             api("io.ktor:ktor-client-core:3.6.0")
+            // The screens' state: multiplatform androidx ViewModels with SavedStateHandle, exposing StateFlows.
+            api("androidx.lifecycle:lifecycle-viewmodel:2.10.0")
+            api("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.10.0")
         }
         androidMain.dependencies {
             // Ktor runs on the app's OkHttp client, which Coil shares for images.
