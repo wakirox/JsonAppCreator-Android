@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -73,6 +74,7 @@ import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
+import it.sapienza.appinterpreter.utils.ShareApp
 import org.json.JSONObject
 
 /**
@@ -174,6 +176,9 @@ class HomeActivity : AppCompatActivity() {
                                                 Toast.makeText(this@HomeActivity, R.string.shortcuts_unsupported, Toast.LENGTH_LONG).show()
                                             }
                                         }) { Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.home_add_to_home_screen)) }
+                                        IconButton(onClick = { ShareApp.share(this@HomeActivity, app.name, app.json) }) {
+                                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.home_share))
+                                        }
                                         IconButton(onClick = { deleting = app }) {
                                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.home_delete))
                                         }

@@ -48,7 +48,8 @@ fun MainScreen(
     onAskAi: () -> Unit,
     onPasteFromAi: () -> Unit,
     onHome: () -> Unit,
-    onAddToHome: () -> Unit
+    onAddToHome: () -> Unit,
+    onShare: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var aboutOpen by remember { mutableStateOf(false) }
@@ -111,6 +112,12 @@ fun MainScreen(
                             iconResource = R.drawable.baseline_add_photo_alternate_24,
                             closeMenu = { menuExpanded = false },
                             onClick = onAddToHome
+                        )
+                        ActionMenuItem(
+                            text = stringResource(R.string.menu_share_app),
+                            iconResource = R.drawable.baseline_share_24,
+                            closeMenu = { menuExpanded = false },
+                            onClick = onShare
                         )
                         ActionMenuItem(
                             text = stringResource(R.string.menu_about),
