@@ -11,6 +11,7 @@
     <string name="home_opened">Opened %1$s</string>
     <string name="home_opened_just_now">Opened just now</string>
     <string name="home_add_to_home_screen">Add to home screen</string>
+    <string name="home_share">Share</string>
     <string name="home_delete">Delete</string>
     <string name="home_delete_title">Delete %1$s?</string>
     <string name="home_delete_text">It\'s removed from Your apps, and its home-screen shortcut stops working.</string>
@@ -38,18 +39,19 @@
     <string name="how_menu_note">Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, put it on your home screen, or come back here.</string>
 
     <!-- Bundled examples -->
+    <string name="example_art_explorer">Art Explorer</string>
+    <string name="example_art_explorer_about">A live museum collection: search it, meet the artists, plan a visit</string>
     <string name="example_masterpieces">Masterpieces</string>
     <string name="example_masterpieces_about">A gallery of famous paintings with a screen for each</string>
     <string name="example_hello">Hello</string>
     <string name="example_hello_about">The smallest app: one screen of text</string>
     <string name="example_summer_run">Summer Run</string>
     <string name="example_summer_run_about">A race sign-up form with required fields</string>
-    <string name="example_pokedex">Kanto Pokédex</string>
-    <string name="example_pokedex_about">A list loaded from the web, with details</string>
     <string name="example_movie_db">The Movie DB</string>
-    <string name="example_movie_db_about">Movies from an online API (needs your own API key)</string>
+    <string name="example_movie_db_about">Movies from an online API</string>
 
     <!-- An app's menu and About dialog -->
+    <string name="navigate_back">Back</string>
     <string name="menu_open">Open application menu</string>
     <string name="menu_edit_app">Edit this app</string>
     <string name="menu_new_app">New app</string>
@@ -58,6 +60,21 @@
     <string name="menu_home">Home</string>
     <string name="menu_add_to_home_screen">Add to home screen</string>
     <string name="menu_about">About this app</string>
+    <string name="menu_share_app">Share this app</string>
+
+    <!-- Sharing an app: it travels as its JSON file -->
+    <string name="share_app_title">Share %1$s</string>
+    <string name="received_by">By %1$s · version %2$s</string>
+    <string name="received_version">Version %1$s</string>
+    <string name="received_web">It connects to: %1$s</string>
+    <string name="received_offline">It doesn\'t connect to any website.</string>
+    <string name="received_keys">It needs your own API key for %1$s: keys never travel with a shared app.</string>
+    <string name="received_same_name">You already have an app called %1$s. Replace it, or keep both.</string>
+    <string name="received_open">Open</string>
+    <string name="received_replace">Replace</string>
+    <string name="received_keep_both">Keep both</string>
+    <string name="received_edit">Look at it in the editor</string>
+    <string name="received_cancel">Cancel</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_author">By %1$s</string>
     <string name="about_whats_new">What\'s new</string>
