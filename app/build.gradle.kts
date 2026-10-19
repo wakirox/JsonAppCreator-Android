@@ -239,10 +239,10 @@ android {
 dependencies {
     implementation(project(":shared"))
     implementation("androidx.appcompat:appcompat:1.8.0")
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.activity:activity-compose:1.13.0")
 
-    val composeBom = platform("androidx.compose:compose-bom:2026.08.00")
+    val composeBom = platform("androidx.compose:compose-bom:2026.09.00")
     implementation(composeBom)
     testImplementation(composeBom)
     debugImplementation(composeBom)
@@ -259,13 +259,13 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
     // Only for ValidatorParityTest: the app validates with the multiplatform validator in :shared.
-    testImplementation("com.networknt:json-schema-validator:3.0.7")
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.22.2")
+    testImplementation("com.networknt:json-schema-validator:3.0.8")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.22.3")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(platform("io.insert-koin:koin-bom:4.2.2"))
     testImplementation("io.insert-koin:koin-test-junit4")
-    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("androidx.test:core-ktx:1.7.0")
     testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.5.0")

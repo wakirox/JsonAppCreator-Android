@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 3,
+  "name": "PUBLIC DOMAIN ART",
+  "version": "1.0",
+  "author": "Appkin",
+  "changelog": "Public-domain paintings from the Cleveland Museum of Art. Data and images from its Open Access API (CC0).",
+  "mainView": {
+    "id": "art_home",
+    "type": "layout",
+    "views": [
+      {
+        "type": "text",
+        "label": "Public domain art",
+        "title": "Paintings from the Cleveland Museum of Art. Tap one to see it larger.",
+        "textStyle": "bold",
+        "textSize": 18
+      },
+      {
+        "type": "list",
+        "mapping": "data",
+        "initData": {
+          "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&type=Painting&limit=30&fields=id,title,creation_date,technique,creators,images",
+          "method": "get"
+        },
+        "action": {
+          "id": "show_artwork_detail"
+        },
+        "itemView": {
+          "id": "artwork_list_item",
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "image",
+              "url": "${images.web.url}",
+              "size": {
+                "width": 112,
+                "height": 112
+              }
+            },
+            {
+              "type": "text",
+              "label": "${title}",
+              "title": "${creation_date}"
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "title": "Data and images: Cleveland Museum of Art Open Access (CC0)",
+        "textStyle": "italic"
+      }
+    ]
+  },
+  "views": [
+    {
+      "id": "artwork_detail",
+      "type": "layout",
+      "views": [
+        {
+          "type": "image",
+          "url": "${images.web.url}",
+          "size": {
+            "height": 300
+          }
+        },
+        {
+          "type": "text",
+          "label": "${title}",
+          "title": "${creation_date}",
+          "textStyle": "bold",
+          "textSize": 24
+        },
+        {
+          "type": "text",
+          "label": "Artist",
+          "mapping": "creators.0.description"
+        },
+        {
+          "type": "text",
+          "label": "Technique",
+          "mapping": "technique"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "show_artwork_detail",
+      "type": "click",
+      "event": {
+        "type": "show",
+        "view": {
+          "id": "artwork_detail"
+        }
+      }
+    }
+  ]
+}

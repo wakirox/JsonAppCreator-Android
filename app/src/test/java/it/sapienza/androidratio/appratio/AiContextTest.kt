@@ -28,7 +28,7 @@ class AiContextTest {
         AiContext.build(
             guide = Files.readString(Path.of("..", "docs", "LLM_GUIDE.md")),
             schemaJson = schema,
-            examples = AiContext.examples(raw("v3_masterpieces"), raw("v3_race_signup"), raw("v3_pokedex"))
+            examples = AiContext.examples(raw("v3_masterpieces"), raw("v3_race_signup"), raw("v3_open_access_art"))
         )
     }
 

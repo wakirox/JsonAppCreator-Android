@@ -73,7 +73,7 @@ class ValidatorParityTest {
         val race = configuration("v3_race_signup.json")
         val tmdb = configuration("v3_the_movie_db.json")
         val catalog = configuration("v3_static_catalog.json")
-        val pokedex = configuration("v3_pokedex.json")
+        val openAccessArt = configuration("v3_open_access_art.json")
         val all = configurations.map { it.second }
         val cases = mutableListOf<Pair<String, String>>()
         fun case(name: String, source: String, from: String, to: String) {
@@ -125,7 +125,7 @@ class ValidatorParityTest {
         case("calendar without date", race, "\"type\": \"alert\"", "\"type\": \"calendar\", \"title\": \"Race\"")
         case("button action a number", catalog, "\"type\": \"layout\"", "\"type\": \"layout\", \"action\": 7")
         case("debugMode a string", catalog, "\"name\":", "\"debugMode\": \"on\", \"name\":")
-        case("pokedex list initData without url", pokedex, "\"initData\": {", "\"initData\": { \"link\": 1,")
+        case("open access art list initData without url", openAccessArt, "\"initData\": {", "\"initData\": { \"link\": 1,")
         cases += "deep mistakes" to """
             {
               "schemaVersion": 3, "name": "One typo", "version": "1.0",

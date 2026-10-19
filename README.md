@@ -38,8 +38,8 @@ version is tagged (see [Automation](#automation)).
 
 The app opens on its home page: a short **How it works**, **Your apps** (every app you
 have opened or made, most recently used first: open one, add it to the home screen, or
-delete it), the bundled **Examples** (start with **Masterpieces**, a gallery of
-public-domain paintings), **New app** and **Ask your AI app**. Its three-dot menu also has
+delete it), the bundled **Examples** (start with **Art Explorer**, a live museum
+collection with search, artist pages and calendar visits), **New app** and **Ask your AI app**. Its three-dot menu also has
 **Paste answer from your AI app**, **Open a file…** for a UTF-8 JSON file in the v3 format,
 and **About Appkin**. A home-screen shortcut skips the home page and opens
 its app directly. Inside an app, from the three-dot menu:
@@ -50,7 +50,8 @@ its app directly. Inside an app, from the three-dot menu:
   inserts ready-made views from **+**, and **▶** runs the result. **Save as file…** exports it.
 - **Home** goes back to the home page. **Add to home screen** pins the current
   app as a launcher shortcut with its own icon, so several apps can sit on your home
-  screen. **About this app** shows its version, author and what's new.
+  screen. **Share this app** sends it as its JSON file (`Name.appkin.json`) through the
+  share sheet: the file is the whole app. **About this app** shows its version, author and what's new.
 - **Make an app with your AI app…** works with an AI app you already have (ChatGPT, Claude, Gemini…).
   Appkin has no AI inside and calls no AI service: it shares a complete prompt
   (the rules, a reference generated from the schema, worked examples and your request,
@@ -70,7 +71,10 @@ loaded file contains one, the app asks for the value and encrypts it in private 
 storage, scoped to that exact JSON file. The key is never inserted into the saved JSON.
 
 Android can also offer Appkin when another app opens an `application/json`
-file. Use **Edit this app** to see or change the active JSON.
+file. Before a file runs, Appkin shows who made it, the websites it connects to and the API keys
+it needs. When Your apps already has an app with that name, the file replaces it or is kept next to it under a new
+name. API keys never travel with a shared app: the JSON only holds their placeholders, and whoever opens it enters
+their own. Use **Edit this app** to see or change the active JSON.
 
 ## Minimal configuration
 
