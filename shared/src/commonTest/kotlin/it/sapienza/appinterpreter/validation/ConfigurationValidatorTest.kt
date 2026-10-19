@@ -168,4 +168,25 @@ class ConfigurationValidatorTest {
         assertEquals(listOf("$.mainView.format"), issues("""{ "type": "text", "title": "x", "format": "markdown" }"""))
         assertEquals(listOf("$.mainView.scale"), issues("""{ "type": "image", "url": "https://x/a.jpg", "scale": "stretch" }"""))
     }
+
+    @Test
+    fun methodsHeadersAndOnErrorAreChecked() {
+        fun issues(event: String) = validator.validate(
+            """{ "schemaVersion": 3, "name": "Requests", "version": "1.0",
+                 "mainView": { "type": "button", "title": "Go", "action": { "id": "go", "event": $event } } }"""
+        ).issues.map { it.path }.distinct()
+
+        assertEquals(
+            emptyList(),
+            issues(
+                """{ "type": "rest", "method": "delete", "url": "https://x/items/${'$'}{id}",
+                     "headers": { "Authorization": "Bearer __API_TOKEN__", "X-Item": "${'$'}{id}" },
+                     "onError": { "type": "alert", "value": "${'$'}{error.message}" } }"""
+            )
+        )
+        assertEquals(emptyList(), issues("""{ "type": "rest", "method": "put", "url": "https://x/items/1" }"""))
+        assertTrue("$.mainView.action.event.method" in issues("""{ "type": "rest", "method": "patch", "url": "https://x" }"""))
+        assertTrue(issues("""{ "type": "rest", "url": "https://x", "headers": { "Bad Name": "x" } }""").any { it.startsWith("$.mainView.action.event.headers") })
+        assertTrue(issues("""{ "type": "rest", "url": "https://x", "headers": { "X-Count": 3 } }""").any { it.startsWith("$.mainView.action.event.headers") })
+    }
 }

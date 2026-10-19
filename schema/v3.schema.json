@@ -48,6 +48,12 @@
       "type": ["object", "null"],
       "description": "Arbitrary JSON object made available to mappings and interpolation."
     },
+    "headers": {
+      "description": "Request headers, such as { \"Authorization\": \"Bearer __API_TOKEN__\" }. Values may use ${field} placeholders and __NAME__ API-key placeholders. Appkin sets User-Agent, Host, Content-Type and Content-Length itself.",
+      "type": ["object", "null"],
+      "propertyNames": { "pattern": "^[A-Za-z0-9!#$%&'*+.^_`|~-]+$" },
+      "additionalProperties": { "type": "string" }
+    },
     "visibleIf": {
       "description": "A path in the view's data, such as creators or current_location: the view is shown only when there is a value there that isn't null, empty, false, 0 or an empty array. Start it with ! to show the view only when there isn't. Only presence tests, no expressions.",
       "type": ["string", "null"],
@@ -458,12 +464,21 @@
         "type": { "const": "rest" },
         "url": { "description": "HTTPS address; may use ${field} placeholders from the current data", "$ref": "#/$defs/nonEmptyString" },
         "method": {
+          "description": "get (default), post, put or delete; post and put send the current data as a JSON body",
           "type": ["string", "null"],
-          "enum": ["get", "post", null],
+          "enum": ["get", "post", "put", "delete", null],
           "default": "get"
         },
+        "headers": { "$ref": "#/$defs/headers" },
         "thenDo": {
           "description": "The event to run next, with the JSON response as data",
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "onError": {
+          "description": "The event to run when the request fails, instead of an alert; its data is the request's, plus error.message and, for an HTTP error, error.status",
           "oneOf": [
             { "$ref": "#/$defs/event" },
             { "type": "null" }
@@ -480,10 +495,12 @@
       "properties": {
         "url": { "$ref": "#/$defs/nonEmptyString" },
         "method": {
+          "description": "get (default), post, put or delete; post and put send the current data as a JSON body",
           "type": ["string", "null"],
-          "enum": ["get", "post", null],
+          "enum": ["get", "post", "put", "delete", null],
           "default": "get"
         },
+        "headers": { "$ref": "#/$defs/headers" },
         "thenDo": {
           "oneOf": [
             { "$ref": "#/$defs/event" },

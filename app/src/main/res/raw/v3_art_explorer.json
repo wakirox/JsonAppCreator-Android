@@ -591,6 +591,10 @@
             "ref": "artist_detail"
           },
           "title": "Artist"
+        },
+        "onError": {
+          "type": "alert",
+          "value": "The museum couldn't send this artist's page (${error.message}). Try again in a moment."
         }
       }
     },
@@ -667,6 +671,10 @@
             "ref": "artwork_detail"
           },
           "title": "${department}"
+        },
+        "onError": {
+          "type": "alert",
+          "value": "The museum couldn't send this work (${error.message}). Try again in a moment."
         }
       }
     }

@@ -47,15 +47,16 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 10. For every list, provide `itemView` and a `mapping` selecting an array of objects.
 11. If a list has `initData`, ensure its endpoint returns a JSON object containing the
     mapped array.
-12. Use HTTPS endpoints that require no custom headers. Never write a real API key,
+12. Use HTTPS endpoints. Never write a real API key,
     token, password, or other secret into the JSON. When an API needs a key in its URL
-    (a query parameter or a path segment), write a named placeholder instead: two
-    underscores, an uppercase name, two underscores, for example
-    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__`. Appkin asks the user
+    (a query parameter or a path segment) or in a header, write a named placeholder
+    instead: two underscores, an uppercase name, two underscores, for example
+    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__` or
+    `"headers": { "Authorization": "Bearer __EXAMPLE_TOKEN__" }`. Appkin asks the user
     for each placeholder's value when the app opens, stores it encrypted on the device,
-    and fills it into every request URL. Use one name per key and reuse it in every URL
-    that needs it. A key that the API accepts only in a header can't be used: pick
-    another API.
+    and fills it into every request. Use one name per key and reuse it wherever it's
+    needed. For a request that can fail in a way the user should understand, add
+    `onError` (its data has `error.message`).
 13. Make every mapping and placeholder match the real data exactly, including case and
     nesting.
 14. Prefer a small working configuration over speculative or undocumented fields.
@@ -106,12 +107,12 @@ Other enums:
 
 - Orientations: `vertical`, `horizontal` (and `grid`, for lists only)
 - Actions: `click`, `longclick`
-- HTTP methods: `get`, `post`
+- HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
 - Text inputs: `plain`, `numeric`, `email`, `password`
 - Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
 
-Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
+Do not invent support for PATCH, JavaScript expressions,
 conditions other than `visibleIf`, databases, arbitrary native components, or undocumented style
 properties.
 
