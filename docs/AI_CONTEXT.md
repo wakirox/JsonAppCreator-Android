@@ -102,7 +102,7 @@ Events:
 
 Other enums:
 
-- Orientations: `vertical`, `horizontal`
+- Orientations: `vertical`, `horizontal` (and `grid`, for lists only)
 - Actions: `click`, `longclick`
 - HTTP methods: `get`, `post`
 - Text styles: `regular`, `italic`, `bold`
@@ -123,6 +123,11 @@ properties.
   opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
+  For an API with pages (a `skip`, `offset` or `page` parameter, or a "next" link), add
+  `"nextPage": { "parameter": "skip", "step": 40 }` (the page size) or
+  `"nextPage": { "urlFrom": "info.next" }` to `initData`, and the list loads more as it's
+  scrolled. `"orientation": "grid"` with `"columns": 2` shows items side by side;
+  `emptyText` says what an empty list means.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
   fields of that one item, not to the whole response.
 - Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one
@@ -241,7 +246,9 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `visibleIf`: text
 - `itemView` **(required)**: a view (or `{ "ref": "id" }`). The view repeated for each item; its mappings and placeholders refer to that item
 - `initData`: a REST request, `{ "url": ..., "method": "get" | "post" }`. A REST request whose JSON response is the list's data
-- `orientation`: one of `"horizontal"`, `"vertical"`
+- `orientation`: one of `"horizontal"`, `"vertical"`, `"grid"`. vertical (default): one item per row; horizontal: a row that scrolls sideways; grid: items side by side in rows of columns
+- `columns`: a whole number (at least 1). Items per row of a grid; 2 by default
+- `emptyText`: text. What the list says when it has no items, instead of No data available; may use ${field} placeholders
 
 #### `form`
 
@@ -385,6 +392,7 @@ Where an action is expected, write an action definition or `{ "ref": "id" }` ref
 - `thenDo`: an event
 - `mapping`: text
 - `data`: an object with any data
+- `nextPage`: a value. How the list asks for more items when it nears its end. Either parameter and step: that query parameter (such as skip) grows by step, the page size, until a page has fewer items. Or urlFrom: the path in the response of the next page's URL, until there is none
 
 #### Size (`size`)
 

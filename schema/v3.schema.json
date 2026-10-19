@@ -214,8 +214,19 @@
           ]
         },
         "orientation": {
-          "enum": ["horizontal", "vertical"],
+          "description": "vertical (default): one item per row; horizontal: a row that scrolls sideways; grid: items side by side in rows of columns",
+          "enum": ["horizontal", "vertical", "grid"],
           "default": "vertical"
+        },
+        "columns": {
+          "description": "Items per row of a grid; 2 by default",
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 6
+        },
+        "emptyText": {
+          "description": "What the list says when it has no items, instead of No data available; may use ${field} placeholders",
+          "$ref": "#/$defs/nullableString"
         }
       },
       "additionalProperties": false
@@ -463,7 +474,21 @@
           ]
         },
         "mapping": { "$ref": "#/$defs/nullableString" },
-        "data": { "$ref": "#/$defs/data" }
+        "data": { "$ref": "#/$defs/data" },
+        "nextPage": {
+          "description": "How the list asks for more items when it nears its end. Either parameter and step: that query parameter (such as skip) grows by step, the page size, until a page has fewer items. Or urlFrom: the path in the response of the next page's URL, until there is none.",
+          "type": ["object", "null"],
+          "properties": {
+            "parameter": { "description": "The query parameter that says where a page starts, such as skip or offset", "$ref": "#/$defs/nonEmptyString" },
+            "step": { "description": "How much it grows from page to page: the page size", "type": "integer", "minimum": 1 },
+            "urlFrom": { "description": "Path in each response of the next page's URL, such as info.next", "$ref": "#/$defs/nonEmptyString" }
+          },
+          "oneOf": [
+            { "required": ["parameter", "step"], "not": { "required": ["urlFrom"] } },
+            { "required": ["urlFrom"], "not": { "anyOf": [ { "required": ["parameter"] }, { "required": ["step"] } ] } }
+          ],
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },

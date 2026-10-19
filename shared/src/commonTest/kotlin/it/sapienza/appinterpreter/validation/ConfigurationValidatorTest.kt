@@ -136,4 +136,20 @@ class ConfigurationValidatorTest {
         assertEquals(listOf("$.mainView.formElements[0].value"), issues("""{ "type": "time", "mapping": "t", "title": "T", "value": "25:00" }"""))
         assertEquals(listOf("$.mainView.formElements[0]"), issues("""{ "type": "hidden", "mapping": "id", "title": "Shown?" }"""))
     }
+
+    @Test
+    fun gridsEmptyTextAndPagingAreChecked() {
+        fun issues(list: String) = validator.validate(
+            """{ "schemaVersion": 3, "name": "Lists", "version": "1.0", "mainView": $list }"""
+        ).issues.map { it.path }.distinct()
+        fun list(extra: String) = """{ "type": "list", "mapping": "data", "itemView": { "type": "text" }, $extra }"""
+
+        assertEquals(emptyList(), issues(list(""""orientation": "grid", "columns": 3, "emptyText": "Nothing for ${'$'}{q}" """)))
+        assertEquals(emptyList(), issues(list(""""initData": { "url": "https://x/a?limit=20", "nextPage": { "parameter": "skip", "step": 20 } }""")))
+        assertEquals(emptyList(), issues(list(""""initData": { "url": "https://x/a", "nextPage": { "urlFrom": "info.next" } }""")))
+        assertEquals(listOf("$.mainView.columns"), issues(list(""""orientation": "grid", "columns": 7""")))
+        // initData is a request or null, so the request's issue comes with one for initData itself.
+        assertTrue("$.mainView.initData.nextPage" in issues(list(""""initData": { "url": "https://x/a", "nextPage": { "parameter": "skip", "step": 20, "urlFrom": "next" } }""")))
+        assertTrue("$.mainView.initData.nextPage" in issues(list(""""initData": { "url": "https://x/a", "nextPage": { "parameter": "skip" } }""")))
+    }
 }
