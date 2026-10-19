@@ -47,8 +47,15 @@ The optional root fields are `author`, `changelog`, `debugMode`, `views`, and
 10. For every list, provide `itemView` and a `mapping` selecting an array of objects.
 11. If a list has `initData`, ensure its endpoint returns a JSON object containing the
     mapped array.
-12. Use HTTPS endpoints that require no custom headers. Never embed private API keys,
-    tokens, passwords, or other secrets.
+12. Use HTTPS endpoints that require no custom headers. Never write a real API key,
+    token, password, or other secret into the JSON. When an API needs a key in its URL
+    (a query parameter or a path segment), write a named placeholder instead: two
+    underscores, an uppercase name, two underscores, for example
+    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__`. Appkin asks the user
+    for each placeholder's value when the app opens, stores it encrypted on the device,
+    and fills it into every request URL. Use one name per key and reuse it in every URL
+    that needs it. A key that the API accepts only in a header can't be used: pick
+    another API.
 13. Make every mapping and placeholder match the real data exactly, including case and
     nesting.
 14. Prefer a small working configuration over speculative or undocumented fields.
