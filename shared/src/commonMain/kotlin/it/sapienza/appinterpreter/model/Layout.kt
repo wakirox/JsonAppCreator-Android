@@ -12,5 +12,6 @@ class Layout(
     override val mapping: String? = null,
     override val data: JsonObject? = null,
     val orientation: LayoutOrientation? = LayoutOrientation.vertical,
-    val views: List<MView> = emptyList()
+    val views: List<MView> = emptyList(),
+    override val visibleIf: String? = null
 ) : MView()

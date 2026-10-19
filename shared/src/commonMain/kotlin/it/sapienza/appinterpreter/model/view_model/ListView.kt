@@ -15,5 +15,6 @@ class ListView(
     override val id: String? = null,
     override val action: Action? = null,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    override val visibleIf: String? = null
 ) : MView()

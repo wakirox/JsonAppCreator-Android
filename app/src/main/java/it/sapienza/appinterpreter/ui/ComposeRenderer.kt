@@ -55,6 +55,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import it.sapienza.appinterpreter.runtime.ListsState
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
+import it.sapienza.appinterpreter.runtime.ViewVisibility
+import it.sapienza.appinterpreter.runtime.text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -79,6 +81,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
+import it.sapienza.appinterpreter.json.fillAddress
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.json.optString
@@ -145,7 +148,7 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
 
     when {
         resolved is Layout && resolved.orientation != LayoutOrientation.horizontal -> {
-            val children = remember(resolved) { resolved.views.map(screen::resolve) }
+            val children = remember(resolved, data) { screen.shownViews(resolved.views, data) }
             val listStates = children.map { child ->
                 if (child is ListView && child.orientation != LayoutOrientation.horizontal) {
                     val childData = remember(child, child.data, data) { child.data ?: data }
@@ -205,6 +208,7 @@ private fun RenderNode(
 ) {
     val resolved = LocalScreen.current.resolve(model)
     val data = remember(resolved, resolved.data, parentData) { resolved.data ?: parentData }
+    if (!ViewVisibility.isShown(resolved, data, reference = model)) return
     when (resolved) {
         is Layout -> RenderLayout(resolved, data, modifier, allowImagePreview)
         is ButtonView -> RenderButton(resolved, data, modifier)
@@ -223,7 +227,7 @@ private fun RenderLayout(
     allowImagePreview: Boolean
 ) {
     val screen = LocalScreen.current
-    val resolvedChildren = layout.views.map(screen::resolve)
+    val resolvedChildren = screen.shownViews(layout.views, data)
     if (layout.orientation == LayoutOrientation.horizontal) {
         Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             resolvedChildren.forEach { child ->
@@ -236,6 +240,10 @@ private fun RenderLayout(
         }
     }
 }
+
+/** [views] resolved, without those that aren't shown with [data]: they take no space, and no gap either. */
+private fun ScreenViewModel.shownViews(views: List<MView>, data: JsonObject?): List<MView> =
+    views.mapNotNull { view -> resolve(view).takeIf { ViewVisibility.isShown(it, it.data ?: data, reference = view) } }
 
 private fun columnChildModifier(model: MView): Modifier {
     val width = model.explicitWidth()
@@ -264,7 +272,7 @@ private fun RenderText(
     modifier: Modifier,
     contentPadding: PaddingValues = PaddingValues(6.dp)
 ) {
-    val text = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty()).matchReplace(data)
+    val text = view.text(data)
     val style = when (view.textStyle) {
         TextStyle.bold -> MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
         TextStyle.italic -> MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
@@ -288,7 +296,7 @@ private fun RenderText(
 private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
     val action = screen.resolve(view.action)
-    val title = (view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty().matchReplace(data)
+    val title = view.text(data)
     Button(
         onClick = { if (action?.type != ActionType.longclick) screen.onAction(view.action, data) },
         modifier = modifier.fillMaxWidth().then(
@@ -311,7 +319,8 @@ private fun RenderImage(
 ) {
     val context = LocalContext.current
     val mapped = view.mapping?.let { data?.getValue(it) }
-    val url = (mapped ?: view.url)?.matchReplace(data)
+    // An address with a placeholder that has no value would load something else: the placeholder shows instead.
+    val url = (mapped ?: view.url)?.fillAddress(data)?.takeIf { it.isNotBlank() }
     val openPreview: (() -> Unit)? = if (allowImagePreview) {
         { url?.let { context.startActivity(createIntentPhotoActivity(context, it)) } }
     } else null
@@ -468,7 +477,7 @@ private fun ListCardContent(
     val screen = LocalScreen.current
     val resolvedItem = screen.resolve(itemView)
     val resolvedLayout = resolvedItem as? Layout
-    val resolvedChildren = resolvedLayout?.views?.map(screen::resolve)
+    val resolvedChildren = resolvedLayout?.views?.let { screen.shownViews(it, item) }
 
     if (resolvedItem is ImageView) {
         RenderImage(
@@ -563,8 +572,7 @@ private fun linkStyles() = TextLinkStyles(
 @Composable
 private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modifier: Modifier) {
     val title = view.label?.matchReplace(data).orEmpty()
-    val supportingText = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty())
-        .matchReplace(data)
+    val supportingText = view.text(data)
     Column(
         modifier = modifier
             .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)

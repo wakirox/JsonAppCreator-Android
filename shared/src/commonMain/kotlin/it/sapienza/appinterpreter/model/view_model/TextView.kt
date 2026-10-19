@@ -26,7 +26,10 @@ class TextView(
     override val id: String? = null,
     override val action: Action? = null,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    override val visibleIf: String? = null,
+    /** Draw the label even when the text it labels is empty, as before visibleIf existed. */
+    val showWhenEmpty: Boolean? = null
 ) : TextualView()
 
 @Serializable
@@ -39,5 +42,6 @@ class ButtonView(
     override val id: String? = null,
     override val action: Action? = null,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    override val visibleIf: String? = null
 ) : TextualView()

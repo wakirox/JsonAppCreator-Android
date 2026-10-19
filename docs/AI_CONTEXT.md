@@ -107,7 +107,7 @@ Other enums:
 - Form elements: `text`, `selector`, `date`, `checkbox`
 
 Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
-conditional rendering, databases, arbitrary native components, or undocumented style
+conditions other than `visibleIf`, databases, arbitrary native components, or undocumented style
 properties.
 
 ## Common mistakes
@@ -125,6 +125,11 @@ properties.
 - Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one
   object in an array, open its view with a `show` event whose `mapping` selects it, such
   as `"mapping": "meals.0"`.
+- Data from an API is often incomplete. A text view whose `mapping` (or `title`) has nothing
+  to show isn't drawn, label included, and a missing `${...}` becomes empty text. To hide any
+  other view, such as a button that needs a field, give it `"visibleIf": "field"` (shown only
+  when the field has a value) or `"visibleIf": "!field"` (only when it hasn't). It is a path,
+  never a comparison.
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.
@@ -175,6 +180,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`)
 - `mapping`: text
 - `data`: an object with any data
+- `visibleIf`: text
 - `orientation`: one of `"horizontal"`, `"vertical"`. How the child views are arranged; vertical by default
 - `views` **(required)**: an array; each item is a view (or `{ "ref": "id" }`). The child views, in order
 
@@ -184,11 +190,13 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`)
 - `mapping`: text. Path of a value in the current data to show as the text, such as owner.name
 - `data`: an object with any data
+- `visibleIf`: text
 - `textSize`: a number (at least 0). Font size in sp
 - `size`: a size, `{ "width": number, "height": number }` in dp
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The text, when no mapping value is shown
 - `label`: text. First line of the text view, shown above the text
+- `showWhenEmpty`: `true` or `false`. Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all
 
 #### `button`
 
@@ -196,6 +204,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`). What a tap does
 - `mapping`: text. Path of a value in the current data to use as the button's text
 - `data`: an object with any data
+- `visibleIf`: text
 - `textSize`: a number (at least 0)
 - `size`: a size, `{ "width": number, "height": number }` in dp
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
@@ -208,6 +217,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`)
 - `mapping`: text. Path of an image address in the current data
 - `data`: an object with any data
+- `visibleIf`: text
 - `url`: text. Image address; may use ${field} placeholders
 - `size`: a size, `{ "width": number, "height": number }` in dp
 
@@ -217,6 +227,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`). What tapping an item does; its event receives that item
 - `mapping`: text. Path of the array of objects to show, in data or in the initData response
 - `data`: an object with any data
+- `visibleIf`: text
 - `itemView` **(required)**: a view (or `{ "ref": "id" }`). The view repeated for each item; its mappings and placeholders refer to that item
 - `initData`: a REST request, `{ "url": ..., "method": "get" | "post" }`. A REST request whose JSON response is the list's data
 - `orientation`: one of `"horizontal"`, `"vertical"`
@@ -227,6 +238,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`). Runs on submit, with the submitted object as data
 - `mapping`: text
 - `data`: an object with any data
+- `visibleIf`: text
 - `title`: text. Heading above the fields
 - `buttonTitle`: text. The submit button's text; Submit by default
 - `formElements` **(required)**: an array; each item is a form field. The fields; each one puts its value under its mapping in the submitted object

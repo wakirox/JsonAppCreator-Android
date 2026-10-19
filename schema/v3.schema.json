@@ -48,6 +48,11 @@
       "type": ["object", "null"],
       "description": "Arbitrary JSON object made available to mappings and interpolation."
     },
+    "visibleIf": {
+      "description": "A path in the view's data, such as creators or current_location: the view is shown only when there is a value there that isn't null, empty, false, 0 or an empty array. Start it with ! to show the view only when there isn't. Only presence tests, no expressions.",
+      "type": ["string", "null"],
+      "pattern": "^!?[^!\\s]+$"
+    },
     "size": {
       "type": ["object", "null"],
       "properties": {
@@ -72,7 +77,8 @@
       "type": "object",
       "required": ["ref"],
       "properties": {
-        "ref": { "$ref": "#/$defs/nonEmptyString" }
+        "ref": { "$ref": "#/$defs/nonEmptyString" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" }
       },
       "additionalProperties": false
     },
@@ -110,6 +116,7 @@
         "action": { "$ref": "#/$defs/action" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "orientation": {
           "description": "How the child views are arranged; vertical by default",
           "type": ["string", "null"],
@@ -133,6 +140,7 @@
         "action": { "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of a value in the current data to show as the text, such as owner.name", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "textSize": { "description": "Font size in sp", "type": ["number", "null"], "minimum": 0 },
         "size": { "$ref": "#/$defs/size" },
         "textStyle": {
@@ -141,7 +149,12 @@
           "default": "regular"
         },
         "title": { "description": "The text, when no mapping value is shown", "$ref": "#/$defs/nullableString" },
-        "label": { "description": "First line of the text view, shown above the text", "$ref": "#/$defs/nullableString" }
+        "label": { "description": "First line of the text view, shown above the text", "$ref": "#/$defs/nullableString" },
+        "showWhenEmpty": {
+          "description": "Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all.",
+          "type": ["boolean", "null"],
+          "default": false
+        }
       },
       "additionalProperties": false
     },
@@ -154,6 +167,7 @@
         "action": { "description": "What a tap does", "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of a value in the current data to use as the button's text", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "textSize": { "type": ["number", "null"], "minimum": 0 },
         "size": { "$ref": "#/$defs/size" },
         "textStyle": {
@@ -175,6 +189,7 @@
         "action": { "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of an image address in the current data", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "url": { "description": "Image address; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "size": { "$ref": "#/$defs/size" }
       },
@@ -189,6 +204,7 @@
         "action": { "description": "What tapping an item does; its event receives that item", "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of the array of objects to show, in data or in the initData response", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "itemView": { "description": "The view repeated for each item; its mappings and placeholders refer to that item", "$ref": "#/$defs/view" },
         "initData": {
           "description": "A REST request whose JSON response is the list's data",
@@ -213,6 +229,7 @@
         "action": { "description": "Runs on submit, with the submitted object as data", "$ref": "#/$defs/action" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "title": { "description": "Heading above the fields", "$ref": "#/$defs/nullableString" },
         "buttonTitle": { "description": "The submit button's text; Submit by default", "$ref": "#/$defs/nullableString" },
         "formElements": {

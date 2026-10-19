@@ -242,6 +242,7 @@
           "type": "text",
           "label": "Artist (tap for more)",
           "mapping": "creators.0.description",
+          "visibleIf": "creators",
           "action": {
             "ref": "open_artist"
           }
@@ -291,6 +292,7 @@
             {
               "type": "button",
               "title": "Plan a visit",
+              "visibleIf": "current_location",
               "action": {
                 "ref": "plan_visit"
               }
@@ -332,6 +334,7 @@
         {
           "type": "text",
           "label": "Everything by them in the collection",
+          "visibleIf": "artworks",
           "title": "Tap one to open it.",
           "textStyle": "bold"
         },
