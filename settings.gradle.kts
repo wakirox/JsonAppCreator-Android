@@ -19,3 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Appkin"
 include(":app")
+include(":shared")
