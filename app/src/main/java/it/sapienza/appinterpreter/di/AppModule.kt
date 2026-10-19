@@ -2,7 +2,7 @@ package it.sapienza.appinterpreter.di
 
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
-import it.sapienza.appinterpreter.runtime.usecase.CreateCalendarEventUseCase
+import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase

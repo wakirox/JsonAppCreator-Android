@@ -2,7 +2,6 @@ package it.sapienza.appinterpreter.runtime
 
 import it.sapienza.appinterpreter.model.dataObj
 import android.app.Application
-import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,7 +23,9 @@ import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
-import it.sapienza.appinterpreter.runtime.usecase.CreateCalendarEventUseCase
+import it.sapienza.appinterpreter.calendar.CalendarEntry
+import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
+import it.sapienza.appinterpreter.model.toJsonObject
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
@@ -61,7 +62,7 @@ class ScreenViewModel(
     /** One-off things only the activity can do. */
     sealed interface Effect {
         class OpenScreen(val view: MView, val payload: JSONObject?) : Effect
-        class AddToCalendar(val intent: Intent) : Effect
+        class AddToCalendar(val entry: CalendarEntry) : Effect
     }
 
     private val effectChannel = Channel<Effect>(Channel.BUFFERED)
@@ -117,8 +118,8 @@ class ScreenViewModel(
             // The view receives the part of the data the mapping selects, such as "meals.0".
             is ShowView -> openScreen(event.view, event.mapping?.let { data?.getObject(it) } ?: data)
             is RESTService -> request(event, data)
-            is CalendarEvent -> when (val result = createCalendarEvent(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
-                is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.intent))
+            is CalendarEvent -> when (val result = createCalendarEvent(event, (event.mapping?.let { data?.getObject(it) } ?: data)?.toJsonObject())) {
+                is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
                 is CreateCalendarEventUseCase.Result.BadDate -> alerts.show(result.message)
             }
         }

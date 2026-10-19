@@ -71,6 +71,7 @@ import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.ui.ActionMenuItem
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
 import org.json.JSONObject
@@ -170,7 +171,7 @@ class HomeActivity : AppCompatActivity() {
                                 trailingContent = {
                                     Row {
                                         IconButton(onClick = {
-                                            if (!HomeShortcuts.pin(this@HomeActivity, app)) {
+                                            if (!HomeShortcuts(this@HomeActivity).pin(app)) {
                                                 Toast.makeText(this@HomeActivity, R.string.shortcuts_unsupported, Toast.LENGTH_LONG).show()
                                             }
                                         }) { Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.home_add_to_home_screen)) }
@@ -239,9 +240,9 @@ class HomeActivity : AppCompatActivity() {
                         text = { Text(stringResource(R.string.home_delete_text)) },
                         confirmButton = {
                             TextButton(onClick = {
-                                AppLibrary.delete(this, app.id)
-                                HomeShortcuts.disable(this, app.id)
-                                apps = AppLibrary.all(this)
+                                AppLibrary.of(this).delete(app.id)
+                                HomeShortcuts(this).disable(app.id)
+                                apps = AppLibrary.of(this).all()
                                 deleting = null
                             }) { Text(stringResource(R.string.home_delete), color = MaterialTheme.colorScheme.error) }
                         },
@@ -254,7 +255,7 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        apps = AppLibrary.all(this)
+        apps = AppLibrary.of(this).all()
         current = runCatching { JSONObject(DomainController.jsonFile(this)).optString("name") }.getOrNull()
     }
 

@@ -44,6 +44,7 @@ import it.sapienza.appinterpreter.editor.Snippets
 import it.sapienza.appinterpreter.editor.prettyJson
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import java.io.File
@@ -108,7 +109,7 @@ class EditorActivity : AppCompatActivity() {
                     },
                     initialText = when {
                         received != null -> prettyJson(received)
-                        newApp -> Snippets.newApp.replaceFirst("\"My app\"", "\"${AppLibrary.freeName(this, "My app")}\"")
+                        newApp -> Snippets.newApp.replaceFirst("\"My app\"", "\"${AppLibrary.of(this).freeName("My app")}\"")
                         else -> prettyJson(DomainController.jsonFile(this))
                     },
                     unsavedSource = when {
