@@ -117,7 +117,9 @@ properties.
 - A button shows its `title` (or the value its `mapping` selects). A button's `label` is
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
-  one style. Use `textStyle` and `textSize` for emphasis.
+  one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
+  a text view (`https://...`) becomes a link that opens in the browser; this is the only
+  way to link to a web page.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
