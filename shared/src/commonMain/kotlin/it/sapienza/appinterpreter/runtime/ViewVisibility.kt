@@ -3,6 +3,7 @@ package it.sapienza.appinterpreter.runtime
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.hasValueAt
 import it.sapienza.appinterpreter.json.matchReplace
+import it.sapienza.appinterpreter.model.view_model.TextFormat
 import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
@@ -10,6 +11,7 @@ import kotlinx.serialization.json.JsonObject
 
 /** Which views are drawn: a view whose data lacks what it shows takes no space, label included. */
 object ViewVisibility {
+    private val TAG = Regex("<[^>]*>")
 
     /**
      * True when [view] is drawn with [data] (the view's own data, else its parent's). [reference] is the reference
@@ -31,7 +33,8 @@ object ViewVisibility {
      */
     private fun hasContent(view: MView, data: JsonObject?): Boolean {
         if (view !is TextView) return true
-        val text = view.text(data)
+        // HTML with nothing but tags shows nothing.
+        val text = view.text(data).let { if (view.format == TextFormat.html) it.replace(TAG, "") else it }
         val label = view.label?.matchReplace(data).orEmpty()
         if (text.isBlank() && label.isBlank()) return false
         val hasSource = view.mapping != null || view.title != null

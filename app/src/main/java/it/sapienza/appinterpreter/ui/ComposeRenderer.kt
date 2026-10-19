@@ -76,6 +76,10 @@ import android.text.format.DateFormat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -102,8 +106,10 @@ import it.sapienza.appinterpreter.model.action.ActionType
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ImageView
+import it.sapienza.appinterpreter.model.view_model.ImageScale
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.TextView
+import it.sapienza.appinterpreter.model.view_model.TextFormat
 import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
@@ -300,17 +306,39 @@ private fun RenderText(
         else -> MaterialTheme.typography.bodyLarge
     }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
     val label = view.label?.matchReplace(data).orEmpty()
-    val display = listOf(label, text).filter { it.isNotEmpty() }.joinToString("\n").trimEnd()
+    val links = linkStyles()
+    val body = bodyText(view, text, links)
+    val display = buildAnnotatedString {
+        if (label.isNotEmpty()) {
+            // A labelStyle gives the label its own weight and slant; without one it looks like the text.
+            val labelSpan = view.labelStyle?.let { labelStyle ->
+                SpanStyle(
+                    fontWeight = if (labelStyle == TextStyle.bold) FontWeight.Bold else FontWeight.Normal,
+                    fontStyle = if (labelStyle == TextStyle.italic) FontStyle.Italic else FontStyle.Normal
+                )
+            }
+            if (labelSpan != null) withStyle(labelSpan) { append(linkified(label, links)) } else append(linkified(label, links))
+            if (body.isNotEmpty()) append("\n")
+        }
+        append(body)
+    }
     val textModifier = modifier
         .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
         .then(actionModifier(view.action, data))
         .padding(contentPadding)
     Text(
-        text = linkified(display, linkStyles()),
+        text = display,
         modifier = textModifier,
         style = style,
         overflow = TextOverflow.Ellipsis
     )
+}
+
+/** A text view's text with its links: simple HTML when its format says so, else plain text with web addresses linked. */
+private fun bodyText(view: TextualView, text: String, links: TextLinkStyles): AnnotatedString {
+    val body = if (view.format == TextFormat.html) AnnotatedString.fromHtml(text, links) else linkified(text, links)
+    val end = body.text.trimEnd().length
+    return if (end < body.length) body.subSequence(0, end) else body
 }
 
 @Composable
@@ -365,7 +393,7 @@ private fun RenderImage(
         AsyncImage(
             model = url,
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = if (view.scale == ImageScale.fit) ContentScale.Fit else ContentScale.Crop,
             onState = { state = it },
             // The tag marks a loaded image, which tests wait for.
             modifier = Modifier.matchParentSize().then(
@@ -672,7 +700,7 @@ private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modif
         }
         if (supportingText.isNotEmpty()) {
             Text(
-                text = linkified(supportingText, linkStyles()),
+                text = bodyText(view, supportingText, linkStyles()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 overflow = TextOverflow.Ellipsis

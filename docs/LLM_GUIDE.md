@@ -120,7 +120,11 @@ properties.
 - A button shows its `title` (or the value its `mapping` selects). A button's `label` is
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
-  one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
+  one style. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style the
+  label on its own (`"labelStyle": "bold"` over regular text). When a value holds HTML,
+  such as a museum's description, add `"format": "html"`. An image's `"scale": "fit"` shows
+  the whole picture instead of cropping it; a `show` event's `title` names the screen it
+  opens. A web address written out in
   a text view (`https://...`) becomes a link that opens in the browser. For a button that
   opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes

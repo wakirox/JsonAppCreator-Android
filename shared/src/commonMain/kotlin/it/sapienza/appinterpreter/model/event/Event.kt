@@ -89,7 +89,9 @@ class NextPage(
 class ShowView(
     val view: MView,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    /** The opened screen's title in the app bar, instead of the app's name; placeholders come from its data. */
+    val title: String? = null
 ) : Event()
 
 object EventSerializer : TypedSerializer<Event>(

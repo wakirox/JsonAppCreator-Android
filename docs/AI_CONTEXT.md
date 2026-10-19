@@ -118,7 +118,11 @@ properties.
 - A button shows its `title` (or the value its `mapping` selects). A button's `label` is
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
-  one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
+  one style. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style the
+  label on its own (`"labelStyle": "bold"` over regular text). When a value holds HTML,
+  such as a museum's description, add `"format": "html"`. An image's `"scale": "fit"` shows
+  the whole picture instead of cropping it; a `show` event's `title` names the screen it
+  opens. A web address written out in
   a text view (`https://...`) becomes a link that opens in the browser. For a button that
   opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
@@ -212,6 +216,8 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The text, when no mapping value is shown
 - `label`: text. First line of the text view, shown above the text
+- `labelStyle`: one of `"regular"`, `"italic"`, `"bold"`. The label's own style, so a bold heading needn't make its text bold; without it the label looks like the text
+- `format`: one of `"plain"`, `"html"`. plain (default), or html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions
 - `showWhenEmpty`: `true` or `false`. Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all
 
 #### `button`
@@ -236,6 +242,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `visibleIf`: text
 - `url`: text. Image address; may use ${field} placeholders
 - `size`: a size, `{ "width": number, "height": number }` in dp
+- `scale`: one of `"crop"`, `"fit"`. crop (default): the picture fills its space and its edges may be cut; fit: the whole picture shows, inside its space
 
 #### `list`
 
@@ -336,6 +343,7 @@ What an action does: the `event` of an action definition.
 - `view` **(required)**: a view (or `{ "ref": "id" }`). The view to open; it receives the current data
 - `mapping`: text. Path of the part of the current data the view receives
 - `data`: an object with any data
+- `title`: text. The opened screen's title in the app bar, instead of the app's name; may use ${field} placeholders from the data it receives
 
 #### `alert`
 

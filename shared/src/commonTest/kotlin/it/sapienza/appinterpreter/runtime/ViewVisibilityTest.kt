@@ -53,6 +53,13 @@ class ViewVisibilityTest {
     }
 
     @Test
+    fun htmlWithOnlyTagsIsEmpty() {
+        assertFalse(shown("""{ "type": "text", "label": "About", "title": "<p><br></p>", "format": "html" }"""))
+        assertTrue(shown("""{ "type": "text", "label": "About", "title": "<p><em>Eden</em></p>", "format": "html" }"""))
+        assertTrue(shown("""{ "type": "text", "label": "About", "title": "<p><br></p>" }"""), "as plain text, the tags show")
+    }
+
+    @Test
     fun aLabelAloneIsAHeadingAndStays() {
         assertTrue(shown("""{ "type": "text", "label": "Plan a visit" }"""))
     }

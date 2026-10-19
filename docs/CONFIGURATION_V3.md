@@ -144,6 +144,8 @@ A layout groups child views.
 | `textStyle` | string | `regular` (default), `italic`, or `bold`. |
 | `textSize` | number | Text size in scale-independent pixels (sp). |
 | `size` | object | Optional `width` and `height`, interpreted as density-independent pixels (dp). |
+| `labelStyle` | string | The label's own style: `regular`, `italic` or `bold`. Without it the label looks like the text. |
+| `format` | string | `plain` (default) or `html`: the text is simple HTML (`<b>`, `<i>`, `<em>`, `<strong>`, `<u>`, `<br>`, `<p>`, `<a href>`). |
 | `showWhenEmpty` | boolean | Keep the label when `mapping` (or `title`) has nothing to show. `false` by default: such a text view isn't drawn, label included. |
 
 A text view whose `mapping` finds no value, or whose `title` is empty once its placeholders are
@@ -175,6 +177,8 @@ A button supports the text properties above and normally includes an `action`.
 - `url` is the fallback/static image URL and supports `${...}` interpolation.
 - `mapping` may instead read the complete URL from the current data object.
 - `size.width` and `size.height` are dp. The default height is 220 dp.
+- `scale` is `crop` (default: the picture fills its space and its edges may be cut) or
+  `fit` (the whole picture shows, inside its space).
 - Tapping an image without an action opens its full-screen preview. Images inside list
   cards do not open a preview unless the surrounding list/card supplies navigation.
 - Use HTTPS URLs. Cleartext HTTP traffic is disabled.
@@ -443,6 +447,9 @@ Action properties:
 `view` can be a `ref` object targeting a root `views` entry or a complete inline view. The
 current event data is passed to the destination view. Android's Back button returns to
 the previous view.
+
+`title` names the opened screen in the app bar, instead of the app's name. Its placeholders
+come from the data the screen receives: `"title": "Works by ${name}"`.
 
 ### Add an event to the calendar
 

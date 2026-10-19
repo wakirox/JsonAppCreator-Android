@@ -53,7 +53,9 @@ class ScreenViewModelTest {
             { "type": "button", "title": "Open", "action": { "id": "open", "event": { "type": "open", "url": "https://example.com/?q=${'$'}{who} & co" } } },
             { "type": "button", "title": "Share", "action": { "id": "share", "event": { "type": "share", "text": "${'$'}{who} says hi" } } },
             { "type": "button", "title": "Call", "action": { "id": "call", "event": { "type": "open", "url": "tel:${'$'}{phone}" } } },
-            { "type": "button", "title": "Run", "action": { "id": "run", "event": { "type": "open", "url": "${'$'}{script}" } } }
+            { "type": "button", "title": "Run", "action": { "id": "run", "event": { "type": "open", "url": "${'$'}{script}" } } },
+            { "type": "button", "title": "Titled", "action": { "id": "titled", "event": { "type": "show", "view": { "ref": "details" }, "title": "About ${'$'}{who}" } } },
+            { "type": "button", "title": "Untitled", "action": { "id": "untitled", "event": { "type": "show", "view": { "ref": "details" }, "title": "${'$'}{nobody}" } } }
           ] },
           "views": [ { "id": "details", "type": "text", "title": "Details" } ]
         }
@@ -156,6 +158,18 @@ class ScreenViewModelTest {
 
         screen.onAction(views[6].action, screen.screen?.data)
         assertEquals("Appkin only opens web, map, phone and email addresses, not javascript:alert(1)", alerts.alert?.text)
+    }
+
+    @Test
+    fun aShowEventsTitleNamesTheScreenItOpens() = runTest {
+        val screen = screen()
+        val views = (screen.screen?.definition as Layout).views
+
+        screen.onAction(views[7].action, screen.screen?.data)
+        assertEquals("About Ana", assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title)
+
+        screen.onAction(views[8].action, screen.screen?.data)
+        assertNull(assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title, "an empty title leaves the app's name")
     }
 
     @Test
