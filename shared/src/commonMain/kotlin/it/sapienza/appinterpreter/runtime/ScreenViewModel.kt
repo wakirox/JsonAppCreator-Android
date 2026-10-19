@@ -14,6 +14,8 @@ import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.CalendarEvent
 import it.sapienza.appinterpreter.model.event.Event
+import it.sapienza.appinterpreter.model.event.OpenLink
+import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.view_model.FormView
@@ -23,6 +25,8 @@ import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
+import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
+import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -51,6 +55,7 @@ class ScreenViewModel(
     initialFormValues: InitialFormValuesUseCase,
     submitForm: SubmitFormUseCase,
     private val createCalendarEvent: CreateCalendarEventUseCase,
+    private val openLink: OpenLinkUseCase,
     findMissingApiKeys: FindMissingApiKeysUseCase,
     loadScreen: LoadScreenUseCase,
     private val strings: RuntimeStrings,
@@ -60,6 +65,9 @@ class ScreenViewModel(
     sealed interface Effect {
         class OpenScreen(val view: MView, val payload: JsonObject?) : Effect
         class AddToCalendar(val entry: CalendarEntry) : Effect
+        /** Hand [url] to the app for its [scheme]: https/http, geo, tel or mailto (see [OpenLinkUseCase]). */
+        class OpenUrl(val url: String, val scheme: String) : Effect
+        class Share(val text: String) : Effect
     }
 
     private val effectChannel = Channel<Effect>(Channel.BUFFERED)
@@ -121,6 +129,15 @@ class ScreenViewModel(
                 is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
                 is CreateCalendarEventUseCase.Result.BadDate -> alerts.show(result.message)
             }
+            is OpenLink -> when (val result = openLink(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
+                is OpenLinkUseCase.Result.Ready -> effectChannel.trySend(Effect.OpenUrl(result.url, result.scheme))
+                is OpenLinkUseCase.Result.Missing -> alerts.show(strings.valueMissing(result.path))
+                is OpenLinkUseCase.Result.NotAllowed -> alerts.show(strings.linkNotAllowed(result.url))
+            }
+            is ShareText -> {
+                val shared = event.mapping?.let { data?.getObject(it) } ?: data
+                event.text.matchReplace(shared).takeIf { it.isNotBlank() }?.let { effectChannel.trySend(Effect.Share(it)) }
+            }
         }
     }
 
@@ -146,6 +163,8 @@ class ScreenViewModel(
                 event.thenDo?.let { onEvent(it, response) }
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: MissingValueException) {
+                alerts.show(strings.valueMissing(e.path))
             } catch (e: Exception) {
                 alerts.show(e.message ?: "An error occurred")
             } finally {

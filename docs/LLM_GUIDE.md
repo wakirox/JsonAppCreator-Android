@@ -98,6 +98,9 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
+- `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
+  maps, the dialer or email; nothing else opens)
+- `share` (opens the share sheet on a text)
 
 Other enums:
 
@@ -118,8 +121,8 @@ properties.
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
   one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
-  a text view (`https://...`) becomes a link that opens in the browser; this is the only
-  way to link to a web page.
+  a text view (`https://...`) becomes a link that opens in the browser. For a button that
+  opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the

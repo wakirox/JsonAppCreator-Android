@@ -96,6 +96,9 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
+- `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
+  maps, the dialer or email; nothing else opens)
+- `share` (opens the share sheet on a text)
 
 Other enums:
 
@@ -116,8 +119,8 @@ properties.
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
   one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
-  a text view (`https://...`) becomes a link that opens in the browser; this is the only
-  way to link to a web page.
+  a text view (`https://...`) becomes a link that opens in the browser. For a button that
+  opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
@@ -324,6 +327,22 @@ Opens the phone's calendar app on a new event, filled in; the user reviews and s
 - `location`: text. Where it happens; may use ${field} placeholders
 - `description`: text. Notes for the event; may use ${field} placeholders
 - `mapping`: text
+- `data`: an object with any data
+
+#### `open`
+
+Hands an address to another app on the phone: https or http opens the browser, geo: a map, tel: the dialer (nothing is called) and mailto: an email app. No other kinds of address are opened.
+
+- `url` **(required)**: text. An https:, http:, geo:, tel: or mailto: address, or a placeholder holding one, such as ${url}; values placeholders insert are percent-encoded
+- `mapping`: text. Path of the part of the current data the address is filled in from
+- `data`: an object with any data
+
+#### `share`
+
+Opens the phone's share sheet on a text, for the user to send to any app.
+
+- `text` **(required)**: text (not empty). What is shared; may use ${field} placeholders, such as "${title} ${url}"
+- `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 
 ### Actions and references

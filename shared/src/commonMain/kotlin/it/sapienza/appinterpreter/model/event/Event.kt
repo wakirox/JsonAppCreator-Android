@@ -38,6 +38,25 @@ class CalendarEvent(
     override val data: JsonObject? = null
 ) : Event()
 
+/**
+ * Hands [url] to the phone: a web page opens in the browser, geo: a map, tel: the dialer (nothing is called) and
+ * mailto: an email app. Placeholders in it are filled in from the current data.
+ */
+@Serializable
+class OpenLink(
+    val url: String,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
+/** Opens the phone's share sheet on [text], filled in from the current data. */
+@Serializable
+class ShareText(
+    val text: String,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
 /** Fills lists with data from a service, then runs [thenDo]. */
 abstract class DataService : Event() {
     abstract val thenDo: Event?
@@ -65,7 +84,9 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("rest", RESTService.serializer()) { it is RESTService },
         TypedSerializer.Type("alert", AlertMessage.serializer()) { it is AlertMessage },
         TypedSerializer.Type("show", ShowView.serializer()) { it is ShowView },
-        TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent }
+        TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent },
+        TypedSerializer.Type("open", OpenLink.serializer()) { it is OpenLink },
+        TypedSerializer.Type("share", ShareText.serializer()) { it is ShareText }
     )
 )
 

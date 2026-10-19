@@ -417,6 +417,29 @@ there, so the app needs no calendar permission. `date` is `dd/MM/yyyy`, as a for
 `date` field submits it, and `time` is `HH:mm`; without `time` the event lasts all day.
 A timed event lasts `durationMinutes`, 60 by default. Every text may use `${...}`.
 
+### Open a link in another app
+
+```json
+{ "type": "open", "url": "${url}" }
+```
+
+Hands an address to the phone: `https:` and `http:` open the browser, `geo:` a map
+(`geo:0,0?q=${address}`), `tel:` the dialer with the number filled in (nothing is called,
+so the app needs no call permission) and `mailto:` an email app. Only these kinds of
+address are opened; anything else, such as `javascript:` or `file:`, is refused with a
+message. Placeholders work as in REST URLs: what they insert is percent-encoded, a
+placeholder that starts the address may hold a whole address, and a missing value stops
+the link with "This item has no …". `mapping` selects the part of the data to use.
+
+### Share text
+
+```json
+{ "type": "share", "text": "${title}\n${url}" }
+```
+
+Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
+with no value becomes empty text.
+
 ### Call a REST endpoint
 
 ```json

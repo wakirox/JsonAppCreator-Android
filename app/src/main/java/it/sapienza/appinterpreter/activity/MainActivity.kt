@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.activity
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -20,6 +21,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.calendar.AndroidCalendarWriter
+import it.sapienza.appinterpreter.utils.ExternalApps
 import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
@@ -63,7 +65,7 @@ fun spawnNew(context: Context) {
 
 /**
  * One screen of the current JSON app. Its state and events live in [ScreenViewModel]; the activity draws it and does
- * what only an activity can: open the next screen, or the calendar app.
+ * what only an activity can: open the next screen, the calendar app, a link in another app, or the share sheet.
  */
 class MainActivity : ComponentActivity() {
 
@@ -167,6 +169,12 @@ class MainActivity : ComponentActivity() {
         is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload)
         is ScreenViewModel.Effect.AddToCalendar ->
             if (!AndroidCalendarWriter(this).add(effect.entry)) alerts.show(getString(R.string.no_calendar_app)) else Unit
+        is ScreenViewModel.Effect.OpenUrl -> try {
+            startActivity(ExternalApps.open(effect.url, effect.scheme))
+        } catch (_: ActivityNotFoundException) {
+            alerts.show(getString(R.string.no_app_for_link, effect.url))
+        }
+        is ScreenViewModel.Effect.Share -> startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title)))
     }
 
     private fun addToHomeScreen() {
