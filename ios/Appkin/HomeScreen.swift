@@ -2,11 +2,13 @@ import SwiftUI
 
 struct HomeScreen: View {
     @State var showsAskAI = false
+    /// The running app's name. On a wide screen (iPhone Duo open) it runs beside this list; on a narrow one it's pushed.
+    @State var selection: String?
     @State private var yourApps = SampleData.yourApps
 
     var body: some View {
-        NavigationStack {
-            List {
+        NavigationSplitView {
+            List(selection: $selection) {
                 Section {
                     Button("New App", systemImage: "plus") {}
                     Button("Make an App with AI", systemImage: "sparkles") { showsAskAI = true }
@@ -22,7 +24,7 @@ struct HomeScreen: View {
 
                 Section("Your Apps") {
                     ForEach(yourApps) { app in
-                        NavigationLink { MasterpiecesScreen() } label: { AppRow(app: app) }
+                        NavigationLink(value: app.name) { AppRow(app: app) }
                             .swipeActions {
                                 Button("Delete", systemImage: "trash", role: .destructive) {
                                     yourApps.removeAll { $0.id == app.id }
@@ -40,7 +42,7 @@ struct HomeScreen: View {
 
                 Section {
                     ForEach(SampleData.examples) { app in
-                        NavigationLink { MasterpiecesScreen() } label: { AppRow(app: app) }
+                        NavigationLink(value: app.name) { AppRow(app: app) }
                     }
                 } header: {
                     Text("Examples")
@@ -57,8 +59,28 @@ struct HomeScreen: View {
                     Button("About Appkin", systemImage: "info.circle") {}
                 }
             }
-            .sheet(isPresented: $showsAskAI) { AskAIScreen() }
+        } detail: {
+            if let selection {
+                // The app gets half the screen beside the list: lay it out as on a narrow screen.
+                NavigationStack { RunningApp(name: selection) }
+                    .environment(\.horizontalSizeClass, .compact)
+                    .id(selection)
+            } else {
+                ContentUnavailableView("No App Open", systemImage: "square.grid.2x2",
+                                       description: Text("Choose an app to run it here."))
+                    .clearOfFold()
+            }
         }
+        .sheet(isPresented: $showsAskAI) { AskAIScreen() }
+    }
+}
+
+/// Stands in for the renderer: the screen a JSON app's main view would produce.
+struct RunningApp: View {
+    let name: String
+
+    var body: some View {
+        if name.hasPrefix("Summer Run") { SummerRunScreen() } else { MasterpiecesScreen() }
     }
 }
 

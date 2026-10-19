@@ -10,6 +10,17 @@ struct EditorScreen: View {
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
             .contentMargins(.horizontal, 12, for: .scrollContent)
+            .safeAreaInset(edge: .bottom) {
+                Button { showsProblems = true } label: {
+                    Label("No Problems: Ready to Run", systemImage: "checkmark.circle.fill")
+                        .padding(.horizontal, 6)
+                }
+                .buttonStyle(.glass)
+                .tint(.green)
+                .padding(.bottom, 8)
+            }
+            // Partly folded, the text and its status move to one side of the fold together.
+            .clearOfFold()
             .navigationTitle("Edit This App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -24,15 +35,6 @@ struct EditorScreen: View {
                     }
                     Button("Run", systemImage: "play.fill") {}
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                Button { showsProblems = true } label: {
-                    Label("No Problems: Ready to Run", systemImage: "checkmark.circle.fill")
-                        .padding(.horizontal, 6)
-                }
-                .buttonStyle(.glass)
-                .tint(.green)
-                .padding(.bottom, 8)
             }
     }
 }

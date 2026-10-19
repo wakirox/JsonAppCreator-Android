@@ -27,8 +27,11 @@ enum SampleData {
         let year: String
         let file: String
 
-        var thumbnail: URL {
-            URL(string: "https://commons.wikimedia.org/wiki/Special:FilePath/\(file)?width=330")!
+        var thumbnail: URL { url(width: 330) }
+        var image: URL { url(width: 960) }
+
+        private func url(width: Int) -> URL {
+            URL(string: "https://commons.wikimedia.org/wiki/Special:FilePath/\(file)?width=\(width)")!
         }
     }
 

@@ -61,6 +61,7 @@ struct SummerRunScreen: View {
                     .fontWeight(.semibold)
             }
         }
+        .clearOfFold()
         .navigationTitle("Summer Run 2026")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { AppMenu() }
