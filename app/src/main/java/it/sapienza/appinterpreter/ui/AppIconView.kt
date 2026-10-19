@@ -21,6 +21,7 @@ import it.sapienza.appinterpreter.utils.AppIcon
 @Composable
 fun AppIconView(name: String, icon: String?, size: Dp = 40.dp) {
     val emoji = AppIcon.emoji(icon)
+    // The line height follows the text size: the theme's 24 sp would push the letter out of a small tile.
     val textSize = with(LocalDensity.current) { (size * if (emoji != null) 0.5f else 0.36f).toSp() }
     Box(
         Modifier.size(size).clip(CircleShape)
@@ -28,12 +29,12 @@ fun AppIconView(name: String, icon: String?, size: Dp = 40.dp) {
         contentAlignment = Alignment.Center
     ) {
         if (emoji != null) {
-            Text(emoji, fontSize = textSize)
+            Text(emoji, fontSize = textSize, lineHeight = textSize)
         } else {
             Box(
                 Modifier.size(size * 0.62f).clip(RoundedCornerShape(size * 0.18f)).background(Color(AppIcon.tileColor(name))),
                 contentAlignment = Alignment.Center
-            ) { Text(AppIcon.letter(name), color = Color.White, fontWeight = FontWeight.Bold, fontSize = textSize) }
+            ) { Text(AppIcon.letter(name), color = Color.White, fontWeight = FontWeight.Bold, fontSize = textSize, lineHeight = textSize) }
         }
     }
 }

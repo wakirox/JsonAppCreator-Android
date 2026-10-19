@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -74,6 +75,7 @@ import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.HomeShortcuts
+import it.sapienza.appinterpreter.utils.ShareApp
 import org.json.JSONObject
 
 /**
@@ -176,6 +178,9 @@ class HomeActivity : AppCompatActivity() {
                                                 Toast.makeText(this@HomeActivity, R.string.shortcuts_unsupported, Toast.LENGTH_LONG).show()
                                             }
                                         }) { Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.home_add_to_home_screen)) }
+                                        IconButton(onClick = { ShareApp.share(this@HomeActivity, app.name, app.json) }) {
+                                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.home_share))
+                                        }
                                         IconButton(onClick = { deleting = app }) {
                                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.home_delete))
                                         }
@@ -371,9 +376,9 @@ private val STEPS = listOf(
 private data class Example(val name: Int, val about: Int, val configuration: Int, val icon: String)
 
 private val EXAMPLES = listOf(
+    Example(R.string.example_art_explorer, R.string.example_art_explorer_about, R.raw.v3_art_explorer, "🏛️"),
     Example(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces, "🖼️"),
     Example(R.string.example_hello, R.string.example_hello_about, R.raw.v3_app_sample, "👋"),
     Example(R.string.example_summer_run, R.string.example_summer_run_about, R.raw.v3_race_signup, "🏃"),
-    Example(R.string.example_pokedex, R.string.example_pokedex_about, R.raw.v3_pokedex, "⚡"),
     Example(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db, "🎬")
 )

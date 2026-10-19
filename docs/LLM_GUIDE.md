@@ -47,8 +47,15 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 10. For every list, provide `itemView` and a `mapping` selecting an array of objects.
 11. If a list has `initData`, ensure its endpoint returns a JSON object containing the
     mapped array.
-12. Use HTTPS endpoints that require no custom headers. Never embed private API keys,
-    tokens, passwords, or other secrets.
+12. Use HTTPS endpoints that require no custom headers. Never write a real API key,
+    token, password, or other secret into the JSON. When an API needs a key in its URL
+    (a query parameter or a path segment), write a named placeholder instead: two
+    underscores, an uppercase name, two underscores, for example
+    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__`. Appkin asks the user
+    for each placeholder's value when the app opens, stores it encrypted on the device,
+    and fills it into every request URL. Use one name per key and reuse it in every URL
+    that needs it. A key that the API accepts only in a header can't be used: pick
+    another API.
 13. Make every mapping and placeholder match the real data exactly, including case and
     nesting.
 14. Prefer a small working configuration over speculative or undocumented fields.
@@ -110,7 +117,9 @@ properties.
 - A button shows its `title` (or the value its `mapping` selects). A button's `label` is
   not displayed.
 - A text view shows its `label` as a first line, then the `mapping` value or `title`, in
-  one style. Use `textStyle` and `textSize` for emphasis.
+  one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
+  a text view (`https://...`) becomes a link that opens in the browser; this is the only
+  way to link to a web page.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the

@@ -64,11 +64,14 @@ import androidx.compose.ui.platform.LocalContext
 import java.util.Date
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -267,7 +270,7 @@ private fun RenderText(
         .then(actionModifier(view.action, data))
         .padding(contentPadding)
     Text(
-        text = display,
+        text = linkified(display, linkStyles()),
         modifier = textModifier,
         style = style,
         overflow = TextOverflow.Ellipsis
@@ -542,6 +545,12 @@ private fun ListCardContent(
     }
 }
 
+/** Links in a text view: the theme's primary color, underlined. */
+@Composable
+private fun linkStyles() = TextLinkStyles(
+    SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline)
+)
+
 @Composable
 private fun RenderHorizontalCardText(view: TextView, data: JSONObject?, modifier: Modifier) {
     val title = view.label?.matchReplace(data).orEmpty()
@@ -565,7 +574,7 @@ private fun RenderHorizontalCardText(view: TextView, data: JSONObject?, modifier
         }
         if (supportingText.isNotEmpty()) {
             Text(
-                text = supportingText,
+                text = linkified(supportingText, linkStyles()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 overflow = TextOverflow.Ellipsis

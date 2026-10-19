@@ -50,11 +50,12 @@ class TestTest() {
 
     @test fun parsesMenuSamples() {
         listOf(
+            "v3_art_explorer.json",
             "v3_masterpieces.json",
             "v3_app_sample.json",
             "v3_race_signup.json",
             "v3_the_movie_db.json",
-            "v3_pokedex.json"
+            "v3_open_access_art.json"
         ).forEach { name ->
             val json = File("src/main/res/raw/$name").readText()
             assertNotNull("Failed to parse $name", AppParser(json).parseApplication2())

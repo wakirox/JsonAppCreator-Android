@@ -4,7 +4,7 @@
   "icon": "🎬",
   "version": "beta.1",
   "author": "Appkin",
-  "changelog": "Implemented a series of endpoint calls from the movie db.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
+  "changelog": "Movies and people from The Movie Database (TMDB). This product uses the TMDB API but is not endorsed or certified by TMDB.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
   "mainView": {
     "id": "l0",
     "type": "layout",
@@ -125,8 +125,8 @@
       },
       {
         "type": "text",
-        "label": "Let's talk about TMDb",
-        "title": "The Movie Database (TMDb) is a community built movie and TV database. Every piece of data has been added by our amazing community dating back to 2008. TMDb's strong international focus and breadth of data is largely unmatched and something we're incredibly proud of. Put simply, we live and breathe community and that's precisely what makes us different.\nhttps://www.themoviedb.org/\n"
+        "label": "Data from TMDB",
+        "title": "This product uses the TMDB API but is not endorsed or certified by TMDB.\nhttps://www.themoviedb.org/"
       }
     ]
   },

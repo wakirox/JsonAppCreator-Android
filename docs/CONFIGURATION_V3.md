@@ -37,8 +37,8 @@ It needs Android 13 (API 33) or newer.
 
 Every app you open or edit is kept under **Your apps** on the home page.
 
-The home page also lists the bundled examples: Masterpieces, Hello, Summer Run, Kanto
-Pokédex, and The Movie DB. Their source is under
+The home page also lists the bundled examples: Art Explorer, Masterpieces, Hello, Summer
+Run, and The Movie DB. Their source is under
 [`app/src/main/res/raw`](../app/src/main/res/raw); the most complete one is
 [`samples/v3_the_movie_db.json`](../samples/v3_the_movie_db.json).
 

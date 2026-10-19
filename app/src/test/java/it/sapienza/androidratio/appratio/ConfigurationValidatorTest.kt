@@ -22,11 +22,12 @@ class ConfigurationValidatorTest {
     @Test
     fun menuConfigurationsPassTheInAppValidator() {
         val menuConfigs = listOf(
+            "v3_art_explorer.json",
             "v3_masterpieces.json",
             "v3_app_sample.json",
             "v3_race_signup.json",
             "v3_the_movie_db.json",
-            "v3_pokedex.json"
+            "v3_open_access_art.json"
         )
 
         menuConfigs.forEach { name ->
