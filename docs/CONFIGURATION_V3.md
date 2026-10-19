@@ -144,9 +144,13 @@ A layout groups child views.
 | `textStyle` | string | `regular` (default), `italic`, or `bold`. |
 | `textSize` | number | Text size in scale-independent pixels (sp). |
 | `size` | object | Optional `width` and `height`, interpreted as density-independent pixels (dp). |
-| `labelStyle` | string | The label's own style: `regular`, `italic` or `bold`. Without it the label looks like the text. |
+| `labelStyle` | string | The label's weight and slant: `regular`, `italic` or `bold`. By default the label is a semi-bold heading, and the text under it a quieter supporting line. |
 | `format` | string | `plain` (default) or `html`: the text is simple HTML (`<b>`, `<i>`, `<em>`, `<strong>`, `<u>`, `<br>`, `<p>`, `<a href>`). |
 | `showWhenEmpty` | boolean | Keep the label when `mapping` (or `title`) has nothing to show. `false` by default: such a text view isn't drawn, label included. |
+
+A text view with an `action` shows an arrow at its end, so it reads as something to tap.
+Buttons on their own are tonal; a form's submit button is the filled one, at the form's
+end.
 
 A text view whose `mapping` finds no value, or whose `title` is empty once its placeholders are
 filled in, isn't drawn at all, so a missing "Technique" doesn't leave its label behind. A text

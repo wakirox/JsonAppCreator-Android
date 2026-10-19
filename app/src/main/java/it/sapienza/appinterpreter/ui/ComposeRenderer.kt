@@ -3,6 +3,8 @@
 package it.sapienza.appinterpreter.ui
 
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +38,8 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -130,6 +134,12 @@ import java.time.ZoneOffset
 
 private const val HORIZONTAL_LAZY_THRESHOLD = 8
 
+/** The screen's margins: everything lines up on the same left edge, 16 dp in. */
+private val PAGE_PADDING = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+
+/** The space between one view and the next. */
+private val VIEW_SPACING = 12.dp
+
 /** The screen being drawn: its app, state and events. */
 val LocalScreen = staticCompositionLocalOf<ScreenViewModel> { error("RendererScreen needs LocalScreen") }
 
@@ -188,8 +198,8 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
             val listContents = listStates.map { entry -> entry?.let { it.content.collectAsState().value } }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PAGE_PADDING,
+                verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)
             ) {
                 children.forEachIndexed { index, child ->
                     val listState = listStates[index]
@@ -209,16 +219,16 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
             val content by entry.content.collectAsState()
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PAGE_PADDING,
+                verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)
             ) {
                 verticalListItems(resolved, entry, content)
             }
         }
         else -> {
             Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(PAGE_PADDING),
+                verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)
             ) {
                 RenderNode(resolved, data, Modifier.fillMaxWidth())
             }
@@ -262,7 +272,7 @@ private fun RenderLayout(
             }
         }
     } else {
-        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)) {
             resolvedChildren.forEach { child -> RenderNode(child, data, columnChildModifier(child), allowImagePreview) }
         }
     }
@@ -297,27 +307,35 @@ private fun RenderText(
     view: TextualView,
     data: JsonObject?,
     modifier: Modifier,
-    contentPadding: PaddingValues = PaddingValues(6.dp)
+    contentPadding: PaddingValues = PaddingValues(vertical = 2.dp)
 ) {
     val text = view.text(data)
-    val style = when (view.textStyle) {
-        TextStyle.bold -> MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-        TextStyle.italic -> MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
-        else -> MaterialTheme.typography.bodyLarge
-    }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
     val label = view.label?.matchReplace(data).orEmpty()
+    val typography = MaterialTheme.typography
+    val colors = MaterialTheme.colorScheme
+    // Under a label, the text is its supporting line: the label leads, the text is quieter.
+    val style = when (view.textStyle) {
+        TextStyle.bold -> typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+        TextStyle.italic -> typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
+        else -> typography.bodyLarge
+    }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
+        .let { base -> if (label.isNotEmpty()) base.copy(color = colors.onSurfaceVariant) else base.copy(color = colors.onSurface) }
     val links = linkStyles()
     val body = bodyText(view, text, links)
     val display = buildAnnotatedString {
         if (label.isNotEmpty()) {
-            // A labelStyle gives the label its own weight and slant; without one it looks like the text.
-            val labelSpan = view.labelStyle?.let { labelStyle ->
-                SpanStyle(
-                    fontWeight = if (labelStyle == TextStyle.bold) FontWeight.Bold else FontWeight.Normal,
-                    fontStyle = if (labelStyle == TextStyle.italic) FontStyle.Italic else FontStyle.Normal
-                )
-            }
-            if (labelSpan != null) withStyle(labelSpan) { append(linkified(label, links)) } else append(linkified(label, links))
+            // The label is a heading: a title's size and weight, unless labelStyle (or textSize) says otherwise.
+            val labelSpan = SpanStyle(
+                fontSize = view.textSize?.sp ?: typography.titleMedium.fontSize,
+                fontWeight = when (view.labelStyle) {
+                    null -> FontWeight.SemiBold
+                    TextStyle.bold -> FontWeight.Bold
+                    else -> FontWeight.Normal
+                },
+                fontStyle = if (view.labelStyle == TextStyle.italic) FontStyle.Italic else FontStyle.Normal,
+                color = colors.onSurface
+            )
+            withStyle(labelSpan) { append(linkified(label, links)) }
             if (body.isNotEmpty()) append("\n")
         }
         append(body)
@@ -326,12 +344,20 @@ private fun RenderText(
         .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
         .then(actionModifier(view.action, data))
         .padding(contentPadding)
-    Text(
-        text = display,
-        modifier = textModifier,
-        style = style,
-        overflow = TextOverflow.Ellipsis
-    )
+    if (view.action == null) {
+        Text(text = display, modifier = textModifier, style = style, overflow = TextOverflow.Ellipsis)
+    } else {
+        // Text that does something on a tap says so, with an arrow at its end, as a list item does.
+        Row(textModifier, verticalAlignment = Alignment.CenterVertically) {
+            Text(text = display, modifier = Modifier.weight(1f), style = style, overflow = TextOverflow.Ellipsis)
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
 }
 
 /** A text view's text with its links: simple HTML when its format says so, else plain text with web addresses linked. */
@@ -346,7 +372,8 @@ private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier
     val screen = LocalScreen.current
     val action = screen.resolve(view.action)
     val title = view.text(data)
-    Button(
+    // A button on its own is tonal: a form's submit button is the screen's one filled button.
+    FilledTonalButton(
         onClick = { if (action?.type != ActionType.longclick) screen.onAction(view.action, data) },
         modifier = modifier.fillMaxWidth().then(
             if (action?.type == ActionType.longclick) Modifier.combinedClickable(
@@ -520,7 +547,8 @@ private fun EmptyList(view: ListView, entry: ListsState.Entry) {
     Text(
         view.emptyText?.matchReplace(entry.data)?.takeIf { it.isNotBlank() } ?: "No data available",
         style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.testTag("list-empty")
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 8.dp).testTag("list-empty")
     )
 }
 
@@ -715,8 +743,9 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
     val form = screen.forms.state(view, data)
     val values by form.values.collectAsState()
     val error by form.error.collectAsState()
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        view.title?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // A form's title is a heading like a text view's label.
+        view.title?.let { Text(it, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
         view.formElements.forEach { item ->
             val onChange: (Any?) -> Unit = { screen.forms.set(view, data, item.mapping, it) }
             when (item) {
@@ -730,7 +759,7 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(onClick = { screen.onSubmit(view, data) }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { screen.onSubmit(view, data) }, modifier = Modifier.align(Alignment.End)) {
             Text(view.buttonTitle ?: "Submit")
         }
     }
@@ -778,7 +807,7 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
 private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit) {
     var picking by remember { mutableStateOf(false) }
     Column {
-        Text(item.title, style = MaterialTheme.typography.titleSmall)
+        FieldTitle(item.title)
         OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
         Description(item.description)
     }
@@ -809,7 +838,7 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
 private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit) {
     var picking by remember { mutableStateOf(false) }
     Column {
-        Text(item.title, style = MaterialTheme.typography.titleSmall)
+        FieldTitle(item.title)
         OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
         Description(item.description)
     }
@@ -843,7 +872,7 @@ private fun localDay(utcMillis: Long): Date =
 @Composable
 private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(item.title, style = MaterialTheme.typography.titleSmall)
+        FieldTitle(item.title)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item.options.forEach { option ->
                 FilterChip(
@@ -855,6 +884,12 @@ private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) ->
         }
         Description(item.description)
     }
+}
+
+/** The title above a date, time or choice field, in the field labels' style. */
+@Composable
+private fun FieldTitle(title: String) {
+    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable

@@ -13,7 +13,6 @@
         "type": "text",
         "label": "Art Explorer",
         "title": "Thousands of public-domain artworks, live from the Cleveland Museum of Art. Swipe a row, tap a work, or search the whole collection.",
-        "textStyle": "bold",
         "textSize": 18
       },
       {
@@ -266,7 +265,7 @@
         },
         {
           "type": "text",
-          "label": "Artist (tap for more)",
+          "label": "Artist",
           "mapping": "creators.0.description",
           "visibleIf": "creators",
           "action": {
@@ -391,8 +390,7 @@
           "type": "text",
           "label": "Everything by them in the collection",
           "visibleIf": "artworks",
-          "title": "Tap one to open it.",
-          "textStyle": "bold"
+          "title": "Tap one to open it."
         },
         {
           "type": "list",
@@ -421,14 +419,12 @@
         {
           "type": "text",
           "label": "Results for “${q}”",
-          "visibleIf": "q",
-          "textStyle": "bold"
+          "visibleIf": "q"
         },
         {
           "type": "text",
           "label": "Works by ${name}",
-          "visibleIf": "name",
-          "textStyle": "bold"
+          "visibleIf": "name"
         },
         {
           "type": "text",
@@ -462,14 +458,12 @@
         {
           "type": "text",
           "label": "${type}",
-          "visibleIf": "type",
-          "textStyle": "bold"
+          "visibleIf": "type"
         },
         {
           "type": "text",
           "label": "All types",
-          "visibleIf": "!type",
-          "textStyle": "bold"
+          "visibleIf": "!type"
         },
         {
           "type": "text",
