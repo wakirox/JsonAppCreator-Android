@@ -1,20 +1,16 @@
 package it.sapienza.appinterpreter.utils.httpclient
 
+import io.ktor.client.engine.okhttp.OkHttp
 import it.sapienza.androidratio.appratio.BuildConfig
-import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
+import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.platformName
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
-import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.serialization.json.JsonObject
+import okhttp3.OkHttpClient
 import org.json.JSONObject
-import java.io.IOException
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
-
-object HttpClient{
-    val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()
+object HttpClient {
+    private val USER_AGENT = JsonHttpClient.userAgent(BuildConfig.VERSION_NAME, platformName)
 
     /**
      * The one OkHttp client for the app's requests and its images (Coil uses it too). It names the app in every
@@ -26,62 +22,17 @@ object HttpClient{
         }
         .build()
 
-    private val USER_AGENT =
-        "Appkin/${BuildConfig.VERSION_NAME} (Android; https://github.com/wakirox/JsonAppCreator-Android)"
-
-    fun get(url: String, callback: Callback): Call {
-        val request = Request.Builder()
-            .url(withConfigurationApiKeys(url))
-            .build()
-
-        val call = client.newCall(request)
-        call.enqueue(callback)
-        return call
-    }
-
-    fun post(url: String, parameters: JSONObject?, callback: Callback): Call {
-        val body: RequestBody = parameters.let { parameters.toString().toRequestBody(JSON) }
-        val request = Request.Builder()
-            .url(withConfigurationApiKeys(url))
-            .post(body)
-            .build()
-
-        val call = client.newCall(request)
-        call.enqueue(callback)
-        return call
-
+    /** The shared engine's client for REST events and lists, running on [client]. */
+    val json: JsonHttpClient by lazy {
+        JsonHttpClient(OkHttp.create { preconfigured = client }, USER_AGENT, ConfigurationApiKeys::replaceForCurrentConfiguration)
     }
 
     /**
      * Requests [url], by POST with [body] when [post], and returns the JSON it answers. Cancelling the coroutine
      * cancels the request. A failure is an exception whose message says what went wrong, such as a missing API key.
      */
-    suspend fun request(url: String, post: Boolean, body: JSONObject?): JSONObject = suspendCancellableCoroutine { continuation ->
-        val callback = object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        continuation.resumeWithException(IOException("Request failed with ${response.code}"))
-                        return
-                    }
-                    runCatching { JSONObject(response.body.string()) }
-                        .onSuccess(continuation::resume)
-                        .onFailure { continuation.resumeWithException(IOException(it.message ?: "Unable to read the response")) }
-                }
-            }
-
-            override fun onFailure(call: Call, e: IOException) = continuation.resumeWithException(e)
-        }
-        val call = if (post) post(url, body, callback) else get(url, callback)
-        continuation.invokeOnCancellation { call.cancel() }
-    }
-
-    private fun withConfigurationApiKeys(url: String): String {
-        val resolved = ConfigurationApiKeys.replaceForCurrentConfiguration(url)
-        val missing = ApiKeyPlaceholders.names(resolved)
-        check(missing.isEmpty()) {
-            "Missing configuration API key: ${missing.joinToString()}"
-        }
-        return resolved
+    suspend fun request(url: String, post: Boolean, body: JSONObject?): JSONObject {
+        val answer = json.request(url, post, body?.let { JsonText.parse(it.toString()) as JsonObject })
+        return JSONObject(answer.toString())
     }
 }

@@ -28,10 +28,19 @@ kotlin {
             // JSON Schema draft 2020-12 in common code, on kotlinx.serialization (replaces networknt + Jackson).
             implementation("io.github.optimumcode:json-schema-validator:0.5.5")
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
+            api("io.ktor:ktor-client-core:3.6.0")
+        }
+        androidMain.dependencies {
+            // Ktor runs on the app's OkHttp client, which Coil shares for images.
+            api("io.ktor:ktor-client-okhttp:3.6.0")
+        }
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.6.0")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+            implementation("io.ktor:ktor-client-mock:3.6.0")
         }
     }
 }
