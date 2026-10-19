@@ -49,7 +49,7 @@ import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
-import java.io.File
+import it.sapienza.appinterpreter.utils.TextHandover
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -138,6 +138,7 @@ class EditorActivity : AppCompatActivity() {
                         pendingSave = text
                         saveAs.launch(AiContext.fileName(text))
                     },
+                    onAskAi = { text -> AskAiActivity.editorText(this, text) },
                     onBack = ::finish
                 )
             }
@@ -145,9 +146,7 @@ class EditorActivity : AppCompatActivity() {
     }
 
     /** Text handed over by [aiAnswer] or [openedFile], through a file because it can be large. */
-    private fun incomingText(): String? = intent.getStringExtra(EXTRA_INCOMING_FILE)?.let { path ->
-        runCatching { File(path).readText() }.getOrNull()
-    }
+    private fun incomingText(): String? = intent.getStringExtra(EXTRA_INCOMING_FILE)?.let(TextHandover::read)
 
     private fun sameJson(a: String, b: String): Boolean =
         runCatching { JsonText.sameValue(JsonText.parse(a), JsonText.parse(b)) }.getOrDefault(false)
@@ -171,22 +170,14 @@ class EditorActivity : AppCompatActivity() {
 
         /** Opens an AI app's answer (copied, then pasted) like a shared one: "From your AI app". */
         fun aiAnswer(context: Context, answer: String) =
-            context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_INCOMING_FILE, incoming(context, answer)))
+            context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_INCOMING_FILE, TextHandover.write(context, answer)))
 
         /** Opens a file's configuration: one with problems, to fix or send to the AI app, or one to look at first. */
         fun openedFile(context: Context, json: String) = context.startActivity(
             Intent(context, EditorActivity::class.java)
-                .putExtra(EXTRA_INCOMING_FILE, incoming(context, json))
+                .putExtra(EXTRA_INCOMING_FILE, TextHandover.write(context, json))
                 .putExtra(EXTRA_FROM_FILE, true)
         )
-
-        /**
-         * Large text can't travel in an Intent (about 1 MB at most), so it goes through a file in the app's cache,
-         * and only the path is passed.
-         */
-        private fun incoming(context: Context, text: String): String =
-            File(File(context.cacheDir, "incoming").apply { mkdirs() }, "text-${System.nanoTime()}.txt")
-                .apply { writeText(text) }.absolutePath
     }
 }
 

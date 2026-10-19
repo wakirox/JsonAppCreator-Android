@@ -68,7 +68,6 @@ import androidx.core.net.toUri
 import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
-import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.ui.ActionMenuItem
 import it.sapienza.appinterpreter.ui.AppIconView
 import it.sapienza.appinterpreter.ui.AppTheme
@@ -109,7 +108,6 @@ class HomeActivity : AppCompatActivity() {
         setContent {
             AppTheme {
                 var deleting by remember { mutableStateOf<AppLibrary.SavedApp?>(null) }
-                var askingAi by remember { mutableStateOf(false) }
                 var menuExpanded by remember { mutableStateOf(false) }
                 var aboutOpen by remember { mutableStateOf(false) }
                 var explained by remember { mutableStateOf(preferences().getBoolean(EXPLAINED_KEY, true)) }
@@ -125,7 +123,7 @@ class HomeActivity : AppCompatActivity() {
                                 val close = { menuExpanded = false }
                                 ActionMenuItem(stringResource(R.string.menu_new_app), close, { EditorActivity.newApp(this@HomeActivity) }, R.drawable.baseline_insert_drive_file_24)
                                 HorizontalDivider()
-                                ActionMenuItem(stringResource(R.string.menu_ask_ai), close, { askingAi = true }, R.drawable.baseline_track_changes_24)
+                                ActionMenuItem(stringResource(R.string.menu_ask_ai), close, { AskAiActivity.newApp(this@HomeActivity) }, R.drawable.baseline_track_changes_24)
                                 ActionMenuItem(stringResource(R.string.menu_paste_ai), close, ::pasteFromAi, R.drawable.baseline_merge_type_24)
                                 HorizontalDivider()
                                 ActionMenuItem(stringResource(R.string.home_open_file), close, { openFile.launch("application/json") }, R.drawable.baseline_folder_open_24)
@@ -152,7 +150,7 @@ class HomeActivity : AppCompatActivity() {
                                     Icon(Icons.Filled.Add, contentDescription = null, Modifier.size(18.dp))
                                     Text(stringResource(R.string.home_new_app), Modifier.padding(start = 8.dp))
                                 }
-                                OutlinedButton(onClick = { askingAi = true }, Modifier.weight(1f)) { Text(stringResource(R.string.home_ask_ai)) }
+                                OutlinedButton(onClick = { AskAiActivity.newApp(this@HomeActivity) }, Modifier.weight(1f)) { Text(stringResource(R.string.home_ask_ai)) }
                             }
                         }
                         item { SectionHeader(stringResource(R.string.home_your_apps)) }
@@ -238,9 +236,6 @@ class HomeActivity : AppCompatActivity() {
                             }) { Text(stringResource(R.string.home_about_github)) }
                         }
                     )
-                }
-                if (askingAi) {
-                    AskAiDialog(currentApp = null, changeCurrentByDefault = false, onDismiss = { askingAi = false })
                 }
                 deleting?.let { app ->
                     AlertDialog(
