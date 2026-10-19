@@ -55,7 +55,7 @@
     <string name="menu_open">Open application menu</string>
     <string name="menu_edit_app">Edit this app</string>
     <string name="menu_new_app">New app</string>
-    <string name="menu_ask_ai">Make an app with your AI app…</string>
+    <string name="menu_ask_ai">Ask your AI app…</string>
     <string name="menu_paste_ai">Paste answer from your AI app</string>
     <string name="menu_home">Home</string>
     <string name="menu_add_to_home_screen">Add to home screen</string>
