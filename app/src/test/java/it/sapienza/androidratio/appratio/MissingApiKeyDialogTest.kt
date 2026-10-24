@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
+import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.activity.MainActivity
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -47,6 +48,9 @@ class MissingApiKeyDialogTest {
             .use { it.readText() }
 
         encryptedPreferences.edit().clear().commit()
+        // No bundled keys either, whatever the build machine supplied (a developer's own TMDB key, say): the test is
+        // about a key that's missing.
+        ConfigurationApiKeys.initialize(targetContext, "")
         domainPreferences.edit()
             .putString(JSON_KEY, tmdbJson)
             .putString(CONFIGURATION_ID_KEY, TMDB_CONFIGURATION_ID)
@@ -70,6 +74,7 @@ class MissingApiKeyDialogTest {
             }
         }.commit()
         encryptedPreferences.edit().clear().commit()
+        ConfigurationApiKeys.initialize(targetContext, BuildConfig.CONFIG_API_KEYS_BASE64)
     }
 
     @Test
