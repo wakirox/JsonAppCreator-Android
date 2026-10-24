@@ -130,13 +130,14 @@
                   },
                   {
                     "type": "button",
-                    "icon": "copy",
-                    "label": "Copy ${title}",
+                    "icon": "share",
+                    "label": "Share ${title}",
                     "action": {
-                      "id": "copy_idea",
+                      "id": "share_idea",
                       "event": {
-                        "type": "copy",
-                        "text": "${title}\n${description}\nPriority: ${priority}\nAn idea for my app ${appName}"
+                        "type": "share",
+                        "text": "${title}\n${description}\nPriority: ${priority}\nAn idea for my app ${appName}",
+                        "photos": "photos"
                       }
                     }
                   }

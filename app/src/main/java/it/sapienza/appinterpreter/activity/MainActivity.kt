@@ -21,6 +21,7 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.calendar.AndroidCalendarWriter
 import it.sapienza.appinterpreter.utils.ExternalApps
+import it.sapienza.appinterpreter.utils.PhotoStore
 import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
@@ -165,7 +166,11 @@ class MainActivity : ComponentActivity() {
         } catch (_: ActivityNotFoundException) {
             alerts.show(getString(R.string.no_app_for_link, effect.url))
         }
-        is ScreenViewModel.Effect.Share -> startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title)))
+        is ScreenViewModel.Effect.Share -> {
+            val store = PhotoStore(this)
+            val photos = effect.photos.mapNotNull { store.shareable(this, it) }
+            startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title), photos))
+        }
         ScreenViewModel.Effect.Close -> finish()
         // Android 13 and up (the app's minimum) shows its own "Copied" confirmation.
         is ScreenViewModel.Effect.Copy ->

@@ -621,7 +621,15 @@ the link with "This item has no …". `mapping` selects the part of the data to 
 ```
 
 Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
-with no value becomes empty text.
+with no value becomes empty text, and a line whose placeholders all have no value is left
+out.
+
+With `photos`, the path of a `photos` field's list in the data, the photos go too, as
+attachments with the text as their caption, so a chat app receives the images:
+
+```json
+{ "type": "share", "text": "${title}\n${description}", "photos": "photos" }
+```
 
 ### Copy text
 

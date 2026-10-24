@@ -375,24 +375,29 @@ class StoredDataScreenTest {
     }
 
     @Test
-    fun theCopyButtonCopiesTheIdeaWithoutLinesItHasNoValueFor() = runTest {
+    fun theShareButtonSharesTheIdeaWithItsPhotos() = runTest {
         val ideas = ideas()
         val screen = ideas.rainyScreen
-        val copy = screen.itemViews().filterIsInstance<ButtonView>().first { it.icon == ButtonIcon.copy }
-        val titleRow = assertIs<Layout>(screen.row()[0])
-        assertEquals(copy, titleRow.views.last(), "the copy button ends the title row")
+        val share = screen.itemViews().filterIsInstance<ButtonView>().single { it.icon == ButtonIcon.share }
+        assertEquals(share, assertIs<Layout>(screen.row()[0]).views.last(), "the share button ends the title row")
         ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "description", "A tile for today's rain")
+        ideas.rainyNew.forms.set(
+            ideas.rainyNew.form(), ideas.rainy, "photos",
+            JsonArray(listOf(JsonPrimitive("appkin-photo:a.jpg"), JsonPrimitive("appkin-photo:b.jpg")))
+        )
         ideas.rainyNew.add("title", "Tile", ideas.rainy)
         val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
         val darkMode = screen.items(ideas.rainy).first { it.getValue("title") == "Dark mode" }
 
-        screen.onAction(copy.action, tile)
-        assertEquals(
-            "Tile\nA tile for today's rain\nPriority: Medium\nAn idea for my app Rainy",
-            assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text
-        )
-        screen.onAction(copy.action, darkMode)
-        assertEquals("Dark mode\nPriority: Medium\nAn idea for my app Rainy", assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text)
+        screen.onAction(share.action, tile)
+        val shared = assertIs<ScreenViewModel.Effect.Share>(screen.effects.first())
+        assertEquals("Tile\nA tile for today's rain\nPriority: Medium\nAn idea for my app Rainy", shared.text)
+        assertEquals(listOf("appkin-photo:a.jpg", "appkin-photo:b.jpg"), shared.photos)
+
+        screen.onAction(share.action, darkMode)
+        val textOnly = assertIs<ScreenViewModel.Effect.Share>(screen.effects.first())
+        assertEquals("Dark mode\nPriority: Medium\nAn idea for my app Rainy", textOnly.text, "no empty line for the missing description")
+        assertEquals(emptyList(), textOnly.photos)
     }
 
     @Test

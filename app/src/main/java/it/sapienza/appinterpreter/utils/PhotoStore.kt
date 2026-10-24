@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import androidx.core.content.FileProvider
 import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,10 @@ class PhotoStore(context: Context) {
 
     /** A kept photo's bytes, for a request that sends it. */
     val reader = PhotoReader { reference -> withContext(Dispatchers.IO) { file(reference)?.takeIf(File::isFile)?.readBytes() } }
+
+    /** A content address another app can read (the FileProvider's), for sharing a kept photo; null when it's gone. */
+    fun shareable(context: Context, reference: String): Uri? =
+        file(reference)?.takeIf(File::isFile)?.let { FileProvider.getUriForFile(context, "${context.packageName}.files", it) }
 
     /** The file a reference points to, or null when [reference] isn't a photo. */
     fun file(reference: String): File? = Photos.fileName(reference)?.let { File(folder, it) }

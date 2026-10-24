@@ -415,7 +415,8 @@ Hands an address to another app on the phone: https or http opens the browser, g
 
 Opens the phone's share sheet on a text, for the user to send to any app.
 
-- `text` **(required)**: text (not empty). What is shared; may use ${field} placeholders, such as "${title} ${url}"
+- `text` **(required)**: text (not empty). What is shared; may use ${field} placeholders, such as "${title} ${url}"; a line whose placeholders all have no value is left out
+- `photos`: text. Path of the photos to share with the text, such as "photos" (a photos field's list): they go as attachments, the text as their caption
 - `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 

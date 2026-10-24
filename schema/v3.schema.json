@@ -764,7 +764,8 @@
       "required": ["type", "text"],
       "properties": {
         "type": { "const": "share" },
-        "text": { "description": "What is shared; may use ${field} placeholders, such as \"${title} ${url}\"", "$ref": "#/$defs/nonEmptyString" },
+        "text": { "description": "What is shared; may use ${field} placeholders, such as \"${title} ${url}\"; a line whose placeholders all have no value is left out", "$ref": "#/$defs/nonEmptyString" },
+        "photos": { "description": "Path of the photos to share with the text, such as \"photos\" (a photos field's list): they go as attachments, the text as their caption", "$ref": "#/$defs/nullableString" },
         "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
