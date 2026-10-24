@@ -9,17 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,6 +29,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 
@@ -67,48 +68,45 @@ fun AppTheme(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun PhotoScreen(url: String?, onBack: () -> Unit) {
-    var scale by remember { mutableStateOf(1f) }
+    var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     val transform = rememberTransformableState { zoom, pan, _ ->
         scale = (scale * zoom).coerceIn(1f, 6f)
         offset += pan
     }
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                    scrolledContainerColor = androidx.compose.ui.graphics.Color.Transparent
-                )
+    var loaded by remember { mutableStateOf(false) }
+    // The photo fills the whole screen, under the see-through top bar.
+    Box(Modifier.fillMaxSize()) {
+        SubcomposeAsyncImage(
+            model = url,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            alignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                translationX = offset.x
+                translationY = offset.y
+            }.transformable(transform).then(if (loaded) Modifier.testTag("photo-loaded") else Modifier),
+            // The tag marks a loaded photo, which tests wait for.
+            onSuccess = { loaded = true },
+            loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() } },
+            error = { Text("Image unavailable", modifier = Modifier.padding(24.dp)) }
+        )
+        TopAppBar(
+            title = {},
+            navigationIcon = {
+                IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                scrolledContainerColor = androidx.compose.ui.graphics.Color.Transparent
             )
-        }
-    ) { _ ->
-        Box(Modifier.fillMaxSize()) {
-            SubcomposeAsyncImage(
-                model = url,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                alignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize().graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    translationX = offset.x
-                    translationY = offset.y
-                }.transformable(transform),
-                loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() } },
-                error = { Text("Image unavailable", modifier = Modifier.padding(24.dp)) }
-            )
-        }
+        )
     }
 }

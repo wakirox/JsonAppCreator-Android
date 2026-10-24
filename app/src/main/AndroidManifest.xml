@@ -16,7 +16,6 @@
 
         <activity
                 android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
-                android:screenOrientation="unspecified"
                 android:name="it.sapienza.appinterpreter.activity.MainActivity"
                 android:exported="true"
                 />

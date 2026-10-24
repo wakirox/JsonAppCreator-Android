@@ -277,7 +277,7 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
                         verticalListItems(child, listState, listContent)
                     } else {
                         item(key = "root-$index-${child.id.orEmpty()}") {
-                            RenderNode(child, data, columnChildModifier(child))
+                            RenderNode(child, data, Modifier.columnChild(child))
                         }
                     }
                 }
@@ -344,12 +344,12 @@ private fun RenderLayout(
             verticalAlignment = if (centred) Alignment.CenterVertically else Alignment.Top
         ) {
             resolvedChildren.forEach { child ->
-                RenderNode(child, data, rowChildModifier(child), allowImagePreview)
+                RenderNode(child, data, Modifier.rowChild(this, child), allowImagePreview)
             }
         }
     } else {
         Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(LocalViewSpacing.current)) {
-            resolvedChildren.forEach { child -> RenderNode(child, data, columnChildModifier(child), allowImagePreview) }
+            resolvedChildren.forEach { child -> RenderNode(child, data, Modifier.columnChild(child), allowImagePreview) }
         }
     }
 }
@@ -358,16 +358,16 @@ private fun RenderLayout(
 private fun ScreenViewModel.shownViews(views: List<MView>, data: JsonObject?): List<MView> =
     views.mapNotNull { view -> resolve(view).takeIf { ViewVisibility.isShown(it, it.data ?: data, reference = view) } }
 
-private fun columnChildModifier(model: MView): Modifier {
-    if (model.isIconOnly()) return Modifier
+private fun Modifier.columnChild(model: MView): Modifier {
+    if (model.isIconOnly()) return this
     val width = model.explicitWidth()
-    return if (width == null) Modifier.fillMaxWidth() else Modifier.width(width.dp)
+    return if (width == null) fillMaxWidth() else width(width.dp)
 }
 
-private fun RowScope.rowChildModifier(model: MView): Modifier {
-    if (model.isIconOnly()) return Modifier
+private fun Modifier.rowChild(row: RowScope, model: MView): Modifier {
+    if (model.isIconOnly()) return this
     val width = model.explicitWidth()
-    return if (width == null) Modifier.weight(1f) else Modifier.width(width.dp)
+    return if (width == null) with(row) { weight(1f) } else width(width.dp)
 }
 
 private fun MView.explicitWidth(): Int? = when (this) {
@@ -420,7 +420,7 @@ private fun RenderText(
     }
     val textModifier = modifier
         .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
-        .then(actionModifier(view.action, data))
+        .action(view.action, data)
         .padding(contentPadding)
     if (view.action == null) {
         Text(text = display, modifier = textModifier, style = style, overflow = TextOverflow.Ellipsis)
@@ -549,7 +549,7 @@ private fun RenderImage(
     val imageModifier = modifier
         .then(heightModifier)
         .clip(if (edgeToEdge) RectangleShape else RoundedCornerShape(16.dp))
-        .then(actionModifier(view.action, data, openPreview))
+        .action(view.action, data, openPreview)
     if (url == null) {
         ImagePlaceholder(imageModifier) { Text("Image unavailable") }
         return
@@ -825,7 +825,7 @@ private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifi
 @Composable
 private fun ListCard(view: ListView, item: JsonObject, modifier: Modifier) {
     Card(
-        modifier.then(actionModifier(view.action, item))
+        modifier.action(view.action, item)
             .testTag("list-item-${item.optString("id")}"),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -955,7 +955,7 @@ private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modif
     Column(
         modifier = modifier
             .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
-            .then(actionModifier(view.action, data))
+            .action(view.action, data)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
@@ -1350,10 +1350,10 @@ private fun Description(description: String?) {
 }
 
 @Composable
-private fun actionModifier(actionRef: Action?, data: JsonObject?, fallback: (() -> Unit)? = null): Modifier {
+private fun Modifier.action(actionRef: Action?, data: JsonObject?, fallback: (() -> Unit)? = null): Modifier {
     val screen = LocalScreen.current
     val action = screen.resolve(actionRef)
-    return if (action != null || fallback != null) Modifier.combinedClickable(
+    return if (action != null || fallback != null) combinedClickable(
         onClick = {
             when {
                 action != null && action.type != ActionType.longclick -> screen.onAction(actionRef, data)
@@ -1361,5 +1361,5 @@ private fun actionModifier(actionRef: Action?, data: JsonObject?, fallback: (() 
             }
         },
         onLongClick = if (action?.type == ActionType.longclick) {{ screen.onAction(actionRef, data) }} else null
-    ) else Modifier
+    ) else this
 }

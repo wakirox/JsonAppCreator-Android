@@ -17,10 +17,6 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="MyActionBarTheme" parent="@android:style/Widget.Holo.Light.ActionBar">
-        <item name="android:textColor">#FFF</item>
-    </style>
-
     <style name="ButtonTheme" parent="Widget.AppCompat.Button.Colored">
         <item name="colorButtonNormal">@color/colorPrimary</item>
         <item name="android:textColor">#fff</item>

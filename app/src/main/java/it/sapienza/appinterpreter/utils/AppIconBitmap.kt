@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.core.graphics.createBitmap
 
 /**
  * [name]'s icon (see [AppIcon]) as an adaptive-icon bitmap for its home-screen shortcut: 108 dp at 4x, of which
@@ -12,7 +13,7 @@ import android.graphics.Typeface
  */
 fun AppIcon.bitmap(name: String, icon: String?): Bitmap {
     val size = 432
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(size, size)
     val canvas = Canvas(bitmap)
     val center = size / 2f
     val emoji = emoji(icon)

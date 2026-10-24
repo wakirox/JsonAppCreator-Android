@@ -43,6 +43,13 @@ jobs:
       - name: Run unit and screenshot tests
         run: ./gradlew --no-daemon :shared:testAndroidHostTest :app:testDebugUnitTest
 
+      - name: Lint (debug)
+        # Any warning fails; :shared is checked with the app. One variant per run: two in one run can crash lint.
+        run: ./gradlew --no-daemon :app:lintDebug
+
+      - name: Lint (release)
+        run: ./gradlew --no-daemon :app:lintRelease
+
       - name: Validate example configuration
         run: ./gradlew --no-daemon :app:validateConfig -Pconfig=examples/v3_static_catalog.json
 
@@ -71,6 +78,7 @@ jobs:
           name: test-reports-${{ github.run_id }}
           path: |
             app/build/reports/tests/
+            app/build/reports/lint-results-*.html
             app/build/test-results/
             app/build/outputs/tmdb-screenshots/
           if-no-files-found: ignore

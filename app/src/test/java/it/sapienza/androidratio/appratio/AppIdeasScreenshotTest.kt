@@ -12,8 +12,10 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import android.graphics.Shader
 import android.graphics.Paint
 import android.graphics.LinearGradient
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -30,6 +32,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import it.sapienza.appinterpreter.activity.MainActivity
+import it.sapienza.appinterpreter.activity.PhotoActivity
+import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
 import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.SharedPreferencesStore
@@ -63,7 +67,7 @@ class AppIdeasScreenshotTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-    private lateinit var scenario: ActivityScenario<MainActivity>
+    private lateinit var scenario: ActivityScenario<out Activity>
 
     @get:Rule
     val composeRule = createEmptyComposeRule()
@@ -233,6 +237,15 @@ class AppIdeasScreenshotTest {
         }
     }
 
+    @Test
+    fun aPhotoOpensFullScreenUnderASeeThroughBar() {
+        scenario.close()
+        val sky = checkNotNull(PhotoStore(context).file("appkin-photo:sky.jpg"))
+        scenario = ActivityScenario.launch<PhotoActivity>(createIntentPhotoActivity(context, Uri.fromFile(sky).toString()))
+        awaitTag("photo-loaded")
+        assertScreenshot("app_ideas_photo")
+    }
+
     /** Taps [tag] and moves to the screen it opens (Robolectric doesn't start activities on its own). */
     private fun openTapped(tag: String) {
         composeRule.onNodeWithTag(tag).performClick()
@@ -287,8 +300,7 @@ class AppIdeasScreenshotTest {
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
     }
 
-    private fun resumed(): MainActivity = ActivityLifecycleMonitorRegistry.getInstance()
-        .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().last()
+    private fun resumed(): Activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED).last()
 
     private fun awaitText(text: String) {
         composeRule.waitUntil(timeoutMillis = WAIT_TIMEOUT_MS) {
