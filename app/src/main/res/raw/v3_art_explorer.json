@@ -13,7 +13,6 @@
         "type": "text",
         "label": "Art Explorer",
         "title": "Thousands of public-domain artworks, live from the Cleveland Museum of Art. Swipe a row, tap a work, or search the whole collection.",
-        "textStyle": "bold",
         "textSize": 18
       },
       {
@@ -66,6 +65,10 @@
             "mapping": "type",
             "title": "Type",
             "options": [
+              {
+                "label": "Any type",
+                "value": ""
+              },
               "Painting",
               "Drawing",
               "Print",
@@ -221,6 +224,27 @@
       ]
     },
     {
+      "id": "artwork_card",
+      "type": "layout",
+      "orientation": "vertical",
+      "views": [
+        {
+          "type": "image",
+          "url": "${images.web.url}",
+          "size": {
+            "height": 160
+          }
+        },
+        {
+          "type": "text",
+          "title": "${title}",
+          "size": {
+            "height": 48
+          }
+        }
+      ]
+    },
+    {
       "id": "artwork_detail",
       "type": "layout",
       "views": [
@@ -229,53 +253,69 @@
           "url": "${images.web.url}",
           "size": {
             "height": 320
-          }
+          },
+          "scale": "fit"
         },
         {
           "type": "text",
           "label": "${title}",
           "title": "${creation_date}",
-          "textStyle": "bold",
-          "textSize": 24
+          "textSize": 24,
+          "labelStyle": "bold"
         },
         {
           "type": "text",
-          "label": "Artist (tap for more)",
+          "label": "Artist",
           "mapping": "creators.0.description",
+          "visibleIf": "creators",
           "action": {
             "ref": "open_artist"
-          }
+          },
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Did you know?",
           "mapping": "did_you_know",
-          "textStyle": "italic"
+          "textStyle": "italic",
+          "labelStyle": "bold"
+        },
+        {
+          "type": "text",
+          "label": "About this work",
+          "mapping": "description",
+          "format": "html",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Technique",
-          "mapping": "technique"
+          "mapping": "technique",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Culture",
-          "mapping": "culture"
+          "mapping": "culture",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Size",
-          "mapping": "measurements"
+          "mapping": "measurements",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Collection",
-          "mapping": "department"
+          "mapping": "department",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "On view",
-          "mapping": "current_location"
+          "mapping": "current_location",
+          "labelStyle": "bold"
         },
         {
           "type": "layout",
@@ -291,6 +331,7 @@
             {
               "type": "button",
               "title": "Plan a visit",
+              "visibleIf": "current_location",
               "action": {
                 "ref": "plan_visit"
               }
@@ -298,9 +339,25 @@
           ]
         },
         {
-          "type": "text",
-          "label": "On the museum's website",
-          "mapping": "url"
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "button",
+              "title": "Museum page",
+              "visibleIf": "url",
+              "action": {
+                "ref": "museum_page"
+              }
+            },
+            {
+              "type": "button",
+              "title": "Share",
+              "action": {
+                "ref": "share_artwork"
+              }
+            }
+          ]
         }
       ]
     },
@@ -332,8 +389,8 @@
         {
           "type": "text",
           "label": "Everything by them in the collection",
-          "title": "Tap one to open it.",
-          "textStyle": "bold"
+          "visibleIf": "artworks",
+          "title": "Tap one to open it."
         },
         {
           "type": "list",
@@ -361,18 +418,76 @@
       "views": [
         {
           "type": "text",
-          "label": "Results",
-          "title": "${info.total} public-domain works with images. Tap one to open it.",
-          "textStyle": "bold"
+          "label": "Results for “${q}”",
+          "visibleIf": "q"
+        },
+        {
+          "type": "text",
+          "label": "Works by ${name}",
+          "visibleIf": "name"
+        },
+        {
+          "type": "text",
+          "title": "Public-domain works with images. Tap one to open it; more load as you scroll."
         },
         {
           "type": "list",
           "mapping": "data",
+          "emptyText": "Nothing with an image here. Try other words.",
+          "initData": {
+            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
+            "method": "get",
+            "nextPage": {
+              "parameter": "skip",
+              "step": 40
+            }
+          },
           "action": {
             "ref": "open_artwork"
           },
           "itemView": {
             "ref": "artwork_row"
+          }
+        }
+      ]
+    },
+    {
+      "id": "browse_results",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "label": "${type}",
+          "visibleIf": "type"
+        },
+        {
+          "type": "text",
+          "label": "All types",
+          "visibleIf": "!type"
+        },
+        {
+          "type": "text",
+          "title": "Public-domain works with images. Tap one to open it; more load as you scroll."
+        },
+        {
+          "type": "list",
+          "mapping": "data",
+          "orientation": "grid",
+          "columns": 2,
+          "emptyText": "Nothing with an image here. Try other words.",
+          "initData": {
+            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
+            "method": "get",
+            "nextPage": {
+              "parameter": "skip",
+              "step": 40
+            }
+          },
+          "action": {
+            "ref": "open_artwork"
+          },
+          "itemView": {
+            "ref": "artwork_card"
           }
         }
       ]
@@ -384,7 +499,7 @@
         {
           "type": "text",
           "label": "Plan a visit",
-          "title": "Pick a day and Appkin opens your calendar with the visit filled in. Check the museum's website for opening hours and what's on view.\nhttps://www.clevelandart.org/visit"
+          "title": "Pick a day and a time, and Appkin opens your calendar with the visit filled in. Check the museum's website for opening hours and what's on view.\nhttps://www.clevelandart.org/visit"
         },
         {
           "type": "form",
@@ -402,6 +517,17 @@
               "mapping": "date",
               "title": "Day",
               "mandatory": true
+            },
+            {
+              "type": "time",
+              "mapping": "time",
+              "title": "Time",
+              "value": "11:00",
+              "mandatory": true
+            },
+            {
+              "type": "hidden",
+              "mapping": "url"
             }
           ],
           "action": {
@@ -416,9 +542,16 @@
       "id": "open_artwork",
       "type": "click",
       "event": {
-        "type": "show",
-        "view": {
-          "ref": "artwork_detail"
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/${id}",
+        "thenDo": {
+          "type": "show",
+          "mapping": "data",
+          "view": {
+            "ref": "artwork_detail"
+          },
+          "title": "${department}"
         }
       }
     },
@@ -426,30 +559,22 @@
       "id": "search",
       "type": "click",
       "event": {
-        "type": "rest",
-        "method": "get",
-        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&limit=40",
-        "thenDo": {
-          "type": "show",
-          "view": {
-            "ref": "search_results"
-          }
-        }
+        "type": "show",
+        "view": {
+          "ref": "search_results"
+        },
+        "title": "Search"
       }
     },
     {
       "id": "browse",
       "type": "click",
       "event": {
-        "type": "rest",
-        "method": "get",
-        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&type=${type}&limit=40",
-        "thenDo": {
-          "type": "show",
-          "view": {
-            "ref": "search_results"
-          }
-        }
+        "type": "show",
+        "view": {
+          "ref": "browse_results"
+        },
+        "title": "Browse"
       }
     },
     {
@@ -464,7 +589,12 @@
           "mapping": "data",
           "view": {
             "ref": "artist_detail"
-          }
+          },
+          "title": "Artist"
+        },
+        "onError": {
+          "type": "alert",
+          "value": "The museum couldn't send this artist's page (${error.message}). Try again in a moment."
         }
       }
     },
@@ -472,15 +602,11 @@
       "id": "artist_works",
       "type": "click",
       "event": {
-        "type": "rest",
-        "method": "get",
-        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&artists=${name}&limit=40",
-        "thenDo": {
-          "type": "show",
-          "view": {
-            "ref": "search_results"
-          }
-        }
+        "type": "show",
+        "view": {
+          "ref": "search_results"
+        },
+        "title": "Works by ${name}"
       }
     },
     {
@@ -492,13 +618,30 @@
       }
     },
     {
+      "id": "museum_page",
+      "type": "click",
+      "event": {
+        "type": "open",
+        "url": "${url}"
+      }
+    },
+    {
+      "id": "share_artwork",
+      "type": "click",
+      "event": {
+        "type": "share",
+        "text": "${title} (${creation_date}), Cleveland Museum of Art\n${url}"
+      }
+    },
+    {
       "id": "plan_visit",
       "type": "click",
       "event": {
         "type": "show",
         "view": {
           "ref": "visit_planner"
-        }
+        },
+        "title": "Plan a visit"
       }
     },
     {
@@ -508,10 +651,10 @@
         "type": "calendar",
         "title": "Cleveland Museum of Art: ${title}",
         "date": "${date}",
-        "time": "11:00",
+        "time": "${time}",
         "durationMinutes": 120,
         "location": "Cleveland Museum of Art, 11150 East Blvd, Cleveland, OH 44106",
-        "description": "Go and see ${title}."
+        "description": "Go and see ${title}.\n${url}"
       }
     },
     {
@@ -526,7 +669,12 @@
           "mapping": "data",
           "view": {
             "ref": "artwork_detail"
-          }
+          },
+          "title": "${department}"
+        },
+        "onError": {
+          "type": "alert",
+          "value": "The museum couldn't send this work (${error.message}). Try again in a moment."
         }
       }
     }

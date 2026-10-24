@@ -48,6 +48,17 @@
       "type": ["object", "null"],
       "description": "Arbitrary JSON object made available to mappings and interpolation."
     },
+    "headers": {
+      "description": "Request headers, such as { \"Authorization\": \"Bearer __API_TOKEN__\" }. Values may use ${field} placeholders and __NAME__ API-key placeholders. Appkin sets User-Agent, Host, Content-Type and Content-Length itself.",
+      "type": ["object", "null"],
+      "propertyNames": { "pattern": "^[A-Za-z0-9!#$%&'*+.^_`|~-]+$" },
+      "additionalProperties": { "type": "string" }
+    },
+    "visibleIf": {
+      "description": "A path in the view's data, such as creators or current_location: the view is shown only when there is a value there that isn't null, empty, false, 0 or an empty array. Start it with ! to show the view only when there isn't. Only presence tests, no expressions.",
+      "type": ["string", "null"],
+      "pattern": "^!?[^!\\s]+$"
+    },
     "size": {
       "type": ["object", "null"],
       "properties": {
@@ -72,7 +83,8 @@
       "type": "object",
       "required": ["ref"],
       "properties": {
-        "ref": { "$ref": "#/$defs/nonEmptyString" }
+        "ref": { "$ref": "#/$defs/nonEmptyString" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" }
       },
       "additionalProperties": false
     },
@@ -110,6 +122,7 @@
         "action": { "$ref": "#/$defs/action" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "orientation": {
           "description": "How the child views are arranged; vertical by default",
           "type": ["string", "null"],
@@ -133,6 +146,7 @@
         "action": { "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of a value in the current data to show as the text, such as owner.name", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "textSize": { "description": "Font size in sp", "type": ["number", "null"], "minimum": 0 },
         "size": { "$ref": "#/$defs/size" },
         "textStyle": {
@@ -141,7 +155,23 @@
           "default": "regular"
         },
         "title": { "description": "The text, when no mapping value is shown", "$ref": "#/$defs/nullableString" },
-        "label": { "description": "First line of the text view, shown above the text", "$ref": "#/$defs/nullableString" }
+        "label": { "description": "First line of the text view, shown above the text", "$ref": "#/$defs/nullableString" },
+        "labelStyle": {
+          "description": "The label's own style, so a bold heading needn't make its text bold; without it the label looks like the text",
+          "type": ["string", "null"],
+          "enum": ["regular", "italic", "bold", null]
+        },
+        "format": {
+          "description": "plain (default), or html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions",
+          "type": ["string", "null"],
+          "enum": ["plain", "html", null],
+          "default": "plain"
+        },
+        "showWhenEmpty": {
+          "description": "Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all.",
+          "type": ["boolean", "null"],
+          "default": false
+        }
       },
       "additionalProperties": false
     },
@@ -154,6 +184,7 @@
         "action": { "description": "What a tap does", "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of a value in the current data to use as the button's text", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "textSize": { "type": ["number", "null"], "minimum": 0 },
         "size": { "$ref": "#/$defs/size" },
         "textStyle": {
@@ -175,8 +206,15 @@
         "action": { "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of an image address in the current data", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "url": { "description": "Image address; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
-        "size": { "$ref": "#/$defs/size" }
+        "size": { "$ref": "#/$defs/size" },
+        "scale": {
+          "description": "crop (default): the picture fills its space and its edges may be cut; fit: the whole picture shows, inside its space",
+          "type": ["string", "null"],
+          "enum": ["crop", "fit", null],
+          "default": "crop"
+        }
       },
       "additionalProperties": false
     },
@@ -189,6 +227,7 @@
         "action": { "description": "What tapping an item does; its event receives that item", "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of the array of objects to show, in data or in the initData response", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "itemView": { "description": "The view repeated for each item; its mappings and placeholders refer to that item", "$ref": "#/$defs/view" },
         "initData": {
           "description": "A REST request whose JSON response is the list's data",
@@ -198,8 +237,19 @@
           ]
         },
         "orientation": {
-          "enum": ["horizontal", "vertical"],
+          "description": "vertical (default): one item per row; horizontal: a row that scrolls sideways; grid: items side by side in rows of columns",
+          "enum": ["horizontal", "vertical", "grid"],
           "default": "vertical"
+        },
+        "columns": {
+          "description": "Items per row of a grid; 2 by default",
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 6
+        },
+        "emptyText": {
+          "description": "What the list says when it has no items, instead of No data available; may use ${field} placeholders",
+          "$ref": "#/$defs/nullableString"
         }
       },
       "additionalProperties": false
@@ -213,6 +263,7 @@
         "action": { "description": "Runs on submit, with the submitted object as data", "$ref": "#/$defs/action" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "title": { "description": "Heading above the fields", "$ref": "#/$defs/nullableString" },
         "buttonTitle": { "description": "The submit button's text; Submit by default", "$ref": "#/$defs/nullableString" },
         "formElements": {
@@ -227,12 +278,14 @@
       "description": "A form field, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["text", "selector", "date", "checkbox"] } },
+      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textInput" } },
         { "if": { "properties": { "type": { "const": "selector" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/selectorInput" } },
         { "if": { "properties": { "type": { "const": "date" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/dateInput" } },
-        { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } }
+        { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } },
+        { "if": { "properties": { "type": { "const": "time" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/timeInput" } },
+        { "if": { "properties": { "type": { "const": "hidden" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/hiddenInput" } }
       ]
     },
     "textInput": {
@@ -264,10 +317,24 @@
         "description": { "$ref": "#/$defs/nullableString" },
         "mandatory": { "type": ["boolean", "null"], "default": false },
         "options": {
+          "description": "The choices: each is a string, shown and submitted, or { \"label\": shown, \"value\": submitted }, such as { \"label\": \"Any type\", \"value\": \"\" }",
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "object",
+                "required": ["value"],
+                "properties": {
+                  "label": { "description": "What the option shows; its value by default", "type": "string" },
+                  "value": { "description": "What the form submits when it's chosen", "type": "string" }
+                },
+                "additionalProperties": false
+              }
+            ]
+          }
         },
-        "selection": { "$ref": "#/$defs/nullableString" }
+        "selection": { "description": "The value chosen at first", "$ref": "#/$defs/nullableString" }
       },
       "additionalProperties": false
     },
@@ -289,6 +356,35 @@
     "dateValue": {
       "description": "A date string accepted by Jackson or an epoch-millisecond number.",
       "type": ["string", "number", "null"]
+    },
+    "timeInput": {
+      "type": "object",
+      "description": "A time of day, picked on a clock and submitted as HH:mm, as a calendar event's time takes it.",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "time" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "type": "string" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "type": ["boolean", "null"], "default": false },
+        "value": {
+          "description": "The time at first, HH:mm",
+          "type": ["string", "null"],
+          "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hiddenInput": {
+      "type": "object",
+      "description": "A value the form sends without showing it, such as the id of the item on screen.",
+      "required": ["type", "mapping"],
+      "properties": {
+        "type": { "const": "hidden" },
+        "mapping": { "description": "Key of the submitted object that receives the value", "$ref": "#/$defs/nonEmptyString" },
+        "value": { "description": "The value, sent as text; may use ${field} placeholders filled in from the screen's data. Without it, the data's value at mapping is sent.", "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
     },
     "checkboxInput": {
       "type": "object",
@@ -351,12 +447,14 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
         { "if": { "properties": { "type": { "const": "alert" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/alertEvent" } },
-        { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } }
+        { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } },
+        { "if": { "properties": { "type": { "const": "open" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/openEvent" } },
+        { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } }
       ]
     },
     "restEvent": {
@@ -366,12 +464,21 @@
         "type": { "const": "rest" },
         "url": { "description": "HTTPS address; may use ${field} placeholders from the current data", "$ref": "#/$defs/nonEmptyString" },
         "method": {
+          "description": "get (default), post, put or delete; post and put send the current data as a JSON body",
           "type": ["string", "null"],
-          "enum": ["get", "post", null],
+          "enum": ["get", "post", "put", "delete", null],
           "default": "get"
         },
+        "headers": { "$ref": "#/$defs/headers" },
         "thenDo": {
           "description": "The event to run next, with the JSON response as data",
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "onError": {
+          "description": "The event to run when the request fails, instead of an alert; its data is the request's, plus error.message and, for an HTTP error, error.status",
           "oneOf": [
             { "$ref": "#/$defs/event" },
             { "type": "null" }
@@ -388,10 +495,12 @@
       "properties": {
         "url": { "$ref": "#/$defs/nonEmptyString" },
         "method": {
+          "description": "get (default), post, put or delete; post and put send the current data as a JSON body",
           "type": ["string", "null"],
-          "enum": ["get", "post", null],
+          "enum": ["get", "post", "put", "delete", null],
           "default": "get"
         },
+        "headers": { "$ref": "#/$defs/headers" },
         "thenDo": {
           "oneOf": [
             { "$ref": "#/$defs/event" },
@@ -399,7 +508,21 @@
           ]
         },
         "mapping": { "$ref": "#/$defs/nullableString" },
-        "data": { "$ref": "#/$defs/data" }
+        "data": { "$ref": "#/$defs/data" },
+        "nextPage": {
+          "description": "How the list asks for more items when it nears its end. Either parameter and step: that query parameter (such as skip) grows by step, the page size, until a page has fewer items. Or urlFrom: the path in the response of the next page's URL, until there is none.",
+          "type": ["object", "null"],
+          "properties": {
+            "parameter": { "description": "The query parameter that says where a page starts, such as skip or offset", "$ref": "#/$defs/nonEmptyString" },
+            "step": { "description": "How much it grows from page to page: the page size", "type": "integer", "minimum": 1 },
+            "urlFrom": { "description": "Path in each response of the next page's URL, such as info.next", "$ref": "#/$defs/nonEmptyString" }
+          },
+          "oneOf": [
+            { "required": ["parameter", "step"], "not": { "required": ["urlFrom"] } },
+            { "required": ["urlFrom"], "not": { "anyOf": [ { "required": ["parameter"] }, { "required": ["step"] } ] } }
+          ],
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
@@ -410,7 +533,8 @@
         "type": { "const": "show" },
         "view": { "description": "The view to open; it receives the current data", "$ref": "#/$defs/view" },
         "mapping": { "description": "Path of the part of the current data the view receives", "$ref": "#/$defs/nullableString" },
-        "data": { "$ref": "#/$defs/data" }
+        "data": { "$ref": "#/$defs/data" },
+        "title": { "description": "The opened screen's title in the app bar, instead of the app's name; may use ${field} placeholders from the data it receives", "$ref": "#/$defs/nullableString" }
       },
       "additionalProperties": false
     },
@@ -427,6 +551,34 @@
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "openEvent": {
+      "type": "object",
+      "description": "Hands an address to another app on the phone: https or http opens the browser, geo: a map, tel: the dialer (nothing is called) and mailto: an email app. No other kinds of address are opened.",
+      "required": ["type", "url"],
+      "properties": {
+        "type": { "const": "open" },
+        "url": {
+          "description": "An https:, http:, geo:, tel: or mailto: address, or a placeholder holding one, such as ${url}; values placeholders insert are percent-encoded",
+          "type": "string",
+          "pattern": "^(https?:|geo:|tel:|mailto:|\\$\\{)"
+        },
+        "mapping": { "description": "Path of the part of the current data the address is filled in from", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "shareEvent": {
+      "type": "object",
+      "description": "Opens the phone's share sheet on a text, for the user to send to any app.",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "share" },
+        "text": { "description": "What is shared; may use ${field} placeholders, such as \"${title} ${url}\"", "$ref": "#/$defs/nonEmptyString" },
+        "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false

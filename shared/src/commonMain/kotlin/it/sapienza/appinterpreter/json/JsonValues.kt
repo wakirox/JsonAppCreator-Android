@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.json
 
+import it.sapienza.appinterpreter.security.UriEncoding
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -66,17 +67,61 @@ fun formValueToJson(value: Any?): JsonElement = when (value) {
     else -> JsonPrimitive(value.toString())
 }
 
-private val PLACEHOLDER = Regex("(\\$\\{[^}]+\\})")
+private val PLACEHOLDER = Regex("\\$\\{([^}]+)\\}")
 
-/** The text with each ${path} replaced by its value in [data]; placeholders without a value stay as they are. */
-fun String.matchReplace(data: JsonObject?): String {
-    if (data == null) return this
-    var result = this
-    PLACEHOLDER.findAll(this).forEach { match ->
-        val placeholder = match.groupValues[1]
-        data.getValue(placeholder.substring(2, placeholder.length - 1))?.let { value ->
-            result = result.replace(placeholder, value)
-        }
+/** The text with each ${path} replaced by its value in [data]; a placeholder without a value becomes "". */
+fun String.matchReplace(data: JsonObject?): String =
+    PLACEHOLDER.replace(this) { match -> data?.getValue(match.groupValues[1]).orEmpty() }
+
+/** The paths of the placeholders in this text that have no value in [data], in order. */
+fun String.missingPlaceholders(data: JsonObject?): List<String> =
+    PLACEHOLDER.findAll(this).map { it.groupValues[1] }.filter { data?.getValue(it) == null }.distinct().toList()
+
+/**
+ * An address with its placeholders filled in from [data], or null when one of them has no value: such an
+ * address would ask for something else, so it isn't used. Each value is percent-encoded ("arms & armor" becomes
+ * "arms%20%26%20armor"), so it can't change the address around it; the template itself is left as written. A
+ * placeholder that starts the address, as in "${'$'}{images.web.url}", supplies the address itself and isn't encoded.
+ * A query parameter that is one placeholder, as "&type=${'$'}{type}", is an optional filter: without a value, or with
+ * an empty one, it is left out (see [withoutEmptyFilters]).
+ */
+fun String.fillAddress(data: JsonObject?): String? {
+    val template = withoutEmptyFilters(data)
+    if (template.missingPlaceholders(data).isNotEmpty()) return null
+    return PLACEHOLDER.replace(template) { match ->
+        val value = data?.getValue(match.groupValues[1]).orEmpty()
+        if (match.range.first == 0) value else UriEncoding.encode(value)
     }
-    return result
+}
+
+/** The placeholders an address needs and [data] lacks, once its optional filters are left out. */
+fun String.missingAddressPlaceholders(data: JsonObject?): List<String> = withoutEmptyFilters(data).missingPlaceholders(data)
+
+private val FILTER = Regex("^[^=]+=\\$\\{([^}]+)\\}$")
+
+/** This address without the query parameters "name=${'$'}{path}" whose path has no value, or an empty one, in [data]. */
+fun String.withoutEmptyFilters(data: JsonObject?): String {
+    val queryStart = indexOf('?').takeIf { it >= 0 } ?: return this
+    val fragmentStart = indexOf('#', queryStart).takeIf { it >= 0 } ?: length
+    val kept = substring(queryStart + 1, fragmentStart).split('&').filter { parameter ->
+        val path = FILTER.find(parameter)?.groupValues?.get(1) ?: return@filter true
+        !data?.getValue(path).isNullOrEmpty()
+    }
+    val query = if (kept.isEmpty()) "" else "?" + kept.joinToString("&")
+    return substring(0, queryStart) + query + substring(fragmentStart)
+}
+
+/**
+ * True when [data] has something at [path]: not missing, null, "", false, 0 or an empty array or object.
+ * This is what "visibleIf" tests.
+ */
+fun JsonObject?.hasValueAt(path: String): Boolean = when (val value = this?.valueAt(path)) {
+    null -> false
+    is JsonArray -> value.isNotEmpty()
+    is JsonObject -> value.isNotEmpty()
+    is JsonPrimitive -> when {
+        value.isString -> value.content.isNotBlank()
+        value.content == "false" -> false
+        else -> value.content.toDoubleOrNull()?.let { it != 0.0 } ?: true
+    }
 }

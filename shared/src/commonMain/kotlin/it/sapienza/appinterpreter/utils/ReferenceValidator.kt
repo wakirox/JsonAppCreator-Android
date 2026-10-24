@@ -62,7 +62,8 @@ internal class ReferenceValidator {
 
         if (node.containsKey("ref")) {
             if (definitionRequired) fail(path, "top-level views must be definitions, not references")
-            val id = exclusiveReference(node, path, "view", "ref")
+            // Where a reference is placed, it may say when it's shown.
+            val id = exclusiveReference(node, path, "view", "ref", allowed = setOf("visibleIf"))
             addViewReference(id, "$path.ref", parentId)
             return
         }
@@ -130,8 +131,14 @@ internal class ReferenceValidator {
         node["thenDoKO"]?.let { visitEvent(it, "$path.thenDoKO") }
     }
 
-    private fun exclusiveReference(node: JsonObject, path: String, kind: String, field: String): String {
-        if (node.size != 1) {
+    private fun exclusiveReference(
+        node: JsonObject,
+        path: String,
+        kind: String,
+        field: String,
+        allowed: Set<String> = emptySet()
+    ): String {
+        if (node.keys.any { it != field && it !in allowed }) {
             fail(path, "$kind reference must contain only '$field'; reference and definition fields cannot be mixed")
         }
         return requiredIdentifier(node[field], "$path.$field", "$kind reference")

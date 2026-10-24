@@ -4,6 +4,10 @@ import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElemen
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
 import it.sapienza.appinterpreter.utils.FormDates
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
 
 @Serializable
 class CheckBox(
@@ -32,17 +36,66 @@ class DateInput(
     override fun defaultValue(): Any? = value?.let(FormDates::format)
 }
 
+/** A choice among [options]; [selection] and what it submits are an option's value. */
 @Serializable
 class Selector(
-    val options: List<String>,
+    val options: List<@Serializable(with = SelectorOptionSerializer::class) SelectorOption>,
     val selection: String? = null,
     override val mandatory: Boolean? = null,
     override val title: String,
     override val description: String? = null,
     override val mapping: String
 ) : FormElementImpl() {
-    override fun isSet(value: Any?): Boolean = !isRequired || (value as? String) in options
-    override fun defaultValue(): Any? = selection?.takeIf { it in options }
+    /** What the options submit. */
+    val values: List<String> get() = options.map { it.value }
+
+    override fun isSet(value: Any?): Boolean = !isRequired || (value as? String) in values
+    override fun defaultValue(): Any? = selection?.takeIf { it in values }
+}
+
+/** An option of a selector: [label] is shown, [value] submitted. A plain string is both. */
+@Serializable
+class SelectorOption(val value: String, val label: String = value)
+
+/** Reads an option written as "Painting" or as { "label": "Any type", "value": "" }, and writes it back the same way. */
+object SelectorOptionSerializer : JsonTransformingSerializer<SelectorOption>(SelectorOption.serializer()) {
+    override fun transformDeserialize(element: JsonElement): JsonElement =
+        if (element is JsonPrimitive && element.isString) JsonObject(mapOf("value" to element)) else element
+
+    override fun transformSerialize(element: JsonElement): JsonElement {
+        val option = element as? JsonObject ?: return element
+        val value = option["value"]
+        return if (value != null && (option["label"] == null || option["label"] == value)) value else element
+    }
+}
+
+/** A time of day, HH:mm, as a calendar event's time takes it. */
+@Serializable
+class TimeInput(
+    val value: String? = null,
+    override val mandatory: Boolean? = null,
+    override val title: String,
+    override val description: String? = null,
+    override val mapping: String
+) : FormElementImpl() {
+    override fun isSet(value: Any?): Boolean = !isRequired || (value as? String)?.let(FormDates::parseTime) != null
+    override fun defaultValue(): Any? = value?.takeIf { FormDates.parseTime(it) != null }
+}
+
+/**
+ * A value the form sends without showing it, such as the id of the item on screen: [value], with placeholders
+ * filled in from the screen's data.
+ */
+@Serializable
+class HiddenInput(
+    val value: String? = null,
+    override val mapping: String,
+    override val title: String = "",
+    override val description: String? = null
+) : FormElementImpl() {
+    override val mandatory: Boolean? get() = null
+    override fun isSet(value: Any?): Boolean = true
+    override fun defaultValue(): Any? = null
 }
 
 @Serializable

@@ -87,6 +87,10 @@
     <string name="confirm_close">Are you sure you want to close the app?</string>
     <string name="view_missing">View \'%1$s\' does not exist in this configuration</string>
     <string name="no_calendar_app">There is no calendar app on this phone to add the event to.</string>
+    <string name="value_missing">This item has no %1$s</string>
+    <string name="link_not_allowed">Appkin only opens web, map, phone and email addresses, not %1$s</string>
+    <string name="no_app_for_link">There is no app on this phone that opens %1$s</string>
+    <string name="share_title">Share</string>
     <string name="screen_data_unrestorable">Unable to restore screen data\n%1$s</string>
     <string name="configuration_invalid">The saved configuration is invalid\n%1$s</string>
     <string name="error_unrecognized">Unrecognized error</string>

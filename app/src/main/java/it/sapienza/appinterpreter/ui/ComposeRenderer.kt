@@ -3,6 +3,8 @@
 package it.sapienza.appinterpreter.ui
 
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,6 +38,8 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -42,11 +47,17 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +66,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import it.sapienza.appinterpreter.runtime.ListsState
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
+import it.sapienza.appinterpreter.runtime.ViewVisibility
+import it.sapienza.appinterpreter.runtime.text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -63,9 +76,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import java.util.Date
+import android.text.format.DateFormat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +97,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
+import it.sapienza.appinterpreter.json.fillAddress
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.json.optString
@@ -91,11 +110,16 @@ import it.sapienza.appinterpreter.model.action.ActionType
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ImageView
+import it.sapienza.appinterpreter.model.view_model.ImageScale
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.TextView
+import it.sapienza.appinterpreter.model.view_model.TextFormat
 import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
+import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
+import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
+import it.sapienza.appinterpreter.utils.FormDates
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
@@ -109,6 +133,12 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 private const val HORIZONTAL_LAZY_THRESHOLD = 8
+
+/** The screen's margins: everything lines up on the same left edge, 16 dp in. */
+private val PAGE_PADDING = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+
+/** The space between one view and the next. */
+private val VIEW_SPACING = 12.dp
 
 /** The screen being drawn: its app, state and events. */
 val LocalScreen = staticCompositionLocalOf<ScreenViewModel> { error("RendererScreen needs LocalScreen") }
@@ -124,8 +154,18 @@ fun RendererScreen(model: MView, data: JsonObject? = model.data, loading: Boolea
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    Box(Modifier.fillMaxSize().testTag("renderer-screen")) {
+    val refreshing by screen.lists.refreshing.collectAsState()
+    val canRefresh by screen.lists.canRefresh.collectAsState()
+    val pull = rememberPullToRefreshState()
+    // Lists loaded from a request load again when the screen is pulled down.
+    Box(
+        Modifier.fillMaxSize().testTag("renderer-screen")
+            .pullToRefresh(isRefreshing = refreshing, state = pull, enabled = canRefresh, onRefresh = screen.lists::refresh)
+    ) {
         RenderRoot(model, data)
+        if (canRefresh) {
+            PullToRefreshDefaults.Indicator(state = pull, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter))
+        }
         if (loading) {
             Card(
                 modifier = Modifier.align(Alignment.Center),
@@ -145,7 +185,7 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
 
     when {
         resolved is Layout && resolved.orientation != LayoutOrientation.horizontal -> {
-            val children = remember(resolved) { resolved.views.map(screen::resolve) }
+            val children = remember(resolved, data) { screen.shownViews(resolved.views, data) }
             val listStates = children.map { child ->
                 if (child is ListView && child.orientation != LayoutOrientation.horizontal) {
                     val childData = remember(child, child.data, data) { child.data ?: data }
@@ -158,8 +198,8 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
             val listContents = listStates.map { entry -> entry?.let { it.content.collectAsState().value } }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PAGE_PADDING,
+                verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)
             ) {
                 children.forEachIndexed { index, child ->
                     val listState = listStates[index]
@@ -179,16 +219,16 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
             val content by entry.content.collectAsState()
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PAGE_PADDING,
+                verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)
             ) {
                 verticalListItems(resolved, entry, content)
             }
         }
         else -> {
             Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(PAGE_PADDING),
+                verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)
             ) {
                 RenderNode(resolved, data, Modifier.fillMaxWidth())
             }
@@ -205,6 +245,7 @@ private fun RenderNode(
 ) {
     val resolved = LocalScreen.current.resolve(model)
     val data = remember(resolved, resolved.data, parentData) { resolved.data ?: parentData }
+    if (!ViewVisibility.isShown(resolved, data, reference = model)) return
     when (resolved) {
         is Layout -> RenderLayout(resolved, data, modifier, allowImagePreview)
         is ButtonView -> RenderButton(resolved, data, modifier)
@@ -223,7 +264,7 @@ private fun RenderLayout(
     allowImagePreview: Boolean
 ) {
     val screen = LocalScreen.current
-    val resolvedChildren = layout.views.map(screen::resolve)
+    val resolvedChildren = screen.shownViews(layout.views, data)
     if (layout.orientation == LayoutOrientation.horizontal) {
         Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             resolvedChildren.forEach { child ->
@@ -231,11 +272,15 @@ private fun RenderLayout(
             }
         }
     } else {
-        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)) {
             resolvedChildren.forEach { child -> RenderNode(child, data, columnChildModifier(child), allowImagePreview) }
         }
     }
 }
+
+/** [views] resolved, without those that aren't shown with [data]: they take no space, and no gap either. */
+private fun ScreenViewModel.shownViews(views: List<MView>, data: JsonObject?): List<MView> =
+    views.mapNotNull { view -> resolve(view).takeIf { ViewVisibility.isShown(it, it.data ?: data, reference = view) } }
 
 private fun columnChildModifier(model: MView): Modifier {
     val width = model.explicitWidth()
@@ -262,34 +307,73 @@ private fun RenderText(
     view: TextualView,
     data: JsonObject?,
     modifier: Modifier,
-    contentPadding: PaddingValues = PaddingValues(6.dp)
+    contentPadding: PaddingValues = PaddingValues(vertical = 2.dp)
 ) {
-    val text = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty()).matchReplace(data)
-    val style = when (view.textStyle) {
-        TextStyle.bold -> MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-        TextStyle.italic -> MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
-        else -> MaterialTheme.typography.bodyLarge
-    }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
+    val text = view.text(data)
     val label = view.label?.matchReplace(data).orEmpty()
-    val display = listOf(label, text).filter { it.isNotEmpty() }.joinToString("\n").trimEnd()
+    val typography = MaterialTheme.typography
+    val colors = MaterialTheme.colorScheme
+    // Under a label, the text is its supporting line: the label leads, the text is quieter.
+    val style = when (view.textStyle) {
+        TextStyle.bold -> typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+        TextStyle.italic -> typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
+        else -> typography.bodyLarge
+    }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
+        .let { base -> if (label.isNotEmpty()) base.copy(color = colors.onSurfaceVariant) else base.copy(color = colors.onSurface) }
+    val links = linkStyles()
+    val body = bodyText(view, text, links)
+    val display = buildAnnotatedString {
+        if (label.isNotEmpty()) {
+            // The label is a heading: a title's size and weight, unless labelStyle (or textSize) says otherwise.
+            val labelSpan = SpanStyle(
+                fontSize = view.textSize?.sp ?: typography.titleMedium.fontSize,
+                fontWeight = when (view.labelStyle) {
+                    null -> FontWeight.SemiBold
+                    TextStyle.bold -> FontWeight.Bold
+                    else -> FontWeight.Normal
+                },
+                fontStyle = if (view.labelStyle == TextStyle.italic) FontStyle.Italic else FontStyle.Normal,
+                color = colors.onSurface
+            )
+            withStyle(labelSpan) { append(linkified(label, links)) }
+            if (body.isNotEmpty()) append("\n")
+        }
+        append(body)
+    }
     val textModifier = modifier
         .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
         .then(actionModifier(view.action, data))
         .padding(contentPadding)
-    Text(
-        text = linkified(display, linkStyles()),
-        modifier = textModifier,
-        style = style,
-        overflow = TextOverflow.Ellipsis
-    )
+    if (view.action == null) {
+        Text(text = display, modifier = textModifier, style = style, overflow = TextOverflow.Ellipsis)
+    } else {
+        // Text that does something on a tap says so, with an arrow at its end, as a list item does.
+        Row(textModifier, verticalAlignment = Alignment.CenterVertically) {
+            Text(text = display, modifier = Modifier.weight(1f), style = style, overflow = TextOverflow.Ellipsis)
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = colors.onSurfaceVariant,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
+}
+
+/** A text view's text with its links: simple HTML when its format says so, else plain text with web addresses linked. */
+private fun bodyText(view: TextualView, text: String, links: TextLinkStyles): AnnotatedString {
+    val body = if (view.format == TextFormat.html) AnnotatedString.fromHtml(text, links) else linkified(text, links)
+    val end = body.text.trimEnd().length
+    return if (end < body.length) body.subSequence(0, end) else body
 }
 
 @Composable
 private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
     val action = screen.resolve(view.action)
-    val title = (view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty().matchReplace(data)
-    Button(
+    val title = view.text(data)
+    // A button on its own is tonal: a form's submit button is the screen's one filled button.
+    FilledTonalButton(
         onClick = { if (action?.type != ActionType.longclick) screen.onAction(view.action, data) },
         modifier = modifier.fillMaxWidth().then(
             if (action?.type == ActionType.longclick) Modifier.combinedClickable(
@@ -311,7 +395,8 @@ private fun RenderImage(
 ) {
     val context = LocalContext.current
     val mapped = view.mapping?.let { data?.getValue(it) }
-    val url = (mapped ?: view.url)?.matchReplace(data)
+    // An address with a placeholder that has no value would load something else: the placeholder shows instead.
+    val url = (mapped ?: view.url)?.fillAddress(data)?.takeIf { it.isNotBlank() }
     val openPreview: (() -> Unit)? = if (allowImagePreview) {
         { url?.let { context.startActivity(createIntentPhotoActivity(context, it)) } }
     } else null
@@ -335,7 +420,7 @@ private fun RenderImage(
         AsyncImage(
             model = url,
             contentDescription = null,
-            contentScale = ContentScale.Crop,
+            contentScale = if (view.scale == ImageScale.fit) ContentScale.Fit else ContentScale.Crop,
             onState = { state = it },
             // The tag marks a loaded image, which tests wait for.
             modifier = Modifier.matchParentSize().then(
@@ -368,9 +453,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
         when {
             state.waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
             state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
-            state.items.isEmpty() -> Text("No data available", style = MaterialTheme.typography.bodyMedium)
+            state.items.isEmpty() -> EmptyList(view, entry)
             view.orientation == LayoutOrientation.horizontal &&
-                state.items.size > HORIZONTAL_LAZY_THRESHOLD -> LazyRow(
+                (state.items.size > HORIZONTAL_LAZY_THRESHOLD || state.canLoadMore) -> LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -380,6 +465,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     key = { index, item -> listItemKey(view, index, item) }
                 ) { _, item ->
                     ListCard(view, item, Modifier.width(cardWidth))
+                }
+                if (state.canLoadMore || state.moreErrorMessage != null) {
+                    item(key = "list-more") { Box(Modifier.width(cardWidth)) { MoreItems(entry, state, automatic = true) } }
                 }
             }
             view.orientation == LayoutOrientation.horizontal -> Row(
@@ -391,6 +479,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     ListCard(view, item, Modifier.width(cardWidth))
                 }
             }
+            view.columnCount > 1 -> state.items.chunked(view.columnCount).forEachIndexed { index, row ->
+                GridRow(view, row, index * view.columnCount)
+            }
             else -> state.items.forEachIndexed { index, item ->
                 ListCard(
                     view = view,
@@ -398,6 +489,12 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     modifier = Modifier.fillMaxWidth().testTag("list-position-$index")
                 )
             }
+        }
+        // Inside a screen that scrolls as a whole, the next page waits for a tap rather than loading all at once.
+        if (view.orientation != LayoutOrientation.horizontal && state.items.isNotEmpty() &&
+            (state.canLoadMore || state.moreErrorMessage != null)
+        ) {
+            MoreItems(entry, state, automatic = false)
         }
     }
 }
@@ -414,13 +511,62 @@ private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.En
             ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
         }
         state.items.isEmpty() -> item(key = "list-empty-${System.identityHashCode(view)}") {
-            Text("No data available", style = MaterialTheme.typography.bodyMedium)
+            EmptyList(view, entry)
+        }
+        view.columnCount > 1 -> itemsIndexed(
+            items = state.items.chunked(view.columnCount),
+            key = { index, row -> listItemKey(view, index * view.columnCount, row.first()) }
+        ) { index, row ->
+            GridRow(view, row, index * view.columnCount)
         }
         else -> itemsIndexed(
             items = state.items,
             key = { index, item -> listItemKey(view, index, item) }
         ) { _, item ->
             ListCard(view, item, Modifier.fillMaxWidth())
+        }
+    }
+    if (state.items.isNotEmpty() && (state.canLoadMore || state.moreErrorMessage != null)) {
+        item(key = "list-more-${System.identityHashCode(view)}") { MoreItems(entry, state, automatic = true) }
+    }
+}
+
+/** One row of a grid list: its items share the width, and a short last row keeps their size. */
+@Composable
+private fun GridRow(view: ListView, row: List<JsonObject>, firstIndex: Int) {
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        row.forEachIndexed { offset, item ->
+            ListCard(view, item, Modifier.weight(1f).fillMaxHeight().testTag("list-position-${firstIndex + offset}"))
+        }
+        repeat(view.columnCount - row.size) { Spacer(Modifier.weight(1f)) }
+    }
+}
+
+@Composable
+private fun EmptyList(view: ListView, entry: ListsState.Entry) {
+    Text(
+        view.emptyText?.matchReplace(entry.data)?.takeIf { it.isNotBlank() } ?: "No data available",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 8.dp).testTag("list-empty")
+    )
+}
+
+/**
+ * The end of a list with more pages: [automatic], it fetches the next one as soon as it comes into view (a lazy list
+ * composes it only near its end); otherwise a button does. Then a wait, or why the page couldn't load.
+ */
+@Composable
+private fun MoreItems(entry: ListsState.Entry, state: ListsState.Content, automatic: Boolean) {
+    val screen = LocalScreen.current
+    Box(Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("list-more"), contentAlignment = Alignment.Center) {
+        when {
+            state.moreErrorMessage != null -> ListLoadError(state.moreErrorMessage.orEmpty()) { screen.lists.loadMore(entry) }
+            state.loadingMore || automatic -> {
+                if (automatic) LaunchedEffect(entry, state.items.size) { screen.lists.loadMore(entry) }
+                CircularProgressIndicator(Modifier.size(32.dp))
+            }
+            else -> OutlinedButton(onClick = { screen.lists.loadMore(entry) }) { Text("Show more") }
         }
     }
 }
@@ -468,7 +614,7 @@ private fun ListCardContent(
     val screen = LocalScreen.current
     val resolvedItem = screen.resolve(itemView)
     val resolvedLayout = resolvedItem as? Layout
-    val resolvedChildren = resolvedLayout?.views?.map(screen::resolve)
+    val resolvedChildren = resolvedLayout?.views?.let { screen.shownViews(it, item) }
 
     if (resolvedItem is ImageView) {
         RenderImage(
@@ -563,8 +709,7 @@ private fun linkStyles() = TextLinkStyles(
 @Composable
 private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modifier: Modifier) {
     val title = view.label?.matchReplace(data).orEmpty()
-    val supportingText = ((view.mapping?.let { data?.getValue(it) } ?: view.title).orEmpty())
-        .matchReplace(data)
+    val supportingText = view.text(data)
     Column(
         modifier = modifier
             .then(view.size?.height?.let { Modifier.height(it.dp) } ?: Modifier)
@@ -583,7 +728,7 @@ private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modif
         }
         if (supportingText.isNotEmpty()) {
             Text(
-                text = linkified(supportingText, linkStyles()),
+                text = bodyText(view, supportingText, linkStyles()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 overflow = TextOverflow.Ellipsis
@@ -598,8 +743,9 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
     val form = screen.forms.state(view, data)
     val values by form.values.collectAsState()
     val error by form.error.collectAsState()
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        view.title?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // A form's title is a heading like a text view's label.
+        view.title?.let { Text(it, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
         view.formElements.forEach { item ->
             val onChange: (Any?) -> Unit = { screen.forms.set(view, data, item.mapping, it) }
             when (item) {
@@ -607,10 +753,13 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
                 is TextInput -> TextField(item, values[item.mapping] as? String, onChange)
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
+                is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
+                // A hidden field only sends its value.
+                is HiddenInput -> Unit
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(onClick = { screen.onSubmit(view, data) }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { screen.onSubmit(view, data) }, modifier = Modifier.align(Alignment.End)) {
             Text(view.buttonTitle ?: "Submit")
         }
     }
@@ -658,7 +807,7 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
 private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit) {
     var picking by remember { mutableStateOf(false) }
     Column {
-        Text(item.title, style = MaterialTheme.typography.titleSmall)
+        FieldTitle(item.title)
         OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
         Description(item.description)
     }
@@ -684,6 +833,35 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
     ) { DatePicker(state) }
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit) {
+    var picking by remember { mutableStateOf(false) }
+    Column {
+        FieldTitle(item.title)
+        OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
+        Description(item.description)
+    }
+    if (!picking) return
+    val (hour, minute) = value?.let(FormDates::parseTime) ?: (12 to 0)
+    val state = rememberTimePickerState(
+        initialHour = hour,
+        initialMinute = minute,
+        is24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    )
+    AlertDialog(
+        onDismissRequest = { picking = false },
+        confirmButton = {
+            TextButton(onClick = {
+                onChange(FormDates.formatTime(state.hour, state.minute))
+                picking = false
+            }) { Text(stringResource(android.R.string.ok)) }
+        },
+        dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } },
+        text = { TimePicker(state) }
+    )
+}
+
 /** The picker counts days in UTC; the form's dates are local midnights. */
 private fun utcDay(date: Date): Long =
     date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
@@ -694,18 +872,24 @@ private fun localDay(utcMillis: Long): Date =
 @Composable
 private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(item.title, style = MaterialTheme.typography.titleSmall)
+        FieldTitle(item.title)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item.options.forEach { option ->
                 FilterChip(
-                    selected = selected == option,
-                    onClick = { onChange(option) },
-                    label = { Text(option) }
+                    selected = selected == option.value,
+                    onClick = { onChange(option.value) },
+                    label = { Text(option.label) }
                 )
             }
         }
         Description(item.description)
     }
+}
+
+/** The title above a date, time or choice field, in the field labels' style. */
+@Composable
+private fun FieldTitle(title: String) {
+    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable

@@ -93,7 +93,7 @@ class EditorLogicTest {
             "options" in labelsAt("""{ "mainView": { "type": "form", "formElements": [ { "type": "selector", | } ] } }""")
         )
         assertEquals(
-            listOf("show"),
+            listOf("show", "share"),
             labelsAt("""{ "actions": [ { "id": "a", "event": { "type": "sh|" } } ] }""")
         )
         assertTrue(
