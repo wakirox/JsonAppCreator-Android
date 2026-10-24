@@ -206,6 +206,19 @@
                   },
                   {
                     "type": "button",
+                    "icon": "open",
+                    "label": "Open the link of ${title}",
+                    "visibleIf": "link",
+                    "action": {
+                      "id": "open_link",
+                      "event": {
+                        "type": "open",
+                        "url": "${link}"
+                      }
+                    }
+                  },
+                  {
+                    "type": "button",
                     "icon": "share",
                     "label": "Share ${title}",
                     "action": {
@@ -251,26 +264,14 @@
                 "visibleIf": "tags"
               },
               {
-                "type": "button",
-                "title": "Open link",
-                "icon": "open",
-                "visibleIf": "link",
-                "action": {
-                  "id": "open_link",
-                  "event": {
-                    "type": "open",
-                    "url": "${link}"
-                  }
-                }
-              },
-              {
                 "type": "text",
                 "title": "Added ${createdAt|ago}",
-                "textSize": 12
+                "textSize": 12,
+                "visibleIf": "!updatedAt"
               },
               {
                 "type": "text",
-                "title": "Changed ${updatedAt|ago}",
+                "title": "Added ${createdAt|ago} · changed ${updatedAt|ago}",
                 "textSize": 12,
                 "visibleIf": "updatedAt"
               }

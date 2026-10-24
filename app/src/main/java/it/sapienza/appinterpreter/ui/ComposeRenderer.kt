@@ -9,6 +9,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.text.KeyboardActions
@@ -199,6 +201,12 @@ private val PAGE_PADDING = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
 /** The space between one view and the next. */
 private val VIEW_SPACING = 12.dp
 
+/** The gap between the views of a list card's layouts: tighter than a screen's, so cards stay compact. */
+private val CARD_SPACING = 4.dp
+
+/** The gap a vertical layout leaves between its views: the screen's, or a card's inside list items. */
+private val LocalViewSpacing = compositionLocalOf { VIEW_SPACING }
+
 /** The screen being drawn: its app, state and events. */
 val LocalScreen = staticCompositionLocalOf<ScreenViewModel> { error("RendererScreen needs LocalScreen") }
 
@@ -338,7 +346,7 @@ private fun RenderLayout(
             }
         }
     } else {
-        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)) {
+        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(LocalViewSpacing.current)) {
             resolvedChildren.forEach { child -> RenderNode(child, data, columnChildModifier(child), allowImagePreview) }
         }
     }
@@ -918,8 +926,10 @@ private fun ListCardContent(
             icons.forEach { RenderNode(it, item, Modifier.padding(end = 8.dp), allowImagePreview = false) }
         }
     } else {
-        Column(Modifier.padding(14.dp)) {
-            RenderNode(resolvedItem, item, Modifier.fillMaxWidth(), allowImagePreview = false)
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+            CompositionLocalProvider(LocalViewSpacing provides CARD_SPACING) {
+                RenderNode(resolvedItem, item, Modifier.fillMaxWidth(), allowImagePreview = false)
+            }
         }
     }
 }
