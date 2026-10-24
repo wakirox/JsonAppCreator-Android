@@ -216,7 +216,9 @@ A list repeats `itemView` once for every object in a JSON array.
 | `itemView` | view | yes | Template rendered for every array item. |
 | `mapping` | string | yes in normal use | Dot path to the array in the response or inherited `data`. |
 | `initData` | REST service | no | Fetches the list data when the list appears. |
-| `orientation` | string | no | `vertical` (default) or `horizontal`. |
+| `orientation` | string | no | `vertical` (default), `horizontal`, or `grid`: items side by side in rows. |
+| `columns` | integer | no | Items per row of a `grid`, 1 to 6; 2 by default. |
+| `emptyText` | string | no | What the list says when it has no items, instead of "No data available". Supports `${...}`. |
 | `action` | action | no | Runs with the tapped item as its data payload. |
 
 The response must be a JSON object, and the selected array must contain JSON objects.
@@ -236,6 +238,27 @@ For local data, place an array in a parent or list `data` object and select it w
   "itemView": { "type": "text", "mapping": "name" }
 }
 ```
+
+#### More pages
+
+A list loaded with `initData` can keep loading as it's scrolled: `initData.nextPage` says how
+to ask for the next page.
+
+```json
+"initData": {
+  "url": "https://api.example.com/works?q=${q}&limit=40",
+  "nextPage": { "parameter": "skip", "step": 40 }
+}
+```
+
+With `parameter` and `step`, the next page's URL is the last one with that query parameter
+grown by `step` (from its value in the URL, or 0), until a page has fewer than `step` items:
+make `step` the page size. With `"urlFrom": "info.next"` instead, the next page's URL is the
+response's value at that path, until there is none. A list that fills the screen loads its
+next page when its end comes into view; a list inside a screen that scrolls as a whole shows
+a "Show more" button. A list loads 50 pages at most.
+
+Pulling a screen down loads its `initData` lists again, from their first page.
 
 ### `form`
 

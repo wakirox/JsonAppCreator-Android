@@ -43,6 +43,9 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.rememberDatePickerState
@@ -50,6 +53,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -134,8 +138,18 @@ fun RendererScreen(model: MView, data: JsonObject? = model.data, loading: Boolea
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    Box(Modifier.fillMaxSize().testTag("renderer-screen")) {
+    val refreshing by screen.lists.refreshing.collectAsState()
+    val canRefresh by screen.lists.canRefresh.collectAsState()
+    val pull = rememberPullToRefreshState()
+    // Lists loaded from a request load again when the screen is pulled down.
+    Box(
+        Modifier.fillMaxSize().testTag("renderer-screen")
+            .pullToRefresh(isRefreshing = refreshing, state = pull, enabled = canRefresh, onRefresh = screen.lists::refresh)
+    ) {
         RenderRoot(model, data)
+        if (canRefresh) {
+            PullToRefreshDefaults.Indicator(state = pull, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter))
+        }
         if (loading) {
             Card(
                 modifier = Modifier.align(Alignment.Center),
@@ -384,9 +398,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
         when {
             state.waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
             state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
-            state.items.isEmpty() -> Text("No data available", style = MaterialTheme.typography.bodyMedium)
+            state.items.isEmpty() -> EmptyList(view, entry)
             view.orientation == LayoutOrientation.horizontal &&
-                state.items.size > HORIZONTAL_LAZY_THRESHOLD -> LazyRow(
+                (state.items.size > HORIZONTAL_LAZY_THRESHOLD || state.canLoadMore) -> LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -396,6 +410,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     key = { index, item -> listItemKey(view, index, item) }
                 ) { _, item ->
                     ListCard(view, item, Modifier.width(cardWidth))
+                }
+                if (state.canLoadMore || state.moreErrorMessage != null) {
+                    item(key = "list-more") { Box(Modifier.width(cardWidth)) { MoreItems(entry, state, automatic = true) } }
                 }
             }
             view.orientation == LayoutOrientation.horizontal -> Row(
@@ -407,6 +424,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     ListCard(view, item, Modifier.width(cardWidth))
                 }
             }
+            view.columnCount > 1 -> state.items.chunked(view.columnCount).forEachIndexed { index, row ->
+                GridRow(view, row, index * view.columnCount)
+            }
             else -> state.items.forEachIndexed { index, item ->
                 ListCard(
                     view = view,
@@ -414,6 +434,12 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     modifier = Modifier.fillMaxWidth().testTag("list-position-$index")
                 )
             }
+        }
+        // Inside a screen that scrolls as a whole, the next page waits for a tap rather than loading all at once.
+        if (view.orientation != LayoutOrientation.horizontal && state.items.isNotEmpty() &&
+            (state.canLoadMore || state.moreErrorMessage != null)
+        ) {
+            MoreItems(entry, state, automatic = false)
         }
     }
 }
@@ -430,13 +456,61 @@ private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.En
             ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
         }
         state.items.isEmpty() -> item(key = "list-empty-${System.identityHashCode(view)}") {
-            Text("No data available", style = MaterialTheme.typography.bodyMedium)
+            EmptyList(view, entry)
+        }
+        view.columnCount > 1 -> itemsIndexed(
+            items = state.items.chunked(view.columnCount),
+            key = { index, row -> listItemKey(view, index * view.columnCount, row.first()) }
+        ) { index, row ->
+            GridRow(view, row, index * view.columnCount)
         }
         else -> itemsIndexed(
             items = state.items,
             key = { index, item -> listItemKey(view, index, item) }
         ) { _, item ->
             ListCard(view, item, Modifier.fillMaxWidth())
+        }
+    }
+    if (state.items.isNotEmpty() && (state.canLoadMore || state.moreErrorMessage != null)) {
+        item(key = "list-more-${System.identityHashCode(view)}") { MoreItems(entry, state, automatic = true) }
+    }
+}
+
+/** One row of a grid list: its items share the width, and a short last row keeps their size. */
+@Composable
+private fun GridRow(view: ListView, row: List<JsonObject>, firstIndex: Int) {
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        row.forEachIndexed { offset, item ->
+            ListCard(view, item, Modifier.weight(1f).fillMaxHeight().testTag("list-position-${firstIndex + offset}"))
+        }
+        repeat(view.columnCount - row.size) { Spacer(Modifier.weight(1f)) }
+    }
+}
+
+@Composable
+private fun EmptyList(view: ListView, entry: ListsState.Entry) {
+    Text(
+        view.emptyText?.matchReplace(entry.data)?.takeIf { it.isNotBlank() } ?: "No data available",
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.testTag("list-empty")
+    )
+}
+
+/**
+ * The end of a list with more pages: [automatic], it fetches the next one as soon as it comes into view (a lazy list
+ * composes it only near its end); otherwise a button does. Then a wait, or why the page couldn't load.
+ */
+@Composable
+private fun MoreItems(entry: ListsState.Entry, state: ListsState.Content, automatic: Boolean) {
+    val screen = LocalScreen.current
+    Box(Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("list-more"), contentAlignment = Alignment.Center) {
+        when {
+            state.moreErrorMessage != null -> ListLoadError(state.moreErrorMessage.orEmpty()) { screen.lists.loadMore(entry) }
+            state.loadingMore || automatic -> {
+                if (automatic) LaunchedEffect(entry, state.items.size) { screen.lists.loadMore(entry) }
+                CircularProgressIndicator(Modifier.size(32.dp))
+            }
+            else -> OutlinedButton(onClick = { screen.lists.loadMore(entry) }) { Text("Show more") }
         }
     }
 }

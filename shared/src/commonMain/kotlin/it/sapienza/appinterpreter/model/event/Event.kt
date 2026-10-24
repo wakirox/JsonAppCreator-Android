@@ -68,8 +68,22 @@ class RESTService(
     val method: CallServiceMethod? = CallServiceMethod.get,
     override val thenDo: Event? = null,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    /** A list's initData only: how to ask for the items after these. */
+    val nextPage: NextPage? = null
 ) : DataService()
+
+/**
+ * How a list asks for more items: either the query [parameter] (such as "skip") grows by [step], the page size,
+ * from its value in the first URL (0 without one), until a page has fewer than [step] items; or the next page's URL
+ * is the response's value at [urlFrom], until there is none.
+ */
+@Serializable
+class NextPage(
+    val parameter: String? = null,
+    val step: Int? = null,
+    val urlFrom: String? = null
+)
 
 @Serializable
 class ShowView(

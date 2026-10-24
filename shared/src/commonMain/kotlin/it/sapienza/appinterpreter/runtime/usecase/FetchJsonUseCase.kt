@@ -13,10 +13,15 @@ import kotlinx.serialization.json.JsonObject
  * [MissingValueException] instead.
  */
 class FetchJsonUseCase(private val client: JsonHttpClient) {
-    suspend operator fun invoke(event: RESTService, data: JsonObject?): JsonObject {
-        val url = event.url.fillAddress(data) ?: throw MissingValueException(event.url.missingAddressPlaceholders(data).first())
-        return client.request(url, post = event.method == CallServiceMethod.post, body = data)
-    }
+    suspend operator fun invoke(event: RESTService, data: JsonObject?): JsonObject = fetch(url(event, data), event, data)
+
+    /** The URL [event] asks for with [data]. */
+    fun url(event: RESTService, data: JsonObject?): String =
+        event.url.fillAddress(data) ?: throw MissingValueException(event.url.missingAddressPlaceholders(data).first())
+
+    /** [url], already filled in (such as a list's next page), asked for as [event] says. */
+    suspend fun fetch(url: String, event: RESTService, data: JsonObject?): JsonObject =
+        client.request(url, post = event.method == CallServiceMethod.post, body = data)
 }
 
 /** A request needs the value at [path], which the data doesn't have. */

@@ -104,7 +104,7 @@ Events:
 
 Other enums:
 
-- Orientations: `vertical`, `horizontal`
+- Orientations: `vertical`, `horizontal` (and `grid`, for lists only)
 - Actions: `click`, `longclick`
 - HTTP methods: `get`, `post`
 - Text styles: `regular`, `italic`, `bold`
@@ -125,6 +125,11 @@ properties.
   opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
+  For an API with pages (a `skip`, `offset` or `page` parameter, or a "next" link), add
+  `"nextPage": { "parameter": "skip", "step": 40 }` (the page size) or
+  `"nextPage": { "urlFrom": "info.next" }` to `initData`, and the list loads more as it's
+  scrolled. `"orientation": "grid"` with `"columns": 2` shows items side by side;
+  `emptyText` says what an empty list means.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
   fields of that one item, not to the whole response.
 - Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one

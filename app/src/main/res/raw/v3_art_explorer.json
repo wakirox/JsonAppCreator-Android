@@ -225,6 +225,27 @@
       ]
     },
     {
+      "id": "artwork_card",
+      "type": "layout",
+      "orientation": "vertical",
+      "views": [
+        {
+          "type": "image",
+          "url": "${images.web.url}",
+          "size": {
+            "height": 160
+          }
+        },
+        {
+          "type": "text",
+          "title": "${title}",
+          "size": {
+            "height": 48
+          }
+        }
+      ]
+    },
+    {
       "id": "artwork_detail",
       "type": "layout",
       "views": [
@@ -384,18 +405,80 @@
       "views": [
         {
           "type": "text",
-          "label": "Results",
-          "title": "${info.total} public-domain works with images. Tap one to open it.",
+          "label": "Results for “${q}”",
+          "visibleIf": "q",
           "textStyle": "bold"
+        },
+        {
+          "type": "text",
+          "label": "Works by ${name}",
+          "visibleIf": "name",
+          "textStyle": "bold"
+        },
+        {
+          "type": "text",
+          "title": "Public-domain works with images. Tap one to open it; more load as you scroll."
         },
         {
           "type": "list",
           "mapping": "data",
+          "emptyText": "Nothing with an image here. Try other words.",
+          "initData": {
+            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
+            "method": "get",
+            "nextPage": {
+              "parameter": "skip",
+              "step": 40
+            }
+          },
           "action": {
             "ref": "open_artwork"
           },
           "itemView": {
             "ref": "artwork_row"
+          }
+        }
+      ]
+    },
+    {
+      "id": "browse_results",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "label": "${type}",
+          "visibleIf": "type",
+          "textStyle": "bold"
+        },
+        {
+          "type": "text",
+          "label": "All types",
+          "visibleIf": "!type",
+          "textStyle": "bold"
+        },
+        {
+          "type": "text",
+          "title": "Public-domain works with images. Tap one to open it; more load as you scroll."
+        },
+        {
+          "type": "list",
+          "mapping": "data",
+          "orientation": "grid",
+          "columns": 2,
+          "emptyText": "Nothing with an image here. Try other words.",
+          "initData": {
+            "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&type=${type}&artists=${name}&limit=40",
+            "method": "get",
+            "nextPage": {
+              "parameter": "skip",
+              "step": 40
+            }
+          },
+          "action": {
+            "ref": "open_artwork"
+          },
+          "itemView": {
+            "ref": "artwork_card"
           }
         }
       ]
@@ -460,14 +543,9 @@
       "id": "search",
       "type": "click",
       "event": {
-        "type": "rest",
-        "method": "get",
-        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&q=${q}&limit=40",
-        "thenDo": {
-          "type": "show",
-          "view": {
-            "ref": "search_results"
-          }
+        "type": "show",
+        "view": {
+          "ref": "search_results"
         }
       }
     },
@@ -475,14 +553,9 @@
       "id": "browse",
       "type": "click",
       "event": {
-        "type": "rest",
-        "method": "get",
-        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&type=${type}&limit=40",
-        "thenDo": {
-          "type": "show",
-          "view": {
-            "ref": "search_results"
-          }
+        "type": "show",
+        "view": {
+          "ref": "browse_results"
         }
       }
     },
@@ -506,14 +579,9 @@
       "id": "artist_works",
       "type": "click",
       "event": {
-        "type": "rest",
-        "method": "get",
-        "url": "https://openaccess-api.clevelandart.org/api/artworks/?cc0=1&has_image=1&fields=id,title,creation_date,images,creators,did_you_know,technique,culture,measurements,department,current_location,url,tombstone&artists=${name}&limit=40",
-        "thenDo": {
-          "type": "show",
-          "view": {
-            "ref": "search_results"
-          }
+        "type": "show",
+        "view": {
+          "ref": "search_results"
         }
       }
     },
