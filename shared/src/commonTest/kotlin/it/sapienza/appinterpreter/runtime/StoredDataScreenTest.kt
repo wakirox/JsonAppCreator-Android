@@ -234,16 +234,16 @@ class StoredDataScreenTest {
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
     @Test
-    fun aNewIdeaStartsAsAnIdeaAndSwipingRightShipsIt() {
+    fun aNewIdeaIsNotDoneAndSwipingRightMarksItDone() {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
-        assertEquals(listOf("Idea", "Idea"), screen.shown(rainy, "status"))
-        val statusLine = screen.row().first { it.visibleIf == "status" }
+        assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
+        val doneLine = screen.row().first { it.visibleIf == "done" }
 
         screen.onAction(screen.list().swipeToEnd, screen.items(rainy)[0])
 
-        assertEquals(listOf("Idea", "Shipped"), screen.shown(rainy, "status"), "shipped ideas go last")
-        assertEquals(listOf(true, true), screen.items(rainy).map { ViewVisibility.holds(statusLine.visibleIf, it) })
+        assertEquals(listOf("false", "true"), screen.shown(rainy, "done"), "done ideas go last")
+        assertEquals(listOf(false, true), screen.items(rainy).map { ViewVisibility.holds(doneLine.visibleIf, it) })
     }
 
     @Test
@@ -418,15 +418,15 @@ class StoredDataScreenTest {
     }
 
     @Test
-    fun swipingAnIdeaTowardsTheEndShipsIt() {
+    fun swipingAnIdeaTowardsTheEndMarksItDone() {
         val ideas = ideas()
         val screen = ideas.rainyScreen
         val widgets = screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" }
 
         screen.onAction(screen.list().swipeToEnd, widgets)
 
-        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"), "shipped ideas go last")
-        assertEquals("Shipped", screen.items(ideas.rainy).last().getValue("status"))
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"), "done ideas go last")
+        assertEquals("true", screen.items(ideas.rainy).last().getValue("done"))
     }
 
     @Test
@@ -491,27 +491,27 @@ class StoredDataScreenTest {
         val appData = AppData(store, now = { clock++ })
         val ideas = ideas(appData)
         val (rainy, screen, new) = Triple(ideas.rainy, ideas.rainyScreen, ideas.rainyNew)
-        // Dark mode (Medium) and Widgets (Low) are there; Tile is High, tagged, and Building.
+        // Dark mode (Medium) and Widgets (Low) are there; Tile is High and tagged.
         new.forms.set(new.form(), rainy, "priority", "High")
-        new.forms.set(new.form(), rainy, "status", "Building")
         new.forms.set(new.form(), rainy, "tags", JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("UI"))))
         new.add("title", "Tile", rainy)
         val list = screen.list()
         val entry = screen.lists.get(list, rainy)
-        assertEquals(listOf("Status", "Priority", "Newest", "Changed"), list.stored?.sortOptions?.map { it.title })
+        assertEquals(listOf("Priority", "Newest", "Changed"), list.stored?.sortOptions?.map { it.title })
 
-        assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(rainy, "title"), "by status first: Building")
-        screen.lists.choose(entry, ListChoice(sortOption = 2))
+        assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(rainy, "title"), "by priority first")
+        screen.lists.choose(entry, ListChoice(sortOption = 1))
         assertEquals(listOf("Tile", "Widgets", "Dark mode"), screen.shown(rainy, "title"), "newest first")
+        screen.onAction(list.swipeToEnd, screen.items(rainy).first { it.getValue("title") == "Tile" })
+        assertEquals(listOf("Widgets", "Dark mode", "Tile"), screen.shown(rainy, "title"), "newest, but done ones last")
 
-        screen.onAction(list.swipeToEnd, screen.items(rainy).first { it.getValue("title") == "Dark mode" })
-        screen.lists.choose(entry, ListChoice(sortOption = 3))
-        assertEquals("Dark mode", screen.shown(rainy, "title").first(), "the one just changed first")
+        screen.lists.choose(entry, ListChoice(sortOption = 2))
+        assertEquals("Tile", screen.shown(rainy, "title").first(), "the one just changed first")
 
         assertEquals(listOf("UI", "watch"), entry.content.value.tags, "the tags in use, each once")
-        screen.lists.choose(entry, ListChoice(sortOption = 3, tag = "ui"))
+        screen.lists.choose(entry, ListChoice(sortOption = 2, tag = "ui"))
         assertEquals(listOf("Tile"), screen.shown(rainy, "title"), "only the tagged one, whatever the case")
-        screen.lists.choose(entry, ListChoice(sortOption = 3, tag = null))
+        screen.lists.choose(entry, ListChoice(sortOption = 2, tag = null))
         assertEquals(3, screen.shown(rainy, "title").size)
     }
 

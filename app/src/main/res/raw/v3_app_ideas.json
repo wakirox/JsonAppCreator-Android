@@ -139,55 +139,40 @@
             },
             "sortOptions": [
               {
-                "title": "Status",
-                "sort": [
-                  {
-                    "by": "status",
-                    "order": [
-                      "Building",
-                      "Planned",
-                      "Idea",
-                      "Shipped"
-                    ]
-                  },
-                  {
-                    "by": "priority",
-                    "order": [
-                      "High",
-                      "Medium",
-                      "Low"
-                    ]
-                  }
-                ]
-              },
-              {
                 "title": "Priority",
                 "sort": [
                   {
+                    "by": "done",
+                    "order": [
+                      "false",
+                      "true"
+                    ]
+                  },
+                  {
                     "by": "priority",
                     "order": [
                       "High",
                       "Medium",
                       "Low"
-                    ]
-                  },
-                  {
-                    "by": "status",
-                    "order": [
-                      "Building",
-                      "Planned",
-                      "Idea",
-                      "Shipped"
                     ]
                   }
                 ]
               },
               {
                 "title": "Newest",
-                "sort": {
-                  "by": "createdAt",
-                  "descending": true
-                }
+                "sort": [
+                  {
+                    "by": "done",
+                    "order": [
+                      "false",
+                      "true"
+                    ]
+                  },
+                  {
+                    "by": "createdAt",
+                    "descending": true
+                  }
+                ]
               },
               {
                 "title": "Changed",
@@ -249,17 +234,15 @@
               },
               {
                 "type": "text",
-                "title": "${status} · ${priority} priority",
+                "title": "${priority} priority",
                 "textSize": 13,
-                "textStyle": "bold",
-                "visibleIf": "status"
+                "textStyle": "bold"
               },
               {
                 "type": "text",
-                "title": "${priority} priority",
                 "textSize": 13,
-                "textStyle": "bold",
-                "visibleIf": "!status"
+                "visibleIf": "done",
+                "title": "✓ Done"
               },
               {
                 "type": "text",
@@ -290,12 +273,6 @@
                 "title": "Changed ${updatedAt|ago}",
                 "textSize": 12,
                 "visibleIf": "updatedAt"
-              },
-              {
-                "type": "text",
-                "title": "✓ Done",
-                "textSize": 13,
-                "visibleIf": "done"
               }
             ]
           },
@@ -321,12 +298,12 @@
             }
           },
           "swipeToEnd": {
-            "id": "ship_idea",
+            "id": "done_idea",
             "event": {
               "type": "update",
               "collection": "ideas",
               "fields": {
-                "status": "Shipped"
+                "done": true
               }
             }
           }
@@ -353,19 +330,6 @@
               "mapping": "description",
               "title": "Description",
               "multiline": true
-            },
-            {
-              "type": "selector",
-              "mapping": "status",
-              "title": "Status",
-              "options": [
-                "Idea",
-                "Planned",
-                "Building",
-                "Shipped"
-              ],
-              "selection": "Idea",
-              "mandatory": true
             },
             {
               "type": "selector",
@@ -406,7 +370,8 @@
               "type": "save",
               "collection": "ideas",
               "fields": {
-                "appId": "${id}"
+                "appId": "${id}",
+                "done": false
               },
               "thenDo": {
                 "type": "back"
@@ -439,19 +404,6 @@
             },
             {
               "type": "selector",
-              "mapping": "status",
-              "title": "Status",
-              "options": [
-                "Idea",
-                "Planned",
-                "Building",
-                "Shipped"
-              ],
-              "selection": "Idea",
-              "mandatory": true
-            },
-            {
-              "type": "selector",
               "mapping": "priority",
               "title": "Priority",
               "options": [
@@ -481,6 +433,11 @@
               "type": "photos",
               "mapping": "photos",
               "title": "Photos"
+            },
+            {
+              "type": "checkbox",
+              "mapping": "done",
+              "title": "Done"
             }
           ],
           "action": {
