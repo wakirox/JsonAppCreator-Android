@@ -52,3 +52,22 @@ xxhdpi, the same way and with the same record flag:
 
 Failures write the actual and diff images to
 `app/build/outputs/app-icon-screenshots/`.
+
+# Ask your AI app screenshot tests
+
+`AskAiScreenshotTest` covers the "Ask your AI app" screen (`AskAiScreen`) at the same
+448 x 900 viewport, compared exactly (any changed pixel fails):
+
+- `ask_ai_new_app`: a new app, nothing typed yet, with the ideas
+- `ask_ai_new_app_request`: a new app with a request typed
+- `ask_ai_change_current`: changing the current app (the switch on, no ideas)
+- `ask_ai_no_current_app`: no current app to change, so no switch
+- `ask_ai_new_app_dark`: the new-app screen on the dark theme
+
+```sh
+./gradlew testDebugUnitTest --tests '*AskAiScreenshotTest'
+./gradlew testDebugUnitTest --tests '*AskAiScreenshotTest' -PrecordScreenshots=true
+```
+
+Failures write the actual and diff images to
+`app/build/outputs/ask-ai-screenshots/`.
