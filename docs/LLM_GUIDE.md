@@ -98,6 +98,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
 
 Other enums:
 
@@ -109,8 +110,8 @@ Other enums:
 - Form elements: `text`, `selector`, `date`, `checkbox`
 
 Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
-conditional rendering, databases, arbitrary native components, or undocumented style
-properties.
+conditional rendering, databases beyond `save` and `stored` (saved objects can't be
+changed or deleted yet), arbitrary native components, or undocumented style properties.
 
 ## Common mistakes
 

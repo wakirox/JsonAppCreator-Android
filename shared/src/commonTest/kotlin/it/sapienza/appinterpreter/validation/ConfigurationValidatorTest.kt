@@ -17,6 +17,18 @@ class ConfigurationValidatorTest {
     }
 
     @Test
+    fun aListTakesItsItemsFromARequestOrFromSavedDataNotBoth() {
+        fun list(sources: String) = validator.validate(
+            """{ "schemaVersion": 3, "name": "L", "version": "1.0",
+                 "mainView": { "type": "list", $sources "itemView": { "type": "text" } } }"""
+        ).issues
+        assertEquals(emptyList(), list(""""stored": { "collection": "ideas", "where": { "done": false } },"""))
+        assertEquals(emptyList(), list(""""initData": null, "stored": { "collection": "ideas" },"""))
+        assertTrue(list(""""initData": { "url": "https://example.com" }, "stored": { "collection": "ideas" },""").isNotEmpty())
+        assertTrue(list(""""stored": { "where": {} },""").isNotEmpty())
+    }
+
+    @Test
     fun issuesHavePathsAndTheMessagesTheAppAlwaysShowed() {
         val issues = validator.validate(
             """

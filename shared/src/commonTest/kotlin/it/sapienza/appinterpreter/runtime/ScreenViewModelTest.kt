@@ -14,9 +14,13 @@ import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
+import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
+import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.security.ConfigurationKeys
 import it.sapienza.appinterpreter.security.MemorySecretStore
+import it.sapienza.appinterpreter.storage.AppData
+import it.sapienza.appinterpreter.storage.MemoryAppStore
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,10 +71,12 @@ class ScreenViewModelTest {
         val fetch = FetchJsonUseCase(
             JsonHttpClient(MockEngine { respond("""{ "message": "Loaded from ${it.url.encodedPath}" }""") }, "Appkin/test", keys::replaceForCurrentConfiguration)
         )
+        val repository = AppRepository(current)
+        val appData = AppData(MemoryAppStore())
         return ScreenViewModel(
-            SavedStateHandle(), alerts, fetch, LoadListItemsUseCase(fetch), InitialFormValuesUseCase(), SubmitFormUseCase(),
-            CreateCalendarEventUseCase(), FindMissingApiKeysUseCase(current, keys),
-            LoadScreenUseCase(AppRepository(current), EnglishRuntimeStrings), EnglishRuntimeStrings
+            SavedStateHandle(), alerts, fetch, LoadListItemsUseCase(fetch, LoadStoredItemsUseCase(appData, repository)), InitialFormValuesUseCase(),
+            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository), FindMissingApiKeysUseCase(current, keys),
+            LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )
     }
 
@@ -121,13 +127,18 @@ class ScreenViewModelTest {
 
     @Test
     fun anUnknownViewIsReported() {
+        val repository = AppRepository({ json })
+        val appData = AppData(MemoryAppStore())
         val failed = ScreenViewModel(
             SavedStateHandle(mapOf(ScreenViewModel.EXTRA_VIEW_ID to "nowhere")), alerts,
             FetchJsonUseCase(JsonHttpClient(MockEngine { respond("{}") }, "Appkin/test")),
-            LoadListItemsUseCase(FetchJsonUseCase(JsonHttpClient(MockEngine { respond("{}") }, "Appkin/test"))),
-            InitialFormValuesUseCase(), SubmitFormUseCase(), CreateCalendarEventUseCase(),
+            LoadListItemsUseCase(
+                FetchJsonUseCase(JsonHttpClient(MockEngine { respond("{}") }, "Appkin/test")),
+                LoadStoredItemsUseCase(appData, repository)
+            ),
+            InitialFormValuesUseCase(), SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
             FindMissingApiKeysUseCase({ json }, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
-            LoadScreenUseCase(AppRepository({ json }), EnglishRuntimeStrings), EnglishRuntimeStrings
+            LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )
         assertNull(failed.screen)
         assertEquals("View 'nowhere' does not exist in this configuration", alerts.alert?.text)

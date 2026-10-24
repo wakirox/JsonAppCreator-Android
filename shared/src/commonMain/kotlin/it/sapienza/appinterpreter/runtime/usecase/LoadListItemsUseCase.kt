@@ -3,13 +3,18 @@ package it.sapienza.appinterpreter.runtime.usecase
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.getArray
 import it.sapienza.appinterpreter.model.view_model.ListView
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
-/** A list's items: from its request when it has one, else from its own data or the screen's. */
-class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase) {
+/** A list's items: what the app saved, or from its request when it has one, else from its own data or the screen's. */
+class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val loadStored: LoadStoredItemsUseCase) {
+
+    /** The saved collections that changed: the lists showing them load again. */
+    val storedChanges: Flow<String> get() = loadStored.changes
 
     suspend operator fun invoke(list: ListView, data: JsonObject?): List<JsonObject> {
+        list.stored?.let { return loadStored(it, data) }
         val source = list.initData?.let { fetchJson(it, data) } ?: data ?: JsonObject(emptyMap())
         val array = list.mapping?.let { source.getArray(it) } ?: legacyArray(list) ?: return emptyList()
         return array.mapIndexed { index, item ->

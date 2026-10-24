@@ -96,6 +96,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
 
 Other enums:
 
@@ -107,8 +108,8 @@ Other enums:
 - Form elements: `text`, `selector`, `date`, `checkbox`
 
 Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
-conditional rendering, databases, arbitrary native components, or undocumented style
-properties.
+conditional rendering, databases beyond `save` and `stored` (saved objects can't be
+changed or deleted yet), arbitrary native components, or undocumented style properties.
 
 ## Common mistakes
 
@@ -219,6 +220,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `data`: an object with any data
 - `itemView` **(required)**: a view (or `{ "ref": "id" }`). The view repeated for each item; its mappings and placeholders refer to that item
 - `initData`: a REST request, `{ "url": ..., "method": "get" | "post" }`. A REST request whose JSON response is the list's data
+- `stored`: an object. Shows objects the app saved on the phone with a save event, instead of initData or data; mapping is not used
 - `orientation`: one of `"horizontal"`, `"vertical"`
 
 #### `form`
@@ -311,6 +313,16 @@ Opens the phone's calendar app on a new event, filled in; the user reviews and s
 - `mapping`: text
 - `data`: an object with any data
 
+#### `save`
+
+Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.
+
+- `collection` **(required)**: text (not empty). The collection to add to, such as "ideas"; each app has its own
+- `fields`: an object. Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { "appId": "${id}" }
+- `thenDo`: an event. The event to run next, with the saved object as data
+- `mapping`: text. Path of the part of the current data to save
+- `data`: an object with any data
+
 ### Actions and references
 
 Where an action is expected, write an action definition or `{ "ref": "id" }` referencing one in the root `actions`.
@@ -329,6 +341,13 @@ Where an action is expected, write an action definition or `{ "ref": "id" }` ref
 - `thenDo`: an event
 - `mapping`: text
 - `data`: an object with any data
+
+#### Saved data for a list (`stored`)
+
+The objects a save event put in a collection, oldest first; it shows them again when that collection changes.
+
+- `collection` **(required)**: text (not empty). The collection's name, as in the save event
+- `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
 
 #### Size (`size`)
 

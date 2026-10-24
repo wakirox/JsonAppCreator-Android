@@ -12,9 +12,13 @@ import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
+import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
+import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
+import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.SharedPreferencesStore
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
@@ -31,7 +35,11 @@ val appModule = module {
     single { ValidatedConfigurationParser(ConfigurationValidator.fromAssets(androidContext())) }
     single { AppRepository(get(), get()) }
     factory { FetchJsonUseCase(HttpClient.json) }
-    factory { LoadListItemsUseCase(get()) }
+    // One for the app, so every screen hears of the changes the others save.
+    single { AppData(SharedPreferencesStore(androidContext(), "AppData")) }
+    factory { LoadStoredItemsUseCase(get(), get()) }
+    factory { SaveItemUseCase(get(), get()) }
+    factory { LoadListItemsUseCase(get(), get()) }
     factory { InitialFormValuesUseCase() }
     factory { SubmitFormUseCase() }
     factory { CreateCalendarEventUseCase() }
@@ -48,6 +56,7 @@ val appModule = module {
             initialFormValues = get(),
             submitForm = get(),
             createCalendarEvent = get(),
+            saveItem = get(),
             findMissingApiKeys = get(),
             loadScreen = get(),
             strings = get(),

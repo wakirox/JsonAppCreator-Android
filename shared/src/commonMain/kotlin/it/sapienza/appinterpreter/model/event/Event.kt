@@ -52,6 +52,20 @@ class RESTService(
     override val data: JsonObject? = null
 ) : DataService()
 
+/**
+ * Saves the current data (the part [mapping] selects, if any) as a new object of the app's [collection] on the phone,
+ * with [fields] added, then runs [thenDo] with the saved object. Its ${field} placeholders are filled from the data
+ * the form showed (for a form: the screen's or the row's), then from the submitted values.
+ */
+@Serializable
+class SaveData(
+    val collection: String,
+    val fields: JsonObject? = null,
+    val thenDo: Event? = null,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
 @Serializable
 class ShowView(
     val view: MView,
@@ -65,7 +79,8 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("rest", RESTService.serializer()) { it is RESTService },
         TypedSerializer.Type("alert", AlertMessage.serializer()) { it is AlertMessage },
         TypedSerializer.Type("show", ShowView.serializer()) { it is ShowView },
-        TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent }
+        TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent },
+        TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData }
     )
 )
 

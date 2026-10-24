@@ -291,6 +291,7 @@ private class SchemaReference(schemaJson: String) {
         listOf(
             "Action definition" to "actionDefinition",
             "REST data for a list (`initData`)" to "initialRestService",
+            "Saved data for a list (`stored`)" to "storedData",
             "Size (`size`)" to "size"
         ).forEach { (title, def) ->
             appendLine("#### $title")

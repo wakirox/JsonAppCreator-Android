@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 
-/** A screen's lists, each loaded once in [scope]: cancelling the scope cancels their requests. */
+/**
+ * A screen's lists, each loaded once in [scope]: cancelling the scope cancels their requests. A list of saved data
+ * loads again whenever its collection changes, also while its screen is behind another.
+ */
 class ListsState(private val scope: CoroutineScope, private val loadItems: LoadListItemsUseCase) {
 
     /** What a list shows: its items, a wait while they load, or why they couldn't. */
@@ -31,6 +34,14 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
     }
 
     private val lists = mutableMapOf<Key, Entry>()
+
+    init {
+        scope.launch {
+            loadItems.storedChanges.collect { collection ->
+                lists.values.filter { it.view.stored?.collection == collection }.forEach(::load)
+            }
+        }
+    }
 
     fun get(view: ListView, data: JsonObject?): Entry =
         lists.getOrPut(Key(view, data?.toString())) { Entry(view, data).also(::load) }
