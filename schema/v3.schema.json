@@ -372,7 +372,8 @@
           "type": ["string", "null"],
           "enum": ["plain", "numeric", "email", "password", null],
           "default": "plain"
-        }
+        },
+        "multiline": { "description": "Takes several lines (Enter starts a new one), growing as it fills: for notes and descriptions", "type": ["boolean", "null"], "default": false }
       },
       "additionalProperties": false
     },

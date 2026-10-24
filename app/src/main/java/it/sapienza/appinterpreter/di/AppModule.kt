@@ -24,6 +24,7 @@ import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.PhotoStore
 import it.sapienza.appinterpreter.utils.SharedPreferencesStore
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
@@ -40,7 +41,7 @@ val appModule = module {
     single { CurrentConfiguration { DomainController.jsonFile(androidContext()) } }
     single { ValidatedConfigurationParser(ConfigurationValidator.fromAssets(androidContext())) }
     single { AppRepository(get(), get()) }
-    factory { FetchJsonUseCase(HttpClient.json) }
+    factory { FetchJsonUseCase(HttpClient.json, PhotoStore(androidContext()).reader) }
     // One for the app, so every screen hears of the changes the others save.
     single { AppData(SharedPreferencesStore(androidContext(), "AppData")) }
     factory { LoadStoredItemsUseCase(get(), get()) }

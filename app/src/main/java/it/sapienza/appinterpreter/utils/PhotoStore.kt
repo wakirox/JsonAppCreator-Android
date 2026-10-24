@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,6 +30,9 @@ class PhotoStore(context: Context) {
         File(folder, name).outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, it)) }
         Photos.reference(name)
     }
+
+    /** A kept photo's bytes, for a request that sends it. */
+    val reader = PhotoReader { reference -> withContext(Dispatchers.IO) { file(reference)?.takeIf(File::isFile)?.readBytes() } }
 
     /** The file a reference points to, or null when [reference] isn't a photo. */
     fun file(reference: String): File? = Photos.fileName(reference)?.let { File(folder, it) }

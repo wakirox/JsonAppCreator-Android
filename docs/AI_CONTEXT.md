@@ -305,6 +305,7 @@ The items of a form's `formElements`.
 - `placeholder`: text
 - `value`: text
 - `textType`: one of `"plain"`, `"numeric"`, `"email"`, `"password"`
+- `multiline`: `true` or `false`. Takes several lines (Enter starts a new one), growing as it fills: for notes and descriptions
 
 #### `selector`
 

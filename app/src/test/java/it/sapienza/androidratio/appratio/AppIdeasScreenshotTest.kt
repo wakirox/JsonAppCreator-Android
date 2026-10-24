@@ -88,12 +88,17 @@ class AppIdeasScreenshotTest {
         data.add(app, "ideas", item("title" to "Dark mode", "priority" to "Medium", "appId" to "app-rainy", "done" to true))
         data.add(
             app, "ideas",
-            item("title" to "Widgets for the home screen", "description" to "Today's rain at a glance", "priority" to "Low", "appId" to "app-rainy", "done" to false)
+            // Edge cases: a title long enough to wrap, a description over several lines.
+            item(
+                "title" to "Widgets for the home screen, the lock screen and the watch face, in every size",
+                "description" to "Today's rain at a glance\nTomorrow's forecast underneath\nA tap opens the app ☔",
+                "priority" to "Low", "appId" to "app-rainy", "done" to false
+            )
         )
         data.add(
             app, "ideas",
             item(
-                "title" to "Rain alerts on the watch", "description" to "A tap on the wrist before it rains", "priority" to "High",
+                "title" to "Rain alerts on the watch", "description" to "A tap on the wrist before it rains\nOnly when I'm outside", "priority" to "High",
                 "appId" to "app-rainy", "done" to false,
                 "photos" to JsonArray(listOf(JsonPrimitive("appkin-photo:sky.jpg"), JsonPrimitive("appkin-photo:rain.jpg")))
             )
@@ -208,7 +213,7 @@ class AppIdeasScreenshotTest {
     private fun openRainy() {
         awaitText("Rainy")
         openTapped("list-item-app-rainy")
-        awaitText("Widgets for the home screen")
+        awaitText("Widgets for the home screen, the lock screen and the watch face, in every size")
         awaitTag("image-appkin-photo:sky.jpg")
         awaitTag("image-appkin-photo:rain.jpg")
     }

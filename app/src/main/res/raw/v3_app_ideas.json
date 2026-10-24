@@ -216,12 +216,14 @@
               "type": "text",
               "mapping": "title",
               "title": "Title",
-              "mandatory": true
+              "mandatory": true,
+              "multiline": true
             },
             {
               "type": "text",
               "mapping": "description",
-              "title": "Description"
+              "title": "Description",
+              "multiline": true
             },
             {
               "type": "selector",
@@ -271,12 +273,14 @@
               "type": "text",
               "mapping": "title",
               "title": "Title",
-              "mandatory": true
+              "mandatory": true,
+              "multiline": true
             },
             {
               "type": "text",
               "mapping": "description",
-              "title": "Description"
+              "title": "Description",
+              "multiline": true
             },
             {
               "type": "selector",

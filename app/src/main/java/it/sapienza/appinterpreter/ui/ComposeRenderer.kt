@@ -985,8 +985,10 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
         placeholder = { item.placeholder?.let { Text(it) } },
         supportingText = if (item.description == null) null else {{ Text(item.description!!) }},
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        // A multiline field grows with its text up to a few lines, then scrolls.
         visualTransformation = if (item.textType == TextType.password) PasswordVisualTransformation() else VisualTransformation.None,
-        singleLine = true,
+        singleLine = item.multiline != true,
+        maxLines = if (item.multiline == true) MULTILINE_MAX_LINES else 1,
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -1162,6 +1164,9 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
 }
 
 private val PHOTO_THUMB_SIZE = 88.dp
+
+/** The lines a multiline text field grows to before it scrolls. */
+private const val MULTILINE_MAX_LINES = 8
 
 /** A selector with this many options or fewer, all short, is drawn as one connected group. */
 private const val CONNECTED_OPTIONS = 4

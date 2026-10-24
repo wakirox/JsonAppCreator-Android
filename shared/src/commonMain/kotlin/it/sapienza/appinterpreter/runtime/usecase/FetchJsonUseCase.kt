@@ -7,14 +7,21 @@ import it.sapienza.appinterpreter.json.missingAddressPlaceholders
 import it.sapienza.appinterpreter.model.event.CallServiceMethod
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
+import it.sapienza.appinterpreter.storage.PhotoReader
+import it.sapienza.appinterpreter.storage.Photos
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlin.io.encoding.Base64
 
 /**
  * A request event's JSON answer: its URL filled in from the data (each value percent-encoded, see fillAddress), which
- * a POST also sends as its body. A URL whose placeholder has no value isn't requested: it fails with
+ * a POST also sends as its body, with each kept photo (a photos field's) as a "data:image/jpeg;base64,..." address, as
+ * a server can't read the phone's own references. A URL whose placeholder has no value isn't requested: it fails with
  * [MissingValueException] instead.
  */
-class FetchJsonUseCase(private val client: JsonHttpClient) {
+class FetchJsonUseCase(private val client: JsonHttpClient, private val photos: PhotoReader = PhotoReader.None) {
     suspend operator fun invoke(event: RESTService, data: JsonObject?): JsonObject = fetch(url(event, data), event, data)
 
     /** The URL [event] asks for with [data]. */
@@ -23,7 +30,16 @@ class FetchJsonUseCase(private val client: JsonHttpClient) {
 
     /** [url], already filled in (such as a list's next page), asked for as [event] says, with its headers. */
     suspend fun fetch(url: String, event: RESTService, data: JsonObject?): JsonObject =
-        client.request(url, event.method ?: CallServiceMethod.get, body = data, headers = headers(event, data))
+        client.request(url, event.method ?: CallServiceMethod.get, body = data?.let { withPhotos(it) as JsonObject }, headers = headers(event, data))
+
+    /** [element] with each kept photo's reference replaced by the photo itself, as a data address. */
+    private suspend fun withPhotos(element: JsonElement): JsonElement = when {
+        element is JsonObject -> JsonObject(element.mapValues { (_, value) -> withPhotos(value) })
+        element is JsonArray -> JsonArray(element.map { withPhotos(it) })
+        element is JsonPrimitive && element.isString && Photos.isPhoto(element.content) ->
+            photos.jpeg(element.content)?.let { JsonPrimitive("data:image/jpeg;base64," + Base64.encode(it)) } ?: element
+        else -> element
+    }
 
     /** [event]'s headers filled in from [data]; like the URL, a header needing a value [data] lacks isn't sent. */
     fun headers(event: RESTService, data: JsonObject?): Map<String, String> = event.headers.orEmpty().mapValues { (_, value) ->

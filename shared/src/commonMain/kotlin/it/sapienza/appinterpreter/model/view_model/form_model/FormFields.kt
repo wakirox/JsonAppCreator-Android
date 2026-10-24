@@ -124,6 +124,8 @@ class TextInput(
     val placeholder: String? = null,
     val value: String? = null,
     val textType: TextType? = TextType.plain,
+    /** Takes several lines (Enter starts a new one), growing as it fills; for notes and descriptions. */
+    val multiline: Boolean? = null,
     override val mandatory: Boolean? = null,
     override val title: String,
     override val description: String? = null,

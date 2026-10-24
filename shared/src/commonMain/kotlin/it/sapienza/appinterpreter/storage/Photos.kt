@@ -23,3 +23,13 @@ object Photos {
 
     private val REFERENCE = Regex("appkin-photo:[A-Za-z0-9._-]+")
 }
+
+/** Reads a kept photo's JPEG bytes by its reference (null when there is no such photo): the platform's PhotoStore. */
+fun interface PhotoReader {
+    suspend fun jpeg(reference: String): ByteArray?
+
+    companion object {
+        /** No photos to read: references are sent as they are. */
+        val None = PhotoReader { null }
+    }
+}

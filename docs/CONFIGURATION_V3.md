@@ -361,11 +361,16 @@ A `hidden` field isn't shown; it sends `value` with the form, with placeholders 
 from the screen's data, such as `{ "type": "hidden", "mapping": "id", "value": "${id}" }`.
 Without `value` it sends the screen data's value at `mapping`. Its value is sent as text.
 
+A `text` field with `"multiline": true` takes several lines (Enter starts a new one) and
+grows with its text, for notes and descriptions; the text keeps its line breaks.
+
 A `photos` field adds photos from the phone's gallery (no permission needed), up to `max`
 (10 by default). Each photo is copied into the app on the phone, so it stays when the
 gallery's copy is deleted; the field sends a list of references, which a `save` keeps. An
 `image` view whose `mapping` is that list shows the photos in a row of thumbnails, and a
-tap shows one full screen. Photos that no saved item refers to any more are removed.
+tap shows one full screen. Photos that no saved item refers to any more are removed. A
+`rest` request sends each photo in its body as a `data:image/jpeg;base64,...` address
+(scaled to at most 2048 pixels), so a server receives the image itself.
 
 ```json
 { "type": "photos", "mapping": "photos", "title": "Photos", "max": 6 }
