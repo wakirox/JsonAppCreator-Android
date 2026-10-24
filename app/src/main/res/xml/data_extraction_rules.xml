@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What Android backs up (to the user's Google account) and moves to a new phone: what people make and keep, listed
+  one by one so nothing else goes. In: the JSON apps' saved data and photos, Your apps, the open app, the home page.
+  Out: the encrypted API keys, whose key lives in this phone's Keystore and can't be restored elsewhere (the app asks
+  for them again), and caches.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="sharedpref" path="AppData.xml" />
+        <include domain="sharedpref" path="AppLibrary.xml" />
+        <include domain="sharedpref" path="DomainController.xml" />
+        <include domain="sharedpref" path="Home.xml" />
+        <include domain="file" path="photos/" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="sharedpref" path="AppData.xml" />
+        <include domain="sharedpref" path="AppLibrary.xml" />
+        <include domain="sharedpref" path="DomainController.xml" />
+        <include domain="sharedpref" path="Home.xml" />
+        <include domain="file" path="photos/" />
+    </device-transfer>
+</data-extraction-rules>

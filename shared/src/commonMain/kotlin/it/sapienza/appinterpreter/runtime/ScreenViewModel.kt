@@ -10,6 +10,7 @@ import it.sapienza.appinterpreter.json.filledLines
 import it.sapienza.appinterpreter.json.getObject
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
+import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.event.AlertMessage
@@ -38,6 +39,7 @@ import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
+import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -48,8 +50,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import it.sapienza.appinterpreter.utils.httpclient.HttpStatusException
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 /**
  * One screen of a JSON app. It loads the screen, keeps its forms ([FormsState]) and lists ([ListsState]), and runs
@@ -90,7 +94,8 @@ class ScreenViewModel(
         data object Close : Effect
         /** Hand [url] to the app for its [scheme]: https/http, geo, tel or mailto (see [OpenLinkUseCase]). */
         class OpenUrl(val url: String, val scheme: String) : Effect
-        class Share(val text: String) : Effect
+        /** Open the share sheet on [text], with the kept [photos] (references) attached. */
+        class Share(val text: String, val photos: List<String> = emptyList()) : Effect
     }
 
     private val effectChannel = Channel<Effect>(Channel.BUFFERED)
@@ -183,7 +188,15 @@ class ScreenViewModel(
             }
             is ShareText -> {
                 val shared = event.mapping?.let { data?.getObject(it) } ?: data
-                event.text.matchReplace(shared).takeIf { it.isNotBlank() }?.let { effectChannel.trySend(Effect.Share(it)) }
+                val photos = event.photos?.let { path ->
+                    when (val value = shared?.valueAt(path)) {
+                        is JsonArray -> value.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+                        is JsonPrimitive -> listOfNotNull(value.contentOrNull)
+                        else -> emptyList()
+                    }.filter(Photos::isPhoto)
+                }.orEmpty()
+                val text = event.text.filledLines(shared)
+                if (text.isNotBlank() || photos.isNotEmpty()) effectChannel.trySend(Effect.Share(text, photos))
             }
         }
     }

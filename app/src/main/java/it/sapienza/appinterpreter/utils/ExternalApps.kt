@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.utils
 
+import android.content.ClipData
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -23,7 +24,21 @@ object ExternalApps {
     }
 
     /** The share sheet on [text], without Appkin's own editor, which would take it as an app's JSON. */
-    fun share(context: Context, text: String, title: String): Intent =
-        Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), title)
+    fun share(context: Context, text: String, title: String, photos: List<Uri> = emptyList()): Intent {
+        val send = when (photos.size) {
+            0 -> Intent(Intent.ACTION_SEND).setType("text/plain")
+            1 -> Intent(Intent.ACTION_SEND).setType("image/jpeg").putExtra(Intent.EXTRA_STREAM, photos.single())
+            else -> Intent(Intent.ACTION_SEND_MULTIPLE).setType("image/jpeg")
+                .putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(photos))
+        }
+        if (text.isNotBlank()) send.putExtra(Intent.EXTRA_TEXT, text)
+        // The receiving app may read the photos: the grant travels with the clip data, also through the chooser.
+        val clip = photos.takeIf { it.isNotEmpty() }?.let { uris ->
+            ClipData.newRawUri(null, uris.first()).apply { uris.drop(1).forEach { addItem(ClipData.Item(it)) } }
+        }
+        clip?.let { send.clipData = it; send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        return Intent.createChooser(send, title)
             .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, EditorActivity::class.java)))
+            .apply { clip?.let { clipData = it; addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) } }
+    }
 }

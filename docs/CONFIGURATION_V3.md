@@ -361,6 +361,24 @@ A `hidden` field isn't shown; it sends `value` with the form, with placeholders 
 from the screen's data, such as `{ "type": "hidden", "mapping": "id", "value": "${id}" }`.
 Without `value` it sends the screen data's value at `mapping`. Its value is sent as text.
 
+A `text` field with `"multiline": true` takes several lines (Enter starts a new one) and
+grows with its text, for notes and descriptions; the text keeps its line breaks.
+
+A `photos` field adds photos from the phone's gallery (no permission needed), up to `max`
+(10 by default). Photos aren't copied: the app keeps a link to each one, and a small
+thumbnail of its own that lists show and the backup carries. The full photo is shown,
+shared and sent while it's still in the gallery; once it's gone (deleted, or on a new
+phone) the thumbnail stands in. The field sends a list of references, which a `save`
+keeps. An `image` view whose `mapping` is that list shows the photos in a row of
+thumbnails, and a tap shows one full screen. Photos that no saved item refers to any more
+are forgotten. A `rest` request sends each photo in its body as a
+`data:image/jpeg;base64,...` address (scaled to at most 1600 pixels), so a server receives
+the image itself.
+
+```json
+{ "type": "photos", "mapping": "photos", "title": "Photos", "max": 6 }
+```
+
 In a request URL, a query parameter that is a single placeholder, such as
 `&type=${type}`, is optional: when that value is missing or empty (an optional field left
 blank, or an "Any type" option with the value `""`), the parameter is left out rather than
@@ -545,7 +563,9 @@ they were saved in:
 }
 ```
 
-Data is kept by the app's name: an app renamed in the editor starts with no saved data.
+Data is kept by the app's name: an app renamed in the editor starts with no saved data. Saved data and photos are
+part of Android's backup to the user's Google account and move with them to a new phone;
+API keys entered in the app don't (the app asks for them again).
 
 ### Change or delete saved data
 
@@ -606,7 +626,15 @@ the link with "This item has no …". `mapping` selects the part of the data to 
 ```
 
 Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
-with no value becomes empty text.
+with no value becomes empty text, and a line whose placeholders all have no value is left
+out.
+
+With `photos`, the path of a `photos` field's list in the data, the photos go too, as
+attachments with the text as their caption, so a chat app receives the images:
+
+```json
+{ "type": "share", "text": "${title}\n${description}", "photos": "photos" }
+```
 
 ### Copy text
 

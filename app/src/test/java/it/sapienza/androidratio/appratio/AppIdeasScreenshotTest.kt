@@ -1,5 +1,17 @@
 package it.sapienza.androidratio.appratio
 
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.imageDecoderEnabled
+import coil3.map.Mapper
+import it.sapienza.appinterpreter.utils.PhotoStore
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
+import android.graphics.Shader
+import android.graphics.Paint
+import android.graphics.LinearGradient
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -58,20 +70,46 @@ class AppIdeasScreenshotTest {
 
     @Before
     fun setUp() {
+        // Robolectric has no ImageDecoder: decode with BitmapFactory, and read the app's photos as the app does.
+        val photos = PhotoStore(context)
+        SingletonImageLoader.setUnsafe(
+            ImageLoader.Builder(context).imageDecoderEnabled(false)
+                .components { add(Mapper<String, File> { data, _ -> photos.file(data) }) }
+                .build()
+        )
+        writePhoto("sky.jpg", 0xFF3D7BD9.toInt(), 0xFFB8D8F5.toInt())
+        writePhoto("rain.jpg", 0xFF2E3A59.toInt(), 0xFF7FA6C9.toInt())
         preferences.edit().putString(CONFIGURATION_KEY, Files.readString(Path.of("src", "main", "res", "raw", "v3_app_ideas.json"))).commit()
         val ids = listOf("app-rainy", "app-tasse", "idea-1", "idea-2", "idea-3", "idea-4").iterator()
         val data = AppData(SharedPreferencesStore(context, DATA_PREFERENCES), now = { 1_761_300_000_000 }, newId = { ids.next() })
         val app = AppLibrary.idOf("App ideas")
-        data.add(app, "apps", item("name" to "Rainy"))
-        data.add(app, "apps", item("name" to "Tasse Forfettario"))
+        data.add(app, "apps", item("name" to "Rainy", "description" to "Rain alerts and forecasts, on the phone and the watch"))
+        data.add(
+            app, "apps",
+            item(
+                "name" to "Tasse Forfettario",
+                "description" to "Taxes for Italy's flat-rate scheme, worked out from a year's invoices\nAndroid and iPhone, Duo included"
+            )
+        )
         data.add(app, "ideas", item("title" to "Dark mode", "priority" to "Medium", "appId" to "app-rainy", "done" to true))
         data.add(
             app, "ideas",
-            item("title" to "Widgets for the home screen", "description" to "Today's rain at a glance", "priority" to "Low", "appId" to "app-rainy", "done" to false)
+            // Edge cases: a title long enough to wrap, a description over several lines.
+            item(
+                "title" to "Widgets for the home screen, the lock screen and the watch face, in every size",
+                "description" to "Today's rain at a glance\nTomorrow's forecast underneath\nA tap opens the app ☔",
+                "priority" to "Low", "appId" to "app-rainy", "done" to false,
+                // A photo whose file is gone (lost, say): it shows as unavailable, not as a gap.
+                "photos" to JsonArray(listOf(JsonPrimitive("appkin-photo:missing.jpg")))
+            )
         )
         data.add(
             app, "ideas",
-            item("title" to "Rain alerts on the watch", "description" to "A tap on the wrist before it rains", "priority" to "High", "appId" to "app-rainy", "done" to false)
+            item(
+                "title" to "Rain alerts on the watch", "description" to "A tap on the wrist before it rains\nOnly when I'm outside", "priority" to "High",
+                "appId" to "app-rainy", "done" to false,
+                "photos" to JsonArray(listOf(JsonPrimitive("appkin-photo:sky.jpg"), JsonPrimitive("appkin-photo:rain.jpg")))
+            )
         )
         data.add(app, "ideas", item("title" to "Export to PDF", "priority" to "High", "appId" to "app-tasse", "done" to false))
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -137,9 +175,49 @@ class AppIdeasScreenshotTest {
         }
     }
 
-    private fun openRainy() {
-        awaitText("Rainy")
-        composeRule.onNodeWithTag("list-item-app-rainy").performClick()
+    @Test
+    fun anIdeasPhotosCanBeRemovedOnItsEditScreen() {
+        openRainy()
+        openTapped("list-item-idea-3")
+        awaitText("Edit idea")
+        awaitTag("image-appkin-photo:sky.jpg")
+        assertScreenshot("app_ideas_edit")
+        assertEquals(2, composeRule.onAllNodesWithContentDescription("Remove photo").fetchSemanticsNodes().size)
+
+        composeRule.onAllNodesWithContentDescription("Remove photo")[0].performClick()
+        composeRule.onNodeWithText("Save changes").performClick()
+
+        composeRule.waitUntil(WAIT_TIMEOUT_MS) {
+            AppData(SharedPreferencesStore(context, DATA_PREFERENCES)).items(AppLibrary.idOf("App ideas"), "ideas")
+                .first { it["id"].toString() == "\"idea-3\"" }["photos"].toString() == "[\"appkin-photo:rain.jpg\"]"
+        }
+    }
+
+    @Test
+    fun aNewAppIsWrittenOnItsOwnScreen() {
+        awaitText("Tasse Forfettario")
+        composeRule.onNodeWithText("New app").performClick()
+        openNext()
+        awaitText("Description")
+        assertScreenshot("app_ideas_new_app")
+    }
+
+    @Test
+    fun aNewIdeaIsWrittenOnItsOwnScreen() {
+        openRainy()
+        composeRule.onNodeWithText("New idea").performClick()
+        openNext()
+        awaitText("New idea for Rainy")
+        assertScreenshot("app_ideas_new_idea")
+    }
+
+    /** Taps [tag] and moves to the screen it opens (Robolectric doesn't start activities on its own). */
+    private fun openTapped(tag: String) {
+        composeRule.onNodeWithTag(tag).performClick()
+        openNext()
+    }
+
+    private fun openNext() {
         var next: Intent? = null
         composeRule.waitUntil(timeoutMillis = WAIT_TIMEOUT_MS) {
             instrumentation.runOnMainSync { next = shadowOf(resumed()).nextStartedActivity }
@@ -147,12 +225,45 @@ class AppIdeasScreenshotTest {
         }
         scenario.close()
         scenario = ActivityScenario.launch(checkNotNull(next))
-        awaitText("Widgets for the home screen")
+    }
+
+    private fun openRainy() {
+        awaitText("Rainy")
+        openTapped("list-item-app-rainy")
+        awaitText("Widgets for the home screen, the lock screen and the watch face, in every size")
+        awaitTag("image-appkin-photo:sky.jpg")
+        awaitTag("image-appkin-photo:rain.jpg")
+        composeRule.waitUntil(timeoutMillis = WAIT_TIMEOUT_MS) {
+            composeRule.onAllNodesWithContentDescription("Image unavailable").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.waitForIdle()
+    }
+
+    private fun awaitTag(tag: String) {
+        composeRule.waitUntil(timeoutMillis = WAIT_TIMEOUT_MS) {
+            composeRule.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.waitForIdle()
     }
 
     private fun item(vararg values: Pair<String, Any>) = JsonObject(
-        values.associate { (key, value) -> key to if (value is Boolean) JsonPrimitive(value) else JsonPrimitive(value.toString()) }
+        values.associate { (key, value) ->
+            key to when (value) {
+                is JsonElement -> value
+                is Boolean -> JsonPrimitive(value)
+                else -> JsonPrimitive(value.toString())
+            }
+        }
     )
+
+    /** A small photo in the app's photos folder: a diagonal blend of [from] and [to]. */
+    private fun writePhoto(name: String, from: Int, to: Int) {
+        val bitmap = Bitmap.createBitmap(160, 160, Bitmap.Config.ARGB_8888)
+        Canvas(bitmap).drawPaint(Paint().apply { shader = LinearGradient(0f, 0f, 160f, 160f, from, to, Shader.TileMode.CLAMP) })
+        val file = checkNotNull(PhotoStore(context).file("appkin-photo:$name"))
+        file.parentFile?.mkdirs()
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
+    }
 
     private fun resumed(): MainActivity = ActivityLifecycleMonitorRegistry.getInstance()
         .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().last()

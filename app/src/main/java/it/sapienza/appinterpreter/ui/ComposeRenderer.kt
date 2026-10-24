@@ -2,7 +2,19 @@
 
 package it.sapienza.appinterpreter.ui
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.net.Uri
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.unit.Dp
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -22,7 +34,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -96,6 +107,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import it.sapienza.appinterpreter.storage.Photos
+import it.sapienza.appinterpreter.json.valueAt
+import it.sapienza.appinterpreter.utils.PhotoStore
+import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.runtime.ListsState
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
 import it.sapienza.appinterpreter.runtime.ViewVisibility
@@ -448,7 +463,7 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.add -> Icons.Filled.Add
     ButtonIcon.check -> Icons.Filled.Check
     ButtonIcon.close -> Icons.Filled.Close
-    ButtonIcon.copy -> Icons.Filled.ContentCopy
+    ButtonIcon.copy -> MaterialIcons.ContentCopy
     ButtonIcon.delete -> Icons.Filled.Delete
     ButtonIcon.edit -> Icons.Filled.Edit
     ButtonIcon.email -> Icons.Filled.Email
@@ -496,6 +511,11 @@ private fun RenderImage(
     fillParentHeight: Boolean = false
 ) {
     val context = LocalContext.current
+    // A mapping to a list (a photos field's) shows every image in it, in a row.
+    (view.mapping?.let { data?.valueAt(it) } as? JsonArray)?.let { list ->
+        val urls = list.mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.takeIf(String::isNotBlank) }
+        return ImageStrip(urls, view.size?.height?.dp ?: PHOTO_THUMB_SIZE, modifier, allowImagePreview)
+    }
     val mapped = view.mapping?.let { data?.getValue(it) }
     // An address with a placeholder that has no value would load something else: the placeholder shows instead.
     val url = (mapped ?: view.url)?.fillAddress(data)?.takeIf { it.isNotBlank() }
@@ -535,6 +555,51 @@ private fun RenderImage(
             is AsyncImagePainter.State.Error -> ImagePlaceholder(Modifier.matchParentSize()) { Text("Image unavailable") }
             else -> ImagePlaceholder(Modifier.matchParentSize()) { LoadingIndicator(Modifier.size(32.dp)) }
         }
+    }
+}
+
+/** Several images side by side, each [side] square; tapping one shows it full screen when previews are allowed. */
+@Composable
+private fun ImageStrip(urls: List<String>, side: Dp, modifier: Modifier, allowImagePreview: Boolean) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        urls.forEach { url ->
+            var state by remember(url) { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
+            Box(Modifier.size(side).clip(RoundedCornerShape(12.dp))) {
+                AsyncImage(
+                    model = url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    onState = { state = it },
+                    // The tag marks a loaded image, which tests wait for.
+                    modifier = Modifier.matchParentSize()
+                        .then(if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-$url") else Modifier)
+                        .then(
+                            if (allowImagePreview) Modifier.clickable { openFullSize(context, scope, url) }
+                            else Modifier
+                        )
+                )
+                // A photo that can't be read (its file gone or damaged) shows as such, not as an empty gap.
+                if (state is AsyncImagePainter.State.Error) BrokenImage(Modifier.matchParentSize())
+            }
+        }
+    }
+}
+
+/** Shows [url] full screen: for a kept photo, its original (or copy) rather than the thumbnail lists show. */
+private fun openFullSize(context: Context, scope: CoroutineScope, url: String) {
+    scope.launch {
+        val address = if (Photos.isPhoto(url)) PhotoStore(context).fullSize(url) else url
+        context.startActivity(createIntentPhotoActivity(context, address))
+    }
+}
+
+/** Where an image that couldn't be loaded would be: a tile with a broken-image icon. */
+@Composable
+private fun BrokenImage(modifier: Modifier) {
+    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant).semantics { contentDescription = "Image unavailable" }, contentAlignment = Alignment.Center) {
+        Icon(MaterialIcons.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -899,6 +964,7 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
                 is TextInput -> TextField(item, values[item.mapping] as? String, onChange)
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
+                is PhotosInput -> PhotosField(item, values[item.mapping] as? JsonArray, onChange)
                 is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
                 // A hidden field only sends its value.
                 is HiddenInput -> Unit
@@ -942,8 +1008,10 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
         placeholder = { item.placeholder?.let { Text(it) } },
         supportingText = if (item.description == null) null else {{ Text(item.description!!) }},
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        // A multiline field grows with its text up to a few lines, then scrolls.
         visualTransformation = if (item.textType == TextType.password) PasswordVisualTransformation() else VisualTransformation.None,
-        singleLine = true,
+        singleLine = item.multiline != true,
+        maxLines = if (item.multiline == true) MULTILINE_MAX_LINES else 1,
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -1053,6 +1121,80 @@ private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) ->
         Description(item.description)
     }
 }
+
+/**
+ * Photos picked from the gallery (Android's photo picker: no permission), copied into the app and shown as thumbnails
+ * that can be removed; the field's value is the list of their references.
+ */
+@Composable
+private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val store = remember(context) { PhotoStore(context) }
+    val current = photos?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
+    var failed by remember { mutableStateOf(false) }
+    val keep: (List<Uri>) -> Unit = { uris ->
+        scope.launch {
+            val added = uris.take(item.limit - current.size).mapNotNull { uri -> runCatching { store.add(uri) }.getOrNull() }
+            failed = added.size < uris.size.coerceAtMost(item.limit - current.size)
+            if (added.isNotEmpty()) onChange(JsonArray((current + added).map(::JsonPrimitive)))
+        }
+    }
+    val pickMany = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = item.limit.coerceAtLeast(2))
+    ) { keep(it) }
+    val pickOne = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { keep(listOf(it)) } }
+    val imagesOnly = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FieldTitle(item.title)
+        if (current.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                current.forEach { reference ->
+                    var loaded by remember(reference) { mutableStateOf(false) }
+                    Box(Modifier.size(PHOTO_THUMB_SIZE)) {
+                        var broken by remember(reference) { mutableStateOf(false) }
+                        AsyncImage(
+                            model = reference,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            onState = {
+                                loaded = it is AsyncImagePainter.State.Success
+                                broken = it is AsyncImagePainter.State.Error
+                            },
+                            modifier = Modifier.matchParentSize().clip(RoundedCornerShape(12.dp))
+                                .then(if (loaded) Modifier.testTag("image-$reference") else Modifier)
+                                .clickable { openFullSize(context, scope, reference) }
+                        )
+                        if (broken) BrokenImage(Modifier.matchParentSize().clip(RoundedCornerShape(12.dp)))
+                        FilledTonalIconButton(
+                            onClick = { onChange(JsonArray((current - reference).map(::JsonPrimitive)).takeIf { it.isNotEmpty() }) },
+                            shapes = IconButtonDefaults.shapes(),
+                            modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(28.dp)
+                        ) { Icon(Icons.Filled.Close, contentDescription = "Remove photo", modifier = Modifier.size(16.dp)) }
+                    }
+                }
+            }
+        }
+        val room = item.limit - current.size
+        FilledTonalButton(
+            onClick = { if (room > 1) pickMany.launch(imagesOnly) else pickOne.launch(imagesOnly) },
+            shapes = ButtonDefaults.shapes(),
+            enabled = room > 0,
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+        ) {
+            Icon(MaterialIcons.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(if (current.isEmpty()) "Add photos" else "Add more")
+        }
+        if (failed) Text("A photo couldn't be added.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        Description(item.description)
+    }
+}
+
+private val PHOTO_THUMB_SIZE = 88.dp
+
+/** The lines a multiline text field grows to before it scrolls. */
+private const val MULTILINE_MAX_LINES = 8
 
 /** A selector with this many options or fewer, all short, is drawn as one connected group. */
 private const val CONNECTED_OPTIONS = 4

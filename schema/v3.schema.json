@@ -346,14 +346,15 @@
       "description": "A form field, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden"] } },
+      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden", "photos"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textInput" } },
         { "if": { "properties": { "type": { "const": "selector" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/selectorInput" } },
         { "if": { "properties": { "type": { "const": "date" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/dateInput" } },
         { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } },
         { "if": { "properties": { "type": { "const": "time" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/timeInput" } },
-        { "if": { "properties": { "type": { "const": "hidden" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/hiddenInput" } }
+        { "if": { "properties": { "type": { "const": "hidden" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/hiddenInput" } },
+        { "if": { "properties": { "type": { "const": "photos" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/photosInput" } }
       ]
     },
     "textInput": {
@@ -371,7 +372,8 @@
           "type": ["string", "null"],
           "enum": ["plain", "numeric", "email", "password", null],
           "default": "plain"
-        }
+        },
+        "multiline": { "description": "Takes several lines (Enter starts a new one), growing as it fills: for notes and descriptions", "type": ["boolean", "null"], "default": false }
       },
       "additionalProperties": false
     },
@@ -440,6 +442,20 @@
           "type": ["string", "null"],
           "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
         }
+      },
+      "additionalProperties": false
+    },
+    "photosInput": {
+      "type": "object",
+      "description": "Photos picked from the phone's gallery, kept on the phone with the app. It submits a list of photo references; an image view whose mapping is that list shows them in a row.",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "photos" },
+        "mapping": { "description": "Where the list of photos goes, such as \"photos\"", "$ref": "#/$defs/nonEmptyString" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "description": "At least one photo is needed", "type": ["boolean", "null"], "default": false },
+        "max": { "description": "How many photos it takes; 10 by default", "type": ["integer", "null"], "minimum": 1, "maximum": 50 }
       },
       "additionalProperties": false
     },
@@ -748,7 +764,8 @@
       "required": ["type", "text"],
       "properties": {
         "type": { "const": "share" },
-        "text": { "description": "What is shared; may use ${field} placeholders, such as \"${title} ${url}\"", "$ref": "#/$defs/nonEmptyString" },
+        "text": { "description": "What is shared; may use ${field} placeholders, such as \"${title} ${url}\"; a line whose placeholders all have no value is left out", "$ref": "#/$defs/nonEmptyString" },
+        "photos": { "description": "Path of the photos to share with the text, such as \"photos\" (a photos field's list): they go as attachments, the text as their caption", "$ref": "#/$defs/nullableString" },
         "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },

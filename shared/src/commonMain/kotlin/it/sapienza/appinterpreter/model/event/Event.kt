@@ -53,6 +53,8 @@ class OpenLink(
 @Serializable
 class ShareText(
     val text: String,
+    /** Where the data keeps photos to share with the text (a photos field's list, or one photo): sent as attachments. */
+    val photos: String? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null
 ) : Event()

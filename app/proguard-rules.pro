@@ -12,10 +12,7 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Line numbers in crash stack traces (Play retraces them with the R8 mapping file it
+# receives with the bundle); the source file names themselves aren't kept.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

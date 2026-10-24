@@ -209,8 +209,10 @@ android {
 
     buildTypes {
         release {
-            // The published release isn't minified. -Pminify=true builds it with R8, to measure and smoke-test that.
-            isMinifyEnabled = providers.gradleProperty("minify").orNull == "true"
+            // R8 shrinks the release (about 5 MB instead of 34) and drops unused resources; -Pminify=false builds it
+            // without, to tell an R8 problem from a code one. Try the minified build on a phone before handing it out.
+            isMinifyEnabled = providers.gradleProperty("minify").orNull != "false"
+            isShrinkResources = isMinifyEnabled
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -250,8 +252,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material:material-icons-core")
-    // The full Material icon set (Content Copy and more) for button icons; R8 keeps only the ones used.
-    implementation("androidx.compose.material:material-icons-extended")
     // 1.5 makes Material 3 Expressive (MaterialExpressiveTheme, MotionScheme) public; 1.4 keeps it internal.
     implementation("androidx.compose.material3:material3:1.5.0-beta01")
 

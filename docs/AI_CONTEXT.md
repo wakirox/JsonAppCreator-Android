@@ -114,7 +114,7 @@ Other enums:
 - HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
 - Text inputs: `plain`, `numeric`, `email`, `password`
-- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
+- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone)
 
 Do not invent support for PATCH, JavaScript expressions, conditions other than
 `visibleIf`, databases beyond `save`, `update`, `delete` and `stored`, arbitrary native
@@ -305,6 +305,7 @@ The items of a form's `formElements`.
 - `placeholder`: text
 - `value`: text
 - `textType`: one of `"plain"`, `"numeric"`, `"email"`, `"password"`
+- `multiline`: `true` or `false`. Takes several lines (Enter starts a new one), growing as it fills: for notes and descriptions
 
 #### `selector`
 
@@ -349,6 +350,16 @@ A value the form sends without showing it, such as the id of the item on screen.
 
 - `mapping` **(required)**: text (not empty). Key of the submitted object that receives the value
 - `value`: text. The value, sent as text; may use ${field} placeholders filled in from the screen's data. Without it, the data's value at mapping is sent
+
+#### `photos`
+
+Photos picked from the phone's gallery, kept on the phone with the app. It submits a list of photo references; an image view whose mapping is that list shows them in a row.
+
+- `mapping` **(required)**: text (not empty). Where the list of photos goes, such as "photos"
+- `title` **(required)**: text (not empty)
+- `description`: text
+- `mandatory`: `true` or `false`. At least one photo is needed
+- `max`: a whole number (at least 1). How many photos it takes; 10 by default
 
 ### Events
 
@@ -404,7 +415,8 @@ Hands an address to another app on the phone: https or http opens the browser, g
 
 Opens the phone's share sheet on a text, for the user to send to any app.
 
-- `text` **(required)**: text (not empty). What is shared; may use ${field} placeholders, such as "${title} ${url}"
+- `text` **(required)**: text (not empty). What is shared; may use ${field} placeholders, such as "${title} ${url}"; a line whose placeholders all have no value is left out
+- `photos`: text. Path of the photos to share with the text, such as "photos" (a photos field's list): they go as attachments, the text as their caption
 - `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 
