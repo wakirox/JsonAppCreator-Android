@@ -10,6 +10,7 @@ import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.FormView
+import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
@@ -19,6 +20,7 @@ import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
+import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import it.sapienza.appinterpreter.security.ConfigurationKeys
 import it.sapienza.appinterpreter.security.MemorySecretStore
 import it.sapienza.appinterpreter.storage.AppData
@@ -88,7 +90,8 @@ class ScreenViewModelTest {
         val appData = AppData(MemoryAppStore())
         return ScreenViewModel(
             SavedStateHandle(), alerts, fetch, LoadListItemsUseCase(fetch, LoadStoredItemsUseCase(appData, repository)), InitialFormValuesUseCase(),
-            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository), OpenLinkUseCase(),
+            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
+            UpdateItemUseCase(appData, repository), DeleteItemsUseCase(appData, repository), OpenLinkUseCase(),
             FindMissingApiKeysUseCase(current, keys), LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )
     }
@@ -206,6 +209,7 @@ class ScreenViewModelTest {
                 LoadStoredItemsUseCase(appData, repository)
             ),
             InitialFormValuesUseCase(), SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
+            UpdateItemUseCase(appData, repository), DeleteItemsUseCase(appData, repository),
             OpenLinkUseCase(), FindMissingApiKeysUseCase({ json }, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
             LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )

@@ -41,15 +41,44 @@ class AppData(
                 putAll(item)
             }
         )
-        store.put(key(appId, collection), JsonArray(items(appId, collection) + saved).toString())
-        changeFlow.tryEmit(Change(appId, collection))
+        save(appId, collection, items(appId, collection) + saved)
         return saved
+    }
+
+    /**
+     * Gives the object of [collection] whose "id" is [id] the values of [changes] (its "id" and "createdAt" stay as
+     * they are); null when there is no such object.
+     */
+    fun update(appId: String, collection: String, id: String, changes: JsonObject): JsonObject? {
+        val items = items(appId, collection)
+        val index = items.indexOfFirst { it.idText() == id }.takeIf { it >= 0 } ?: return null
+        val updated = JsonObject(items[index] + (changes - FIXED))
+        save(appId, collection, items.toMutableList().apply { set(index, updated) })
+        return updated
+    }
+
+    /** Removes the objects of [collection] that [matches] accepts, and says how many there were. */
+    fun delete(appId: String, collection: String, matches: (JsonObject) -> Boolean): Int {
+        val items = items(appId, collection)
+        val kept = items.filterNot(matches)
+        if (kept.size != items.size) save(appId, collection, kept)
+        return items.size - kept.size
+    }
+
+    private fun save(appId: String, collection: String, items: List<JsonObject>) {
+        store.put(key(appId, collection), JsonArray(items).toString())
+        changeFlow.tryEmit(Change(appId, collection))
     }
 
     /** As a JSON array, so no app or collection name can make two keys meet. */
     private fun key(appId: String, collection: String) = JsonArray(listOf(JsonPrimitive(appId), JsonPrimitive(collection))).toString()
 
     private companion object {
+        /** What identifies an object and when it was saved: an update never changes them. */
+        val FIXED = setOf("id", "createdAt")
+
+        fun JsonObject.idText(): String? = (this["id"] as? JsonPrimitive)?.content
+
         @OptIn(ExperimentalUuidApi::class)
         fun randomId(): String = Uuid.random().toString()
     }

@@ -19,7 +19,7 @@ LLM. This README documents the currently supported **v3 configuration format**.
 - Click and long-click actions
 - Screen-to-screen navigation
 - GET and POST requests with chained events
-- Saving form entries on the phone, per app
+- Saving, changing and deleting entries on the phone, per app, with tick boxes for done items
 - Alerts with optional confirmation branches
 - Reusable views and actions referenced by ID
 - Data binding through dot paths and `${placeholder}` interpolation
@@ -167,6 +167,16 @@ A button supports the text properties above and normally includes an `action`.
   "title": "Open details",
   "action": { "ref": "show_details" }
 }
+```
+
+`icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `delete`,
+`edit`, `email`, `favorite`, `info`, `phone`, `place`, `refresh`, `search`, `settings`,
+`share` or `star`. With a `title` it sits before the text; without one the button is just
+the icon, keeps its small size and sits centred in a row, and `label` (supports `${...}`)
+is what screen readers say:
+
+```json
+{ "type": "button", "icon": "delete", "label": "Delete ${title}", "action": { "ref": "delete_idea" } }
 ```
 
 ### `image`
@@ -354,6 +364,12 @@ In a request URL, a query parameter that is a single placeholder, such as
 blank, or an "Any type" option with the value `""`), the parameter is left out rather than
 sent empty.
 
+### `check`
+
+A tick box for a true/false field of the data, with an optional `title` (supports
+`${...}`). Ticking it runs `action` with the value at `mapping` turned over; see
+[Change or delete saved data](#change-or-delete-saved-data).
+
 ## Data binding
 
 Each rendered node receives a current JSON data object:
@@ -510,6 +526,43 @@ placeholders from the list's data; so a details screen opened on an app with `id
 only that app's ideas. `mapping` is not used.
 
 Data is kept by the app's name: an app renamed in the editor starts with no saved data.
+
+### Change or delete saved data
+
+```json
+{ "type": "update", "collection": "ideas", "fields": { "done": true } }
+```
+
+Changes the saved object whose `id` is the current data's (or the one `id` names, such
+as `"${ideaId}"`): the current data and `fields` replace its values, and `thenDo` runs with
+the changed object. `id` and `createdAt` never change. A form whose action is `update` sends
+its values there and keeps them, so a screen opened on an item can edit it.
+
+```json
+{
+  "type": "alert",
+  "value": "Delete ${title}?",
+  "thenDoOK": { "type": "delete", "collection": "ideas" }
+}
+```
+
+Removes the saved object with the current data's `id`. With `where` instead, it removes
+every object that matches, such as an app's ideas with `"where": { "appId": "${id}" }`;
+chain the two with `thenDo` to delete an app and its ideas. Lists showing the collection
+update at once.
+
+A `check` view marks items done without a form: it is ticked when the data's value at
+`mapping` is true, and ticking it runs its action with that value turned over. In a stored
+list's `itemView`, an `update` saves it straight away, and a ticked title is struck through:
+
+```json
+{
+  "type": "check",
+  "mapping": "done",
+  "title": "${title}",
+  "action": { "id": "tick", "event": { "type": "update", "collection": "ideas" } }
+}
+```
 
 ### Open a link in another app
 

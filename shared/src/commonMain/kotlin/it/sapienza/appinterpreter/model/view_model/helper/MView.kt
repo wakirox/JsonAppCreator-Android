@@ -4,6 +4,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.TypedSerializer
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.view_model.ButtonView
+import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ImageView
 import it.sapienza.appinterpreter.model.view_model.ListView
@@ -62,7 +63,8 @@ object MViewSerializer : TypedSerializer<MView>(
         Type("button", ButtonView.serializer()) { it is ButtonView },
         Type("image", ImageView.serializer()) { it is ImageView },
         Type("list", ListView.serializer()) { it is ListView },
-        Type("form", FormView.serializer()) { it is FormView }
+        Type("form", FormView.serializer()) { it is FormView },
+        Type("check", CheckView.serializer()) { it is CheckView }
     ),
     untyped = ViewReference.serializer()
 )

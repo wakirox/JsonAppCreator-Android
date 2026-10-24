@@ -103,14 +103,15 @@
       "description": "A view, chosen by its type: only that type's rules apply, so a mistake is reported once.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["layout", "text", "button", "image", "list", "form"] } },
+      "properties": { "type": { "enum": ["layout", "text", "button", "image", "list", "form", "check"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "layout" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/layoutView" } },
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textView" } },
         { "if": { "properties": { "type": { "const": "button" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/buttonView" } },
         { "if": { "properties": { "type": { "const": "image" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/imageView" } },
         { "if": { "properties": { "type": { "const": "list" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/listView" } },
-        { "if": { "properties": { "type": { "const": "form" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/formView" } }
+        { "if": { "properties": { "type": { "const": "form" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/formView" } },
+        { "if": { "properties": { "type": { "const": "check" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkView" } }
       ]
     },
     "layoutView": {
@@ -175,6 +176,21 @@
       },
       "additionalProperties": false
     },
+    "checkView": {
+      "type": "object",
+      "description": "A tick box, ticked when the data's true/false value at mapping is true. Ticking it runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through.",
+      "required": ["type", "mapping"],
+      "properties": {
+        "type": { "const": "check" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "description": "Runs when the box is ticked or unticked, with the data where the value at mapping says so; usually an update event", "$ref": "#/$defs/action" },
+        "mapping": { "description": "The field holding true or false, such as \"done\"", "$ref": "#/$defs/nonEmptyString" },
+        "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" },
+        "title": { "description": "The text beside the box; may use ${field} placeholders", "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
     "buttonView": {
       "type": "object",
       "required": ["type"],
@@ -193,7 +209,12 @@
           "default": "regular"
         },
         "title": { "description": "The button's text", "$ref": "#/$defs/nullableString" },
-        "label": { "description": "Not displayed on buttons: use title", "$ref": "#/$defs/nullableString" }
+        "label": { "description": "Not displayed on buttons: use title. On a button with only an icon, what screen readers say, such as \"Delete ${title}\"", "$ref": "#/$defs/nullableString" },
+        "icon": {
+          "description": "An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size",
+          "type": ["string", "null"],
+          "enum": ["add", "check", "close", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null]
+        }
       },
       "additionalProperties": false
     },
@@ -471,7 +492,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -479,7 +500,9 @@
         { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } },
         { "if": { "properties": { "type": { "const": "open" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/openEvent" } },
         { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } },
-        { "if": { "properties": { "type": { "const": "save" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/saveEvent" } }
+        { "if": { "properties": { "type": { "const": "save" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/saveEvent" } },
+        { "if": { "properties": { "type": { "const": "update" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/updateEvent" } },
+        { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } }
       ]
     },
     "restEvent": {
@@ -576,6 +599,54 @@
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "updateEvent": {
+      "type": "object",
+      "description": "Changes a saved object: the current data (a form's submitted values, or a ticked check's item) and fields replace its values. Its id and createdAt never change.",
+      "required": ["type", "collection"],
+      "properties": {
+        "type": { "const": "update" },
+        "collection": { "description": "The collection the object is in", "$ref": "#/$defs/nonEmptyString" },
+        "id": { "description": "The id of the object to change; \"${id}\" (the current data's id) by default", "$ref": "#/$defs/nonEmptyString" },
+        "fields": {
+          "description": "Values to set too; text may use ${field} placeholders, filled as in a save event",
+          "type": ["object", "null"]
+        },
+        "thenDo": {
+          "description": "The event to run next, with the changed object as data",
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "mapping": { "description": "Path of the part of the current data to save", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "deleteEvent": {
+      "type": "object",
+      "description": "Removes saved objects: the one whose id is id (the current data's by default), or every one where matches. Put it behind an alert's thenDoOK to ask first.",
+      "required": ["type", "collection"],
+      "properties": {
+        "type": { "const": "delete" },
+        "collection": { "description": "The collection to remove from", "$ref": "#/$defs/nonEmptyString" },
+        "id": { "description": "The id of the object to remove; \"${id}\" (the current data's id) by default", "$ref": "#/$defs/nonEmptyString" },
+        "where": {
+          "description": "Instead of id: removes every object whose fields have these values, with ${field} placeholders from the current data, such as { \"appId\": \"${id}\" }",
+          "type": ["object", "null"]
+        },
+        "thenDo": {
+          "description": "The event to run next, with the current data",
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "mapping": { "description": "Path of the part of the current data the id or where is filled in from", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false
