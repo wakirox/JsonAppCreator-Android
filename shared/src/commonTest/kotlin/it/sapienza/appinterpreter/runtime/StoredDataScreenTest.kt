@@ -290,4 +290,28 @@ class StoredDataScreenTest {
         home.onEvent(DeleteData("apps", thenDo = AlertMessage(value = "Done")), JsonText.parse("""{ "id": "gone" }""") as JsonObject)
         assertEquals("Done", alerts.alert?.text)
     }
+
+    @Test
+    fun aUniqueSaveReplacesTheObjectWithTheSameValueInsteadOfAddingAnother() {
+        val app = """
+            {
+              "schemaVersion": 3, "name": "Gallery", "version": "1.0",
+              "mainView": { "type": "button", "title": "Favourite", "action": { "id": "fav", "event": {
+                "type": "save", "collection": "favourites", "unique": "key" } } }
+            }
+        """
+        var ids = 0
+        val appData = AppData(store, newId = { "f${++ids}" })
+        val screen = screen(appData, app = app)
+        val action = screen.screen?.definition?.action
+        fun work(key: String, title: String) = JsonText.parse("""{ "key": "$key", "title": "$title" }""") as JsonObject
+
+        screen.onAction(action, work("mona-lisa", "Mona Lisa"))
+        screen.onAction(action, work("mona-lisa", "Mona Lisa (again)"))
+        screen.onAction(action, work("the-kiss", "The Kiss"))
+
+        val saved = appData.items(AppLibrary.idOf("Gallery"), "favourites")
+        assertEquals(listOf("f1", "f2"), saved.map { it.getValue("id") }, "the first one kept its id")
+        assertEquals(listOf("Mona Lisa (again)", "The Kiss"), saved.map { it.getValue("title") })
+    }
 }
