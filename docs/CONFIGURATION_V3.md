@@ -240,7 +240,8 @@ A list repeats `itemView` once for every object in a JSON array.
 | `columns` | integer | no | Items per row of a `grid`, 1 to 6; 2 by default. |
 | `emptyText` | string | no | What the list says when it has no items, instead of "No data available". Supports `${...}`. |
 | `action` | action | no | Runs with the tapped item as its data payload. |
-| `swipeAction` | action | no | Runs when an item is swiped away towards the start, with that item: usually an alert that asks, then a `delete`. The item slides back unless the action removes it. |
+| `swipeToStart` | action | no | Runs when an item is swiped towards the start (left), with that item: usually an alert that asks, then a `delete`. The item slides back unless the action removes it. `swipeToStartIcon` picks the icon underneath (`delete` by default). |
+| `swipeToEnd` | action | no | Runs when an item is swiped towards the end (right), with that item: such as an `update` with `"fields": { "done": true }`. `swipeToEndIcon` picks the icon underneath (`check` by default). |
 
 The response must be a JSON object, and the selected array must contain JSON objects.
 For local data, place an array in a parent or list `data` object and select it with

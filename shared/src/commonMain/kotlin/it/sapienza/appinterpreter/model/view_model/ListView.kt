@@ -16,8 +16,14 @@ class ListView(
     val itemView: MView,
     val initData: RESTService? = null,
     val stored: StoredData? = null,
-    /** Runs when an item is swiped away (towards the start), with that item as data: a delete, say. */
-    val swipeAction: Action? = null,
+    /** Runs when an item is swiped towards the start (left), with that item as data: a delete, say. */
+    val swipeToStart: Action? = null,
+    /** The icon shown under an item swiped towards the start; a bin by default. */
+    val swipeToStartIcon: ButtonIcon? = null,
+    /** Runs when an item is swiped towards the end (right), with that item as data: marking it done, say. */
+    val swipeToEnd: Action? = null,
+    /** The icon shown under an item swiped towards the end; a tick by default. */
+    val swipeToEndIcon: ButtonIcon? = null,
     val orientation: LayoutOrientation = LayoutOrientation.vertical,
     override val id: String? = null,
     override val action: Action? = null,

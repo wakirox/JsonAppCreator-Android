@@ -48,7 +48,7 @@
           "mapping": "name",
           "textStyle": "bold"
         },
-        "swipeAction": {
+        "swipeToStart": {
           "id": "delete_app",
           "event": {
             "type": "alert",
@@ -199,7 +199,7 @@
               "title": "Edit idea"
             }
           },
-          "swipeAction": {
+          "swipeToStart": {
             "id": "delete_idea",
             "event": {
               "type": "alert",
@@ -207,6 +207,16 @@
               "thenDoOK": {
                 "type": "delete",
                 "collection": "ideas"
+              }
+            }
+          },
+          "swipeToEnd": {
+            "id": "done_idea",
+            "event": {
+              "type": "update",
+              "collection": "ideas",
+              "fields": {
+                "done": true
               }
             }
           }

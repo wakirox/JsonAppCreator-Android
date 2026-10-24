@@ -7,12 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -93,8 +95,6 @@ import it.sapienza.appinterpreter.runtime.ViewVisibility
 import it.sapienza.appinterpreter.runtime.text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -441,7 +441,7 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.add -> Icons.Filled.Add
     ButtonIcon.check -> Icons.Filled.Check
     ButtonIcon.close -> Icons.Filled.Close
-    ButtonIcon.copy -> CopyIcon
+    ButtonIcon.copy -> Icons.Filled.ContentCopy
     ButtonIcon.delete -> Icons.Filled.Delete
     ButtonIcon.edit -> Icons.Filled.Edit
     ButtonIcon.email -> Icons.Filled.Email
@@ -454,17 +454,6 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.settings -> Icons.Filled.Settings
     ButtonIcon.share -> Icons.Filled.Share
     ButtonIcon.star -> Icons.Filled.Star
-}
-
-/** Material's "content copy" icon, which the core icon set lacks. */
-private val CopyIcon: ImageVector by lazy {
-    ImageVector.Builder("Copy", 24.dp, 24.dp, 24f, 24f).addPath(
-        PathParser().parsePathString(
-            "M16,1L4,1c-1.1,0 -2,0.9 -2,2v14h2L4,3h12L16,1zM19,5L8,5c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h11c1.1,0 " +
-                "2,-0.9 2,-2L21,7c0,-1.1 -0.9,-2 -2,-2zM19,21L8,21L8,7h11v14z"
-        ).toNodes(),
-        fill = SolidColor(Color.Black)
-    ).build()
 }
 
 /** What a screen reader says for an icon without a label, such as "Delete". */
@@ -693,31 +682,39 @@ private fun listItemKey(view: ListView, index: Int, item: JsonObject): String =
     "${System.identityHashCode(view)}-$index-${item.optString("id")}"
 
 /**
- * A list card that can be swiped away towards the start when the list has a swipe action: the swipe runs it with the
- * item (a delete asks first, say) and the card slides back, so it only goes when the action removes the item.
+ * A list card that can be swiped when the list has swipe actions: towards the start (a delete, say) or the end (done,
+ * say). The swipe runs the action with the item and the card slides back, so it only goes when the action removes it.
  */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifier) {
-    if (view.swipeAction == null) return ListCard(view, item, modifier)
+    if (view.swipeToStart == null && view.swipeToEnd == null) return ListCard(view, item, modifier)
     val screen = LocalScreen.current
     val scope = rememberCoroutineScope()
     val state = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(
         state = state,
         modifier = modifier,
-        enableDismissFromStartToEnd = false,
-        onDismiss = {
-            screen.onAction(view.swipeAction, item)
+        enableDismissFromStartToEnd = view.swipeToEnd != null,
+        enableDismissFromEndToStart = view.swipeToStart != null,
+        onDismiss = { direction ->
+            screen.onAction(if (direction == SwipeToDismissBoxValue.StartToEnd) view.swipeToEnd else view.swipeToStart, item)
             scope.launch { state.reset() }
         },
         backgroundContent = {
+            val towardsEnd = state.dismissDirection == SwipeToDismissBoxValue.StartToEnd
+            val colors = MaterialTheme.colorScheme
             Box(
-                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.errorContainer)
+                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp))
+                    .background(if (towardsEnd) colors.primaryContainer else colors.errorContainer)
                     .padding(horizontal = 24.dp),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = if (towardsEnd) Alignment.CenterStart else Alignment.CenterEnd
             ) {
-                Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+                Icon(
+                    (if (towardsEnd) view.swipeToEndIcon ?: ButtonIcon.check else view.swipeToStartIcon ?: ButtonIcon.delete).vector(),
+                    contentDescription = null,
+                    tint = if (towardsEnd) colors.onPrimaryContainer else colors.onErrorContainer
+                )
             }
         }
     ) { ListCard(view, item, Modifier.fillMaxWidth()) }

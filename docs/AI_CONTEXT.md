@@ -256,7 +256,10 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 
 - `id`: text (not empty)
 - `action`: an action (or `{ "ref": "id" }`). What tapping an item does; its event receives that item
-- `swipeAction`: an action (or `{ "ref": "id" }`). What swiping an item away (towards the start) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it
+- `swipeToStart`: an action (or `{ "ref": "id" }`). What swiping an item towards the start (left) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it
+- `swipeToStartIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the start; delete by default
+- `swipeToEnd`: an action (or `{ "ref": "id" }`). What swiping an item towards the end (right) does; its event receives that item, such as an update marking it done
+- `swipeToEndIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the end; check by default
 - `mapping`: text. Path of the array of objects to show, in data or in the initData response
 - `data`: an object with any data
 - `visibleIf`: text

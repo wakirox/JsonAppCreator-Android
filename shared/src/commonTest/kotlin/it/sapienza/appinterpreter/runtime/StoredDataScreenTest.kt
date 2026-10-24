@@ -227,7 +227,7 @@ class StoredDataScreenTest {
     fun swipingAnIdeaAwayAsksBeforeDeleting() {
         val ideas = ideas()
         val screen = ideas.rainyScreen
-        val swipe = screen.list().swipeAction
+        val swipe = screen.list().swipeToStart
 
         screen.onAction(swipe, screen.items(ideas.rainy)[0])
         assertEquals("Delete Dark mode?", alerts.alert?.text)
@@ -242,7 +242,7 @@ class StoredDataScreenTest {
     @Test
     fun swipingAnAppAwayDeletesItsIdeasButNoOthers() {
         val ideas = ideas()
-        ideas.home.onAction(ideas.home.list().swipeAction, ideas.rainy)
+        ideas.home.onAction(ideas.home.list().swipeToStart, ideas.rainy)
         assertEquals("Delete Rainy and its ideas?", alerts.alert?.text)
         alerts.answer(ok = true)
 
@@ -344,5 +344,17 @@ class StoredDataScreenTest {
         )
         screen.onAction(copy.action, darkMode)
         assertEquals("Dark mode\nPriority: Medium\nAn idea for my app Rainy", assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text)
+    }
+
+    @Test
+    fun swipingAnIdeaTowardsTheEndMarksItDone() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        val widgets = screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" }
+
+        screen.onAction(screen.list().swipeToEnd, widgets)
+
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"), "done ideas go last")
+        assertEquals("true", screen.items(ideas.rainy).last().getValue("done"))
     }
 }
