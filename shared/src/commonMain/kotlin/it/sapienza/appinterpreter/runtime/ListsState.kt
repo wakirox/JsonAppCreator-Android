@@ -30,7 +30,9 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
         val canLoadMore: Boolean = false,
         val loadingMore: Boolean = false,
         val moreErrorMessage: String? = null,
-        val refreshing: Boolean = false
+        val refreshing: Boolean = false,
+        /** A stored list's tags in use, for its filter chips. */
+        val tags: List<String> = emptyList()
     )
 
     class Entry internal constructor(internal val view: ListView, val data: JsonObject?) {
@@ -39,6 +41,10 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
         internal var job: Job? = null
         internal var nextUrl: String? = null
         internal var pages = 0
+        internal val choiceFlow = MutableStateFlow(ListChoice())
+
+        /** The order and tag the user chose above the list. */
+        val choice: StateFlow<ListChoice> = choiceFlow.asStateFlow()
     }
 
     /** By the list definition itself (its identity) and the data it shows. */
@@ -74,6 +80,13 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
         }
 
     fun retry(list: Entry) = load(list)
+
+    /** The user picked an order or a tag above [list]: it loads again that way, keeping its items until then. */
+    fun choose(list: Entry, choice: ListChoice) {
+        if (choice == list.choiceFlow.value) return
+        list.choiceFlow.value = choice
+        load(list, keepItems = true)
+    }
 
     /** Back on screen: lists that failed try again, since the connection may be back. */
     fun retryFailed() = lists.values.filter { it.content.value.errorMessage != null }.forEach { load(it) }
@@ -127,10 +140,12 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
         }
         return scope.launch {
             try {
-                val page = loadItems.firstPage(list.view, list.data)
+                val page = loadItems.firstPage(list.view, list.data, list.choiceFlow.value)
                 list.nextUrl = page.nextUrl
                 list.pages = 1
-                list.contentFlow.update { it.copy(items = page.items, errorMessage = null, canLoadMore = canLoadMore(list)) }
+                list.contentFlow.update {
+                    it.copy(items = page.items, tags = page.tags, errorMessage = null, canLoadMore = canLoadMore(list))
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

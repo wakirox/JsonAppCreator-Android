@@ -33,8 +33,17 @@ class OpenLinkUseCaseTest {
 
     @Test
     fun otherAddressesDoNot() {
-        listOf("javascript:alert(1)", "intent://x#Intent;end", "file:///sdcard/a", "content://x/y", "example.com", "https:", "${'$'}{bad}", "${'$'}{empty}")
+        listOf("javascript:alert(1)", "intent://x#Intent;end", "file:///sdcard/a", "content://x/y", "https:", "localhost", "${'$'}{bad}", "${'$'}{empty}")
             .forEach { assertIs<OpenLinkUseCase.Result.NotAllowed>(open(it), it) }
+    }
+
+    @Test
+    fun aWebAddressTypedWithoutItsSchemeIsAWebPage() {
+        listOf("example.com", "www.example.com/a?b=1", "play.google.com/store/apps/details?id=x").forEach {
+            val ready = assertIs<OpenLinkUseCase.Result.Ready>(open(it), it)
+            assertEquals("https://$it", ready.url)
+            assertEquals("https", ready.scheme)
+        }
     }
 
     @Test

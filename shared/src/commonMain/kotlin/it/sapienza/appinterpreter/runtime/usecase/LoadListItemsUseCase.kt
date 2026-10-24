@@ -6,6 +6,7 @@ import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.event.NextPage
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.runtime.ListChoice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -16,13 +17,17 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
     /** The saved collections that changed: the lists showing them load again. */
     val storedChanges: Flow<String> get() = loadStored.changes
 
-    /** Some of a list's items, and the URL of the ones after them, if its request has a nextPage and there are more. */
-    class Page(val items: List<JsonObject>, val nextUrl: String?)
+    /**
+     * Some of a list's items, and the URL of the ones after them, if its request has a nextPage and there are more;
+     * for a stored list with a filter, the tags its items use.
+     */
+    class Page(val items: List<JsonObject>, val nextUrl: String?, val tags: List<String> = emptyList())
 
     suspend operator fun invoke(list: ListView, data: JsonObject?): List<JsonObject> = firstPage(list, data).items
 
-    suspend fun firstPage(list: ListView, data: JsonObject?): Page {
-        list.stored?.let { return Page(loadStored(it, data), nextUrl = null) }
+    /** The first page, ordered and filtered as [choice] says when the list is a stored one. */
+    suspend fun firstPage(list: ListView, data: JsonObject?, choice: ListChoice = ListChoice()): Page {
+        list.stored?.let { stored -> return loadStored.load(stored, data, choice).let { Page(it.items, nextUrl = null, tags = it.tags) } }
         val request = list.initData ?: return Page(itemsIn(list, data ?: JsonObject(emptyMap())), nextUrl = null)
         return page(list, request, fetchJson.url(request, data), data)
     }

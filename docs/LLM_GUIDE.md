@@ -115,8 +115,8 @@ Other enums:
 - Actions: `click`, `longclick`
 - HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
-- Text inputs: `plain`, `numeric`, `email`, `password`
-- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone)
+- Text inputs: `plain`, `numeric`, `email`, `password`, `url`
+- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone), `tags` (labels a stored list can filter on)
 
 Do not invent support for PATCH, JavaScript expressions, conditions other than
 `visibleIf`, databases beyond `save`, `update`, `delete` and `stored`, arbitrary native

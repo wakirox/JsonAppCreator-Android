@@ -70,9 +70,12 @@ fun formValueToJson(value: Any?): JsonElement = when (value) {
 
 private val PLACEHOLDER = Regex("\\$\\{([^}]+)\\}")
 
-/** The text with each ${path} replaced by its value in [data]; a placeholder without a value becomes "". */
+/**
+ * The text with each ${path} replaced by its value in [data] (or ${path|date}, ${path|ago}: see placeholderValue); a
+ * placeholder without a value becomes "".
+ */
 fun String.matchReplace(data: JsonObject?): String =
-    PLACEHOLDER.replace(this) { match -> data?.getValue(match.groupValues[1]).orEmpty() }
+    PLACEHOLDER.replace(this) { match -> data.placeholderValue(match.groupValues[1]).orEmpty() }
 
 /**
  * The text filled from [data] line by line, for text a person reads elsewhere (copied, say): a line whose placeholders
@@ -80,12 +83,12 @@ fun String.matchReplace(data: JsonObject?): String =
  */
 fun String.filledLines(data: JsonObject?): String = lines().mapNotNull { line ->
     val paths = PLACEHOLDER.findAll(line).map { it.groupValues[1] }.toList()
-    if (paths.isNotEmpty() && paths.all { data?.getValue(it) == null }) null else line.matchReplace(data)
+    if (paths.isNotEmpty() && paths.all { data.placeholderValue(it) == null }) null else line.matchReplace(data)
 }.joinToString("\n").trim()
 
 /** The paths of the placeholders in this text that have no value in [data], in order. */
 fun String.missingPlaceholders(data: JsonObject?): List<String> =
-    PLACEHOLDER.findAll(this).map { it.groupValues[1] }.filter { data?.getValue(it) == null }.distinct().toList()
+    PLACEHOLDER.findAll(this).map { it.groupValues[1] }.filter { data.placeholderValue(it) == null }.distinct().toList()
 
 /**
  * An address with its placeholders filled in from [data], or null when one of them has no value: such an
@@ -99,7 +102,7 @@ fun String.fillAddress(data: JsonObject?): String? {
     val template = withoutEmptyFilters(data)
     if (template.missingPlaceholders(data).isNotEmpty()) return null
     return PLACEHOLDER.replace(template) { match ->
-        val value = data?.getValue(match.groupValues[1]).orEmpty()
+        val value = data.placeholderValue(match.groupValues[1]).orEmpty()
         if (match.range.first == 0) value else UriEncoding.encode(value)
     }
 }

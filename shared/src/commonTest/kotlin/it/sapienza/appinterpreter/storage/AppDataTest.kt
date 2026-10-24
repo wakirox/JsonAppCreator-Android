@@ -85,6 +85,8 @@ class AppDataTest {
         val updated = data.update("app:ideas", "ideas", "id1", changes)
 
         assertEquals(listOf("id1", "1000", "Dark mode", "true"), listOf("id", "createdAt", "name", "done").map { updated?.getValue(it) })
+        assertEquals("1000", updated?.getValue("updatedAt"), "a change records when it happened")
+        assertEquals(null, data.items("app:ideas", "ideas")[1].getValue("updatedAt"), "an unchanged object has none")
         assertEquals(listOf("true", null), data.items("app:ideas", "ideas").map { it.getValue("done") })
         assertEquals(first.getValue("id"), data.items("app:ideas", "ideas")[0].getValue("id"))
     }

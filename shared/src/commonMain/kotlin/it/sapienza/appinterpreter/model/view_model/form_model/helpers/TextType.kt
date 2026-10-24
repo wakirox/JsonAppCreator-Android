@@ -4,5 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class TextType {
-    plain, numeric, email, password
+    plain, numeric, email, password,
+
+    /** A web address: the keyboard has "/" and ".com". */
+    url
 }

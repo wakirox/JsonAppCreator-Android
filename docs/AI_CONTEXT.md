@@ -113,8 +113,8 @@ Other enums:
 - Actions: `click`, `longclick`
 - HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
-- Text inputs: `plain`, `numeric`, `email`, `password`
-- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone)
+- Text inputs: `plain`, `numeric`, `email`, `password`, `url`
+- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone), `tags` (labels a stored list can filter on)
 
 Do not invent support for PATCH, JavaScript expressions, conditions other than
 `visibleIf`, databases beyond `save`, `update`, `delete` and `stored`, arbitrary native
@@ -239,7 +239,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The button's text
 - `label`: text. Not displayed on buttons: use title. On a button with only an icon, what screen readers say, such as "Delete ${title}"
-- `icon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
+- `icon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"open"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
 
 #### `image`
 
@@ -257,9 +257,9 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `id`: text (not empty)
 - `action`: an action (or `{ "ref": "id" }`). What tapping an item does; its event receives that item
 - `swipeToStart`: an action (or `{ "ref": "id" }`). What swiping an item towards the start (left) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it
-- `swipeToStartIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the start; delete by default
+- `swipeToStartIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"open"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the start; delete by default
 - `swipeToEnd`: an action (or `{ "ref": "id" }`). What swiping an item towards the end (right) does; its event receives that item, such as an update marking it done
-- `swipeToEndIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the end; check by default
+- `swipeToEndIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"open"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the end; check by default
 - `mapping`: text. Path of the array of objects to show, in data or in the initData response
 - `data`: an object with any data
 - `visibleIf`: text
@@ -304,7 +304,7 @@ The items of a form's `formElements`.
 - `mandatory`: `true` or `false`. Must be filled in before submitting
 - `placeholder`: text
 - `value`: text
-- `textType`: one of `"plain"`, `"numeric"`, `"email"`, `"password"`
+- `textType`: one of `"plain"`, `"numeric"`, `"email"`, `"password"`, `"url"`
 - `multiline`: `true` or `false`. Takes several lines (Enter starts a new one), growing as it fills: for notes and descriptions
 
 #### `selector`
@@ -360,6 +360,16 @@ Photos picked from the phone's gallery, kept on the phone with the app. It submi
 - `description`: text
 - `mandatory`: `true` or `false`. At least one photo is needed
 - `max`: a whole number (at least 1). How many photos it takes; 10 by default
+
+#### `tags`
+
+Short labels the user adds one by one (Enter adds one), shown as chips; it submits a list of texts, which a stored list's filterBy offers as filter chips.
+
+- `mapping` **(required)**: text (not empty)
+- `title` **(required)**: text (not empty)
+- `description`: text
+- `placeholder`: text
+- `mandatory`: `true` or `false`. At least one tag is needed
 
 ### Events
 
@@ -496,6 +506,8 @@ The objects a save event put in a collection, oldest first; it shows them again 
 - `collection` **(required)**: text (not empty). The collection's name, as in the save event
 - `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
 - `sort`: an object. The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)
+- `sortOptions`: an array; each item is an object. Orders the user can choose, as a row of buttons above the list (the first until they choose); they replace sort. Keep titles short, such as Status, Priority, Newest
+- `filterBy`: text. A field of tags (a tags field's list, or text with commas): the list offers a chip per tag in use, after All, to show only items with that tag
 
 #### Size (`size`)
 

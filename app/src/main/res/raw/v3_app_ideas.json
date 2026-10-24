@@ -137,23 +137,58 @@
             "where": {
               "appId": "${id}"
             },
-            "sort": [
+            "sortOptions": [
               {
-                "by": "done",
-                "order": [
-                  "false",
-                  "true"
+                "title": "Priority",
+                "sort": [
+                  {
+                    "by": "done",
+                    "order": [
+                      "false",
+                      "true"
+                    ]
+                  },
+                  {
+                    "by": "priority",
+                    "order": [
+                      "High",
+                      "Medium",
+                      "Low"
+                    ]
+                  }
                 ]
               },
               {
-                "by": "priority",
-                "order": [
-                  "High",
-                  "Medium",
-                  "Low"
+                "title": "Newest",
+                "sort": [
+                  {
+                    "by": "done",
+                    "order": [
+                      "false",
+                      "true"
+                    ]
+                  },
+                  {
+                    "by": "createdAt",
+                    "descending": true
+                  }
+                ]
+              },
+              {
+                "title": "Changed",
+                "sort": [
+                  {
+                    "by": "updatedAt",
+                    "descending": true
+                  },
+                  {
+                    "by": "createdAt",
+                    "descending": true
+                  }
                 ]
               }
-            ]
+            ],
+            "filterBy": "tags"
           },
           "emptyText": "No ideas for ${name} yet.",
           "itemView": {
@@ -171,13 +206,26 @@
                   },
                   {
                     "type": "button",
+                    "icon": "open",
+                    "label": "Open the link of ${title}",
+                    "visibleIf": "link",
+                    "action": {
+                      "id": "open_link",
+                      "event": {
+                        "type": "open",
+                        "url": "${link}"
+                      }
+                    }
+                  },
+                  {
+                    "type": "button",
                     "icon": "share",
                     "label": "Share ${title}",
                     "action": {
                       "id": "share_idea",
                       "event": {
                         "type": "share",
-                        "text": "${title}\n${description}",
+                        "text": "${title}\n${description}\n${link}",
                         "photos": "photos"
                       }
                     }
@@ -201,14 +249,31 @@
                 "type": "text",
                 "title": "${priority} priority",
                 "textSize": 13,
-                "textStyle": "bold",
-                "visibleIf": "priority"
+                "textStyle": "bold"
               },
               {
                 "type": "text",
-                "title": "✓ Done",
                 "textSize": 13,
-                "visibleIf": "done"
+                "visibleIf": "done",
+                "title": "✓ Done"
+              },
+              {
+                "type": "text",
+                "title": "Tags: ${tags}",
+                "textSize": 13,
+                "visibleIf": "tags"
+              },
+              {
+                "type": "text",
+                "title": "Added ${createdAt|ago}",
+                "textSize": 12,
+                "visibleIf": "!updatedAt"
+              },
+              {
+                "type": "text",
+                "title": "Added ${createdAt|ago} · changed ${updatedAt|ago}",
+                "textSize": 12,
+                "visibleIf": "updatedAt"
               }
             ]
           },
@@ -280,6 +345,21 @@
               "mandatory": true
             },
             {
+              "type": "tags",
+              "mapping": "tags",
+              "title": "Tags",
+              "placeholder": "watch, ui, …",
+              "description": "Type a tag and press Enter"
+            },
+            {
+              "type": "text",
+              "mapping": "link",
+              "title": "Link",
+              "textType": "url",
+              "placeholder": "https://…",
+              "description": "A mockup, a Play listing, anything to open later"
+            },
+            {
               "type": "photos",
               "mapping": "photos",
               "title": "Photos"
@@ -334,6 +414,21 @@
               ],
               "selection": "Medium",
               "mandatory": true
+            },
+            {
+              "type": "tags",
+              "mapping": "tags",
+              "title": "Tags",
+              "placeholder": "watch, ui, …",
+              "description": "Type a tag and press Enter"
+            },
+            {
+              "type": "text",
+              "mapping": "link",
+              "title": "Link",
+              "textType": "url",
+              "placeholder": "https://…",
+              "description": "A mockup, a Play listing, anything to open later"
             },
             {
               "type": "photos",

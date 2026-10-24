@@ -91,14 +91,15 @@ class AppIdeasScreenshotTest {
                 "description" to "Taxes for Italy's flat-rate scheme, worked out from a year's invoices\nAndroid and iPhone, Duo included"
             )
         )
-        data.add(app, "ideas", item("title" to "Dark mode", "priority" to "Medium", "appId" to "app-rainy", "done" to true))
+        data.add(app, "ideas", item("title" to "Dark mode", "priority" to "Medium", "done" to true, "appId" to "app-rainy"))
         data.add(
             app, "ideas",
             // Edge cases: a title long enough to wrap, a description over several lines.
             item(
                 "title" to "Widgets for the home screen, the lock screen and the watch face, in every size",
                 "description" to "Today's rain at a glance\nTomorrow's forecast underneath\nA tap opens the app ☔",
-                "priority" to "Low", "appId" to "app-rainy", "done" to false,
+                "priority" to "Low", "done" to false, "appId" to "app-rainy",
+                "tags" to JsonArray(listOf(JsonPrimitive("widgets"), JsonPrimitive("ui"))),
                 // A photo whose file is gone (lost, say): it shows as unavailable, not as a gap.
                 "photos" to JsonArray(listOf(JsonPrimitive("appkin-photo:missing.jpg")))
             )
@@ -107,11 +108,14 @@ class AppIdeasScreenshotTest {
             app, "ideas",
             item(
                 "title" to "Rain alerts on the watch", "description" to "A tap on the wrist before it rains\nOnly when I'm outside", "priority" to "High",
-                "appId" to "app-rainy", "done" to false,
+                "appId" to "app-rainy", "done" to false, "link" to "https://wakirox.app",
+                "tags" to JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("alerts"))),
+                // Changed a day after it was added: a fixed date, as both are more than a week ago.
+                "updatedAt" to JsonPrimitive(1_761_386_400_000),
                 "photos" to JsonArray(listOf(JsonPrimitive("appkin-photo:sky.jpg"), JsonPrimitive("appkin-photo:rain.jpg")))
             )
         )
-        data.add(app, "ideas", item("title" to "Export to PDF", "priority" to "High", "appId" to "app-tasse", "done" to false))
+        data.add(app, "ideas", item("title" to "Export to PDF", "priority" to "High", "done" to false, "appId" to "app-tasse"))
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 

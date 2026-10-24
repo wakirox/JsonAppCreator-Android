@@ -119,6 +119,19 @@ class PhotosInput(
     override fun defaultValue(): Any? = null
 }
 
+/** Short labels the user adds one by one (such as "watch", "ui"); submitted as a list of texts. */
+@Serializable
+class TagsInput(
+    val placeholder: String? = null,
+    override val mandatory: Boolean? = null,
+    override val title: String,
+    override val description: String? = null,
+    override val mapping: String
+) : FormElementImpl() {
+    override fun isSet(value: Any?): Boolean = !isRequired || !(value as? JsonArray).isNullOrEmpty()
+    override fun defaultValue(): Any? = null
+}
+
 @Serializable
 class TextInput(
     val placeholder: String? = null,

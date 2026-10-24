@@ -9,6 +9,15 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.FilterChip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.unit.Dp
@@ -107,6 +116,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.storage.Photos
 import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.utils.PhotoStore
@@ -190,6 +200,12 @@ private val PAGE_PADDING = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
 
 /** The space between one view and the next. */
 private val VIEW_SPACING = 12.dp
+
+/** The gap between the views of a list card's layouts: tighter than a screen's, so cards stay compact. */
+private val CARD_SPACING = 4.dp
+
+/** The gap a vertical layout leaves between its views: the screen's, or a card's inside list items. */
+private val LocalViewSpacing = compositionLocalOf { VIEW_SPACING }
 
 /** The screen being drawn: its app, state and events. */
 val LocalScreen = staticCompositionLocalOf<ScreenViewModel> { error("RendererScreen needs LocalScreen") }
@@ -330,7 +346,7 @@ private fun RenderLayout(
             }
         }
     } else {
-        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(VIEW_SPACING)) {
+        Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(LocalViewSpacing.current)) {
             resolvedChildren.forEach { child -> RenderNode(child, data, columnChildModifier(child), allowImagePreview) }
         }
     }
@@ -469,6 +485,7 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.email -> Icons.Filled.Email
     ButtonIcon.favorite -> Icons.Filled.Favorite
     ButtonIcon.info -> Icons.Filled.Info
+    ButtonIcon.open -> MaterialIcons.OpenInNew
     ButtonIcon.phone -> Icons.Filled.Phone
     ButtonIcon.place -> Icons.Filled.Place
     ButtonIcon.refresh -> Icons.Filled.Refresh
@@ -617,6 +634,7 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
     val state by entry.content.collectAsState()
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (view.hasControls() && !state.waiting && state.errorMessage == null) StoredListControls(view, entry, state)
         when {
             state.waiting -> LoadingIndicator(Modifier.align(Alignment.CenterHorizontally))
             state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
@@ -668,6 +686,9 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
 }
 
 private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.Entry, state: ListsState.Content) {
+    if (view.hasControls() && !state.waiting && state.errorMessage == null) {
+        item(key = "list-controls-${System.identityHashCode(view)}") { StoredListControls(view, entry, state) }
+    }
     when {
         state.waiting -> item(key = "list-loading-${System.identityHashCode(view)}") {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -905,8 +926,10 @@ private fun ListCardContent(
             icons.forEach { RenderNode(it, item, Modifier.padding(end = 8.dp), allowImagePreview = false) }
         }
     } else {
-        Column(Modifier.padding(14.dp)) {
-            RenderNode(resolvedItem, item, Modifier.fillMaxWidth(), allowImagePreview = false)
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+            CompositionLocalProvider(LocalViewSpacing provides CARD_SPACING) {
+                RenderNode(resolvedItem, item, Modifier.fillMaxWidth(), allowImagePreview = false)
+            }
         }
     }
 }
@@ -965,6 +988,7 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
                 is PhotosInput -> PhotosField(item, values[item.mapping] as? JsonArray, onChange)
+                is TagsInput -> TagsField(item, values[item.mapping] as? JsonArray, onChange)
                 is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
                 // A hidden field only sends its value.
                 is HiddenInput -> Unit
@@ -999,6 +1023,7 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
         TextType.numeric -> KeyboardType.Number
         TextType.email -> KeyboardType.Email
         TextType.password -> KeyboardType.Password
+        TextType.url -> KeyboardType.Uri
         else -> KeyboardType.Text
     }
     OutlinedTextField(
@@ -1193,8 +1218,113 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
 
 private val PHOTO_THUMB_SIZE = 88.dp
 
+/** Tags typed one at a time (Enter or + adds one, ignoring a repeat), shown as chips that can be removed. */
+@Composable
+private fun TagsField(item: TagsInput, tags: JsonArray?, onChange: (Any?) -> Unit) {
+    val current = tags?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
+    var typed by rememberSaveable(item.mapping) { mutableStateOf("") }
+    val add = {
+        val tag = typed.trim().trimStart('#')
+        if (tag.isNotEmpty() && current.none { it.equals(tag, ignoreCase = true) }) {
+            onChange(JsonArray((current + tag).map(::JsonPrimitive)))
+        }
+        typed = ""
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = typed,
+            onValueChange = { typed = it.replace(",", "").replace("\n", "") },
+            label = { Text(item.title) },
+            placeholder = { item.placeholder?.let { Text(it) } },
+            supportingText = item.description?.let { description -> { Text(description) } },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { add() }),
+            trailingIcon = {
+                IconButton(onClick = add, enabled = typed.isNotBlank(), shapes = IconButtonDefaults.shapes()) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add tag")
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        if (current.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                current.forEach { tag ->
+                    InputChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("#$tag") },
+                        trailingIcon = {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = "Remove $tag",
+                                modifier = Modifier.size(InputChipDefaults.IconSize).clickable {
+                                    onChange(JsonArray((current - tag).map(::JsonPrimitive)).takeIf { it.isNotEmpty() })
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 /** The lines a multiline text field grows to before it scrolls. */
 private const val MULTILINE_MAX_LINES = 8
+
+/** Whether a stored list offers orders or a tag filter above its items. */
+private fun ListView.hasControls(): Boolean = stored?.let { !it.sortOptions.isNullOrEmpty() || it.filterBy != null } == true
+
+/**
+ * Above a stored list: its orders as one connected button group (Material 3 Expressive), and its tags as filter chips
+ * after "All", to show only the items with that tag.
+ */
+@Composable
+private fun StoredListControls(view: ListView, entry: ListsState.Entry, state: ListsState.Content) {
+    val screen = LocalScreen.current
+    val choice by entry.choice.collectAsState()
+    val options = view.stored?.sortOptions.orEmpty()
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (options.size > 1) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                options.forEachIndexed { index, option ->
+                    val checked = choice.sortOption == index
+                    ToggleButton(
+                        checked = checked,
+                        onCheckedChange = { screen.lists.choose(entry, choice.copy(sortOption = index)) },
+                        shapes = when (index) {
+                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        },
+                        modifier = Modifier.weight(1f).semantics {
+                            role = Role.RadioButton
+                            selected = checked
+                        }
+                    ) { Text(option.title, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                }
+            }
+        }
+        val tags = (state.tags + listOfNotNull(choice.tag)).distinctBy(String::lowercase)
+        if (view.stored?.filterBy != null && tags.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = choice.tag == null,
+                    onClick = { screen.lists.choose(entry, choice.copy(tag = null)) },
+                    label = { Text("All") }
+                )
+                tags.forEach { tag ->
+                    FilterChip(
+                        selected = choice.tag.equals(tag, ignoreCase = true),
+                        onClick = { screen.lists.choose(entry, choice.copy(tag = tag)) },
+                        label = { Text("#$tag") }
+                    )
+                }
+            }
+        }
+    }
+}
 
 /** A selector with this many options or fewer, all short, is drawn as one connected group. */
 private const val CONNECTED_OPTIONS = 4
