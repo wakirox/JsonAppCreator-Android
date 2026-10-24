@@ -98,7 +98,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
-- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
@@ -461,6 +461,7 @@ The objects a save event put in a collection, oldest first; it shows them again 
 
 - `collection` **(required)**: text (not empty). The collection's name, as in the save event
 - `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
+- `sort`: an object. The order: by the field by; values listed in order come first, in that order (such as ["High", "Medium", "Low"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in
 
 #### Size (`size`)
 

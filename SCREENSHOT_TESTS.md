@@ -74,7 +74,7 @@ Failures write the actual and diff images to
 
 # App ideas screenshot tests
 
-`AppIdeasScreenshotTest` opens `examples/v3_app_ideas.json` with saved apps and ideas
+`AppIdeasScreenshotTest` opens the App ideas example (`res/raw/v3_app_ideas.json`) with saved apps and ideas
 at 448 x 900, compared exactly (any changed pixel fails):
 
 - `app_ideas_apps` / `app_ideas_apps_dark`: the apps, each with a delete icon

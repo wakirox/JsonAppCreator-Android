@@ -36,7 +36,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * Golden images of examples/v3_app_ideas.json with saved apps and ideas: the apps, and one app's ideas with one ticked,
+ * Golden images of the App ideas example (res/raw/v3_app_ideas.json) with saved apps and ideas: the apps, and one app's ideas with one ticked,
  * in light and dark. Compared exactly: any changed pixel fails.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -54,16 +54,22 @@ class AppIdeasScreenshotTest {
 
     @Before
     fun setUp() {
-        preferences.edit().putString(CONFIGURATION_KEY, Files.readString(Path.of("..", "examples", "v3_app_ideas.json"))).commit()
+        preferences.edit().putString(CONFIGURATION_KEY, Files.readString(Path.of("src", "main", "res", "raw", "v3_app_ideas.json"))).commit()
         val ids = listOf("app-rainy", "app-tasse", "idea-1", "idea-2", "idea-3", "idea-4").iterator()
         val data = AppData(SharedPreferencesStore(context, DATA_PREFERENCES), now = { 1_761_300_000_000 }, newId = { ids.next() })
         val app = AppLibrary.idOf("App ideas")
         data.add(app, "apps", item("name" to "Rainy"))
         data.add(app, "apps", item("name" to "Tasse Forfettario"))
-        data.add(app, "ideas", item("title" to "Dark mode", "appId" to "app-rainy", "done" to true))
-        data.add(app, "ideas", item("title" to "Rain alerts on the watch", "appId" to "app-rainy", "done" to false))
-        data.add(app, "ideas", item("title" to "Widgets for the home screen", "appId" to "app-rainy", "done" to false))
-        data.add(app, "ideas", item("title" to "Export to PDF", "appId" to "app-tasse", "done" to false))
+        data.add(app, "ideas", item("title" to "Dark mode", "priority" to "Medium", "appId" to "app-rainy", "done" to true))
+        data.add(
+            app, "ideas",
+            item("title" to "Widgets for the home screen", "description" to "Today's rain at a glance", "priority" to "Low", "appId" to "app-rainy", "done" to false)
+        )
+        data.add(
+            app, "ideas",
+            item("title" to "Rain alerts on the watch", "description" to "A tap on the wrist before it rains", "priority" to "High", "appId" to "app-rainy", "done" to false)
+        )
+        data.add(app, "ideas", item("title" to "Export to PDF", "priority" to "High", "appId" to "app-tasse", "done" to false))
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 

@@ -51,7 +51,7 @@ import kotlin.test.assertNull
 /** The App ideas example driven without any UI: apps and their ideas saved on the phone, and the lists that show them. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class StoredDataScreenTest {
-    private val json = Fixtures.configurations.getValue("examples/v3_app_ideas.json")
+    private val json = Fixtures.configurations.getValue("raw/v3_app_ideas.json")
     private val store = MemoryAppStore()
     private val alerts = AlertsViewModel()
 
@@ -175,13 +175,17 @@ class StoredDataScreenTest {
         val (rainy, tasse) = home.lists.get(home.list(), null).content.value.items
         val rainyScreen = screen(appData, "app", rainy)
         rainyScreen.add("title", "Dark mode", rainy)
+        rainyScreen.forms.set(rainyScreen.form(), rainy, "priority", "Low")
         rainyScreen.add("title", "Widgets", rainy)
         screen(appData, "app", tasse).add("title", "Export to PDF", tasse)
         return Ideas(home, rainy, tasse, rainyScreen)
     }
 
-    /** The row view of [list]'s items: a horizontal layout of (in this example) a check or text, and a Delete button. */
+    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views, and a Delete button. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
+
+    /** An idea row's tick box, at the top of its column. */
+    private fun ScreenViewModel.check() = assertIs<CheckView>(assertIs<Layout>(row()[0]).views[0])
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
     @Test
@@ -189,7 +193,7 @@ class StoredDataScreenTest {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
         assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
-        val check = assertIs<CheckView>(screen.row()[0])
+        val check = screen.check()
 
         screen.onCheck(check, screen.items(rainy)[1], checked = true)
         assertEquals(listOf("false", "true"), screen.shown(rainy, "done"))
@@ -198,6 +202,24 @@ class StoredDataScreenTest {
 
         screen.onCheck(check, screen.items(rainy)[1], checked = false)
         assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
+    }
+
+    @Test
+    fun ideasHaveADescriptionAndAPriorityAndAreSortedByIt() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        // Medium by default; Low was picked for Widgets.
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
+
+        screen.forms.set(screen.form(), ideas.rainy, "description", "A tile for today's rain")
+        screen.forms.set(screen.form(), ideas.rainy, "priority", "High")
+        screen.add("title", "Tile", ideas.rainy)
+        screen.add("title", "Sync", ideas.rainy)
+
+        assertEquals(listOf("Tile", "Dark mode", "Sync", "Widgets"), screen.shown(ideas.rainy, "title"))
+        assertEquals(listOf("High", "Medium", "Medium", "Low"), screen.shown(ideas.rainy, "priority"))
+        assertEquals("A tile for today's rain", screen.items(ideas.rainy)[0].getValue("description"))
+        assertEquals("Medium", screen.forms.values(screen.form(), ideas.rainy)["priority"], "the form starts again at Medium")
     }
 
     @Test

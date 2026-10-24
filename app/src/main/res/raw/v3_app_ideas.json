@@ -58,23 +58,32 @@
           "title": "New idea",
           "buttonTitle": "Add idea",
           "formElements": [
-            { "type": "text", "mapping": "title", "title": "Idea", "mandatory": true }
+            { "type": "text", "mapping": "title", "title": "Title", "mandatory": true },
+            { "type": "text", "mapping": "description", "title": "Description" },
+            { "type": "selector", "mapping": "priority", "title": "Priority", "options": ["High", "Medium", "Low"], "selection": "Medium", "mandatory": true }
           ],
           "action": { "id": "add_idea", "event": { "type": "save", "collection": "ideas", "fields": { "appId": "${id}", "done": false } } }
         },
         {
           "type": "list",
-          "stored": { "collection": "ideas", "where": { "appId": "${id}" } },
+          "stored": { "collection": "ideas", "where": { "appId": "${id}" }, "sort": { "by": "priority", "order": ["High", "Medium", "Low"] } },
           "emptyText": "No ideas for ${name} yet.",
           "itemView": {
             "type": "layout",
             "orientation": "horizontal",
             "views": [
               {
-                "type": "check",
-                "mapping": "done",
-                "title": "${title}",
-                "action": { "id": "tick_idea", "event": { "type": "update", "collection": "ideas" } }
+                "type": "layout",
+                "views": [
+                  {
+                    "type": "check",
+                    "mapping": "done",
+                    "title": "${title}",
+                    "action": { "id": "tick_idea", "event": { "type": "update", "collection": "ideas" } }
+                  },
+                  { "type": "text", "mapping": "description", "textSize": 14 },
+                  { "type": "text", "title": "${priority} priority", "textSize": 13, "textStyle": "bold", "visibleIf": "priority" }
+                ]
               },
               {
                 "type": "button",

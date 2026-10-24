@@ -295,6 +295,17 @@
         "where": {
           "description": "Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { \"appId\": \"${id}\" }",
           "type": ["object", "null"]
+        },
+        "sort": {
+          "description": "The order: by the field by; values listed in order come first, in that order (such as [\"High\", \"Medium\", \"Low\"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in.",
+          "type": ["object", "null"],
+          "required": ["by"],
+          "properties": {
+            "by": { "description": "The field to sort by, such as \"priority\"", "$ref": "#/$defs/nonEmptyString" },
+            "order": { "description": "Values in the order they come first", "type": ["array", "null"], "items": { "type": "string" } },
+            "descending": { "description": "Turns the order round", "type": "boolean" }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

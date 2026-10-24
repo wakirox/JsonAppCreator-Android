@@ -100,7 +100,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
-- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,

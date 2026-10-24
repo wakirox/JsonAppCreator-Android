@@ -520,10 +520,23 @@ A list shows a collection with `stored` instead of `initData` or `data`:
 }
 ```
 
-Objects appear oldest first, and the list updates as soon as one is saved, on this screen
-or another. `where` keeps only the objects whose fields have those values, with
+Objects appear oldest first unless `sort` says otherwise, and the list updates as soon as
+one is saved, on this screen or another. `where` keeps only the objects whose fields have those values, with
 placeholders from the list's data; so a details screen opened on an app with `id` shows
 only that app's ideas. `mapping` is not used.
+
+`sort` orders the list by a field. Values listed in `order` come first, in that order;
+the others follow, numbers by size and text alphabetically, and objects without the field
+come last. `"descending": true` turns the order round. Objects that tie keep the order
+they were saved in:
+
+```json
+"stored": {
+  "collection": "ideas",
+  "where": { "appId": "${id}" },
+  "sort": { "by": "priority", "order": ["High", "Medium", "Low"] }
+}
+```
 
 Data is kept by the app's name: an app renamed in the editor starts with no saved data.
 
