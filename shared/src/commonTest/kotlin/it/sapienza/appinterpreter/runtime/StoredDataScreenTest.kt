@@ -3,6 +3,7 @@ package it.sapienza.appinterpreter.runtime
 import androidx.lifecycle.SavedStateHandle
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.Fixtures
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
@@ -41,7 +42,11 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -124,9 +129,15 @@ class StoredDataScreenTest {
         assertEquals("app", open.view.id)
         val rainyScreen = screen(appData, "app", open.payload)
         val tasseScreen = screen(appData, "app", tasse)
-        rainyScreen.add("title", "Dark mode", rainy)
-        rainyScreen.add("title", "Widgets", rainy)
-        tasseScreen.add("title", "Export to PDF", tasse)
+        // New ideas are written on their own screen, opened from the app's with the app as data.
+        rainyScreen.onAction(rainyScreen.newIdeaButton().action, rainy)
+        val newIdea = assertIs<ScreenViewModel.Effect.OpenScreen>(rainyScreen.effects.first())
+        assertEquals(listOf("new_idea", "New idea for Rainy"), listOf(newIdea.view.id, newIdea.title))
+        val rainyNew = screen(appData, "new_idea", newIdea.payload)
+        rainyNew.add("title", "Dark mode", rainy)
+        assertIs<ScreenViewModel.Effect.Close>(rainyNew.effects.first(), "saving goes back to the list")
+        rainyNew.add("title", "Widgets", rainy)
+        screen(appData, "new_idea", tasse).add("title", "Export to PDF", tasse)
 
         assertEquals(listOf("Dark mode", "Widgets"), rainyScreen.shown(rainy, "title"))
         assertEquals(listOf("Export to PDF"), tasseScreen.shown(tasse, "title"))
@@ -135,7 +146,7 @@ class StoredDataScreenTest {
         // A screen opened before a save shows it too.
         val before = screen(appData, "app", rainy)
         assertEquals(2, before.shown(rainy, "title").size)
-        rainyScreen.add("title", "Sync", rainy)
+        rainyNew.add("title", "Sync", rainy)
         assertEquals(listOf("Dark mode", "Widgets", "Sync"), before.shown(rainy, "title"))
     }
 
@@ -167,7 +178,14 @@ class StoredDataScreenTest {
     }
 
     /** The example with Rainy and Tasse saved, each with ideas; the home screen and the two app screens. */
-    private class Ideas(val home: ScreenViewModel, val rainy: JsonObject, val tasse: JsonObject, val rainyScreen: ScreenViewModel)
+    private class Ideas(
+        val home: ScreenViewModel,
+        val rainy: JsonObject,
+        val tasse: JsonObject,
+        val rainyScreen: ScreenViewModel,
+        /** The new-idea screen for Rainy. */
+        val rainyNew: ScreenViewModel
+    )
 
     private fun ideas(appData: AppData = AppData(store)): Ideas {
         val home = screen(appData)
@@ -175,12 +193,16 @@ class StoredDataScreenTest {
         home.add("name", "Tasse")
         val (rainy, tasse) = home.lists.get(home.list(), null).content.value.items
         val rainyScreen = screen(appData, "app", rainy)
-        rainyScreen.add("title", "Dark mode", rainy)
-        rainyScreen.forms.set(rainyScreen.form(), rainy, "priority", "Low")
-        rainyScreen.add("title", "Widgets", rainy)
-        screen(appData, "app", tasse).add("title", "Export to PDF", tasse)
-        return Ideas(home, rainy, tasse, rainyScreen)
+        val rainyNew = screen(appData, "new_idea", rainy)
+        rainyNew.add("title", "Dark mode", rainy)
+        rainyNew.forms.set(rainyNew.form(), rainy, "priority", "Low")
+        rainyNew.add("title", "Widgets", rainy)
+        screen(appData, "new_idea", tasse).add("title", "Export to PDF", tasse)
+        return Ideas(home, rainy, tasse, rainyScreen, rainyNew)
     }
+
+    /** The app screen's button that opens the new-idea screen. */
+    private fun ScreenViewModel.newIdeaButton() = assertIs<ButtonView>(views.first { it is ButtonView && it.title == "New idea" })
 
     /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views and its buttons. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
@@ -230,15 +252,15 @@ class StoredDataScreenTest {
         // Medium by default; Low was picked for Widgets.
         assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
 
-        screen.forms.set(screen.form(), ideas.rainy, "description", "A tile for today's rain")
-        screen.forms.set(screen.form(), ideas.rainy, "priority", "High")
-        screen.add("title", "Tile", ideas.rainy)
-        screen.add("title", "Sync", ideas.rainy)
+        ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "description", "A tile for today's rain")
+        ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "priority", "High")
+        ideas.rainyNew.add("title", "Tile", ideas.rainy)
+        ideas.rainyNew.add("title", "Sync", ideas.rainy)
 
         assertEquals(listOf("Tile", "Dark mode", "Sync", "Widgets"), screen.shown(ideas.rainy, "title"))
         assertEquals(listOf("High", "Medium", "Medium", "Low"), screen.shown(ideas.rainy, "priority"))
         assertEquals("A tile for today's rain", screen.items(ideas.rainy)[0].getValue("description"))
-        assertEquals("Medium", screen.forms.values(screen.form(), ideas.rainy)["priority"], "the form starts again at Medium")
+        assertEquals("Medium", ideas.rainyNew.forms.values(ideas.rainyNew.form(), ideas.rainy)["priority"], "the form starts again at Medium")
     }
 
     @Test
@@ -336,8 +358,8 @@ class StoredDataScreenTest {
     fun doneIdeasGoLastThenByPriority() {
         val ideas = ideas()
         val screen = ideas.rainyScreen
-        screen.forms.set(screen.form(), ideas.rainy, "priority", "High")
-        screen.add("title", "Tile", ideas.rainy)
+        ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "priority", "High")
+        ideas.rainyNew.add("title", "Tile", ideas.rainy)
         assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
 
         screen.onAction(screen.list().swipeToEnd, screen.items(ideas.rainy)[0])
@@ -350,8 +372,8 @@ class StoredDataScreenTest {
         val ideas = ideas()
         val screen = ideas.rainyScreen
         val copy = screen.row().filterIsInstance<ButtonView>().first { it.icon == ButtonIcon.copy }
-        screen.forms.set(screen.form(), ideas.rainy, "description", "A tile for today's rain")
-        screen.add("title", "Tile", ideas.rainy)
+        ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "description", "A tile for today's rain")
+        ideas.rainyNew.add("title", "Tile", ideas.rainy)
         val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
         val darkMode = screen.items(ideas.rainy).first { it.getValue("title") == "Dark mode" }
 
@@ -398,5 +420,37 @@ class StoredDataScreenTest {
         val saved = appData.items(AppLibrary.idOf("Gallery"), "favourites")
         assertEquals(listOf("f1", "f2"), saved.map { it.getValue("id") }, "the first one kept its id")
         assertEquals(listOf("Mona Lisa (again)", "The Kiss"), saved.map { it.getValue("title") })
+    }
+
+    @Test
+    fun anIdeaKeepsItsPhotosAndTheEditFormStartsWithThem() = runTest {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        val photos = JsonArray(listOf(JsonPrimitive("appkin-photo:a.jpg"), JsonPrimitive("appkin-photo:b.jpg")))
+        ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "photos", photos)
+        ideas.rainyNew.add("title", "Tile", ideas.rainy)
+        val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
+        assertEquals(photos, tile["photos"])
+        assertNull(ideas.rainyNew.forms.values(ideas.rainyNew.form(), ideas.rainy)["photos"], "the new-idea form starts without photos again")
+
+        screen.onAction(screen.list().action, tile)
+        val open = assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first())
+        val edit = screen(AppData(store), "idea", open.payload)
+        assertEquals(photos, edit.forms.values(edit.form(), open.payload)["photos"])
+
+        edit.forms.set(edit.form(), open.payload, "photos", JsonArray(photos.take(1)))
+        edit.onSubmit(edit.form(), open.payload)
+        val saved = AppData(store).items(AppLibrary.idOf("App ideas"), "ideas").first { it.getValue("title") == "Tile" }
+        assertEquals(JsonArray(photos.take(1)), saved["photos"])
+    }
+
+    @Test
+    fun aRequiredPhotosFieldNeedsOne() {
+        val field = PhotosInput(mandatory = true, title = "Photos", mapping = "photos")
+        assertFalse(field.isSet(null))
+        assertFalse(field.isSet(JsonArray(emptyList())))
+        assertTrue(field.isSet(JsonArray(listOf(JsonPrimitive("appkin-photo:a.jpg")))))
+        assertEquals(10, field.limit)
+        assertEquals(1, PhotosInput(max = 0, title = "P", mapping = "p").limit)
     }
 }

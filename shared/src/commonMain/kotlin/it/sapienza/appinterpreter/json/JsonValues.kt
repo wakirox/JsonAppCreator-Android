@@ -46,9 +46,10 @@ fun JsonElement.displayText(): String = when (this) {
     else -> toString()
 }
 
-/** The value as a Kotlin string, boolean or null, for form fields; other values as their text. */
+/** The value as a Kotlin string, boolean or null, for form fields; a list (a photos field's) as it is; others as text. */
 fun JsonElement.toFormValue(): Any? = when (this) {
     is JsonNull -> null
+    is JsonArray -> this
     is JsonPrimitive -> when {
         isString -> content
         content == "true" -> true

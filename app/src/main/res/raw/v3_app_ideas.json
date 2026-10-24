@@ -75,44 +75,17 @@
       "type": "layout",
       "views": [
         {
-          "type": "form",
+          "type": "button",
           "title": "New idea",
-          "buttonTitle": "Add idea",
-          "formElements": [
-            {
-              "type": "text",
-              "mapping": "title",
-              "title": "Title",
-              "mandatory": true
-            },
-            {
-              "type": "text",
-              "mapping": "description",
-              "title": "Description"
-            },
-            {
-              "type": "selector",
-              "mapping": "priority",
-              "title": "Priority",
-              "options": [
-                "High",
-                "Medium",
-                "Low"
-              ],
-              "selection": "Medium",
-              "mandatory": true
-            }
-          ],
+          "icon": "add",
           "action": {
-            "id": "add_idea",
+            "id": "new_idea",
             "event": {
-              "type": "save",
-              "collection": "ideas",
-              "fields": {
-                "appId": "${id}",
-                "done": false,
-                "appName": "${name}"
-              }
+              "type": "show",
+              "view": {
+                "ref": "new_idea"
+              },
+              "title": "New idea for ${name}"
             }
           }
         },
@@ -159,6 +132,14 @@
                     "type": "text",
                     "mapping": "description",
                     "textSize": 14
+                  },
+                  {
+                    "type": "image",
+                    "mapping": "photos",
+                    "size": {
+                      "height": 64
+                    },
+                    "visibleIf": "photos"
                   },
                   {
                     "type": "text",
@@ -224,6 +205,61 @@
       ]
     },
     {
+      "id": "new_idea",
+      "type": "layout",
+      "views": [
+        {
+          "type": "form",
+          "buttonTitle": "Add idea",
+          "formElements": [
+            {
+              "type": "text",
+              "mapping": "title",
+              "title": "Title",
+              "mandatory": true
+            },
+            {
+              "type": "text",
+              "mapping": "description",
+              "title": "Description"
+            },
+            {
+              "type": "selector",
+              "mapping": "priority",
+              "title": "Priority",
+              "options": [
+                "High",
+                "Medium",
+                "Low"
+              ],
+              "selection": "Medium",
+              "mandatory": true
+            },
+            {
+              "type": "photos",
+              "mapping": "photos",
+              "title": "Photos"
+            }
+          ],
+          "action": {
+            "id": "add_idea",
+            "event": {
+              "type": "save",
+              "collection": "ideas",
+              "fields": {
+                "appId": "${id}",
+                "done": false,
+                "appName": "${name}"
+              },
+              "thenDo": {
+                "type": "back"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "idea",
       "type": "layout",
       "views": [
@@ -253,6 +289,11 @@
               ],
               "selection": "Medium",
               "mandatory": true
+            },
+            {
+              "type": "photos",
+              "mapping": "photos",
+              "title": "Photos"
             },
             {
               "type": "checkbox",

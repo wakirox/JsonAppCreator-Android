@@ -5,15 +5,20 @@ import it.sapienza.androidratio.appratio.BuildConfig
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
+import coil3.map.Mapper
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import it.sapienza.appinterpreter.di.appModule
+import it.sapienza.appinterpreter.storage.Photos
 import it.sapienza.appinterpreter.utils.ImageCacheExpiry
+import it.sapienza.appinterpreter.utils.PhotoStore
 import it.sapienza.appinterpreter.utils.SharedPreferencesStore
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import java.io.File
+import kotlin.concurrent.thread
 
 class AppRatioApplication : Application(), SingletonImageLoader.Factory {
 
@@ -29,11 +34,21 @@ class AppRatioApplication : Application(), SingletonImageLoader.Factory {
         ImageCacheExpiry(SharedPreferencesStore(this, "ImageCache")) {
             SingletonImageLoader.get(this).diskCache?.clear()
         }.check()
+        // Photos no saved data refers to any more (their item was deleted, say) are removed, away from the main thread.
+        thread(name = "photo-cleanup") {
+            val saved = SharedPreferencesStore(this, "AppData")
+            PhotoStore(this).deleteUnused(Photos.referencesIn(saved.keys().joinToString { saved.get(it).orEmpty() }))
+        }
     }
 
     /** Coil loads images through the app's OkHttp client, so they carry its User-Agent. */
     override fun newImageLoader(context: PlatformContext): ImageLoader = ImageLoader.Builder(context)
-        .components { add(OkHttpNetworkFetcherFactory(callFactory = { HttpClient.client })) }
+        .components {
+            add(OkHttpNetworkFetcherFactory(callFactory = { HttpClient.client }))
+            // A photo a JSON app keeps on the phone ("appkin-photo:<name>") is its file.
+            val photos = PhotoStore(this@AppRatioApplication)
+            add(Mapper<String, File> { data, _ -> photos.file(data) })
+        }
         .build()
 
 

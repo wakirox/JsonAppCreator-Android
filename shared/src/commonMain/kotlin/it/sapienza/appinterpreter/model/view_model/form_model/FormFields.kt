@@ -4,6 +4,8 @@ import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElemen
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
 import it.sapienza.appinterpreter.utils.FormDates
 import kotlinx.serialization.Serializable
+import it.sapienza.appinterpreter.storage.Photos
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -95,6 +97,25 @@ class HiddenInput(
 ) : FormElementImpl() {
     override val mandatory: Boolean? get() = null
     override fun isSet(value: Any?): Boolean = true
+    override fun defaultValue(): Any? = null
+}
+
+/**
+ * Photos picked from the phone's gallery, up to [max]: kept on the phone, and submitted as a list of references
+ * (see Photos) that an image view shows.
+ */
+@Serializable
+class PhotosInput(
+    val max: Int? = null,
+    override val mandatory: Boolean? = null,
+    override val title: String,
+    override val description: String? = null,
+    override val mapping: String
+) : FormElementImpl() {
+    /** How many photos the field takes: [max], 10 by default. */
+    val limit: Int get() = (max ?: Photos.DEFAULT_MAX).coerceAtLeast(1)
+
+    override fun isSet(value: Any?): Boolean = !isRequired || !(value as? JsonArray).isNullOrEmpty()
     override fun defaultValue(): Any? = null
 }
 

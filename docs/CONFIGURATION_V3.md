@@ -361,6 +361,16 @@ A `hidden` field isn't shown; it sends `value` with the form, with placeholders 
 from the screen's data, such as `{ "type": "hidden", "mapping": "id", "value": "${id}" }`.
 Without `value` it sends the screen data's value at `mapping`. Its value is sent as text.
 
+A `photos` field adds photos from the phone's gallery (no permission needed), up to `max`
+(10 by default). Each photo is copied into the app on the phone, so it stays when the
+gallery's copy is deleted; the field sends a list of references, which a `save` keeps. An
+`image` view whose `mapping` is that list shows the photos in a row of thumbnails, and a
+tap shows one full screen. Photos that no saved item refers to any more are removed.
+
+```json
+{ "type": "photos", "mapping": "photos", "title": "Photos", "max": 6 }
+```
+
 In a request URL, a query parameter that is a single placeholder, such as
 `&type=${type}`, is optional: when that value is missing or empty (an optional field left
 blank, or an "Any type" option with the value `""`), the parameter is left out rather than

@@ -1,13 +1,16 @@
 package it.sapienza.appinterpreter.runtime.usecase
 
 import it.sapienza.appinterpreter.json.getValue
+import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
+import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
 import it.sapienza.appinterpreter.utils.FormDates
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -24,6 +27,8 @@ class InitialFormValuesUseCase {
             is TimeInput -> given?.takeIf { FormDates.parseTime(it) != null } ?: item.defaultValue()
             // A hidden field's value is written in the form, filled in from the screen's data; else the data's own.
             is HiddenInput -> item.value?.matchReplace(data)?.takeIf { it.isNotEmpty() } ?: given
+            // Photos are a list, kept as JSON.
+            is PhotosInput -> data?.valueAt(item.mapping) as? JsonArray
             else -> given ?: item.defaultValue()
         }
     }

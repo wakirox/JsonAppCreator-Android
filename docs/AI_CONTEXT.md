@@ -114,7 +114,7 @@ Other enums:
 - HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
 - Text inputs: `plain`, `numeric`, `email`, `password`
-- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
+- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone)
 
 Do not invent support for PATCH, JavaScript expressions, conditions other than
 `visibleIf`, databases beyond `save`, `update`, `delete` and `stored`, arbitrary native
@@ -349,6 +349,16 @@ A value the form sends without showing it, such as the id of the item on screen.
 
 - `mapping` **(required)**: text (not empty). Key of the submitted object that receives the value
 - `value`: text. The value, sent as text; may use ${field} placeholders filled in from the screen's data. Without it, the data's value at mapping is sent
+
+#### `photos`
+
+Photos picked from the phone's gallery, kept on the phone with the app. It submits a list of photo references; an image view whose mapping is that list shows them in a row.
+
+- `mapping` **(required)**: text (not empty). Where the list of photos goes, such as "photos"
+- `title` **(required)**: text (not empty)
+- `description`: text
+- `mandatory`: `true` or `false`. At least one photo is needed
+- `max`: a whole number (at least 1). How many photos it takes; 10 by default
 
 ### Events
 
