@@ -98,30 +98,44 @@ class StoredDataScreenTest {
     }
 
     @Test
-    fun anAppAddedWithTheFormAppearsInTheListAndTheFormEmpties() {
-        val home = screen(AppData(store))
+    fun anAppAddedOnItsOwnScreenAppearsInTheListWithItsDescription() = runTest {
+        val appData = AppData(store)
+        val home = screen(appData)
         assertEquals(emptyList(), home.shown(null, "name"))
 
-        home.add("name", "Rainy")
+        home.onAction(assertIs<ButtonView>(home.views.first { it is ButtonView }).action, null)
+        val open = assertIs<ScreenViewModel.Effect.OpenScreen>(home.effects.first())
+        assertEquals(listOf("new_app", "New app"), listOf(open.view.id, open.title))
+        val newApp = screen(appData, "new_app")
+        newApp.forms.set(newApp.form(), null, "description", "Rain alerts\non the wrist")
+        newApp.add("name", "Rainy")
 
+        assertIs<ScreenViewModel.Effect.Close>(newApp.effects.first(), "saving goes back to the list")
         assertEquals(listOf("Rainy"), home.shown(null, "name"))
-        assertNull(home.forms.values(home.form(), null)["name"])
+        assertEquals(listOf("Rain alerts\non the wrist"), home.shown(null, "description"))
+        assertNull(newApp.forms.values(newApp.form(), null)["name"], "the form starts empty again")
     }
 
     @Test
     fun anIncompleteFormSavesNothing() {
-        val home = screen(AppData(store))
-        home.onSubmit(home.form(), null)
-        assertEquals("Please complete: Name", home.forms.error(home.form(), null))
-        assertEquals(emptyList(), home.shown(null, "name"))
+        val appData = AppData(store)
+        val newApp = screen(appData, "new_app")
+        newApp.onSubmit(newApp.form(), null)
+        assertEquals("Please complete: Name", newApp.forms.error(newApp.form(), null))
+        assertEquals(emptyList(), screen(appData).shown(null, "name"))
+    }
+
+    /** Adds the apps [names] on the new-app screen. */
+    private fun addApps(appData: AppData, vararg names: String) {
+        val newApp = screen(appData, "new_app")
+        names.forEach { newApp.add("name", it) }
     }
 
     @Test
     fun eachAppShowsOnlyItsOwnIdeasAndTheHomeListHearsOfChangesFromOtherScreens() = runTest {
         val appData = AppData(store)
         val home = screen(appData)
-        home.add("name", "Rainy")
-        home.add("name", "Tasse")
+        addApps(appData, "Rainy", "Tasse")
         val (rainy, tasse) = home.lists.get(home.list(), null).content.value.items
 
         // Tapping an app opens its screen with that app as data.
@@ -153,7 +167,7 @@ class StoredDataScreenTest {
 
     @Test
     fun savedDataIsThereInTheNextSessionAndBelongsToItsApp() {
-        screen(AppData(store)).add("name", "Rainy")
+        addApps(AppData(store), "Rainy")
 
         assertEquals(listOf("Rainy"), screen(AppData(store)).shown(null, "name"))
         val other = json.replace("\"App ideas\"", "\"Other ideas\"")
@@ -190,8 +204,7 @@ class StoredDataScreenTest {
 
     private fun ideas(appData: AppData = AppData(store)): Ideas {
         val home = screen(appData)
-        home.add("name", "Rainy")
-        home.add("name", "Tasse")
+        addApps(appData, "Rainy", "Tasse")
         val (rainy, tasse) = home.lists.get(home.list(), null).content.value.items
         val rainyScreen = screen(appData, "app", rainy)
         val rainyNew = screen(appData, "new_idea", rainy)

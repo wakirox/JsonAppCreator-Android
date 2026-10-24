@@ -83,8 +83,14 @@ class AppIdeasScreenshotTest {
         val ids = listOf("app-rainy", "app-tasse", "idea-1", "idea-2", "idea-3", "idea-4").iterator()
         val data = AppData(SharedPreferencesStore(context, DATA_PREFERENCES), now = { 1_761_300_000_000 }, newId = { ids.next() })
         val app = AppLibrary.idOf("App ideas")
-        data.add(app, "apps", item("name" to "Rainy"))
-        data.add(app, "apps", item("name" to "Tasse Forfettario"))
+        data.add(app, "apps", item("name" to "Rainy", "description" to "Rain alerts and forecasts, on the phone and the watch"))
+        data.add(
+            app, "apps",
+            item(
+                "name" to "Tasse Forfettario",
+                "description" to "Taxes for Italy's flat-rate scheme, worked out from a year's invoices\nAndroid and iPhone, Duo included"
+            )
+        )
         data.add(app, "ideas", item("title" to "Dark mode", "priority" to "Medium", "appId" to "app-rainy", "done" to true))
         data.add(
             app, "ideas",
@@ -185,6 +191,15 @@ class AppIdeasScreenshotTest {
             AppData(SharedPreferencesStore(context, DATA_PREFERENCES)).items(AppLibrary.idOf("App ideas"), "ideas")
                 .first { it["id"].toString() == "\"idea-3\"" }["photos"].toString() == "[\"appkin-photo:rain.jpg\"]"
         }
+    }
+
+    @Test
+    fun aNewAppIsWrittenOnItsOwnScreen() {
+        awaitText("Tasse Forfettario")
+        composeRule.onNodeWithText("New app").performClick()
+        openNext()
+        awaitText("Description")
+        assertScreenshot("app_ideas_new_app")
     }
 
     @Test

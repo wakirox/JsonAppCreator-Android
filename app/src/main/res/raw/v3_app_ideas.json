@@ -8,22 +8,17 @@
     "type": "layout",
     "views": [
       {
-        "type": "form",
+        "type": "button",
         "title": "New app",
-        "buttonTitle": "Add app",
-        "formElements": [
-          {
-            "type": "text",
-            "mapping": "name",
-            "title": "Name",
-            "mandatory": true
-          }
-        ],
+        "icon": "add",
         "action": {
-          "id": "add_app",
+          "id": "new_app",
           "event": {
-            "type": "save",
-            "collection": "apps"
+            "type": "show",
+            "view": {
+              "ref": "new_app"
+            },
+            "title": "New app"
           }
         }
       },
@@ -32,7 +27,7 @@
         "stored": {
           "collection": "apps"
         },
-        "emptyText": "No apps yet: add one above.",
+        "emptyText": "No apps yet: tap New app to add one.",
         "action": {
           "id": "open_app",
           "event": {
@@ -44,9 +39,20 @@
           }
         },
         "itemView": {
-          "type": "text",
-          "mapping": "name",
-          "textStyle": "bold"
+          "type": "layout",
+          "views": [
+            {
+              "type": "text",
+              "mapping": "name",
+              "textStyle": "bold",
+              "textSize": 17
+            },
+            {
+              "type": "text",
+              "mapping": "description",
+              "textSize": 14
+            }
+          ]
         },
         "swipeToStart": {
           "id": "delete_app",
@@ -70,6 +76,41 @@
     ]
   },
   "views": [
+    {
+      "id": "new_app",
+      "type": "layout",
+      "views": [
+        {
+          "type": "form",
+          "buttonTitle": "Add app",
+          "formElements": [
+            {
+              "type": "text",
+              "mapping": "name",
+              "title": "Name",
+              "mandatory": true
+            },
+            {
+              "type": "text",
+              "mapping": "description",
+              "title": "Description",
+              "multiline": true,
+              "description": "What the app is about, in a line or two"
+            }
+          ],
+          "action": {
+            "id": "add_app",
+            "event": {
+              "type": "save",
+              "collection": "apps",
+              "thenDo": {
+                "type": "back"
+              }
+            }
+          }
+        }
+      ]
+    },
     {
       "id": "app",
       "type": "layout",
