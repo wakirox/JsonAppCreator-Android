@@ -185,24 +185,42 @@ class StoredDataScreenTest {
     /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views and its buttons. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
 
-    /** An idea row's tick box, at the top of its column. */
-    private fun ScreenViewModel.check() = assertIs<CheckView>(assertIs<Layout>(row()[0]).views[0])
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
     @Test
-    fun aNewIdeaIsNotDoneAndTickingItSavesAtOnce() {
+    fun aNewIdeaIsNotDoneAndOnlyADoneIdeaShowsDone() {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
         assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
-        val check = screen.check()
+        val doneLine = assertIs<Layout>(screen.row()[0]).views.last()
+        assertEquals("done", doneLine.visibleIf)
 
-        screen.onCheck(check, screen.items(rainy)[1], checked = true)
-        assertEquals(listOf("false", "true"), screen.shown(rainy, "done"))
-        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(rainy, "title"), "the title and order stay")
-        assertEquals("true", AppData(store).items(AppLibrary.idOf("App ideas"), "ideas")[1].getValue("done"), "saved on the phone")
+        screen.onAction(screen.list().swipeToEnd, screen.items(rainy)[0])
 
-        screen.onCheck(check, screen.items(rainy)[1], checked = false)
-        assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
+        assertEquals(listOf(false, true), screen.items(rainy).map { ViewVisibility.holds(doneLine.visibleIf, it) })
+    }
+
+    @Test
+    fun aCheckViewSavesItsValueAtOnce() {
+        val app = """
+            {
+              "schemaVersion": 3, "name": "Tasks", "version": "1.0",
+              "mainView": { "type": "list", "stored": { "collection": "tasks" },
+                "itemView": { "type": "check", "mapping": "done", "title": "${'$'}{title}",
+                  "action": { "id": "tick", "event": { "type": "update", "collection": "tasks" } } } }
+            }
+        """
+        val appData = AppData(store, newId = { "t1" })
+        appData.add(AppLibrary.idOf("Tasks"), "tasks", JsonText.parse("""{ "title": "Buy milk", "done": false }""") as JsonObject)
+        val screen = screen(appData, app = app)
+        val list = assertIs<ListView>(screen.screen?.definition)
+        val check = assertIs<CheckView>(list.itemView)
+        fun done() = screen.lists.get(list, null).content.value.items.single().getValue("done")
+
+        screen.onCheck(check, screen.lists.get(list, null).content.value.items.single(), checked = true)
+        assertEquals("true", done())
+        screen.onCheck(check, screen.lists.get(list, null).content.value.items.single(), checked = false)
+        assertEquals("false", done())
     }
 
     @Test
@@ -322,7 +340,7 @@ class StoredDataScreenTest {
         screen.add("title", "Tile", ideas.rainy)
         assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
 
-        screen.onCheck(screen.check(), screen.items(ideas.rainy)[0], checked = true)
+        screen.onAction(screen.list().swipeToEnd, screen.items(ideas.rainy)[0])
 
         assertEquals(listOf("Dark mode", "Widgets", "Tile"), screen.shown(ideas.rainy, "title"))
     }

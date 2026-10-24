@@ -150,16 +150,10 @@
                 "type": "layout",
                 "views": [
                   {
-                    "type": "check",
-                    "mapping": "done",
+                    "type": "text",
                     "title": "${title}",
-                    "action": {
-                      "id": "tick_idea",
-                      "event": {
-                        "type": "update",
-                        "collection": "ideas"
-                      }
-                    }
+                    "textStyle": "bold",
+                    "textSize": 17
                   },
                   {
                     "type": "text",
@@ -172,6 +166,12 @@
                     "textSize": 13,
                     "textStyle": "bold",
                     "visibleIf": "priority"
+                  },
+                  {
+                    "type": "text",
+                    "title": "✓ Done",
+                    "textSize": 13,
+                    "visibleIf": "done"
                   }
                 ]
               },
