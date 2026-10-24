@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.unit.Dp
-import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -461,7 +459,7 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.add -> Icons.Filled.Add
     ButtonIcon.check -> Icons.Filled.Check
     ButtonIcon.close -> Icons.Filled.Close
-    ButtonIcon.copy -> Icons.Filled.ContentCopy
+    ButtonIcon.copy -> MaterialIcons.ContentCopy
     ButtonIcon.delete -> Icons.Filled.Delete
     ButtonIcon.edit -> Icons.Filled.Edit
     ButtonIcon.email -> Icons.Filled.Email
@@ -1154,7 +1152,7 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
             enabled = room > 0,
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
-            Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Icon(MaterialIcons.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
             Spacer(Modifier.width(ButtonDefaults.IconSpacing))
             Text(if (current.isEmpty()) "Add photos" else "Add more")
         }
