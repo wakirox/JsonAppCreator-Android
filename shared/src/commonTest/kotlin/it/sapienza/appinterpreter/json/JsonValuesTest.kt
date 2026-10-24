@@ -75,6 +75,30 @@ class JsonValuesTest {
     }
 
     @Test
+    fun valuesInAnAddressArePercentEncoded() {
+        val data = JsonText.parse(
+            """{ "type": "arms & armor", "q": "a#b?c=d", "city": "São Paulo", "plus": "1+1", "slash": "a/b",
+                 "image": "https://example.com/a b.jpg?w=640", "id": 42 }"""
+        )!!.jsonObject
+        assertEquals("https://x/?type=arms%20%26%20armor&limit=40", "https://x/?type=${'$'}{type}&limit=40".fillAddress(data))
+        assertEquals("https://x/?q=a%23b%3Fc%3Dd", "https://x/?q=${'$'}{q}".fillAddress(data))
+        assertEquals("https://x/?city=S%C3%A3o%20Paulo", "https://x/?city=${'$'}{city}".fillAddress(data))
+        assertEquals("https://x/?n=1%2B1&p=a%2Fb", "https://x/?n=${'$'}{plus}&p=${'$'}{slash}".fillAddress(data))
+        assertEquals("https://x/creators/42", "https://x/creators/${'$'}{id}".fillAddress(data))
+        // The template is never touched: only what a placeholder inserts.
+        assertEquals("https://x/?type=Arms%20and%20Armor&q=a%23b%3Fc%3Dd", "https://x/?type=Arms%20and%20Armor&q=${'$'}{q}".fillAddress(data))
+    }
+
+    @Test
+    fun aPlaceholderThatIsTheWholeAddressIsLeftAlone() {
+        val data = JsonText.parse("""{ "image": "https://example.com/a%20b.jpg?w=640", "q": "a b" }""")!!.jsonObject
+        assertEquals("https://example.com/a%20b.jpg?w=640", "${'$'}{image}".fillAddress(data))
+        assertEquals("https://example.com/a%20b.jpg?w=640&q=a%20b", "${'$'}{image}&q=${'$'}{q}".fillAddress(data))
+        // Text that isn't an address still fills in as it is.
+        assertEquals("Search a b", "Search ${'$'}{q}".matchReplace(data))
+    }
+
+    @Test
     fun presenceIsWhatVisibleIfTests() {
         val data = JsonText.parse(
             """{ "text": "a", "blank": " ", "empty": "", "yes": true, "no": false, "zero": 0, "zeroPoint": 0.0, "one": 1,

@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.json
 
+import it.sapienza.appinterpreter.security.UriEncoding
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -78,10 +79,17 @@ fun String.missingPlaceholders(data: JsonObject?): List<String> =
 
 /**
  * An address with its placeholders filled in from [data], or null when one of them has no value: such an
- * address would ask for something else, so it isn't used.
+ * address would ask for something else, so it isn't used. Each value is percent-encoded ("arms & armor" becomes
+ * "arms%20%26%20armor"), so it can't change the address around it; the template itself is left as written. A
+ * placeholder that starts the address, as in "${'$'}{images.web.url}", supplies the address itself and isn't encoded.
  */
-fun String.fillAddress(data: JsonObject?): String? =
-    if (missingPlaceholders(data).isEmpty()) matchReplace(data) else null
+fun String.fillAddress(data: JsonObject?): String? {
+    if (missingPlaceholders(data).isNotEmpty()) return null
+    return PLACEHOLDER.replace(this) { match ->
+        val value = data?.getValue(match.groupValues[1]).orEmpty()
+        if (match.range.first == 0) value else UriEncoding.encode(value)
+    }
+}
 
 /**
  * True when [data] has something at [path]: not missing, null, "", false, 0 or an empty array or object.
@@ -96,5 +104,4 @@ fun JsonObject?.hasValueAt(path: String): Boolean = when (val value = this?.valu
         value.content == "false" -> false
         else -> value.content.toDoubleOrNull()?.let { it != 0.0 } ?: true
     }
-    else -> true
 }
