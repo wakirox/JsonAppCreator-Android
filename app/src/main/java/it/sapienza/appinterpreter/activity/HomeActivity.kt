@@ -375,8 +375,6 @@ private data class Example(val name: Int, val about: Int, val configuration: Int
 
 private val EXAMPLES = listOf(
     Example(R.string.example_art_explorer, R.string.example_art_explorer_about, R.raw.v3_art_explorer, "🏛️"),
-    Example(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces, "🖼️"),
-    Example(R.string.example_hello, R.string.example_hello_about, R.raw.v3_app_sample, "👋"),
-    Example(R.string.example_summer_run, R.string.example_summer_run_about, R.raw.v3_race_signup, "🏃"),
+    Example(R.string.example_app_ideas, R.string.example_app_ideas_about, R.raw.v3_app_ideas, "💡"),
     Example(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db, "🎬")
 )

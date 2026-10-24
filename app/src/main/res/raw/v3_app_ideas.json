@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 3,
+  "name": "App ideas",
+  "icon": "💡",
+  "author": "Appkin",
+  "version": "1.0.0",
+  "mainView": {
+    "type": "layout",
+    "views": [
+      {
+        "type": "form",
+        "title": "New app",
+        "buttonTitle": "Add app",
+        "formElements": [
+          { "type": "text", "mapping": "name", "title": "Name", "mandatory": true }
+        ],
+        "action": { "id": "add_app", "event": { "type": "save", "collection": "apps" } }
+      },
+      {
+        "type": "list",
+        "stored": { "collection": "apps" },
+        "emptyText": "No apps yet: add one above.",
+        "action": { "id": "open_app", "event": { "type": "show", "view": { "ref": "app" }, "title": "${name}" } },
+        "itemView": {
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            { "type": "text", "mapping": "name", "textStyle": "bold" },
+            {
+              "type": "button",
+              "icon": "delete",
+              "label": "Delete ${name}",
+              "action": {
+                "id": "delete_app",
+                "event": {
+                  "type": "alert",
+                  "value": "Delete ${name} and its ideas?",
+                  "thenDoOK": {
+                    "type": "delete",
+                    "collection": "apps",
+                    "thenDo": { "type": "delete", "collection": "ideas", "where": { "appId": "${id}" } }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "views": [
+    {
+      "id": "app",
+      "type": "layout",
+      "views": [
+        {
+          "type": "form",
+          "title": "New idea",
+          "buttonTitle": "Add idea",
+          "formElements": [
+            { "type": "text", "mapping": "title", "title": "Title", "mandatory": true },
+            { "type": "text", "mapping": "description", "title": "Description" },
+            { "type": "selector", "mapping": "priority", "title": "Priority", "options": ["High", "Medium", "Low"], "selection": "Medium", "mandatory": true }
+          ],
+          "action": { "id": "add_idea", "event": { "type": "save", "collection": "ideas", "fields": { "appId": "${id}", "done": false } } }
+        },
+        {
+          "type": "list",
+          "stored": { "collection": "ideas", "where": { "appId": "${id}" }, "sort": { "by": "priority", "order": ["High", "Medium", "Low"] } },
+          "emptyText": "No ideas for ${name} yet.",
+          "itemView": {
+            "type": "layout",
+            "orientation": "horizontal",
+            "views": [
+              {
+                "type": "layout",
+                "views": [
+                  {
+                    "type": "check",
+                    "mapping": "done",
+                    "title": "${title}",
+                    "action": { "id": "tick_idea", "event": { "type": "update", "collection": "ideas" } }
+                  },
+                  { "type": "text", "mapping": "description", "textSize": 14 },
+                  { "type": "text", "title": "${priority} priority", "textSize": 13, "textStyle": "bold", "visibleIf": "priority" }
+                ]
+              },
+              {
+                "type": "button",
+                "icon": "delete",
+                "label": "Delete ${title}",
+                "action": {
+                  "id": "delete_idea",
+                  "event": { "type": "alert", "value": "Delete ${title}?", "thenDoOK": { "type": "delete", "collection": "ideas" } }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

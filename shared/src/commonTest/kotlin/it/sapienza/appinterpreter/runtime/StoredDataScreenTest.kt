@@ -9,8 +9,14 @@ import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.Layout
+import it.sapienza.appinterpreter.model.event.AlertMessage
+import it.sapienza.appinterpreter.model.event.DeleteData
+import it.sapienza.appinterpreter.model.event.UpdateData
+import it.sapienza.appinterpreter.model.view_model.ButtonView
+import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
@@ -20,10 +26,12 @@ import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
+import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import it.sapienza.appinterpreter.security.ConfigurationKeys
 import it.sapienza.appinterpreter.security.MemorySecretStore
 import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.storage.MemoryAppStore
+import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,7 +51,7 @@ import kotlin.test.assertNull
 /** The App ideas example driven without any UI: apps and their ideas saved on the phone, and the lists that show them. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class StoredDataScreenTest {
-    private val json = Fixtures.configurations.getValue("examples/v3_app_ideas.json")
+    private val json = Fixtures.configurations.getValue("raw/v3_app_ideas.json")
     private val store = MemoryAppStore()
     private val alerts = AlertsViewModel()
 
@@ -65,7 +73,8 @@ class StoredDataScreenTest {
         )
         return ScreenViewModel(
             saved, alerts, fetch, LoadListItemsUseCase(fetch, LoadStoredItemsUseCase(appData, repository)), InitialFormValuesUseCase(),
-            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository), OpenLinkUseCase(),
+            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
+            UpdateItemUseCase(appData, repository), DeleteItemsUseCase(appData, repository), OpenLinkUseCase(),
             FindMissingApiKeysUseCase(current, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
             LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )
@@ -154,5 +163,131 @@ class StoredDataScreenTest {
         screen.onAction(screen.screen?.definition?.action, JsonText.parse("""{ "text": "Hi", "who": "Ana" }""") as JsonObject)
 
         assertEquals("Saved Hi from Ana as n1", alerts.alert?.text)
+    }
+
+    /** The example with Rainy and Tasse saved, each with ideas; the home screen and the two app screens. */
+    private class Ideas(val home: ScreenViewModel, val rainy: JsonObject, val tasse: JsonObject, val rainyScreen: ScreenViewModel)
+
+    private fun ideas(appData: AppData = AppData(store)): Ideas {
+        val home = screen(appData)
+        home.add("name", "Rainy")
+        home.add("name", "Tasse")
+        val (rainy, tasse) = home.lists.get(home.list(), null).content.value.items
+        val rainyScreen = screen(appData, "app", rainy)
+        rainyScreen.add("title", "Dark mode", rainy)
+        rainyScreen.forms.set(rainyScreen.form(), rainy, "priority", "Low")
+        rainyScreen.add("title", "Widgets", rainy)
+        screen(appData, "app", tasse).add("title", "Export to PDF", tasse)
+        return Ideas(home, rainy, tasse, rainyScreen)
+    }
+
+    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views, and a Delete button. */
+    private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
+
+    /** An idea row's tick box, at the top of its column. */
+    private fun ScreenViewModel.check() = assertIs<CheckView>(assertIs<Layout>(row()[0]).views[0])
+    private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
+
+    @Test
+    fun aNewIdeaIsNotDoneAndTickingItSavesAtOnce() {
+        val ideas = ideas()
+        val (rainy, screen) = ideas.rainy to ideas.rainyScreen
+        assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
+        val check = screen.check()
+
+        screen.onCheck(check, screen.items(rainy)[1], checked = true)
+        assertEquals(listOf("false", "true"), screen.shown(rainy, "done"))
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(rainy, "title"), "the title and order stay")
+        assertEquals("true", AppData(store).items(AppLibrary.idOf("App ideas"), "ideas")[1].getValue("done"), "saved on the phone")
+
+        screen.onCheck(check, screen.items(rainy)[1], checked = false)
+        assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
+    }
+
+    @Test
+    fun ideasHaveADescriptionAndAPriorityAndAreSortedByIt() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        // Medium by default; Low was picked for Widgets.
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
+
+        screen.forms.set(screen.form(), ideas.rainy, "description", "A tile for today's rain")
+        screen.forms.set(screen.form(), ideas.rainy, "priority", "High")
+        screen.add("title", "Tile", ideas.rainy)
+        screen.add("title", "Sync", ideas.rainy)
+
+        assertEquals(listOf("Tile", "Dark mode", "Sync", "Widgets"), screen.shown(ideas.rainy, "title"))
+        assertEquals(listOf("High", "Medium", "Medium", "Low"), screen.shown(ideas.rainy, "priority"))
+        assertEquals("A tile for today's rain", screen.items(ideas.rainy)[0].getValue("description"))
+        assertEquals("Medium", screen.forms.values(screen.form(), ideas.rainy)["priority"], "the form starts again at Medium")
+    }
+
+    @Test
+    fun deletingAnIdeaAsksFirst() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        val delete = assertIs<ButtonView>(screen.row()[1])
+
+        screen.onAction(delete.action, screen.items(ideas.rainy)[0])
+        assertEquals("Delete Dark mode?", alerts.alert?.text)
+        alerts.answer(ok = false)
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
+
+        screen.onAction(delete.action, screen.items(ideas.rainy)[0])
+        alerts.answer(ok = true)
+        assertEquals(listOf("Widgets"), screen.shown(ideas.rainy, "title"))
+    }
+
+    @Test
+    fun deletingAnAppDeletesItsIdeasButNoOthers() {
+        val ideas = ideas()
+        val delete = assertIs<ButtonView>(ideas.home.row()[1])
+
+        ideas.home.onAction(delete.action, ideas.rainy)
+        assertEquals("Delete Rainy and its ideas?", alerts.alert?.text)
+        alerts.answer(ok = true)
+
+        assertEquals(listOf("Tasse"), ideas.home.shown(null, "name"))
+        val saved = AppData(store).items(AppLibrary.idOf("App ideas"), "ideas")
+        assertEquals(listOf("Export to PDF"), saved.map { it.getValue("title") })
+        assertEquals(emptyList(), ideas.rainyScreen.shown(ideas.rainy, "title"), "a screen further back updates too")
+    }
+
+    @Test
+    fun aFormThatUpdatesEditsTheItemItShowsAndKeepsItsValues() {
+        val app = """
+            {
+              "schemaVersion": 3, "name": "Notes", "version": "1.0",
+              "mainView": { "type": "form", "formElements": [ { "type": "text", "mapping": "text", "title": "Text" } ],
+                "action": { "id": "edit", "event": { "type": "update", "collection": "notes", "fields": { "edited": true },
+                  "thenDo": { "type": "alert", "value": "Now ${'$'}{text}" } } } }
+            }
+        """
+        val appData = AppData(store, newId = { "n1" })
+        val saved = appData.add(AppLibrary.idOf("Notes"), "notes", JsonText.parse("""{ "text": "Hi" }""") as JsonObject)
+        val screen = screen(appData, app = app)
+        val form = assertIs<FormView>(screen.screen?.definition)
+
+        screen.forms.set(form, saved, "text", "Hello")
+        screen.onSubmit(form, saved)
+
+        assertEquals("Now Hello", alerts.alert?.text)
+        val note = appData.items(AppLibrary.idOf("Notes"), "notes").single()
+        assertEquals(listOf("n1", "Hello", "true"), listOf(note.getValue("id"), note.getValue("text"), note.getValue("edited")))
+        assertEquals("Hello", screen.forms.values(form, saved)["text"])
+    }
+
+    @Test
+    fun changingAnItemThatIsGoneSaysSo() {
+        val home = screen(AppData(store))
+        home.onEvent(UpdateData("apps", fields = null), JsonText.parse("""{ "id": "gone", "name": "Old" }""") as JsonObject)
+        assertEquals("Nothing to change: this item is no longer saved", alerts.alert?.text)
+    }
+
+    @Test
+    fun deletingWhatIsNotSavedIsNoMistake() {
+        val home = screen(AppData(store))
+        home.onEvent(DeleteData("apps", thenDo = AlertMessage(value = "Done")), JsonText.parse("""{ "id": "gone" }""") as JsonObject)
+        assertEquals("Done", alerts.alert?.text)
     }
 }

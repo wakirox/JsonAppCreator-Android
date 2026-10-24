@@ -34,5 +34,18 @@ class ListView(
 @Serializable
 class StoredData(
     val collection: String,
-    val where: JsonObject? = null
+    val where: JsonObject? = null,
+    val sort: StoredSort? = null
+)
+
+/**
+ * The order of a stored list: by the field [by], with the values in [order] first and in that order (such as "High",
+ * "Medium", "Low"), then the others, numbers by size and text alphabetically; [descending] turns it round. Objects that
+ * tie keep the order they were saved in.
+ */
+@Serializable
+class StoredSort(
+    val by: String,
+    val order: List<String>? = null,
+    val descending: Boolean = false
 )

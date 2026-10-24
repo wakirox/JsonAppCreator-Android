@@ -17,6 +17,18 @@ class ConfigurationValidatorTest {
     }
 
     @Test
+    fun aCheckNeedsTheFieldItTicksAndDeleteAndUpdateNeedACollection() {
+        fun issues(view: String) = validator.validate("""{ "schemaVersion": 3, "name": "C", "version": "1.0", "mainView": $view }""").issues
+        val tick = """{ "id": "t", "event": { "type": "update", "collection": "ideas" } }"""
+        assertEquals(emptyList(), issues("""{ "type": "check", "mapping": "done", "title": "x", "action": $tick }"""))
+        assertTrue(issues("""{ "type": "check", "title": "x" }""").isNotEmpty())
+        val remove = """{ "id": "d", "event": { "type": "delete", "where": { "appId": "1" } } }"""
+        assertTrue(issues("""{ "type": "button", "title": "x", "action": $remove }""").isNotEmpty())
+        val update = """{ "id": "u", "event": { "type": "update", "collection": "ideas", "id": "" } }"""
+        assertTrue(issues("""{ "type": "button", "title": "x", "action": $update }""").isNotEmpty())
+    }
+
+    @Test
     fun aListTakesItsItemsFromARequestOrFromSavedDataNotBoth() {
         fun list(sources: String) = validator.validate(
             """{ "schemaVersion": 3, "name": "L", "version": "1.0",

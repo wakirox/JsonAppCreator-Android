@@ -47,6 +47,16 @@ class TextView(
     override val format: TextFormat? = null
 ) : TextualView()
 
+/** A button's icon, from the phone's standard set. */
+@Serializable
+enum class ButtonIcon {
+    add, check, close, delete, edit, email, favorite, info, phone, place, refresh, search, settings, share, star
+}
+
+/**
+ * A button: its text, or with [icon] only an icon (then [label], placeholders allowed, is what screen readers say; the
+ * icon's name otherwise), or both.
+ */
 @Serializable
 class ButtonView(
     override val textSize: Float? = null,
@@ -58,5 +68,6 @@ class ButtonView(
     override val action: Action? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null,
-    override val visibleIf: String? = null
+    override val visibleIf: String? = null,
+    val icon: ButtonIcon? = null
 ) : TextualView()

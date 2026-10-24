@@ -1,8 +1,5 @@
 package it.sapienza.appinterpreter.runtime.usecase
 
-import it.sapienza.appinterpreter.json.displayText
-import it.sapienza.appinterpreter.json.getValue
-import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.model.view_model.StoredData
 import it.sapienza.appinterpreter.runtime.AppRepository
 import it.sapienza.appinterpreter.storage.AppData
@@ -11,18 +8,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 
-/** The current app's saved objects a list shows: those of its collection that match its "where", filled from [data]. */
+/**
+ * The current app's saved objects a list shows: those of its collection that match its "where", filled from [data],
+ * in its "sort" order.
+ */
 class LoadStoredItemsUseCase(private val appData: AppData, private val repository: AppRepository) {
 
     operator fun invoke(stored: StoredData, data: JsonObject?): List<JsonObject> {
-        val wanted = stored.where.orEmpty().mapValues { (_, value) ->
-            if (value is JsonPrimitive && value.isString) value.content.matchReplace(data) else value.displayText()
-        }
-        return appData.items(currentAppId(), stored.collection).filter { item ->
-            wanted.all { (field, value) -> item.getValue(field) == value }
-        }
+        val match = StoredMatch(stored.where, data)
+        return sorted(appData.items(currentAppId(), stored.collection).filter(match::matches), stored.sort)
     }
 
     /** The collections of the current app that changed, so lists showing them load again. */
