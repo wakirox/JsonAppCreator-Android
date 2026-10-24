@@ -6,6 +6,7 @@ import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
 import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
 import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
 import kotlinx.serialization.Serializable
@@ -19,7 +20,8 @@ object FormElementSerializer : TypedSerializer<FormElementImpl>(
         Type("checkbox", CheckBox.serializer()) { it is CheckBox },
         Type("time", TimeInput.serializer()) { it is TimeInput },
         Type("hidden", HiddenInput.serializer()) { it is HiddenInput },
-        Type("photos", PhotosInput.serializer()) { it is PhotosInput }
+        Type("photos", PhotosInput.serializer()) { it is PhotosInput },
+        Type("tags", TagsInput.serializer()) { it is TagsInput }
     )
 )
 

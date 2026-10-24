@@ -170,7 +170,7 @@ A button supports the text properties above and normally includes an `action`.
 ```
 
 `icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `copy`, `delete`,
-`edit`, `email`, `favorite`, `info`, `phone`, `place`, `refresh`, `search`, `settings`,
+`edit`, `email`, `favorite`, `info`, `open`, `phone`, `place`, `refresh`, `search`, `settings`,
 `share` or `star`. With a `title` it sits before the text; without one the button is just
 the icon, keeps its small size and sits centred in a row, and `label` (supports `${...}`)
 is what screen readers say:
@@ -363,6 +363,10 @@ Without `value` it sends the screen data's value at `mapping`. Its value is sent
 
 A `text` field with `"multiline": true` takes several lines (Enter starts a new one) and
 grows with its text, for notes and descriptions; the text keeps its line breaks.
+
+A `tags` field collects short labels: the user types one and presses Enter (or +), and
+each shows as a chip with a remove button; it sends a list of texts, such as
+`["watch", "ui"]`, that a stored list's `filterBy` can filter on.
 
 A `photos` field adds photos from the phone's gallery (no permission needed), up to `max`
 (10 by default). Photos aren't copied: the app keeps a link to each one, and a small
@@ -562,6 +566,28 @@ they were saved in:
   "sort": { "by": "priority", "order": ["High", "Medium", "Low"] }
 }
 ```
+
+`sortOptions` lets the user choose the order, as a row of buttons above the list (the
+first applies until they choose one), and `filterBy` names a field of tags (a `tags`
+field's list, or text with commas): the list offers a chip per tag in use, after "All",
+to show only the items with that tag:
+
+```json
+"stored": {
+  "collection": "ideas",
+  "sortOptions": [
+    { "title": "Priority", "sort": { "by": "priority", "order": ["High", "Medium", "Low"] } },
+    { "title": "Newest", "sort": { "by": "createdAt", "descending": true } },
+    { "title": "Changed", "sort": { "by": "updatedAt", "descending": true } }
+  ],
+  "filterBy": "tags"
+}
+```
+
+Saved objects have a `createdAt`, and an `updatedAt` once an `update` changes them, both in
+epoch milliseconds. A placeholder can show them as a day, `${createdAt|date}` (dd/MM/yyyy),
+or as how long ago, `${updatedAt|ago}` ("just now", "5 min ago", "yesterday", "4 days
+ago", then the day).
 
 Data is kept by the app's name: an app renamed in the editor starts with no saved data. Saved data and photos are
 part of Android's backup to the user's Google account and move with them to a new phone;

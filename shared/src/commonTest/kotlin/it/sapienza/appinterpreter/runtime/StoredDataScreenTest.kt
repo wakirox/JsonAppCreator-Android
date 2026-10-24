@@ -3,6 +3,10 @@ package it.sapienza.appinterpreter.runtime
 import androidx.lifecycle.SavedStateHandle
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
+import it.sapienza.appinterpreter.model.view_model.TextView
+import it.sapienza.appinterpreter.json.matchReplace
+import it.sapienza.appinterpreter.json.PlaceholderClock
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.Fixtures
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
@@ -230,16 +234,16 @@ class StoredDataScreenTest {
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
     @Test
-    fun aNewIdeaIsNotDoneAndOnlyADoneIdeaShowsDone() {
+    fun aNewIdeaStartsAsAnIdeaAndSwipingRightShipsIt() {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
-        assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
-        val doneLine = screen.row().last()
-        assertEquals("done", doneLine.visibleIf)
+        assertEquals(listOf("Idea", "Idea"), screen.shown(rainy, "status"))
+        val statusLine = screen.row().first { it.visibleIf == "status" }
 
         screen.onAction(screen.list().swipeToEnd, screen.items(rainy)[0])
 
-        assertEquals(listOf(false, true), screen.items(rainy).map { ViewVisibility.holds(doneLine.visibleIf, it) })
+        assertEquals(listOf("Idea", "Shipped"), screen.shown(rainy, "status"), "shipped ideas go last")
+        assertEquals(listOf(true, true), screen.items(rainy).map { ViewVisibility.holds(statusLine.visibleIf, it) })
     }
 
     @Test
@@ -414,15 +418,15 @@ class StoredDataScreenTest {
     }
 
     @Test
-    fun swipingAnIdeaTowardsTheEndMarksItDone() {
+    fun swipingAnIdeaTowardsTheEndShipsIt() {
         val ideas = ideas()
         val screen = ideas.rainyScreen
         val widgets = screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" }
 
         screen.onAction(screen.list().swipeToEnd, widgets)
 
-        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"), "done ideas go last")
-        assertEquals("true", screen.items(ideas.rainy).last().getValue("done"))
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"), "shipped ideas go last")
+        assertEquals("Shipped", screen.items(ideas.rainy).last().getValue("status"))
     }
 
     @Test
@@ -479,5 +483,57 @@ class StoredDataScreenTest {
         assertTrue(field.isSet(JsonArray(listOf(JsonPrimitive("appkin-photo:a.jpg")))))
         assertEquals(10, field.limit)
         assertEquals(1, PhotosInput(max = 0, title = "P", mapping = "p").limit)
+    }
+
+    @Test
+    fun theUserChoosesTheOrderAndATagAboveTheIdeas() {
+        var clock = 1_000L
+        val appData = AppData(store, now = { clock++ })
+        val ideas = ideas(appData)
+        val (rainy, screen, new) = Triple(ideas.rainy, ideas.rainyScreen, ideas.rainyNew)
+        // Dark mode (Medium) and Widgets (Low) are there; Tile is High, tagged, and Building.
+        new.forms.set(new.form(), rainy, "priority", "High")
+        new.forms.set(new.form(), rainy, "status", "Building")
+        new.forms.set(new.form(), rainy, "tags", JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("UI"))))
+        new.add("title", "Tile", rainy)
+        val list = screen.list()
+        val entry = screen.lists.get(list, rainy)
+        assertEquals(listOf("Status", "Priority", "Newest", "Changed"), list.stored?.sortOptions?.map { it.title })
+
+        assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(rainy, "title"), "by status first: Building")
+        screen.lists.choose(entry, ListChoice(sortOption = 2))
+        assertEquals(listOf("Tile", "Widgets", "Dark mode"), screen.shown(rainy, "title"), "newest first")
+
+        screen.onAction(list.swipeToEnd, screen.items(rainy).first { it.getValue("title") == "Dark mode" })
+        screen.lists.choose(entry, ListChoice(sortOption = 3))
+        assertEquals("Dark mode", screen.shown(rainy, "title").first(), "the one just changed first")
+
+        assertEquals(listOf("UI", "watch"), entry.content.value.tags, "the tags in use, each once")
+        screen.lists.choose(entry, ListChoice(sortOption = 3, tag = "ui"))
+        assertEquals(listOf("Tile"), screen.shown(rainy, "title"), "only the tagged one, whatever the case")
+        screen.lists.choose(entry, ListChoice(sortOption = 3, tag = null))
+        assertEquals(3, screen.shown(rainy, "title").size)
+    }
+
+    @Test
+    fun anIdeaShowsWhenItWasAddedAndChanged() {
+        val now = PlaceholderClock.now()
+        val ideas = ideas(AppData(store, now = { now - 3 * 60 * 60 * 1000 }))
+        val item = ideas.rainyScreen.items(ideas.rainy).first()
+        val added = ideas.rainyScreen.row().filterIsInstance<TextView>().first { it.title?.startsWith("Added") == true }
+        assertEquals("Added 3 h ago", added.title!!.matchReplace(item))
+        val changed = ideas.rainyScreen.row().filterIsInstance<TextView>().first { it.visibleIf == "updatedAt" }
+        assertFalse(ViewVisibility.holds(changed.visibleIf, item), "not changed yet")
+    }
+
+    @Test
+    fun theTagsFieldStartsFromAListOrFromTextWithCommas() {
+        val field = TagsInput(title = "Tags", mapping = "tags")
+        val values = InitialFormValuesUseCase()
+        fun start(json: String) = values(FormView(formElements = listOf(field)), JsonText.parse(json) as JsonObject)["tags"]
+        assertEquals(JsonArray(listOf(JsonPrimitive("a"), JsonPrimitive("b"))), start("""{ "tags": ["a", "b"] }"""))
+        assertEquals(JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui"))), start("""{ "tags": "watch, ui ," }"""))
+        assertNull(start("""{ "title": "x" }"""))
+        assertFalse(TagsInput(mandatory = true, title = "Tags", mapping = "tags").isSet(JsonArray(emptyList())))
     }
 }

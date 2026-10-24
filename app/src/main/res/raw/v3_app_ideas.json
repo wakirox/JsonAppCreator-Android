@@ -137,23 +137,73 @@
             "where": {
               "appId": "${id}"
             },
-            "sort": [
+            "sortOptions": [
               {
-                "by": "done",
-                "order": [
-                  "false",
-                  "true"
+                "title": "Status",
+                "sort": [
+                  {
+                    "by": "status",
+                    "order": [
+                      "Building",
+                      "Planned",
+                      "Idea",
+                      "Shipped"
+                    ]
+                  },
+                  {
+                    "by": "priority",
+                    "order": [
+                      "High",
+                      "Medium",
+                      "Low"
+                    ]
+                  }
                 ]
               },
               {
-                "by": "priority",
-                "order": [
-                  "High",
-                  "Medium",
-                  "Low"
+                "title": "Priority",
+                "sort": [
+                  {
+                    "by": "priority",
+                    "order": [
+                      "High",
+                      "Medium",
+                      "Low"
+                    ]
+                  },
+                  {
+                    "by": "status",
+                    "order": [
+                      "Building",
+                      "Planned",
+                      "Idea",
+                      "Shipped"
+                    ]
+                  }
+                ]
+              },
+              {
+                "title": "Newest",
+                "sort": {
+                  "by": "createdAt",
+                  "descending": true
+                }
+              },
+              {
+                "title": "Changed",
+                "sort": [
+                  {
+                    "by": "updatedAt",
+                    "descending": true
+                  },
+                  {
+                    "by": "createdAt",
+                    "descending": true
+                  }
                 ]
               }
-            ]
+            ],
+            "filterBy": "tags"
           },
           "emptyText": "No ideas for ${name} yet.",
           "itemView": {
@@ -177,7 +227,7 @@
                       "id": "share_idea",
                       "event": {
                         "type": "share",
-                        "text": "${title}\n${description}",
+                        "text": "${title}\n${description}\n${link}",
                         "photos": "photos"
                       }
                     }
@@ -199,10 +249,47 @@
               },
               {
                 "type": "text",
+                "title": "${status} · ${priority} priority",
+                "textSize": 13,
+                "textStyle": "bold",
+                "visibleIf": "status"
+              },
+              {
+                "type": "text",
                 "title": "${priority} priority",
                 "textSize": 13,
                 "textStyle": "bold",
-                "visibleIf": "priority"
+                "visibleIf": "!status"
+              },
+              {
+                "type": "text",
+                "title": "Tags: ${tags}",
+                "textSize": 13,
+                "visibleIf": "tags"
+              },
+              {
+                "type": "button",
+                "title": "Open link",
+                "icon": "open",
+                "visibleIf": "link",
+                "action": {
+                  "id": "open_link",
+                  "event": {
+                    "type": "open",
+                    "url": "${link}"
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "title": "Added ${createdAt|ago}",
+                "textSize": 12
+              },
+              {
+                "type": "text",
+                "title": "Changed ${updatedAt|ago}",
+                "textSize": 12,
+                "visibleIf": "updatedAt"
               },
               {
                 "type": "text",
@@ -234,12 +321,12 @@
             }
           },
           "swipeToEnd": {
-            "id": "done_idea",
+            "id": "ship_idea",
             "event": {
               "type": "update",
               "collection": "ideas",
               "fields": {
-                "done": true
+                "status": "Shipped"
               }
             }
           }
@@ -269,6 +356,19 @@
             },
             {
               "type": "selector",
+              "mapping": "status",
+              "title": "Status",
+              "options": [
+                "Idea",
+                "Planned",
+                "Building",
+                "Shipped"
+              ],
+              "selection": "Idea",
+              "mandatory": true
+            },
+            {
+              "type": "selector",
               "mapping": "priority",
               "title": "Priority",
               "options": [
@@ -278,6 +378,21 @@
               ],
               "selection": "Medium",
               "mandatory": true
+            },
+            {
+              "type": "tags",
+              "mapping": "tags",
+              "title": "Tags",
+              "placeholder": "watch, ui, …",
+              "description": "Type a tag and press Enter"
+            },
+            {
+              "type": "text",
+              "mapping": "link",
+              "title": "Link",
+              "textType": "url",
+              "placeholder": "https://…",
+              "description": "A mockup, a Play listing, anything to open later"
             },
             {
               "type": "photos",
@@ -291,8 +406,7 @@
               "type": "save",
               "collection": "ideas",
               "fields": {
-                "appId": "${id}",
-                "done": false
+                "appId": "${id}"
               },
               "thenDo": {
                 "type": "back"
@@ -325,6 +439,19 @@
             },
             {
               "type": "selector",
+              "mapping": "status",
+              "title": "Status",
+              "options": [
+                "Idea",
+                "Planned",
+                "Building",
+                "Shipped"
+              ],
+              "selection": "Idea",
+              "mandatory": true
+            },
+            {
+              "type": "selector",
               "mapping": "priority",
               "title": "Priority",
               "options": [
@@ -336,14 +463,24 @@
               "mandatory": true
             },
             {
+              "type": "tags",
+              "mapping": "tags",
+              "title": "Tags",
+              "placeholder": "watch, ui, …",
+              "description": "Type a tag and press Enter"
+            },
+            {
+              "type": "text",
+              "mapping": "link",
+              "title": "Link",
+              "textType": "url",
+              "placeholder": "https://…",
+              "description": "A mockup, a Play listing, anything to open later"
+            },
+            {
               "type": "photos",
               "mapping": "photos",
               "title": "Photos"
-            },
-            {
-              "type": "checkbox",
-              "mapping": "done",
-              "title": "Done"
             }
           ],
           "action": {

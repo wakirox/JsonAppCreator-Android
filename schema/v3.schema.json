@@ -213,7 +213,7 @@
         "icon": {
           "description": "An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size",
           "type": ["string", "null"],
-          "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null]
+          "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "open", "phone", "place", "refresh", "search", "settings", "share", "star", null]
         }
       },
       "additionalProperties": false
@@ -247,9 +247,9 @@
         "id": { "$ref": "#/$defs/nonEmptyString" },
         "action": { "description": "What tapping an item does; its event receives that item", "$ref": "#/$defs/action" },
         "swipeToStart": { "description": "What swiping an item towards the start (left) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it", "$ref": "#/$defs/action" },
-        "swipeToStartIcon": { "description": "The icon under an item swiped towards the start; delete by default", "type": ["string", "null"], "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null] },
+        "swipeToStartIcon": { "description": "The icon under an item swiped towards the start; delete by default", "type": ["string", "null"], "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "open", "phone", "place", "refresh", "search", "settings", "share", "star", null] },
         "swipeToEnd": { "description": "What swiping an item towards the end (right) does; its event receives that item, such as an update marking it done", "$ref": "#/$defs/action" },
-        "swipeToEndIcon": { "description": "The icon under an item swiped towards the end; check by default", "type": ["string", "null"], "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null] },
+        "swipeToEndIcon": { "description": "The icon under an item swiped towards the end; check by default", "type": ["string", "null"], "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "open", "phone", "place", "refresh", "search", "settings", "share", "star", null] },
         "mapping": { "description": "Path of the array of objects to show, in data or in the initData response", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
         "visibleIf": { "$ref": "#/$defs/visibleIf" },
@@ -318,6 +318,29 @@
             { "type": "array", "items": { "$ref": "#/$defs/storedSort" }, "minItems": 1 },
             { "type": "null" }
           ]
+        },
+        "sortOptions": {
+          "description": "Orders the user can choose, as a row of buttons above the list (the first until they choose); they replace sort. Keep titles short, such as Status, Priority, Newest",
+          "type": ["array", "null"],
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["title", "sort"],
+            "properties": {
+              "title": { "$ref": "#/$defs/nonEmptyString" },
+              "sort": {
+                "oneOf": [
+                  { "$ref": "#/$defs/storedSort" },
+                  { "type": "array", "items": { "$ref": "#/$defs/storedSort" }, "minItems": 1 }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "filterBy": {
+          "description": "A field of tags (a tags field's list, or text with commas): the list offers a chip per tag in use, after All, to show only items with that tag",
+          "$ref": "#/$defs/nullableString"
         }
       },
       "additionalProperties": false
@@ -346,7 +369,7 @@
       "description": "A form field, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden", "photos"] } },
+      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden", "photos", "tags"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textInput" } },
         { "if": { "properties": { "type": { "const": "selector" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/selectorInput" } },
@@ -354,7 +377,8 @@
         { "if": { "properties": { "type": { "const": "checkbox" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkboxInput" } },
         { "if": { "properties": { "type": { "const": "time" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/timeInput" } },
         { "if": { "properties": { "type": { "const": "hidden" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/hiddenInput" } },
-        { "if": { "properties": { "type": { "const": "photos" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/photosInput" } }
+        { "if": { "properties": { "type": { "const": "photos" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/photosInput" } },
+        { "if": { "properties": { "type": { "const": "tags" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/tagsInput" } }
       ]
     },
     "textInput": {
@@ -370,7 +394,7 @@
         "value": { "$ref": "#/$defs/nullableString" },
         "textType": {
           "type": ["string", "null"],
-          "enum": ["plain", "numeric", "email", "password", null],
+          "enum": ["plain", "numeric", "email", "password", "url", null],
           "default": "plain"
         },
         "multiline": { "description": "Takes several lines (Enter starts a new one), growing as it fills: for notes and descriptions", "type": ["boolean", "null"], "default": false }
@@ -442,6 +466,20 @@
           "type": ["string", "null"],
           "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
         }
+      },
+      "additionalProperties": false
+    },
+    "tagsInput": {
+      "type": "object",
+      "description": "Short labels the user adds one by one (Enter adds one), shown as chips; it submits a list of texts, which a stored list's filterBy offers as filter chips.",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "tags" },
+        "mapping": { "$ref": "#/$defs/nonEmptyString" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "placeholder": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "description": "At least one tag is needed", "type": ["boolean", "null"], "default": false }
       },
       "additionalProperties": false
     },

@@ -7,10 +7,12 @@ import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
 import it.sapienza.appinterpreter.utils.FormDates
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -29,6 +31,9 @@ class InitialFormValuesUseCase {
             is HiddenInput -> item.value?.matchReplace(data)?.takeIf { it.isNotEmpty() } ?: given
             // Photos are a list, kept as JSON.
             is PhotosInput -> data?.valueAt(item.mapping) as? JsonArray
+            // Tags are a list too; text with commas (as older data might have) becomes one.
+            is TagsInput -> data?.let { LoadStoredItemsUseCase.tagsOf(it, item.mapping) }?.takeIf { it.isNotEmpty() }
+                ?.let { tags -> JsonArray(tags.map(::JsonPrimitive)) }
             else -> given ?: item.defaultValue()
         }
     }

@@ -18,8 +18,10 @@ class OpenLinkUseCase {
     }
 
     operator fun invoke(event: OpenLink, data: JsonObject?): Result {
-        val url = event.url.fillAddress(data)?.trim()
+        val filled = event.url.fillAddress(data)?.trim()
             ?: return Result.Missing(event.url.missingAddressPlaceholders(data).first())
+        // A web address typed without its scheme, as people do ("play.google.com/store/apps/..."), is a web page.
+        val url = if (WITHOUT_SCHEME.matches(filled)) "https://$filled" else filled
         val scheme = url.substringBefore(':', missingDelimiterValue = "").lowercase()
         if (scheme !in SCHEMES || url.length == scheme.length + 1) return Result.NotAllowed(url)
         return Result.Ready(url, scheme)
@@ -28,5 +30,8 @@ class OpenLinkUseCase {
     companion object {
         /** What an app may open: web pages, maps, the dialer and email. */
         val SCHEMES = setOf("https", "http", "geo", "tel", "mailto")
+
+        /** A host name with a dot ("example.com", "www.example.com/a?b") and no scheme before it. */
+        private val WITHOUT_SCHEME = Regex("^(?![a-zA-Z][a-zA-Z0-9+.-]*:)[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+([/?#].*)?$")
     }
 }
