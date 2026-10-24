@@ -11,6 +11,7 @@ import it.sapienza.appinterpreter.runtime.CurrentConfiguration
 import it.sapienza.appinterpreter.runtime.RuntimeStrings
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
+import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
@@ -19,6 +20,7 @@ import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
+import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.utils.DomainController
@@ -43,6 +45,8 @@ val appModule = module {
     single { AppData(SharedPreferencesStore(androidContext(), "AppData")) }
     factory { LoadStoredItemsUseCase(get(), get()) }
     factory { SaveItemUseCase(get(), get()) }
+    factory { UpdateItemUseCase(get(), get()) }
+    factory { DeleteItemsUseCase(get(), get()) }
     factory { LoadListItemsUseCase(get(), get()) }
     factory { InitialFormValuesUseCase() }
     factory { SubmitFormUseCase() }
@@ -66,6 +70,8 @@ val appModule = module {
             submitForm = get(),
             createCalendarEvent = get(),
             saveItem = get(),
+            updateItem = get(),
+            deleteItems = get(),
             openLink = get(),
             findMissingApiKeys = get(),
             loadScreen = get(),

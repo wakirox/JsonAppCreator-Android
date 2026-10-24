@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 
 class AppDataTest {
     private val store = MemoryAppStore()
@@ -72,6 +73,50 @@ class AppDataTest {
         data.add("app:ideas", "ideas", named("Dark mode"))
 
         assertEquals(listOf(AppData.Change("app:ideas", "ideas")), changes)
+        listening.cancel()
+    }
+
+    @Test
+    fun anUpdateChangesValuesButNeverTheIdOrTime() {
+        val first = data.add("app:ideas", "ideas", named("Dark mode"))
+        data.add("app:ideas", "ideas", named("Widgets"))
+        val changes = JsonObject(mapOf("done" to JsonPrimitive(true), "id" to JsonPrimitive("other"), "createdAt" to JsonPrimitive(5)))
+
+        val updated = data.update("app:ideas", "ideas", "id1", changes)
+
+        assertEquals(listOf("id1", "1000", "Dark mode", "true"), listOf("id", "createdAt", "name", "done").map { updated?.getValue(it) })
+        assertEquals(listOf("true", null), data.items("app:ideas", "ideas").map { it.getValue("done") })
+        assertEquals(first.getValue("id"), data.items("app:ideas", "ideas")[0].getValue("id"))
+    }
+
+    @Test
+    fun updatingWhatIsNotSavedChangesNothing() {
+        data.add("app:ideas", "ideas", named("Dark mode"))
+        assertNull(data.update("app:ideas", "ideas", "nope", named("x")))
+        assertEquals(listOf("Dark mode"), data.items("app:ideas", "ideas").map { it.getValue("name") })
+    }
+
+    @Test
+    fun deleteRemovesWhatMatchesAndCountsIt() {
+        listOf("a", "b", "c").forEach { data.add("app:ideas", "ideas", named(it)) }
+
+        assertEquals(2, data.delete("app:ideas", "ideas") { it.getValue("name") != "b" })
+        assertEquals(listOf("b"), data.items("app:ideas", "ideas").map { it.getValue("name") })
+        assertEquals(0, data.delete("app:ideas", "ideas") { false })
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun updatesAndDeletesAreAnnouncedButNotDeletesOfNothing() = runTest {
+        data.add("app:ideas", "ideas", named("Dark mode"))
+        val changes = mutableListOf<AppData.Change>()
+        val listening = launch(UnconfinedTestDispatcher(testScheduler)) { data.changes.toList(changes) }
+
+        data.update("app:ideas", "ideas", "id1", named("Light mode"))
+        data.delete("app:ideas", "ideas") { false }
+        data.delete("app:ideas", "ideas") { true }
+
+        assertEquals(2, changes.size)
         listening.cancel()
     }
 }

@@ -92,6 +92,36 @@ class SaveData(
 ) : Event()
 
 /**
+ * Changes the saved object of [collection] whose "id" is [id] (by default the current data's): the current data (the
+ * part [mapping] selects, if any; a form's submitted values) and [fields] replace its values, then [thenDo] runs with
+ * the changed object. Its "id" and "createdAt" never change. Placeholders are filled as in [SaveData].
+ */
+@Serializable
+class UpdateData(
+    val collection: String,
+    val id: String = "\${id}",
+    val fields: JsonObject? = null,
+    val thenDo: Event? = null,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
+/**
+ * Removes from [collection] the saved object whose "id" is [id] (by default the current data's), or, with [where],
+ * every object that matches it as a stored list's would; then runs [thenDo] with the current data. Nothing saved
+ * that matches is not a mistake.
+ */
+@Serializable
+class DeleteData(
+    val collection: String,
+    val id: String = "\${id}",
+    val where: JsonObject? = null,
+    val thenDo: Event? = null,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
+/**
  * How a list asks for more items: either the query [parameter] (such as "skip") grows by [step], the page size,
  * from its value in the first URL (0 without one), until a page has fewer than [step] items; or the next page's URL
  * is the response's value at [urlFrom], until there is none.
@@ -121,7 +151,9 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent },
         TypedSerializer.Type("open", OpenLink.serializer()) { it is OpenLink },
         TypedSerializer.Type("share", ShareText.serializer()) { it is ShareText },
-        TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData }
+        TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData },
+        TypedSerializer.Type("update", UpdateData.serializer()) { it is UpdateData },
+        TypedSerializer.Type("delete", DeleteData.serializer()) { it is DeleteData }
     )
 )
 

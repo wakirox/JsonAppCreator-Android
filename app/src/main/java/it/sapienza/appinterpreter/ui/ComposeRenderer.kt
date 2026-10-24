@@ -33,6 +33,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -70,6 +71,7 @@ import it.sapienza.appinterpreter.runtime.ViewVisibility
 import it.sapienza.appinterpreter.runtime.text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
@@ -108,6 +110,7 @@ import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.action.ActionType
 import it.sapienza.appinterpreter.model.view_model.ButtonView
+import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ImageView
 import it.sapienza.appinterpreter.model.view_model.ImageScale
@@ -253,6 +256,7 @@ private fun RenderNode(
         is ImageView -> RenderImage(resolved, data, modifier, allowImagePreview)
         is ListView -> RenderList(resolved, data, modifier)
         is FormView -> RenderForm(resolved, data, modifier)
+        is CheckView -> RenderCheck(resolved, data, modifier)
     }
 }
 
@@ -382,6 +386,27 @@ private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier
             ) else Modifier
         )
     ) { Text(title) }
+}
+
+/** A tick box: ticked when the data's value is true; ticking it runs the action at once. A ticked title is struck through. */
+@Composable
+private fun RenderCheck(view: CheckView, data: JsonObject?, modifier: Modifier) {
+    val screen = LocalScreen.current
+    val checked = data?.getValue(view.mapping) == "true"
+    // The whole row ticks, title included.
+    Row(
+        modifier.fillMaxWidth().toggleable(value = checked, role = Role.Checkbox, onValueChange = { screen.onCheck(view, data, it) }),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(checked, onCheckedChange = null)
+        Spacer(Modifier.width(12.dp))
+        Text(
+            view.title?.matchReplace(data).orEmpty(),
+            style = MaterialTheme.typography.bodyLarge,
+            textDecoration = if (checked) TextDecoration.LineThrough else null,
+            color = if (checked) MaterialTheme.colorScheme.onSurfaceVariant else Color.Unspecified
+        )
+    }
 }
 
 @Composable

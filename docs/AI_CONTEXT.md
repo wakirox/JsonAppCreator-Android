@@ -90,6 +90,7 @@ Views:
 - `image`
 - `list`
 - `form`
+- `check` (a tick box for a true/false field; ticking it runs its action at once, usually `update`)
 
 Events:
 
@@ -98,6 +99,8 @@ Events:
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
 - `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
+- `update` (changes a saved object, by default the one with the current data's `id`)
+- `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
   maps, the dialer or email; nothing else opens)
 - `share` (opens the share sheet on a text)
@@ -112,8 +115,8 @@ Other enums:
 - Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
 
 Do not invent support for PATCH, JavaScript expressions, conditions other than
-`visibleIf`, databases beyond `save` and `stored` (saved objects can't be changed or
-deleted yet), arbitrary native components, or undocumented style properties.
+`visibleIf`, databases beyond `save`, `update`, `delete` and `stored`, arbitrary native
+components, or undocumented style properties.
 
 ## Common mistakes
 
@@ -271,6 +274,17 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `buttonTitle`: text. The submit button's text; Submit by default
 - `formElements` **(required)**: an array; each item is a form field. The fields; each one puts its value under its mapping in the submitted object
 
+#### `check`
+
+A tick box, ticked when the data's true/false value at mapping is true. Ticking it runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through.
+
+- `id`: text (not empty)
+- `action`: an action (or `{ "ref": "id" }`). Runs when the box is ticked or unticked, with the data where the value at mapping says so; usually an update event
+- `mapping` **(required)**: text (not empty). The field holding true or false, such as "done"
+- `data`: an object with any data
+- `visibleIf`: text
+- `title`: text. The text beside the box; may use ${field} placeholders
+
 ### Form fields
 
 The items of a form's `formElements`.
@@ -395,6 +409,28 @@ Saves the current data (a form's submitted values) on the phone as a new object 
 - `fields`: an object. Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { "appId": "${id}" }
 - `thenDo`: an event. The event to run next, with the saved object as data
 - `mapping`: text. Path of the part of the current data to save
+- `data`: an object with any data
+
+#### `update`
+
+Changes a saved object: the current data (a form's submitted values, or a ticked check's item) and fields replace its values. Its id and createdAt never change.
+
+- `collection` **(required)**: text (not empty). The collection the object is in
+- `id`: text (not empty). The id of the object to change; "${id}" (the current data's id) by default
+- `fields`: an object. Values to set too; text may use ${field} placeholders, filled as in a save event
+- `thenDo`: an event. The event to run next, with the changed object as data
+- `mapping`: text. Path of the part of the current data to save
+- `data`: an object with any data
+
+#### `delete`
+
+Removes saved objects: the one whose id is id (the current data's by default), or every one where matches. Put it behind an alert's thenDoOK to ask first.
+
+- `collection` **(required)**: text (not empty). The collection to remove from
+- `id`: text (not empty). The id of the object to remove; "${id}" (the current data's id) by default
+- `where`: an object. Instead of id: removes every object whose fields have these values, with ${field} placeholders from the current data, such as { "appId": "${id}" }
+- `thenDo`: an event. The event to run next, with the current data
+- `mapping`: text. Path of the part of the current data the id or where is filled in from
 - `data`: an object with any data
 
 ### Actions and references

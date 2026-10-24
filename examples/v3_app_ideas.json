@@ -19,8 +19,32 @@
       {
         "type": "list",
         "stored": { "collection": "apps" },
-        "action": { "id": "open_app", "event": { "type": "show", "view": { "ref": "app" } } },
-        "itemView": { "type": "text", "mapping": "name", "textStyle": "bold" }
+        "emptyText": "No apps yet: add one above.",
+        "action": { "id": "open_app", "event": { "type": "show", "view": { "ref": "app" }, "title": "${name}" } },
+        "itemView": {
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            { "type": "text", "mapping": "name", "textStyle": "bold" },
+            {
+              "type": "button",
+              "title": "Delete",
+              "size": { "width": 110 },
+              "action": {
+                "id": "delete_app",
+                "event": {
+                  "type": "alert",
+                  "value": "Delete ${name} and its ideas?",
+                  "thenDoOK": {
+                    "type": "delete",
+                    "collection": "apps",
+                    "thenDo": { "type": "delete", "collection": "ideas", "where": { "appId": "${id}" } }
+                  }
+                }
+              }
+            }
+          ]
+        }
       }
     ]
   },
@@ -29,7 +53,6 @@
       "id": "app",
       "type": "layout",
       "views": [
-        { "type": "text", "mapping": "name", "textStyle": "bold", "textSize": 22 },
         {
           "type": "form",
           "title": "New idea",
@@ -37,12 +60,33 @@
           "formElements": [
             { "type": "text", "mapping": "title", "title": "Idea", "mandatory": true }
           ],
-          "action": { "id": "add_idea", "event": { "type": "save", "collection": "ideas", "fields": { "appId": "${id}" } } }
+          "action": { "id": "add_idea", "event": { "type": "save", "collection": "ideas", "fields": { "appId": "${id}", "done": false } } }
         },
         {
           "type": "list",
           "stored": { "collection": "ideas", "where": { "appId": "${id}" } },
-          "itemView": { "type": "text", "mapping": "title" }
+          "emptyText": "No ideas for ${name} yet.",
+          "itemView": {
+            "type": "layout",
+            "orientation": "horizontal",
+            "views": [
+              {
+                "type": "check",
+                "mapping": "done",
+                "title": "${title}",
+                "action": { "id": "tick_idea", "event": { "type": "update", "collection": "ideas" } }
+              },
+              {
+                "type": "button",
+                "title": "Delete",
+                "size": { "width": 110 },
+                "action": {
+                  "id": "delete_idea",
+                  "event": { "type": "alert", "value": "Delete ${title}?", "thenDoOK": { "type": "delete", "collection": "ideas" } }
+                }
+              }
+            ]
+          }
         }
       ]
     }

@@ -13,14 +13,18 @@ import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.CalendarEvent
+import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.Event
 import it.sapienza.appinterpreter.model.event.OpenLink
 import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.event.SaveData
 import it.sapienza.appinterpreter.model.event.ShowView
+import it.sapienza.appinterpreter.model.event.UpdateData
+import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
@@ -30,6 +34,7 @@ import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
+import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -61,6 +66,8 @@ class ScreenViewModel(
     submitForm: SubmitFormUseCase,
     private val createCalendarEvent: CreateCalendarEventUseCase,
     private val saveItem: SaveItemUseCase,
+    private val updateItem: UpdateItemUseCase,
+    private val deleteItems: DeleteItemsUseCase,
     private val openLink: OpenLinkUseCase,
     findMissingApiKeys: FindMissingApiKeysUseCase,
     loadScreen: LoadScreenUseCase,
@@ -123,15 +130,21 @@ class ScreenViewModel(
         resolved.event?.let { onEvent(it, resolved.data ?: data) }
     }
 
+    /** [view] was ticked ([checked]) or unticked: its action runs with the data where its value says so. */
+    fun onCheck(view: CheckView, data: JsonObject?, checked: Boolean) {
+        onAction(view.action, JsonObject(data.orEmpty() + (view.mapping to JsonPrimitive(checked))))
+    }
+
     /**
      * Sends [form] to its action's event, once every required field is filled in. A form whose values are saved on the
-     * phone starts empty again, ready for the next one.
+     * phone as a new object starts empty again, ready for the next one; a form that changes one keeps its values.
      */
     fun onSubmit(form: FormView, data: JsonObject?) {
         val json = forms.submit(form, data) ?: return
         when (val event = resolve(form.action)?.event) {
             null -> Unit
-            is SaveData -> if (save(event, json, context = data)) forms.reset(form, data)
+            is SaveData -> if (store(event.thenDo) { saveItem(event, json, context = data) }) forms.reset(form, data)
+            is UpdateData -> store(event.thenDo) { updateItem(event, json, context = data) }
             else -> onEvent(event, json)
         }
     }
@@ -142,7 +155,9 @@ class ScreenViewModel(
             // The view receives the part of the data the mapping selects, such as "meals.0".
             is ShowView -> openScreen(event, event.mapping?.let { data?.getObject(it) } ?: data)
             is RESTService -> request(event, data)
-            is SaveData -> save(event, data, context = data)
+            is SaveData -> store(event.thenDo) { saveItem(event, data, context = data) }
+            is UpdateData -> store(event.thenDo) { updateItem(event, data, context = data) }
+            is DeleteData -> store(event.thenDo) { deleteItems(event, data).let { data } }
             is CalendarEvent -> when (val result = createCalendarEvent(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
                 is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
                 is CreateCalendarEventUseCase.Result.BadDate -> alerts.show(result.message)
@@ -174,15 +189,18 @@ class ScreenViewModel(
         effectChannel.trySend(Effect.OpenScreen(definition, data, title))
     }
 
-    /** Saves [values] as [event] says, then runs its next event with the saved object; false when it couldn't. */
-    private fun save(event: SaveData, values: JsonObject?, context: JsonObject?): Boolean {
-        val item = try {
-            saveItem(event, values, context)
+    /**
+     * Saves, changes or deletes data on the phone with [change], then runs [thenDo] with what it gives back (the saved
+     * object, or the data a delete had); false, after an alert says why, when it couldn't.
+     */
+    private fun store(thenDo: Event?, change: () -> JsonObject?): Boolean {
+        val result = try {
+            change()
         } catch (e: Exception) {
             alerts.show(e.message ?: "An error occurred")
             return false
         }
-        event.thenDo?.let { onEvent(it, item) }
+        thenDo?.let { onEvent(it, result) }
         return true
     }
 
