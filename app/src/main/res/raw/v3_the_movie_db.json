@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
-  "name": "THE MOVIE DB",
+  "name": "Movies",
   "icon": "🎬",
   "version": "beta.1",
   "author": "Appkin",
-  "changelog": "Movies and people from The Movie Database (TMDB). This product uses the TMDB API but is not endorsed or certified by TMDB.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
+  "changelog": "Popular films and people from The Movie Database (TMDB). This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.\nReport problems on GitHub: github.com/wakirox/JsonAppCreator-Android/issues",
   "mainView": {
     "id": "l0",
     "type": "layout",
@@ -125,8 +125,8 @@
       },
       {
         "type": "text",
-        "label": "Data from TMDB",
-        "title": "This product uses the TMDB API but is not endorsed or certified by TMDB.\nhttps://www.themoviedb.org/"
+        "label": "Powered by TMDB",
+        "title": "This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB. The TMDB logo is in About Appkin.\nhttps://www.themoviedb.org/"
       }
     ]
   },

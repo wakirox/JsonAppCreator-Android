@@ -80,12 +80,14 @@ class RESTService(
 /**
  * Saves the current data (the part [mapping] selects, if any) as a new object of the app's [collection] on the phone,
  * with [fields] added, then runs [thenDo] with the saved object. Its ${field} placeholders are filled from the data
- * the form showed (for a form: the screen's or the row's), then from the submitted values.
+ * the form showed (for a form: the screen's or the row's), then from the submitted values. With [unique], an object
+ * already saved with the same value in that field is replaced instead (keeping its id), so saving twice keeps one.
  */
 @Serializable
 class SaveData(
     val collection: String,
     val fields: JsonObject? = null,
+    val unique: String? = null,
     val thenDo: Event? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null
