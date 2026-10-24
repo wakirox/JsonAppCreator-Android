@@ -10,6 +10,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -224,9 +227,19 @@ class HomeActivity : AppCompatActivity() {
                         onDismissRequest = { aboutOpen = false },
                         title = { Text(stringResource(R.string.app_name)) },
                         text = {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME))
                                 Text(stringResource(R.string.home_about_text))
+                                Text(stringResource(R.string.about_contact))
+                                Text(stringResource(R.string.about_credits), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+                                Text(stringResource(R.string.about_credits_commons))
+                                // TMDB's terms: their logo, less prominent than ours, beside this notice.
+                                Image(
+                                    painterResource(R.drawable.tmdb_logo),
+                                    contentDescription = stringResource(R.string.about_tmdb_logo),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                                Text(stringResource(R.string.about_credits_tmdb))
                             }
                         },
                         confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } },
@@ -374,7 +387,7 @@ private val STEPS = listOf(
 private data class Example(val name: Int, val about: Int, val configuration: Int, val icon: String)
 
 private val EXAMPLES = listOf(
-    Example(R.string.example_art_explorer, R.string.example_art_explorer_about, R.raw.v3_art_explorer, "🏛️"),
+    Example(R.string.example_masterpieces, R.string.example_masterpieces_about, R.raw.v3_masterpieces, "🖼️"),
     Example(R.string.example_app_ideas, R.string.example_app_ideas_about, R.raw.v3_app_ideas, "💡"),
-    Example(R.string.example_movie_db, R.string.example_movie_db_about, R.raw.v3_the_movie_db, "🎬")
+    Example(R.string.example_movies, R.string.example_movies_about, R.raw.v3_the_movie_db, "🎬")
 )

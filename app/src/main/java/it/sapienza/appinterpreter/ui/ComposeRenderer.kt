@@ -565,13 +565,14 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     item(key = "list-more") { Box(Modifier.width(cardWidth)) { MoreItems(entry, state, automatic = true) } }
                 }
             }
+            // Every card as tall as the tallest, so a title on two lines doesn't make one card stick out.
             view.orientation == LayoutOrientation.horizontal -> Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 val cardWidth = (view.itemView.explicitWidth()?.plus(28) ?: 300).dp
                 state.items.forEach { item ->
-                    ListCard(view, item, Modifier.width(cardWidth))
+                    ListCard(view, item, Modifier.width(cardWidth).fillMaxHeight())
                 }
             }
             view.columnCount > 1 -> state.items.chunked(view.columnCount).forEachIndexed { index, row ->
@@ -772,8 +773,9 @@ private fun ListCardContent(
                         allowImagePreview = false,
                         edgeToEdge = true
                     )
-                    // A button among a card's texts is drawn as text, as it always was (ButtonView was a TextView).
-                    child is TextualView -> RenderText(
+                    // A button among a card's texts is drawn as text, as it always was (ButtonView was a TextView),
+                    // unless it is only an icon.
+                    child is TextualView && !child.isIconOnly() -> RenderText(
                         view = child,
                         data = item,
                         modifier = Modifier.fillMaxWidth(),
@@ -812,8 +814,10 @@ private fun ListCardContent(
                     fillParentHeight = true
                 )
             }
+            // Icon buttons (such as Remove) sit at the row's end; the rest is a column beside the image.
+            val (icons, others) = resolvedChildren.drop(1).partition { it.isIconOnly() }
             Column(Modifier.weight(1f)) {
-                resolvedChildren.drop(1).forEach { child ->
+                others.forEach { child ->
                     when (child) {
                         is TextualView -> RenderHorizontalCardText(
                             view = child,
@@ -826,6 +830,7 @@ private fun ListCardContent(
                     }
                 }
             }
+            icons.forEach { RenderNode(it, item, Modifier.padding(end = 8.dp), allowImagePreview = false) }
         }
     } else {
         Column(Modifier.padding(14.dp)) {

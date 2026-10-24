@@ -63,8 +63,8 @@ class SharedAppsTest {
     fun everyExampleListsItsWebsites() {
         val masterpieces = Fixtures.configurations.getValue("examples/v3_masterpieces.json")
         assertTrue(SharedApps.webAddresses(masterpieces).contains("commons.wikimedia.org"))
-        val artExplorer = Fixtures.configurations.getValue("raw/v3_art_explorer.json")
-        assertTrue(SharedApps.webAddresses(artExplorer).isNotEmpty())
+        val movies = Fixtures.configurations.getValue("raw/v3_the_movie_db.json")
+        assertTrue(SharedApps.webAddresses(movies).contains("api.themoviedb.org"))
     }
 
     @Test

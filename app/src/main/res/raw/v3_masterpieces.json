@@ -2,125 +2,631 @@
   "schemaVersion": 3,
   "name": "Masterpieces",
   "icon": "🖼️",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "Appkin",
-  "changelog": "Public-domain paintings; images from Wikimedia Commons.",
+  "changelog": "25 public-domain works in five periods, favourites kept on the phone, maps and links; images from Wikimedia Commons.",
   "mainView": {
     "type": "layout",
     "data": {
-      "artworks": [
+      "renaissance": [
         {
-          "title": "The Great Wave off Kanagawa",
-          "artist": "Katsushika Hokusai",
-          "year": "c. 1831",
-          "medium": "Woodblock print",
-          "where": "Japan",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=960",
-          "about": "A giant wave curls over three boats while Mount Fuji sits small in the distance."
+          "key": "mona-lisa",
+          "title": "Mona Lisa",
+          "artist": "Leonardo da Vinci",
+          "year": "c. 1503–1519",
+          "medium": "Oil on poplar panel",
+          "museum": "Louvre",
+          "city": "Paris",
+          "about": "A calm half-smile and a hazy, dreamlike landscape: Leonardo blurred every edge so the face seems to breathe.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Mona_Lisa",
+          "source": "https://commons.wikimedia.org/wiki/File:Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg"
         },
         {
+          "key": "birth-of-venus",
+          "title": "The Birth of Venus",
+          "artist": "Sandro Botticelli",
+          "year": "c. 1484–1486",
+          "medium": "Tempera on canvas",
+          "museum": "Uffizi Gallery",
+          "city": "Florence",
+          "about": "The goddess of love arrives on a scallop shell, blown ashore by the winds while a nymph waits with a cloak.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Birth_of_Venus",
+          "source": "https://commons.wikimedia.org/wiki/File:Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg"
+        },
+        {
+          "key": "school-of-athens",
+          "title": "The School of Athens",
+          "artist": "Raphael",
+          "year": "1509–1511",
+          "medium": "Fresco",
+          "museum": "Vatican Museums",
+          "city": "Vatican City",
+          "about": "Plato and Aristotle walk at the centre of a vast hall full of philosophers, painted on a wall of the Pope's rooms.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/\"The_School_of_Athens\"_by_Raffaello_Sanzio_da_Urbino.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/\"The_School_of_Athens\"_by_Raffaello_Sanzio_da_Urbino.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_School_of_Athens",
+          "source": "https://commons.wikimedia.org/wiki/File:\"The_School_of_Athens\"_by_Raffaello_Sanzio_da_Urbino.jpg"
+        },
+        {
+          "key": "arnolfini-portrait",
+          "title": "The Arnolfini Portrait",
+          "artist": "Jan van Eyck",
+          "year": "1434",
+          "medium": "Oil on oak panel",
+          "museum": "National Gallery",
+          "city": "London",
+          "about": "A merchant couple in their room; look closely at the round mirror on the back wall to find two more people.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Van_Eyck_-_Arnolfini_Portrait.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Van_Eyck_-_Arnolfini_Portrait.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Arnolfini_Portrait",
+          "source": "https://commons.wikimedia.org/wiki/File:Van_Eyck_-_Arnolfini_Portrait.jpg"
+        },
+        {
+          "key": "hunters-in-the-snow",
+          "title": "The Hunters in the Snow",
+          "artist": "Pieter Bruegel the Elder",
+          "year": "1565",
+          "medium": "Oil on oak panel",
+          "museum": "Kunsthistorisches Museum",
+          "city": "Vienna",
+          "about": "Tired hunters and their dogs come home over a hill, above a valley of frozen ponds full of skaters.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_(Winter)_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_(Winter)_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Hunters_in_the_Snow",
+          "source": "https://commons.wikimedia.org/wiki/File:Pieter_Bruegel_the_Elder_-_Hunters_in_the_Snow_(Winter)_-_Google_Art_Project.jpg"
+        }
+      ],
+      "golden-age": [
+        {
+          "key": "girl-with-a-pearl-earring",
           "title": "Girl with a Pearl Earring",
           "artist": "Johannes Vermeer",
           "year": "c. 1665",
           "medium": "Oil on canvas",
-          "where": "Mauritshuis, The Hague",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=960",
-          "about": "A girl in a blue and yellow turban turns toward us, a large pearl catching the light."
+          "museum": "Mauritshuis",
+          "city": "The Hague",
+          "about": "A girl in a blue and yellow turban turns towards us; the famous pearl is little more than two strokes of white.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/1665_Girl_with_a_Pearl_Earring.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Girl_with_a_Pearl_Earring",
+          "source": "https://commons.wikimedia.org/wiki/File:1665_Girl_with_a_Pearl_Earring.jpg"
         },
         {
+          "key": "milkmaid",
+          "title": "The Milkmaid",
+          "artist": "Johannes Vermeer",
+          "year": "c. 1658",
+          "medium": "Oil on canvas",
+          "museum": "Rijksmuseum",
+          "city": "Amsterdam",
+          "about": "A kitchen maid pours milk in a slow, steady stream, lit by the window on the left.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Johannes_Vermeer_-_Het_melkmeisje_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Johannes_Vermeer_-_Het_melkmeisje_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Milkmaid_(Vermeer)",
+          "source": "https://commons.wikimedia.org/wiki/File:Johannes_Vermeer_-_Het_melkmeisje_-_Google_Art_Project.jpg"
+        },
+        {
+          "key": "night-watch",
+          "title": "The Night Watch",
+          "artist": "Rembrandt",
+          "year": "1642",
+          "medium": "Oil on canvas",
+          "museum": "Rijksmuseum",
+          "city": "Amsterdam",
+          "about": "A city militia steps out into the light; despite its name, the scene takes place in daytime.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Night_Watch_-_HD.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Night_Watch_-_HD.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Night_Watch",
+          "source": "https://commons.wikimedia.org/wiki/File:The_Night_Watch_-_HD.jpg"
+        },
+        {
+          "key": "view-of-delft",
+          "title": "View of Delft",
+          "artist": "Johannes Vermeer",
+          "year": "c. 1660–1661",
+          "medium": "Oil on canvas",
+          "museum": "Mauritshuis",
+          "city": "The Hague",
+          "about": "Vermeer's home town seen across the water, with sunlight breaking through the clouds onto its roofs.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Vermeer-view-of-delft.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vermeer-view-of-delft.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/View_of_Delft",
+          "source": "https://commons.wikimedia.org/wiki/File:Vermeer-view-of-delft.jpg"
+        }
+      ],
+      "japanese-prints": [
+        {
+          "key": "great-wave",
+          "title": "The Great Wave off Kanagawa",
+          "artist": "Katsushika Hokusai",
+          "year": "c. 1831",
+          "medium": "Woodblock print",
+          "museum": "Prints in many museums",
+          "city": "Tokyo",
+          "about": "A giant wave curls over three boats while Mount Fuji sits small in the distance.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa",
+          "source": "https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg"
+        },
+        {
+          "key": "red-fuji",
+          "title": "Fine Wind, Clear Morning",
+          "artist": "Katsushika Hokusai",
+          "year": "c. 1831",
+          "medium": "Woodblock print",
+          "museum": "Prints in many museums",
+          "city": "Tokyo",
+          "about": "Mount Fuji turns red in the early sun of a late summer morning, under a sky of small clouds.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Red_Fuji_southern_wind_clear_morning.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Red_Fuji_southern_wind_clear_morning.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Fine_Wind,_Clear_Morning",
+          "source": "https://commons.wikimedia.org/wiki/File:Red_Fuji_southern_wind_clear_morning.jpg"
+        },
+        {
+          "key": "sudden-shower",
+          "title": "Sudden Shower over Shin-Ōhashi Bridge",
+          "artist": "Utagawa Hiroshige",
+          "year": "1857",
+          "medium": "Woodblock print",
+          "museum": "Prints in many museums",
+          "city": "Tokyo",
+          "about": "People hurry across a bridge in a summer downpour; Van Gogh liked it so much he painted a copy.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Hiroshige_Atake_sous_une_averse_soudaine.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hiroshige_Atake_sous_une_averse_soudaine.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Sudden_Shower_over_Shin-Ōhashi_Bridge_and_Atake",
+          "source": "https://commons.wikimedia.org/wiki/File:Hiroshige_Atake_sous_une_averse_soudaine.jpg"
+        }
+      ],
+      "romanticism": [
+        {
+          "key": "wanderer",
+          "title": "Wanderer above the Sea of Fog",
+          "artist": "Caspar David Friedrich",
+          "year": "c. 1818",
+          "medium": "Oil on canvas",
+          "museum": "Hamburger Kunsthalle",
+          "city": "Hamburg",
+          "about": "A man stands on a rocky peak with his back to us, looking out over a landscape drowned in fog.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Wanderer_Above_the_Sea_of_Fog",
+          "source": "https://commons.wikimedia.org/wiki/File:Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg"
+        },
+        {
+          "key": "fighting-temeraire",
+          "title": "The Fighting Temeraire",
+          "artist": "J. M. W. Turner",
+          "year": "1839",
+          "medium": "Oil on canvas",
+          "museum": "National Gallery",
+          "city": "London",
+          "about": "An old warship, ghostly pale, is towed to the breaker's yard by a small black steam tug at sunset.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Fighting_Temeraire,_JMW_Turner,_National_Gallery.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Fighting_Temeraire,_JMW_Turner,_National_Gallery.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Fighting_Temeraire",
+          "source": "https://commons.wikimedia.org/wiki/File:The_Fighting_Temeraire,_JMW_Turner,_National_Gallery.jpg"
+        },
+        {
+          "key": "liberty",
+          "title": "Liberty Leading the People",
+          "artist": "Eugène Delacroix",
+          "year": "1830",
+          "medium": "Oil on canvas",
+          "museum": "Louvre",
+          "city": "Paris",
+          "about": "Liberty, flag in hand, leads Parisians over a barricade during the July Revolution of 1830.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Eugène_Delacroix_-_La_liberté_guidant_le_peuple.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Eugène_Delacroix_-_La_liberté_guidant_le_peuple.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Liberty_Leading_the_People",
+          "source": "https://commons.wikimedia.org/wiki/File:Eugène_Delacroix_-_La_liberté_guidant_le_peuple.jpg"
+        },
+        {
+          "key": "hay-wain",
+          "title": "The Hay Wain",
+          "artist": "John Constable",
+          "year": "1821",
+          "medium": "Oil on canvas",
+          "museum": "National Gallery",
+          "city": "London",
+          "about": "A horse-drawn cart crosses a shallow river in the Suffolk countryside on a summer day.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/John_Constable_-_The_Hay_Wain_(1821).jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/John_Constable_-_The_Hay_Wain_(1821).jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Hay_Wain",
+          "source": "https://commons.wikimedia.org/wiki/File:John_Constable_-_The_Hay_Wain_(1821).jpg"
+        }
+      ],
+      "modern": [
+        {
+          "key": "impression-sunrise",
+          "title": "Impression, Sunrise",
+          "artist": "Claude Monet",
+          "year": "1872",
+          "medium": "Oil on canvas",
+          "museum": "Musée Marmottan Monet",
+          "city": "Paris",
+          "about": "The harbour of Le Havre in morning mist, with an orange sun; its title gave Impressionism its name.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Monet_-_Impression,_Sunrise.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Monet_-_Impression,_Sunrise.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Impression,_Sunrise",
+          "source": "https://commons.wikimedia.org/wiki/File:Monet_-_Impression,_Sunrise.jpg"
+        },
+        {
+          "key": "paris-street",
           "title": "Paris Street; Rainy Day",
           "artist": "Gustave Caillebotte",
           "year": "1877",
           "medium": "Oil on canvas",
-          "where": "Art Institute of Chicago",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=960",
-          "about": "Umbrellas, wet cobblestones and new boulevards: Paris on a grey afternoon."
+          "museum": "Art Institute of Chicago",
+          "city": "Chicago",
+          "about": "Parisians with umbrellas cross a wide, wet street in the new city rebuilt by Baron Haussmann.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Paris_Street;_Rainy_Day",
+          "source": "https://commons.wikimedia.org/wiki/File:Gustave_Caillebotte_-_Paris_Street;_Rainy_Day_-_Google_Art_Project.jpg"
         },
         {
-          "title": "The Kiss",
-          "artist": "Gustav Klimt",
-          "year": "1907–1908",
-          "medium": "Oil and gold leaf on canvas",
-          "where": "Belvedere, Vienna",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg?width=960",
-          "about": "Two lovers wrapped in a robe of gold, kneeling at the edge of a flower meadow."
-        },
-        {
-          "title": "The Bedroom",
-          "artist": "Vincent van Gogh",
-          "year": "1889",
-          "medium": "Oil on canvas",
-          "where": "Art Institute of Chicago",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincent_van_Gogh_-_The_Bedroom_-_Google_Art_Project.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincent_van_Gogh_-_The_Bedroom_-_Google_Art_Project.jpg?width=960",
-          "about": "Van Gogh's room in Arles, painted in bright colours to suggest rest."
-        },
-        {
+          "key": "grande-jatte",
           "title": "A Sunday on La Grande Jatte",
           "artist": "Georges Seurat",
           "year": "1884–1886",
           "medium": "Oil on canvas",
-          "where": "Art Institute of Chicago",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Georges_Seurat_-_A_Sunday_on_La_Grande_Jatte_--_1884_-_Google_Art_Project.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Georges_Seurat_-_A_Sunday_on_La_Grande_Jatte_--_1884_-_Google_Art_Project.jpg?width=960",
-          "about": "Parisians relax by the Seine, painted entirely in tiny dots of colour."
+          "museum": "Art Institute of Chicago",
+          "city": "Chicago",
+          "about": "Parisians relax on an island in the Seine, painted entirely in tiny dots of pure colour.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Georges_Seurat_-_A_Sunday_on_La_Grande_Jatte_--_1884_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Georges_Seurat_-_A_Sunday_on_La_Grande_Jatte_--_1884_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/A_Sunday_Afternoon_on_the_Island_of_La_Grande_Jatte",
+          "source": "https://commons.wikimedia.org/wiki/File:Georges_Seurat_-_A_Sunday_on_La_Grande_Jatte_--_1884_-_Google_Art_Project.jpg"
         },
         {
+          "key": "cliff-walk",
           "title": "Cliff Walk at Pourville",
           "artist": "Claude Monet",
           "year": "1882",
           "medium": "Oil on canvas",
-          "where": "Art Institute of Chicago",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Claude_Monet_-_Cliff_Walk_at_Pourville_-_Google_Art_Project.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Claude_Monet_-_Cliff_Walk_at_Pourville_-_Google_Art_Project.jpg?width=960",
-          "about": "Two figures stand on a windy clifftop above a sparkling sea."
+          "museum": "Art Institute of Chicago",
+          "city": "Chicago",
+          "about": "Two figures on a windy clifftop above a sea full of sails, all in quick, bright brushstrokes.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Claude_Monet_-_Cliff_Walk_at_Pourville_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Claude_Monet_-_Cliff_Walk_at_Pourville_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Cliff_Walk_at_Pourville",
+          "source": "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_Cliff_Walk_at_Pourville_-_Google_Art_Project.jpg"
         },
         {
+          "key": "bedroom",
+          "title": "The Bedroom",
+          "artist": "Vincent van Gogh",
+          "year": "1889",
+          "medium": "Oil on canvas",
+          "museum": "Art Institute of Chicago",
+          "city": "Chicago",
+          "about": "Van Gogh's own room in Arles, in flat bright colours meant to feel restful.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincent_van_Gogh_-_The_Bedroom_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincent_van_Gogh_-_The_Bedroom_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/Bedroom_in_Arles",
+          "source": "https://commons.wikimedia.org/wiki/File:Vincent_van_Gogh_-_The_Bedroom_-_Google_Art_Project.jpg"
+        },
+        {
+          "key": "starry-night",
+          "title": "The Starry Night",
+          "artist": "Vincent van Gogh",
+          "year": "1889",
+          "medium": "Oil on canvas",
+          "museum": "Museum of Modern Art",
+          "city": "New York",
+          "about": "Swirling stars over a sleeping village, painted from memory in the asylum at Saint-Rémy.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Starry_Night",
+          "source": "https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg"
+        },
+        {
+          "key": "basket-of-apples",
           "title": "The Basket of Apples",
           "artist": "Paul Cézanne",
           "year": "c. 1893",
           "medium": "Oil on canvas",
-          "where": "Art Institute of Chicago",
-          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Paul_Cézanne_-_The_Basket_of_Apples_-_1926.252_-_Art_Institute_of_Chicago.jpg?width=330",
-          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paul_Cézanne_-_The_Basket_of_Apples_-_1926.252_-_Art_Institute_of_Chicago.jpg?width=960",
-          "about": "A tilted table, a bottle and apples that seem about to roll away."
+          "museum": "Art Institute of Chicago",
+          "city": "Chicago",
+          "about": "A still life where the table tilts and the bottle leans, as if seen from several places at once.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Paul_Cézanne_-_The_Basket_of_Apples_-_1926.252_-_Art_Institute_of_Chicago.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paul_Cézanne_-_The_Basket_of_Apples_-_1926.252_-_Art_Institute_of_Chicago.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Basket_of_Apples",
+          "source": "https://commons.wikimedia.org/wiki/File:Paul_Cézanne_-_The_Basket_of_Apples_-_1926.252_-_Art_Institute_of_Chicago.jpg"
+        },
+        {
+          "key": "scream",
+          "title": "The Scream",
+          "artist": "Edvard Munch",
+          "year": "1893",
+          "medium": "Oil, tempera and pastel on cardboard",
+          "museum": "National Museum",
+          "city": "Oslo",
+          "about": "A figure on a bridge clutches its face under a blood-red sky.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/Edvard_Munch,_1893,_The_Scream,_oil,_tempera_and_pastel_on_cardboard,_91_x_73_cm,_National_Gallery_of_Norway.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Edvard_Munch,_1893,_The_Scream,_oil,_tempera_and_pastel_on_cardboard,_91_x_73_cm,_National_Gallery_of_Norway.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Scream",
+          "source": "https://commons.wikimedia.org/wiki/File:Edvard_Munch,_1893,_The_Scream,_oil,_tempera_and_pastel_on_cardboard,_91_x_73_cm,_National_Gallery_of_Norway.jpg"
+        },
+        {
+          "key": "the-kiss",
+          "title": "The Kiss",
+          "artist": "Gustav Klimt",
+          "year": "1907–1908",
+          "medium": "Oil and gold leaf on canvas",
+          "museum": "Belvedere",
+          "city": "Vienna",
+          "about": "Two lovers wrapped in a golden robe of patterns, kneeling on a meadow of flowers.",
+          "thumb": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg?width=320",
+          "image": "https://commons.wikimedia.org/wiki/Special:FilePath/The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg?width=1280",
+          "wiki": "https://en.wikipedia.org/wiki/The_Kiss_(Klimt)",
+          "source": "https://commons.wikimedia.org/wiki/File:The_Kiss_-_Gustav_Klimt_-_Google_Cultural_Institute.jpg"
         }
       ]
     },
     "views": [
       {
         "type": "text",
-        "label": "Masterpieces",
-        "title": "Eight paintings everyone knows. Tap one to see it up close.",
-        "textStyle": "bold",
-        "textSize": 20
+        "title": "25 paintings and prints everyone knows, from the Renaissance to Klimt. Tap one to see it up close, and keep your favourites.",
+        "textSize": 17
+      },
+      {
+        "type": "layout",
+        "orientation": "horizontal",
+        "views": [
+          {
+            "type": "button",
+            "title": "Favourites",
+            "icon": "star",
+            "action": {
+              "id": "open_favourites",
+              "event": {
+                "type": "show",
+                "view": {
+                  "ref": "favourites"
+                },
+                "title": "Favourites"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "title": "Credits",
+            "icon": "info",
+            "action": {
+              "id": "open_credits",
+              "event": {
+                "type": "show",
+                "view": {
+                  "ref": "credits"
+                },
+                "title": "Credits"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "label": "Renaissance",
+        "title": "Florence, Rome and the Low Countries rediscover perspective, anatomy and oil paint.",
+        "labelStyle": "bold"
       },
       {
         "type": "list",
-        "mapping": "artworks",
+        "orientation": "horizontal",
+        "mapping": "renaissance",
         "action": {
           "ref": "open_artwork"
         },
         "itemView": {
           "type": "layout",
-          "orientation": "horizontal",
           "views": [
             {
               "type": "image",
               "url": "${thumb}",
               "size": {
-                "width": 112,
-                "height": 112
+                "width": 150,
+                "height": 150
               }
             },
             {
               "type": "text",
-              "label": "${title}",
-              "title": "${artist}\n${year}"
+              "title": "${title}",
+              "textStyle": "bold",
+              "textSize": 14,
+              "size": {
+                "width": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${artist}",
+              "textSize": 13,
+              "size": {
+                "width": 150
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "label": "Dutch Golden Age",
+        "title": "Quiet rooms, everyday life and light falling through a window.",
+        "labelStyle": "bold"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "mapping": "golden-age",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "type": "layout",
+          "views": [
+            {
+              "type": "image",
+              "url": "${thumb}",
+              "size": {
+                "width": 150,
+                "height": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${title}",
+              "textStyle": "bold",
+              "textSize": 14,
+              "size": {
+                "width": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${artist}",
+              "textSize": 13,
+              "size": {
+                "width": 150
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "label": "Japanese prints",
+        "title": "Woodblock prints of the floating world, made in thousands of copies.",
+        "labelStyle": "bold"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "mapping": "japanese-prints",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "type": "layout",
+          "views": [
+            {
+              "type": "image",
+              "url": "${thumb}",
+              "size": {
+                "width": 150,
+                "height": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${title}",
+              "textStyle": "bold",
+              "textSize": 14,
+              "size": {
+                "width": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${artist}",
+              "textSize": 13,
+              "size": {
+                "width": 150
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "label": "Romanticism",
+        "title": "Storms, ruins, revolutions and the power of nature.",
+        "labelStyle": "bold"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "mapping": "romanticism",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "type": "layout",
+          "views": [
+            {
+              "type": "image",
+              "url": "${thumb}",
+              "size": {
+                "width": 150,
+                "height": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${title}",
+              "textStyle": "bold",
+              "textSize": 14,
+              "size": {
+                "width": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${artist}",
+              "textSize": 13,
+              "size": {
+                "width": 150
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "text",
+        "label": "Impressionism and after",
+        "title": "Light, colour and modern life, from Monet to Klimt.",
+        "labelStyle": "bold"
+      },
+      {
+        "type": "list",
+        "orientation": "horizontal",
+        "mapping": "modern",
+        "action": {
+          "ref": "open_artwork"
+        },
+        "itemView": {
+          "type": "layout",
+          "views": [
+            {
+              "type": "image",
+              "url": "${thumb}",
+              "size": {
+                "width": 150,
+                "height": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${title}",
+              "textStyle": "bold",
+              "textSize": 14,
+              "size": {
+                "width": 150
+              }
+            },
+            {
+              "type": "text",
+              "title": "${artist}",
+              "textSize": 13,
+              "size": {
+                "width": 150
+              }
             }
           ]
         }
@@ -141,7 +647,7 @@
           "type": "image",
           "url": "${image}",
           "size": {
-            "height": 340
+            "height": 360
           }
         },
         {
@@ -168,9 +674,248 @@
             {
               "type": "text",
               "label": "Where to see it",
-              "mapping": "where"
+              "title": "${museum}, ${city}"
             }
           ]
+        },
+        {
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "button",
+              "title": "Favourite",
+              "icon": "star",
+              "action": {
+                "id": "add_favourite",
+                "event": {
+                  "type": "save",
+                  "collection": "favourites",
+                  "unique": "key",
+                  "thenDo": {
+                    "type": "alert",
+                    "value": "${title} is in your favourites."
+                  }
+                }
+              }
+            },
+            {
+              "type": "button",
+              "title": "Share",
+              "icon": "share",
+              "action": {
+                "id": "share_artwork",
+                "event": {
+                  "type": "share",
+                  "text": "${title} by ${artist}, ${year}\n${wiki}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "button",
+              "title": "Map",
+              "icon": "place",
+              "action": {
+                "id": "map_artwork",
+                "event": {
+                  "type": "open",
+                  "url": "geo:0,0?q=${museum}, ${city}"
+                }
+              }
+            },
+            {
+              "type": "button",
+              "title": "Read more",
+              "icon": "search",
+              "action": {
+                "id": "read_artwork",
+                "event": {
+                  "type": "open",
+                  "url": "${wiki}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "favourites",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "title": "Your favourite works, kept on this phone."
+        },
+        {
+          "type": "list",
+          "stored": {
+            "collection": "favourites",
+            "sort": {
+              "by": "title"
+            }
+          },
+          "emptyText": "No favourites yet: open a work and tap Favourite.",
+          "action": {
+            "ref": "open_artwork"
+          },
+          "itemView": {
+            "type": "layout",
+            "orientation": "horizontal",
+            "views": [
+              {
+                "type": "image",
+                "url": "${thumb}",
+                "size": {
+                  "width": 72,
+                  "height": 72
+                }
+              },
+              {
+                "type": "text",
+                "label": "${title}",
+                "title": "${artist}, ${year}"
+              },
+              {
+                "type": "button",
+                "icon": "delete",
+                "label": "Remove ${title}",
+                "action": {
+                  "id": "remove_favourite",
+                  "event": {
+                    "type": "delete",
+                    "collection": "favourites"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "credits",
+      "type": "layout",
+      "views": [
+        {
+          "type": "text",
+          "title": "Every image is a public-domain work, photographed and shared on Wikimedia Commons. Tap a work to see its page there."
+        },
+        {
+          "type": "text",
+          "title": "Renaissance",
+          "textStyle": "bold",
+          "textSize": 18
+        },
+        {
+          "type": "list",
+          "mapping": "renaissance",
+          "action": {
+            "id": "source_renaissance",
+            "event": {
+              "type": "open",
+              "url": "${source}"
+            }
+          },
+          "itemView": {
+            "type": "text",
+            "label": "${title}",
+            "title": "${artist} · Public domain · Wikimedia Commons"
+          }
+        },
+        {
+          "type": "text",
+          "title": "Dutch Golden Age",
+          "textStyle": "bold",
+          "textSize": 18
+        },
+        {
+          "type": "list",
+          "mapping": "golden-age",
+          "action": {
+            "id": "source_golden_age",
+            "event": {
+              "type": "open",
+              "url": "${source}"
+            }
+          },
+          "itemView": {
+            "type": "text",
+            "label": "${title}",
+            "title": "${artist} · Public domain · Wikimedia Commons"
+          }
+        },
+        {
+          "type": "text",
+          "title": "Japanese prints",
+          "textStyle": "bold",
+          "textSize": 18
+        },
+        {
+          "type": "list",
+          "mapping": "japanese-prints",
+          "action": {
+            "id": "source_japanese_prints",
+            "event": {
+              "type": "open",
+              "url": "${source}"
+            }
+          },
+          "itemView": {
+            "type": "text",
+            "label": "${title}",
+            "title": "${artist} · Public domain · Wikimedia Commons"
+          }
+        },
+        {
+          "type": "text",
+          "title": "Romanticism",
+          "textStyle": "bold",
+          "textSize": 18
+        },
+        {
+          "type": "list",
+          "mapping": "romanticism",
+          "action": {
+            "id": "source_romanticism",
+            "event": {
+              "type": "open",
+              "url": "${source}"
+            }
+          },
+          "itemView": {
+            "type": "text",
+            "label": "${title}",
+            "title": "${artist} · Public domain · Wikimedia Commons"
+          }
+        },
+        {
+          "type": "text",
+          "title": "Impressionism and after",
+          "textStyle": "bold",
+          "textSize": 18
+        },
+        {
+          "type": "list",
+          "mapping": "modern",
+          "action": {
+            "id": "source_modern",
+            "event": {
+              "type": "open",
+              "url": "${source}"
+            }
+          },
+          "itemView": {
+            "type": "text",
+            "label": "${title}",
+            "title": "${artist} · Public domain · Wikimedia Commons"
+          }
         }
       ]
     }
@@ -183,7 +928,8 @@
         "type": "show",
         "view": {
           "ref": "artwork"
-        }
+        },
+        "title": "${title}"
       }
     }
   ]

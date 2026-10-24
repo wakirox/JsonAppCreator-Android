@@ -510,7 +510,9 @@ collection kept on the phone. Each app has its own collections, and they stay wh
 app is closed or opened again from Your apps. Every object gets an `id` and a `createdAt`
 (epoch milliseconds). `fields` adds values; their `${...}` placeholders are filled from
 the data the form showed (the screen's, or its list row's), then from the submitted values.
-`thenDo` runs with the saved object. A form saved this way starts empty again.
+`thenDo` runs with the saved object. A form saved this way starts empty again. With
+`"unique": "key"`, an object already saved with the same `key` is replaced (keeping its
+`id`) instead of added again, so a "Favourite" button can be tapped twice safely.
 
 A list shows a collection with `stored` instead of `initData` or `data`:
 
