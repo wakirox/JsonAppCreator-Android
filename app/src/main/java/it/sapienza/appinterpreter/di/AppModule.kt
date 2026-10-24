@@ -1,5 +1,8 @@
 package it.sapienza.appinterpreter.di
 
+import it.sapienza.appinterpreter.ai.AskAiViewModel
+import it.sapienza.appinterpreter.ai.BuildAiPromptUseCase
+import it.sapienza.appinterpreter.ai.LoadAppToChangeUseCase
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
 import it.sapienza.appinterpreter.runtime.AndroidRuntimeStrings
@@ -39,6 +42,10 @@ val appModule = module {
     factory { OpenLinkUseCase() }
     factory { FindMissingApiKeysUseCase(get(), ConfigurationApiKeys.keys) }
     factory { LoadScreenUseCase(get(), get()) }
+
+    factory { LoadAppToChangeUseCase(androidContext()) }
+    factory { BuildAiPromptUseCase(androidContext()) }
+    viewModel { AskAiViewModel(saved = get(), loadAppToChange = get(), buildPrompt = get()) }
 
     // A screen shares its activity's alerts, so the activity passes its AlertsViewModel in.
     viewModel { (alerts: AlertsViewModel) ->

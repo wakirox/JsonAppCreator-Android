@@ -46,6 +46,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Makes or changes an app with the user's AI app. -->
+        <activity
+                android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
+                android:windowSoftInputMode="adjustResize"
+                android:name="it.sapienza.appinterpreter.activity.AskAiActivity"
+                android:exported="false" />
+
         <activity
                 android:name="it.sapienza.appinterpreter.activity.ManageFileInActivity"
                 android:exported="true" >

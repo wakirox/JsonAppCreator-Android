@@ -6,33 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
-import java.text.NumberFormat
 
 /**
  * Working with an AI app the user already has. Appkin contains no AI: it shares instructions to the AI app
@@ -93,76 +68,4 @@ object AskAi {
 
     /** The JSON in the clipboard's text, if it holds an AI answer with one. */
     fun jsonFromClipboard(context: Context): String? = clipboardText(context)?.let(AiContext::extractJson)
-}
-
-/**
- * Starts working with an AI app: says plainly that there is no AI in Appkin, explains the round trip, then
- * shares (or copies) the instructions and the request. [currentApp], when given, can be included so the AI changes
- * it instead of starting over.
- */
-@Composable
-fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    var request by rememberSaveable { mutableStateOf("") }
-    var includeCurrent by rememberSaveable { mutableStateOf(changeCurrentByDefault && currentApp != null) }
-    fun prompt() = AskAi.context(context, currentApp.takeIf { includeCurrent }, request)
-    // The instructions (and the current app) are built once per choice; the request is added as it's typed.
-    val baseTokens = remember(includeCurrent) { AskAi.tokens(context, currentApp.takeIf { includeCurrent }, null) }
-    val tokens = TokenEstimate.rounded(baseTokens + TokenEstimate.of(request))
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Make an app with your AI app") },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    "Appkin has no AI inside. It hands instructions to an AI app you already use, " +
-                        "such as ChatGPT, Claude or Gemini, and nothing is sent anywhere else.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    "1. Describe your app and share it to your AI app.\n" +
-                        "2. Chat there until you like the result.\n" +
-                        "3. Bring the result back: open the file it makes in Appkin, or share or copy " +
-                        "its answer, or a share link of the chat, here. It opens in the editor, checked and ready " +
-                        "to run.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                OutlinedTextField(
-                    value = request,
-                    onValueChange = { request = it },
-                    label = { Text(if (includeCurrent) "What to change" else "Describe your app") },
-                    placeholder = { Text("A list of my favourite books, with a screen for each") },
-                    minLines = 3,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                if (currentApp != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = includeCurrent, onCheckedChange = { includeCurrent = it })
-                        Text("Change the current app")
-                    }
-                }
-                Text(
-                    "About ${NumberFormat.getIntegerInstance().format(tokens)} tokens: the AI app reads them before " +
-                        "your chat starts, out of the space it has for the whole chat.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.testTag("ai-token-estimate")
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                AskAi.shareToAiApp(context, prompt())
-                onDismiss()
-            }) { Text("Share to AI app…") }
-        },
-        dismissButton = {
-            TextButton(onClick = {
-                AskAi.copy(context, prompt(), "Copied: paste it into your AI app")
-                onDismiss()
-            }) { Text("Copy") }
-        }
-    )
 }

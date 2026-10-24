@@ -12,9 +12,6 @@ import androidx.activity.viewModels
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -22,7 +19,6 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.calendar.AndroidCalendarWriter
 import it.sapienza.appinterpreter.utils.ExternalApps
-import it.sapienza.appinterpreter.ai.AskAiDialog
 import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
@@ -96,7 +92,6 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             AppTheme {
-                var askingAi by rememberSaveable { mutableStateOf(false) }
                 val missingKeys by screen.missingKeys.collectAsState()
                 val loading by screen.loading.collectAsState()
                 if (missingKeys == null) {
@@ -111,7 +106,7 @@ class MainActivity : ComponentActivity() {
                             loading = loading,
                             onEditApp = { EditorActivity.edit(this) },
                             onNewApp = { EditorActivity.newApp(this) },
-                            onAskAi = { askingAi = true },
+                            onAskAi = { AskAiActivity.currentApp(this) },
                             onPasteFromAi = {
                                 val answer = AskAi.clipboardText(this)
                                 if (answer == null) {
@@ -125,13 +120,6 @@ class MainActivity : ComponentActivity() {
                             onBack = if (isTaskRoot) null else onBackPressedDispatcher::onBackPressed
                         )
                     }
-                }
-                if (askingAi) {
-                    AskAiDialog(
-                        currentApp = DomainController.jsonFile(this),
-                        changeCurrentByDefault = false,
-                        onDismiss = { askingAi = false }
-                    )
                 }
                 missingKeys?.let { keys ->
                     ApiKeyEntryDialog(

@@ -72,7 +72,6 @@ import androidx.compose.ui.unit.sp
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.AskAi
-import it.sapienza.appinterpreter.ai.AskAiDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -91,6 +90,8 @@ fun EditorScreen(
     suggestions: SchemaSuggestions,
     onRun: (String) -> Unit,
     onSaveAs: (String) -> Unit,
+    /** Opens "Ask your AI app" with the text as it is now, saved or not. */
+    onAskAi: (String) -> Unit,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -101,7 +102,6 @@ fun EditorScreen(
     var insertOpen by remember { mutableStateOf(false) }
     var moreOpen by remember { mutableStateOf(false) }
     var confirmDiscard by remember { mutableStateOf(false) }
-    var askAi by remember { mutableStateOf(false) }
     var pasted by remember { mutableStateOf<String?>(null) }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val scroll = rememberScrollState()
@@ -193,7 +193,7 @@ fun EditorScreen(
                         })
                         DropdownMenuItem(text = { Text("Save as file…") }, onClick = { moreOpen = false; onSaveAs(value.text) })
                         HorizontalDivider()
-                        DropdownMenuItem(text = { Text("Send to your AI app…") }, onClick = { moreOpen = false; askAi = true })
+                        DropdownMenuItem(text = { Text("Send to your AI app…") }, onClick = { moreOpen = false; onAskAi(value.text) })
                         DropdownMenuItem(text = { Text("Paste answer from your AI app") }, onClick = {
                             moreOpen = false
                             val json = AskAi.jsonFromClipboard(context)
@@ -259,8 +259,6 @@ fun EditorScreen(
             )
         }
     }
-
-    if (askAi) AskAiDialog(currentApp = value.text, changeCurrentByDefault = true, onDismiss = { askAi = false })
 
     pasted?.let { json ->
         AlertDialog(
