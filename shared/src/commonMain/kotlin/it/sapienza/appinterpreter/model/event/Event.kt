@@ -133,6 +133,13 @@ class NextPage(
     val urlFrom: String? = null
 )
 
+/** Closes the current screen and goes back to the one that opened it, as the phone's Back does. */
+@Serializable
+class GoBack(
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
 @Serializable
 class ShowView(
     val view: MView,
@@ -153,7 +160,8 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("share", ShareText.serializer()) { it is ShareText },
         TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData },
         TypedSerializer.Type("update", UpdateData.serializer()) { it is UpdateData },
-        TypedSerializer.Type("delete", DeleteData.serializer()) { it is DeleteData }
+        TypedSerializer.Type("delete", DeleteData.serializer()) { it is DeleteData },
+        TypedSerializer.Type("back", GoBack.serializer()) { it is GoBack }
     )
 )
 

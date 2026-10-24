@@ -15,6 +15,7 @@ import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.CalendarEvent
 import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.Event
+import it.sapienza.appinterpreter.model.event.GoBack
 import it.sapienza.appinterpreter.model.event.OpenLink
 import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
@@ -79,6 +80,9 @@ class ScreenViewModel(
         /** Open [view] with [payload]; [title], if any, replaces the app's name in its app bar. */
         class OpenScreen(val view: MView, val payload: JsonObject?, val title: String? = null) : Effect
         class AddToCalendar(val entry: CalendarEntry) : Effect
+
+        /** Close this screen, back to the one that opened it. */
+        data object Close : Effect
         /** Hand [url] to the app for its [scheme]: https/http, geo, tel or mailto (see [OpenLinkUseCase]). */
         class OpenUrl(val url: String, val scheme: String) : Effect
         class Share(val text: String) : Effect
@@ -158,6 +162,7 @@ class ScreenViewModel(
             is SaveData -> store(event.thenDo) { saveItem(event, data, context = data) }
             is UpdateData -> store(event.thenDo) { updateItem(event, data, context = data) }
             is DeleteData -> store(event.thenDo) { deleteItems(event, data).let { data } }
+            is GoBack -> effectChannel.trySend(Effect.Close)
             is CalendarEvent -> when (val result = createCalendarEvent(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
                 is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
                 is CreateCalendarEventUseCase.Result.BadDate -> alerts.show(result.message)

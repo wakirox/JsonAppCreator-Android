@@ -451,17 +451,16 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
 /** What a screen reader says for an icon without a label, such as "Delete". */
 private fun ButtonIcon.spokenName(): String = name.replaceFirstChar { it.uppercase() }
 
-/** A tick box: ticked when the data's value is true; ticking it runs the action at once. A ticked title is struck through. */
+/**
+ * A tick box: ticked when the data's value is true; ticking it runs the action at once. A ticked title is struck
+ * through. Only the box ticks, so a tap on the title reaches the list item (to open it, say).
+ */
 @Composable
 private fun RenderCheck(view: CheckView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
     val checked = data?.getValue(view.mapping) == "true"
-    // The whole row ticks, title included.
-    Row(
-        modifier.fillMaxWidth().toggleable(value = checked, role = Role.Checkbox, onValueChange = { screen.onCheck(view, data, it) }),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(checked, onCheckedChange = null)
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked, onCheckedChange = { screen.onCheck(view, data, it) })
         Spacer(Modifier.width(12.dp))
         Text(
             view.title?.matchReplace(data).orEmpty(),

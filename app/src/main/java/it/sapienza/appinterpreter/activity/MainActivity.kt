@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
             alerts.show(getString(R.string.no_app_for_link, effect.url))
         }
         is ScreenViewModel.Effect.Share -> startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title)))
+        ScreenViewModel.Effect.Close -> finish()
     }
 
     private fun addToHomeScreen() {

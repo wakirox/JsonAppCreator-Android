@@ -12,20 +12,46 @@
         "title": "New app",
         "buttonTitle": "Add app",
         "formElements": [
-          { "type": "text", "mapping": "name", "title": "Name", "mandatory": true }
+          {
+            "type": "text",
+            "mapping": "name",
+            "title": "Name",
+            "mandatory": true
+          }
         ],
-        "action": { "id": "add_app", "event": { "type": "save", "collection": "apps" } }
+        "action": {
+          "id": "add_app",
+          "event": {
+            "type": "save",
+            "collection": "apps"
+          }
+        }
       },
       {
         "type": "list",
-        "stored": { "collection": "apps" },
+        "stored": {
+          "collection": "apps"
+        },
         "emptyText": "No apps yet: add one above.",
-        "action": { "id": "open_app", "event": { "type": "show", "view": { "ref": "app" }, "title": "${name}" } },
+        "action": {
+          "id": "open_app",
+          "event": {
+            "type": "show",
+            "view": {
+              "ref": "app"
+            },
+            "title": "${name}"
+          }
+        },
         "itemView": {
           "type": "layout",
           "orientation": "horizontal",
           "views": [
-            { "type": "text", "mapping": "name", "textStyle": "bold" },
+            {
+              "type": "text",
+              "mapping": "name",
+              "textStyle": "bold"
+            },
             {
               "type": "button",
               "icon": "delete",
@@ -38,7 +64,13 @@
                   "thenDoOK": {
                     "type": "delete",
                     "collection": "apps",
-                    "thenDo": { "type": "delete", "collection": "ideas", "where": { "appId": "${id}" } }
+                    "thenDo": {
+                      "type": "delete",
+                      "collection": "ideas",
+                      "where": {
+                        "appId": "${id}"
+                      }
+                    }
                   }
                 }
               }
@@ -58,15 +90,67 @@
           "title": "New idea",
           "buttonTitle": "Add idea",
           "formElements": [
-            { "type": "text", "mapping": "title", "title": "Title", "mandatory": true },
-            { "type": "text", "mapping": "description", "title": "Description" },
-            { "type": "selector", "mapping": "priority", "title": "Priority", "options": ["High", "Medium", "Low"], "selection": "Medium", "mandatory": true }
+            {
+              "type": "text",
+              "mapping": "title",
+              "title": "Title",
+              "mandatory": true
+            },
+            {
+              "type": "text",
+              "mapping": "description",
+              "title": "Description"
+            },
+            {
+              "type": "selector",
+              "mapping": "priority",
+              "title": "Priority",
+              "options": [
+                "High",
+                "Medium",
+                "Low"
+              ],
+              "selection": "Medium",
+              "mandatory": true
+            }
           ],
-          "action": { "id": "add_idea", "event": { "type": "save", "collection": "ideas", "fields": { "appId": "${id}", "done": false } } }
+          "action": {
+            "id": "add_idea",
+            "event": {
+              "type": "save",
+              "collection": "ideas",
+              "fields": {
+                "appId": "${id}",
+                "done": false
+              }
+            }
+          }
         },
         {
           "type": "list",
-          "stored": { "collection": "ideas", "where": { "appId": "${id}" }, "sort": { "by": "priority", "order": ["High", "Medium", "Low"] } },
+          "stored": {
+            "collection": "ideas",
+            "where": {
+              "appId": "${id}"
+            },
+            "sort": [
+              {
+                "by": "done",
+                "order": [
+                  "false",
+                  "true"
+                ]
+              },
+              {
+                "by": "priority",
+                "order": [
+                  "High",
+                  "Medium",
+                  "Low"
+                ]
+              }
+            ]
+          },
           "emptyText": "No ideas for ${name} yet.",
           "itemView": {
             "type": "layout",
@@ -79,10 +163,26 @@
                     "type": "check",
                     "mapping": "done",
                     "title": "${title}",
-                    "action": { "id": "tick_idea", "event": { "type": "update", "collection": "ideas" } }
+                    "action": {
+                      "id": "tick_idea",
+                      "event": {
+                        "type": "update",
+                        "collection": "ideas"
+                      }
+                    }
                   },
-                  { "type": "text", "mapping": "description", "textSize": 14 },
-                  { "type": "text", "title": "${priority} priority", "textSize": 13, "textStyle": "bold", "visibleIf": "priority" }
+                  {
+                    "type": "text",
+                    "mapping": "description",
+                    "textSize": 14
+                  },
+                  {
+                    "type": "text",
+                    "title": "${priority} priority",
+                    "textSize": 13,
+                    "textStyle": "bold",
+                    "visibleIf": "priority"
+                  }
                 ]
               },
               {
@@ -91,10 +191,77 @@
                 "label": "Delete ${title}",
                 "action": {
                   "id": "delete_idea",
-                  "event": { "type": "alert", "value": "Delete ${title}?", "thenDoOK": { "type": "delete", "collection": "ideas" } }
+                  "event": {
+                    "type": "alert",
+                    "value": "Delete ${title}?",
+                    "thenDoOK": {
+                      "type": "delete",
+                      "collection": "ideas"
+                    }
+                  }
                 }
               }
             ]
+          },
+          "action": {
+            "id": "edit_idea",
+            "event": {
+              "type": "show",
+              "view": {
+                "ref": "idea"
+              },
+              "title": "Edit idea"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "idea",
+      "type": "layout",
+      "views": [
+        {
+          "type": "form",
+          "buttonTitle": "Save changes",
+          "formElements": [
+            {
+              "type": "text",
+              "mapping": "title",
+              "title": "Title",
+              "mandatory": true
+            },
+            {
+              "type": "text",
+              "mapping": "description",
+              "title": "Description"
+            },
+            {
+              "type": "selector",
+              "mapping": "priority",
+              "title": "Priority",
+              "options": [
+                "High",
+                "Medium",
+                "Low"
+              ],
+              "selection": "Medium",
+              "mandatory": true
+            },
+            {
+              "type": "checkbox",
+              "mapping": "done",
+              "title": "Done"
+            }
+          ],
+          "action": {
+            "id": "save_idea",
+            "event": {
+              "type": "update",
+              "collection": "ideas",
+              "thenDo": {
+                "type": "back"
+              }
+            }
           }
         }
       ]

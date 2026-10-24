@@ -290,4 +290,41 @@ class StoredDataScreenTest {
         home.onEvent(DeleteData("apps", thenDo = AlertMessage(value = "Done")), JsonText.parse("""{ "id": "gone" }""") as JsonObject)
         assertEquals("Done", alerts.alert?.text)
     }
+
+    @Test
+    fun tappingAnIdeaEditsItAndSavingGoesBack() = runTest {
+        val ideas = ideas()
+        val list = ideas.rainyScreen.list()
+        val darkMode = ideas.rainyScreen.items(ideas.rainy).first { it.getValue("title") == "Dark mode" }
+
+        ideas.rainyScreen.onAction(list.action, darkMode)
+        val open = assertIs<ScreenViewModel.Effect.OpenScreen>(ideas.rainyScreen.effects.first())
+        assertEquals("idea", open.view.id)
+        assertEquals("Edit idea", open.title)
+        val edit = screen(AppData(store), "idea", open.payload)
+        val form = edit.form()
+        assertEquals("Dark mode", edit.forms.values(form, open.payload)["title"], "the form starts filled in")
+        assertEquals("Medium", edit.forms.values(form, open.payload)["priority"])
+
+        edit.forms.set(form, open.payload, "title", "Dark theme")
+        edit.forms.set(form, open.payload, "priority", "High")
+        edit.onSubmit(form, open.payload)
+
+        assertIs<ScreenViewModel.Effect.Close>(edit.effects.first())
+        val saved = AppData(store).items(AppLibrary.idOf("App ideas"), "ideas").first { it.getValue("id") == darkMode.getValue("id") }
+        assertEquals(listOf("Dark theme", "High", ideas.rainy.getValue("id")), listOf("title", "priority", "appId").map { saved.getValue(it) })
+    }
+
+    @Test
+    fun doneIdeasGoLastThenByPriority() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        screen.forms.set(screen.form(), ideas.rainy, "priority", "High")
+        screen.add("title", "Tile", ideas.rainy)
+        assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
+
+        screen.onCheck(screen.check(), screen.items(ideas.rainy)[0], checked = true)
+
+        assertEquals(listOf("Dark mode", "Widgets", "Tile"), screen.shown(ideas.rainy, "title"))
+    }
 }

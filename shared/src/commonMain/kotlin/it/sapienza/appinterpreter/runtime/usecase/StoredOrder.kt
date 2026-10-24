@@ -5,11 +5,16 @@ import it.sapienza.appinterpreter.model.view_model.StoredSort
 import kotlinx.serialization.json.JsonObject
 
 /**
- * [items] in [sort]'s order (see StoredSort). Objects without the field come last either way, and the sort is stable,
- * so ties keep the order they were saved in.
+ * [items] in [sorts]' order (see StoredSort): by the first, then by the next among those it leaves tied, and so on.
+ * Objects without a field come last for that sort, and the sort is stable, so full ties keep the order they were
+ * saved in.
  */
-fun sorted(items: List<JsonObject>, sort: StoredSort?): List<JsonObject> {
-    sort ?: return items
+fun sorted(items: List<JsonObject>, sorts: List<StoredSort>?): List<JsonObject> {
+    if (sorts.isNullOrEmpty()) return items
+    return items.sortedWith(sorts.map(::comparator).reduce { first, next -> first.then(next) })
+}
+
+private fun comparator(sort: StoredSort): Comparator<JsonObject> {
     val listed = sort.order.orEmpty()
     val byValue = compareBy<String> { value -> listed.indexOf(value).takeIf { it >= 0 } ?: listed.size }
         .thenBy { it.toDoubleOrNull() == null }
@@ -22,5 +27,5 @@ fun sorted(items: List<JsonObject>, sort: StoredSort?): List<JsonObject> {
             else -> direction.compare(a, b)
         }
     }
-    return items.sortedWith(compareBy(missingLast) { it.getValue(sort.by) })
+    return compareBy(missingLast) { it.getValue(sort.by) }
 }

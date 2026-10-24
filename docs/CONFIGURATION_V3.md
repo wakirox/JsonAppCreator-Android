@@ -525,7 +525,10 @@ one is saved, on this screen or another. `where` keeps only the objects whose fi
 placeholders from the list's data; so a details screen opened on an app with `id` shows
 only that app's ideas. `mapping` is not used.
 
-`sort` orders the list by a field. Values listed in `order` come first, in that order;
+`sort` orders the list by a field, or by several: give a list, and each later sort
+orders what the earlier ones leave tied, such as `[{ "by": "done", "order": ["false",
+"true"] }, { "by": "priority", "order": ["High", "Medium", "Low"] }]` for open ideas first,
+then by priority. Values listed in `order` come first, in that order;
 the others follow, numbers by size and text alphabetically, and objects without the field
 come last. `"descending": true` turns the order round. Objects that tie keep the order
 they were saved in:
@@ -565,7 +568,8 @@ chain the two with `thenDo` to delete an app and its ideas. Lists showing the co
 update at once.
 
 A `check` view marks items done without a form: it is ticked when the data's value at
-`mapping` is true, and ticking it runs its action with that value turned over. In a stored
+`mapping` is true, and ticking the box runs its action with that value turned over (a
+tap on the title goes to the list item, to open it for editing, say). In a stored
 list's `itemView`, an `update` saves it straight away, and a ticked title is struck through:
 
 ```json
@@ -599,6 +603,15 @@ the link with "This item has no …". `mapping` selects the part of the data to 
 
 Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
 with no value becomes empty text.
+
+### Go back
+
+```json
+{ "type": "back" }
+```
+
+Closes the current screen and returns to the one that opened it, as the phone's Back
+does, such as in the `thenDo` of a form that saves an edit.
 
 ### Call a REST endpoint
 

@@ -178,7 +178,7 @@
     },
     "checkView": {
       "type": "object",
-      "description": "A tick box, ticked when the data's true/false value at mapping is true. Ticking it runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through.",
+      "description": "A tick box, ticked when the data's true/false value at mapping is true. Ticking the box runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through. Only the box ticks: a tap on the title reaches the list item.",
       "required": ["type", "mapping"],
       "properties": {
         "type": { "const": "check" },
@@ -286,6 +286,17 @@
       },
       "additionalProperties": false
     },
+    "storedSort": {
+      "type": "object",
+      "description": "By the field by; values listed in order come first, in that order (such as [\"High\", \"Medium\", \"Low\"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in.",
+      "required": ["by"],
+      "properties": {
+        "by": { "description": "The field to sort by, such as \"priority\"", "$ref": "#/$defs/nonEmptyString" },
+        "order": { "description": "Values in the order they come first", "type": ["array", "null"], "items": { "type": "string" } },
+        "descending": { "description": "Turns the order round", "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "storedData": {
       "type": "object",
       "description": "The objects a save event put in a collection, oldest first; it shows them again when that collection changes.",
@@ -297,15 +308,12 @@
           "type": ["object", "null"]
         },
         "sort": {
-          "description": "The order: by the field by; values listed in order come first, in that order (such as [\"High\", \"Medium\", \"Low\"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in.",
-          "type": ["object", "null"],
-          "required": ["by"],
-          "properties": {
-            "by": { "description": "The field to sort by, such as \"priority\"", "$ref": "#/$defs/nonEmptyString" },
-            "order": { "description": "Values in the order they come first", "type": ["array", "null"], "items": { "type": "string" } },
-            "descending": { "description": "Turns the order round", "type": "boolean" }
-          },
-          "additionalProperties": false
+          "description": "The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)",
+          "oneOf": [
+            { "$ref": "#/$defs/storedSort" },
+            { "type": "array", "items": { "$ref": "#/$defs/storedSort" }, "minItems": 1 },
+            { "type": "null" }
+          ]
         }
       },
       "additionalProperties": false
@@ -503,7 +511,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -513,7 +521,8 @@
         { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } },
         { "if": { "properties": { "type": { "const": "save" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/saveEvent" } },
         { "if": { "properties": { "type": { "const": "update" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/updateEvent" } },
-        { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } }
+        { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } },
+        { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } }
       ]
     },
     "restEvent": {
@@ -609,6 +618,17 @@
         "durationMinutes": { "description": "How long a timed event lasts; 60 by default", "type": ["integer", "null"], "minimum": 1 },
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "backEvent": {
+      "type": "object",
+      "description": "Closes the current screen and goes back to the one that opened it, as the phone's Back does; such as after saving an edit.",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "back" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },

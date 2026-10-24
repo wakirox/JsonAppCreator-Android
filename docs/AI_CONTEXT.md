@@ -101,6 +101,7 @@ Events:
 - `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
+- `back` (closes the current screen, such as after a form saves an edit)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
   maps, the dialer or email; nothing else opens)
 - `share` (opens the share sheet on a text)
@@ -277,7 +278,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 
 #### `check`
 
-A tick box, ticked when the data's true/false value at mapping is true. Ticking it runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through.
+A tick box, ticked when the data's true/false value at mapping is true. Ticking the box runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through. Only the box ticks: a tap on the title reaches the list item.
 
 - `id`: text (not empty)
 - `action`: an action (or `{ "ref": "id" }`). Runs when the box is ticked or unticked, with the data where the value at mapping says so; usually an update event
@@ -434,6 +435,13 @@ Removes saved objects: the one whose id is id (the current data's by default), o
 - `mapping`: text. Path of the part of the current data the id or where is filled in from
 - `data`: an object with any data
 
+#### `back`
+
+Closes the current screen and goes back to the one that opened it, as the phone's Back does; such as after saving an edit.
+
+- `mapping`: text
+- `data`: an object with any data
+
 ### Actions and references
 
 Where an action is expected, write an action definition or `{ "ref": "id" }` referencing one in the root `actions`.
@@ -461,7 +469,7 @@ The objects a save event put in a collection, oldest first; it shows them again 
 
 - `collection` **(required)**: text (not empty). The collection's name, as in the save event
 - `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
-- `sort`: an object. The order: by the field by; values listed in order come first, in that order (such as ["High", "Medium", "Low"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in
+- `sort`: an object. The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)
 
 #### Size (`size`)
 
