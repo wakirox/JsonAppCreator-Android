@@ -152,4 +152,20 @@ class ConfigurationValidatorTest {
         assertTrue("$.mainView.initData.nextPage" in issues(list(""""initData": { "url": "https://x/a", "nextPage": { "parameter": "skip", "step": 20, "urlFrom": "next" } }""")))
         assertTrue("$.mainView.initData.nextPage" in issues(list(""""initData": { "url": "https://x/a", "nextPage": { "parameter": "skip" } }""")))
     }
+
+    @Test
+    fun labelStyleFormatScaleAndScreenTitlesAreChecked() {
+        fun issues(view: String) = validator.validate(
+            """{ "schemaVersion": 3, "name": "Text", "version": "1.0", "mainView": $view }"""
+        ).issues.map { it.path }.distinct()
+
+        assertEquals(emptyList(), issues("""{ "type": "text", "label": "About", "labelStyle": "bold", "mapping": "description", "format": "html" }"""))
+        assertEquals(emptyList(), issues("""{ "type": "image", "url": "https://x/a.jpg", "scale": "fit" }"""))
+        assertEquals(
+            emptyList(),
+            issues("""{ "type": "button", "title": "Go", "action": { "id": "go", "event": { "type": "show", "view": { "ref": "x" }, "title": "Works by ${'$'}{name}" } } }""")
+        )
+        assertEquals(listOf("$.mainView.format"), issues("""{ "type": "text", "title": "x", "format": "markdown" }"""))
+        assertEquals(listOf("$.mainView.scale"), issues("""{ "type": "image", "url": "https://x/a.jpg", "scale": "stretch" }"""))
+    }
 }

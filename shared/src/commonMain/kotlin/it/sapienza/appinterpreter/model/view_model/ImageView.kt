@@ -14,5 +14,12 @@ class ImageView(
     override val action: Action? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null,
-    override val visibleIf: String? = null
+    override val visibleIf: String? = null,
+    /** How the picture fills its space: cropped to fill it (the default) or whole, fitted inside it. */
+    val scale: ImageScale? = null
 ) : MView()
+
+@Serializable
+enum class ImageScale {
+    crop, fit
+}

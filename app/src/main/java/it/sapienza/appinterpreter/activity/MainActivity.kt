@@ -45,15 +45,16 @@ import kotlinx.serialization.json.JsonObject
 import androidx.compose.runtime.collectAsState
 
 
-fun spawnInstance(context: Context, model: MView, payload: JsonObject? = model.data) {
+fun spawnInstance(context: Context, model: MView, payload: JsonObject? = model.data, title: String? = null) {
     val viewId = requireNotNull(model.id) { "A navigated view must have an id" }
-    context.startActivity(screenIntent(context, viewId, payload))
+    context.startActivity(screenIntent(context, viewId, payload, title))
 }
 
-private fun screenIntent(context: Context, viewId: String, payload: JsonObject?): Intent =
+private fun screenIntent(context: Context, viewId: String, payload: JsonObject?, title: String? = null): Intent =
     Intent(context, MainActivity::class.java).apply {
         putExtra(ScreenViewModel.EXTRA_VIEW_ID, viewId)
         payload?.let { putExtra(ScreenViewModel.EXTRA_SCREEN_PAYLOAD, it.toString()) }
+        title?.let { putExtra(ScreenViewModel.EXTRA_SCREEN_TITLE, it) }
     }
 
 /** Opens the current app in a fresh task on top of the home page, so Back leads there. */
@@ -101,7 +102,7 @@ class MainActivity : ComponentActivity() {
                 if (missingKeys == null) {
                     CompositionLocalProvider(LocalScreen provides screen) {
                         MainScreen(
-                            title = app.name,
+                            title = screen.title ?: app.name,
                             author = app.author,
                             version = app.version,
                             changelog = app.changelog,
@@ -166,7 +167,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handle(effect: ScreenViewModel.Effect) = when (effect) {
-        is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload)
+        is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload, effect.title)
         is ScreenViewModel.Effect.AddToCalendar ->
             if (!AndroidCalendarWriter(this).add(effect.entry)) alerts.show(getString(R.string.no_calendar_app)) else Unit
         is ScreenViewModel.Effect.OpenUrl -> try {

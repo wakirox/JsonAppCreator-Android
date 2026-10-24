@@ -150,6 +150,17 @@
         },
         "title": { "description": "The text, when no mapping value is shown", "$ref": "#/$defs/nullableString" },
         "label": { "description": "First line of the text view, shown above the text", "$ref": "#/$defs/nullableString" },
+        "labelStyle": {
+          "description": "The label's own style, so a bold heading needn't make its text bold; without it the label looks like the text",
+          "type": ["string", "null"],
+          "enum": ["regular", "italic", "bold", null]
+        },
+        "format": {
+          "description": "plain (default), or html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions",
+          "type": ["string", "null"],
+          "enum": ["plain", "html", null],
+          "default": "plain"
+        },
         "showWhenEmpty": {
           "description": "Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all.",
           "type": ["boolean", "null"],
@@ -191,7 +202,13 @@
         "data": { "$ref": "#/$defs/data" },
         "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "url": { "description": "Image address; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
-        "size": { "$ref": "#/$defs/size" }
+        "size": { "$ref": "#/$defs/size" },
+        "scale": {
+          "description": "crop (default): the picture fills its space and its edges may be cut; fit: the whole picture shows, inside its space",
+          "type": ["string", "null"],
+          "enum": ["crop", "fit", null],
+          "default": "crop"
+        }
       },
       "additionalProperties": false
     },
@@ -499,7 +516,8 @@
         "type": { "const": "show" },
         "view": { "description": "The view to open; it receives the current data", "$ref": "#/$defs/view" },
         "mapping": { "description": "Path of the part of the current data the view receives", "$ref": "#/$defs/nullableString" },
-        "data": { "$ref": "#/$defs/data" }
+        "data": { "$ref": "#/$defs/data" },
+        "title": { "description": "The opened screen's title in the app bar, instead of the app's name; may use ${field} placeholders from the data it receives", "$ref": "#/$defs/nullableString" }
       },
       "additionalProperties": false
     },

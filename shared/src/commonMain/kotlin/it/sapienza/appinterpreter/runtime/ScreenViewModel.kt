@@ -63,7 +63,8 @@ class ScreenViewModel(
 
     /** One-off things only the platform's screen can do. */
     sealed interface Effect {
-        class OpenScreen(val view: MView, val payload: JsonObject?) : Effect
+        /** Open [view] with [payload]; [title], if any, replaces the app's name in its app bar. */
+        class OpenScreen(val view: MView, val payload: JsonObject?, val title: String? = null) : Effect
         class AddToCalendar(val entry: CalendarEntry) : Effect
         /** Hand [url] to the app for its [scheme]: https/http, geo, tel or mailto (see [OpenLinkUseCase]). */
         class OpenUrl(val url: String, val scheme: String) : Effect
@@ -78,6 +79,9 @@ class ScreenViewModel(
 
     /** The parsed app, or null when it can't be shown (an alert says why). */
     val app: ModelApplication? = (loaded as? LoadScreenUseCase.Result.Ready)?.app
+
+    /** The title the event that opened this screen gave it, shown instead of the app's name. */
+    val title: String? = saved[EXTRA_SCREEN_TITLE]
 
     /** What this screen shows, or null when it can't be shown (an alert says why). */
     val screen: ScreenRuntimeState? = (loaded as? LoadScreenUseCase.Result.Ready)?.screen
@@ -123,7 +127,7 @@ class ScreenViewModel(
         when (event) {
             is AlertMessage -> showAlert(event, data)
             // The view receives the part of the data the mapping selects, such as "meals.0".
-            is ShowView -> openScreen(event.view, event.mapping?.let { data?.getObject(it) } ?: data)
+            is ShowView -> openScreen(event, event.mapping?.let { data?.getObject(it) } ?: data)
             is RESTService -> request(event, data)
             is CalendarEvent -> when (val result = createCalendarEvent(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
                 is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
@@ -149,9 +153,11 @@ class ScreenViewModel(
         alerts.show(message ?: "Missing message (check model)", ok, cancel)
     }
 
-    private fun openScreen(view: MView, payload: JsonObject?) {
-        val definition = app?.viewBy(view) ?: return alerts.show(strings.viewMissing(view.id.orEmpty()))
-        effectChannel.trySend(Effect.OpenScreen(definition, payload ?: definition.data))
+    private fun openScreen(event: ShowView, payload: JsonObject?) {
+        val definition = app?.viewBy(event.view) ?: return alerts.show(strings.viewMissing(event.view.id.orEmpty()))
+        val data = payload ?: definition.data
+        val title = event.title?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() }
+        effectChannel.trySend(Effect.OpenScreen(definition, data, title))
     }
 
     private fun request(event: RESTService, data: JsonObject?) {
@@ -177,5 +183,6 @@ class ScreenViewModel(
     companion object {
         const val EXTRA_VIEW_ID = "idView"
         const val EXTRA_SCREEN_PAYLOAD = "screenPayload"
+        const val EXTRA_SCREEN_TITLE = "screenTitle"
     }
 }

@@ -254,14 +254,15 @@
           "url": "${images.web.url}",
           "size": {
             "height": 320
-          }
+          },
+          "scale": "fit"
         },
         {
           "type": "text",
           "label": "${title}",
           "title": "${creation_date}",
-          "textStyle": "bold",
-          "textSize": 24
+          "textSize": 24,
+          "labelStyle": "bold"
         },
         {
           "type": "text",
@@ -270,38 +271,52 @@
           "visibleIf": "creators",
           "action": {
             "ref": "open_artist"
-          }
+          },
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Did you know?",
           "mapping": "did_you_know",
-          "textStyle": "italic"
+          "textStyle": "italic",
+          "labelStyle": "bold"
+        },
+        {
+          "type": "text",
+          "label": "About this work",
+          "mapping": "description",
+          "format": "html",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Technique",
-          "mapping": "technique"
+          "mapping": "technique",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Culture",
-          "mapping": "culture"
+          "mapping": "culture",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Size",
-          "mapping": "measurements"
+          "mapping": "measurements",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "Collection",
-          "mapping": "department"
+          "mapping": "department",
+          "labelStyle": "bold"
         },
         {
           "type": "text",
           "label": "On view",
-          "mapping": "current_location"
+          "mapping": "current_location",
+          "labelStyle": "bold"
         },
         {
           "type": "layout",
@@ -533,9 +548,16 @@
       "id": "open_artwork",
       "type": "click",
       "event": {
-        "type": "show",
-        "view": {
-          "ref": "artwork_detail"
+        "type": "rest",
+        "method": "get",
+        "url": "https://openaccess-api.clevelandart.org/api/artworks/${id}",
+        "thenDo": {
+          "type": "show",
+          "mapping": "data",
+          "view": {
+            "ref": "artwork_detail"
+          },
+          "title": "${department}"
         }
       }
     },
@@ -546,7 +568,8 @@
         "type": "show",
         "view": {
           "ref": "search_results"
-        }
+        },
+        "title": "Search"
       }
     },
     {
@@ -556,7 +579,8 @@
         "type": "show",
         "view": {
           "ref": "browse_results"
-        }
+        },
+        "title": "Browse"
       }
     },
     {
@@ -571,7 +595,8 @@
           "mapping": "data",
           "view": {
             "ref": "artist_detail"
-          }
+          },
+          "title": "Artist"
         }
       }
     },
@@ -582,7 +607,8 @@
         "type": "show",
         "view": {
           "ref": "search_results"
-        }
+        },
+        "title": "Works by ${name}"
       }
     },
     {
@@ -616,7 +642,8 @@
         "type": "show",
         "view": {
           "ref": "visit_planner"
-        }
+        },
+        "title": "Plan a visit"
       }
     },
     {
@@ -644,7 +671,8 @@
           "mapping": "data",
           "view": {
             "ref": "artwork_detail"
-          }
+          },
+          "title": "${department}"
         }
       }
     }
