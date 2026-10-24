@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -86,7 +87,7 @@ fun AskAiScreen(
             TopAppBar(
                 title = { Text("Ask your AI app") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 }
             )
         },
@@ -99,8 +100,8 @@ fun AskAiScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                 ) {
-                    OutlinedButton(onClick = onCopy) { Text("Copy") }
-                    Button(onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onCopy) { Text("Copy") }
+                    Button(shapes = ButtonDefaults.shapes(), onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
                         Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text("Share to AI app…")

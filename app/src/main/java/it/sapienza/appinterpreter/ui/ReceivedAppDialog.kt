@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -69,12 +70,12 @@ fun ReceivedAppDialog(
         // Stacked, since three or four actions don't fit side by side.
         confirmButton = {
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = onOpen) {
+                Button(shapes = ButtonDefaults.shapes(), onClick = onOpen) {
                     Text(stringResource(if (sameName) R.string.received_replace else R.string.received_open))
                 }
-                if (sameName) OutlinedButton(onClick = onKeepBoth) { Text(stringResource(R.string.received_keep_both)) }
-                TextButton(onClick = onEdit) { Text(stringResource(R.string.received_edit)) }
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.received_cancel)) }
+                if (sameName) OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onKeepBoth) { Text(stringResource(R.string.received_keep_both)) }
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onEdit) { Text(stringResource(R.string.received_edit)) }
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text(stringResource(R.string.received_cancel)) }
             }
         }
     )

@@ -320,3 +320,11 @@ tasks.register("validateConfig") {
         }
     }
 }
+
+kotlin {
+    compilerOptions {
+        // Material 3 Expressive (shape-morphing buttons, LoadingIndicator, connected button groups) is still marked
+        // experimental; the whole app uses it.
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
+    }
+}
