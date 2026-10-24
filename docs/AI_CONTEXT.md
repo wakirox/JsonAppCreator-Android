@@ -107,7 +107,7 @@ Other enums:
 - HTTP methods: `get`, `post`
 - Text styles: `regular`, `italic`, `bold`
 - Text inputs: `plain`, `numeric`, `email`, `password`
-- Form elements: `text`, `selector`, `date`, `checkbox`
+- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
 
 Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
 conditions other than `visibleIf`, databases, arbitrary native components, or undocumented style
@@ -141,8 +141,13 @@ properties.
   `{title}`.
 - An inline action needs both `id` and `event`. To reuse one, define it in the root
   `actions` and reference it with `{ "ref": "id" }`.
-- Form fields are `text`, `selector`, `date` and `checkbox`; there is no `input`,
-  `dropdown` or `switch`. Dates are `dd/MM/yyyy`.
+- Form fields are `text`, `selector`, `date`, `time`, `checkbox` and `hidden`; there is no
+  `input`, `dropdown` or `switch`. Dates are `dd/MM/yyyy`, times `HH:mm`. A selector option
+  is a string or `{ "label": "Any type", "value": "" }`. To send something from the screen
+  with a form (an item's id), use a `hidden` field: `{ "type": "hidden", "mapping": "id",
+  "value": "${id}" }`.
+- A URL query parameter that is just a placeholder (`&type=${type}`) is left out when the
+  value is empty or missing, so optional filters need no extra work.
 - Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
 - Give every app an `icon`: one emoji that fits what it is about, such as `"🏍️"` for a
   motorcycle guide or `"📚"` for a book club. It is the app's icon on the home page and the
@@ -269,8 +274,8 @@ The items of a form's `formElements`.
 - `title` **(required)**: text
 - `description`: text
 - `mandatory`: `true` or `false`
-- `options` **(required)**: an array; each item is text
-- `selection`: text
+- `options` **(required)**: an array; each item is text. The choices: each is a string, shown and submitted, or { "label": shown, "value": submitted }, such as { "label": "Any type", "value": "" }
+- `selection`: text. The value chosen at first
 
 #### `date`
 
@@ -289,6 +294,23 @@ The items of a form's `formElements`.
 - `description`: text
 - `mandatory`: `true` or `false`. Must be checked before submitting
 - `value`: `true` or `false`
+
+#### `time`
+
+A time of day, picked on a clock and submitted as HH:mm, as a calendar event's time takes it.
+
+- `mapping` **(required)**: text (not empty)
+- `title` **(required)**: text
+- `description`: text
+- `mandatory`: `true` or `false`
+- `value`: text. The time at first, HH:mm
+
+#### `hidden`
+
+A value the form sends without showing it, such as the id of the item on screen.
+
+- `mapping` **(required)**: text (not empty). Key of the submitted object that receives the value
+- `value`: text. The value, sent as text; may use ${field} placeholders filled in from the screen's data. Without it, the data's value at mapping is sent
 
 ### Events
 

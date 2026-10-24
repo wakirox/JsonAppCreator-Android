@@ -3,8 +3,10 @@ package it.sapienza.appinterpreter.model.view_model.form_model.helpers
 import it.sapienza.appinterpreter.model.TypedSerializer
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
+import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
+import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
 import kotlinx.serialization.Serializable
 
 object FormElementSerializer : TypedSerializer<FormElementImpl>(
@@ -13,7 +15,9 @@ object FormElementSerializer : TypedSerializer<FormElementImpl>(
         Type("text", TextInput.serializer()) { it is TextInput },
         Type("selector", Selector.serializer()) { it is Selector },
         Type("date", DateInput.serializer()) { it is DateInput },
-        Type("checkbox", CheckBox.serializer()) { it is CheckBox }
+        Type("checkbox", CheckBox.serializer()) { it is CheckBox },
+        Type("time", TimeInput.serializer()) { it is TimeInput },
+        Type("hidden", HiddenInput.serializer()) { it is HiddenInput }
     )
 )
 

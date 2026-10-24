@@ -115,4 +115,25 @@ class ConfigurationValidatorTest {
         assertEquals(listOf("$.mainView.action.event"), issues("""{ "type": "open" }"""))
         assertEquals(listOf("$.mainView.action.event.text"), issues("""{ "type": "share", "text": "" }"""))
     }
+
+    @Test
+    fun selectorOptionsTimeAndHiddenFieldsAreChecked() {
+        fun issues(fields: String) = validator.validate(
+            """{ "schemaVersion": 3, "name": "Fields", "version": "1.0",
+                 "mainView": { "type": "form", "formElements": [ $fields ] } }"""
+        ).issues.map { it.path }.distinct()
+
+        assertEquals(
+            emptyList(),
+            issues(
+                """{ "type": "selector", "mapping": "type", "title": "Type", "options": [ { "label": "Any type", "value": "" }, "Painting", { "value": "Print" } ] },
+                   { "type": "time", "mapping": "time", "title": "Time", "value": "9:30", "mandatory": true },
+                   { "type": "hidden", "mapping": "id", "value": "${'$'}{id}" },
+                   { "type": "hidden", "mapping": "title" }"""
+            )
+        )
+        assertEquals(listOf("$.mainView.formElements[0].options[0]"), issues("""{ "type": "selector", "mapping": "t", "title": "T", "options": [ { "label": "No value" } ] }"""))
+        assertEquals(listOf("$.mainView.formElements[0].value"), issues("""{ "type": "time", "mapping": "t", "title": "T", "value": "25:00" }"""))
+        assertEquals(listOf("$.mainView.formElements[0]"), issues("""{ "type": "hidden", "mapping": "id", "title": "Shown?" }"""))
+    }
 }

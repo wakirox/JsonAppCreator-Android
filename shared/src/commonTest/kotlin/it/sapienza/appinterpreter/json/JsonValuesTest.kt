@@ -99,6 +99,19 @@ class JsonValuesTest {
     }
 
     @Test
+    fun aFilterWithoutAValueIsLeftOut() {
+        val data = JsonText.parse("""{ "type": "", "q": "fuji", "page": null }""")!!.jsonObject
+        assertEquals("https://x/api/?q=fuji&limit=40", "https://x/api/?type=${'$'}{type}&q=${'$'}{q}&limit=40".fillAddress(data))
+        assertEquals("https://x/api/?q=fuji", "https://x/api/?q=${'$'}{q}&page=${'$'}{page}&dept=${'$'}{dept}".fillAddress(data))
+        assertEquals("https://x/api/#top", "https://x/api/?type=${'$'}{type}#top".fillAddress(data))
+        // Only a parameter that is one placeholder is optional: anywhere else, a missing value stops the address.
+        assertNull("https://x/api/?type=a${'$'}{dept}".fillAddress(data))
+        assertNull("https://x/${'$'}{dept}/?q=${'$'}{q}".fillAddress(data))
+        assertEquals(listOf("dept"), "https://x/${'$'}{dept}/?type=${'$'}{type}".missingAddressPlaceholders(data))
+        assertEquals("https://x/?type=&q=fuji", "https://x/?type=&q=${'$'}{q}".fillAddress(data))
+    }
+
+    @Test
     fun presenceIsWhatVisibleIfTests() {
         val data = JsonText.parse(
             """{ "text": "a", "blank": " ", "empty": "", "yes": true, "no": false, "zero": 0, "zeroPoint": 0.0, "one": 1,

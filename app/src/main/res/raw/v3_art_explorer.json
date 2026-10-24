@@ -66,6 +66,10 @@
             "mapping": "type",
             "title": "Type",
             "options": [
+              {
+                "label": "Any type",
+                "value": ""
+              },
               "Painting",
               "Drawing",
               "Print",
@@ -403,7 +407,7 @@
         {
           "type": "text",
           "label": "Plan a visit",
-          "title": "Pick a day and Appkin opens your calendar with the visit filled in. Check the museum's website for opening hours and what's on view.\nhttps://www.clevelandart.org/visit"
+          "title": "Pick a day and a time, and Appkin opens your calendar with the visit filled in. Check the museum's website for opening hours and what's on view.\nhttps://www.clevelandart.org/visit"
         },
         {
           "type": "form",
@@ -421,6 +425,17 @@
               "mapping": "date",
               "title": "Day",
               "mandatory": true
+            },
+            {
+              "type": "time",
+              "mapping": "time",
+              "title": "Time",
+              "value": "11:00",
+              "mandatory": true
+            },
+            {
+              "type": "hidden",
+              "mapping": "url"
             }
           ],
           "action": {
@@ -543,10 +558,10 @@
         "type": "calendar",
         "title": "Cleveland Museum of Art: ${title}",
         "date": "${date}",
-        "time": "11:00",
+        "time": "${time}",
         "durationMinutes": 120,
         "location": "Cleveland Museum of Art, 11150 East Blvd, Cleveland, OH 44106",
-        "description": "Go and see ${title}."
+        "description": "Go and see ${title}.\n${url}"
       }
     },
     {

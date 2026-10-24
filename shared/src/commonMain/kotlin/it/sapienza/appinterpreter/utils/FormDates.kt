@@ -19,6 +19,18 @@ object FormDates {
     fun format(date: LocalDate): String =
         "${date.day.toString().padStart(2, '0')}/${date.month.number.toString().padStart(2, '0')}/${date.year.toString().padStart(4, '0')}"
 
+    const val TIME_PATTERN = "HH:mm"
+
+    private val TIME = Regex("""^([01]?\d|2[0-3]):([0-5]\d)$""")
+
+    /** The hour and minute of [text], HH:mm on a 24-hour clock (the hour may have one digit), or null. */
+    fun parseTime(text: String): Pair<Int, Int>? =
+        TIME.find(text.trim())?.destructured?.let { (hour, minute) -> hour.toInt() to minute.toInt() }
+
+    /** [hour] and [minute] as HH:mm, as a time field submits them. */
+    fun formatTime(hour: Int, minute: Int): String =
+        "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}"
+
     private val DATE = Regex("""^(\d+)/(\d+)/(\d+)""")
     private val DATE_TIME = Regex("""^(\d+)/(\d+)/(\d+) (\d+):(\d+)""")
 
