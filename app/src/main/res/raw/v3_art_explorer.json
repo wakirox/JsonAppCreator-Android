@@ -300,9 +300,25 @@
           ]
         },
         {
-          "type": "text",
-          "label": "On the museum's website",
-          "mapping": "url"
+          "type": "layout",
+          "orientation": "horizontal",
+          "views": [
+            {
+              "type": "button",
+              "title": "Museum page",
+              "visibleIf": "url",
+              "action": {
+                "ref": "museum_page"
+              }
+            },
+            {
+              "type": "button",
+              "title": "Share",
+              "action": {
+                "ref": "share_artwork"
+              }
+            }
+          ]
         }
       ]
     },
@@ -492,6 +508,22 @@
       "event": {
         "type": "alert",
         "value": "${tombstone}"
+      }
+    },
+    {
+      "id": "museum_page",
+      "type": "click",
+      "event": {
+        "type": "open",
+        "url": "${url}"
+      }
+    },
+    {
+      "id": "share_artwork",
+      "type": "click",
+      "event": {
+        "type": "share",
+        "text": "${title} (${creation_date}), Cleveland Museum of Art\n${url}"
       }
     },
     {

@@ -95,4 +95,24 @@ class ConfigurationValidatorTest {
             assertEquals(listOf("$.mainView.visibleIf"), issues.map { it.path }, condition)
         }
     }
+
+    @Test
+    fun openAndShareEventsAreChecked() {
+        fun issues(event: String) = validator.validate(
+            """{ "schemaVersion": 3, "name": "Events", "version": "1.0",
+                 "mainView": { "type": "button", "title": "Go", "action": { "id": "go", "event": $event } } }"""
+        ).issues.map { it.path }
+
+        listOf(
+            """{ "type": "open", "url": "https://clevelandart.org/art/${'$'}{id}" }""",
+            """{ "type": "open", "url": "${'$'}{url}" }""",
+            """{ "type": "open", "url": "geo:0,0?q=${'$'}{address}", "mapping": "location" }""",
+            """{ "type": "open", "url": "tel:+12164217350" }""",
+            """{ "type": "open", "url": "mailto:info@example.com" }""",
+            """{ "type": "share", "text": "${'$'}{title} ${'$'}{url}" }"""
+        ).forEach { assertEquals(emptyList(), issues(it), it) }
+        assertEquals(listOf("$.mainView.action.event.url"), issues("""{ "type": "open", "url": "javascript:alert(1)" }"""))
+        assertEquals(listOf("$.mainView.action.event"), issues("""{ "type": "open" }"""))
+        assertEquals(listOf("$.mainView.action.event.text"), issues("""{ "type": "share", "text": "" }"""))
+    }
 }

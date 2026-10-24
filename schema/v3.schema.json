@@ -368,12 +368,14 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
         { "if": { "properties": { "type": { "const": "alert" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/alertEvent" } },
-        { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } }
+        { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } },
+        { "if": { "properties": { "type": { "const": "open" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/openEvent" } },
+        { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } }
       ]
     },
     "restEvent": {
@@ -444,6 +446,34 @@
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "openEvent": {
+      "type": "object",
+      "description": "Hands an address to another app on the phone: https or http opens the browser, geo: a map, tel: the dialer (nothing is called) and mailto: an email app. No other kinds of address are opened.",
+      "required": ["type", "url"],
+      "properties": {
+        "type": { "const": "open" },
+        "url": {
+          "description": "An https:, http:, geo:, tel: or mailto: address, or a placeholder holding one, such as ${url}; values placeholders insert are percent-encoded",
+          "type": "string",
+          "pattern": "^(https?:|geo:|tel:|mailto:|\\$\\{)"
+        },
+        "mapping": { "description": "Path of the part of the current data the address is filled in from", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "shareEvent": {
+      "type": "object",
+      "description": "Opens the phone's share sheet on a text, for the user to send to any app.",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "share" },
+        "text": { "description": "What is shared; may use ${field} placeholders, such as \"${title} ${url}\"", "$ref": "#/$defs/nonEmptyString" },
+        "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false

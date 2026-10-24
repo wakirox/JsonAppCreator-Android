@@ -9,4 +9,6 @@ class AndroidRuntimeStrings(private val context: Context) : RuntimeStrings {
     override fun configurationInvalid(detail: String) = context.getString(R.string.configuration_invalid, detail)
     override val errorUnrecognized: String get() = context.getString(R.string.error_unrecognized)
     override fun screenDataUnrestorable(detail: String) = context.getString(R.string.screen_data_unrestorable, detail)
+    override fun valueMissing(path: String) = context.getString(R.string.value_missing, path)
+    override fun linkNotAllowed(url: String) = context.getString(R.string.link_not_allowed, url)
 }
