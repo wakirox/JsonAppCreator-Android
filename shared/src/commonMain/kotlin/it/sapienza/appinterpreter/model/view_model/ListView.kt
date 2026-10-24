@@ -11,6 +11,7 @@ import kotlinx.serialization.json.JsonObject
 class ListView(
     val itemView: MView,
     val initData: RESTService? = null,
+    val stored: StoredData? = null,
     val orientation: LayoutOrientation = LayoutOrientation.vertical,
     override val id: String? = null,
     override val action: Action? = null,
@@ -25,3 +26,13 @@ class ListView(
     /** Items per row: 1 unless the list is a grid. */
     val columnCount: Int get() = if (orientation == LayoutOrientation.grid) (columns ?: 2).coerceIn(1, 6) else 1
 }
+
+/**
+ * A list's items from what the app saved on the phone: the objects of [collection] whose fields equal [where]'s, whose
+ * ${field} placeholders are filled from the list's data (such as the app a details screen shows).
+ */
+@Serializable
+class StoredData(
+    val collection: String,
+    val where: JsonObject? = null
+)

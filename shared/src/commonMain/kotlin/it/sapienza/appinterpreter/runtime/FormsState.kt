@@ -51,6 +51,14 @@ class FormsState(
         saved[key(form, data)] = JsonObject(state.valuesFlow.value.mapValues { formValueToJson(it.value) }).toString()
     }
 
+    /** Back to [form]'s starting values, as after its values were saved. */
+    fun reset(form: FormView, data: JsonObject?) {
+        val state = state(form, data)
+        state.valuesFlow.value = initialValues(form, data)
+        state.errorFlow.value = null
+        saved.remove<String>(key(form, data))
+    }
+
     /** Why [form] wasn't sent, if it wasn't. */
     fun error(form: FormView, data: JsonObject?): String? = state(form, data).error.value
 

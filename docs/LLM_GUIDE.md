@@ -99,6 +99,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
   maps, the dialer or email; nothing else opens)
 - `share` (opens the share sheet on a text)
@@ -112,9 +113,9 @@ Other enums:
 - Text inputs: `plain`, `numeric`, `email`, `password`
 - Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
 
-Do not invent support for PATCH, JavaScript expressions,
-conditions other than `visibleIf`, databases, arbitrary native components, or undocumented style
-properties.
+Do not invent support for PATCH, JavaScript expressions, conditions other than
+`visibleIf`, databases beyond `save` and `stored` (saved objects can't be changed or
+deleted yet), arbitrary native components, or undocumented style properties.
 
 ## Common mistakes
 

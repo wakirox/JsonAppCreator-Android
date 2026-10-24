@@ -78,6 +78,20 @@ class RESTService(
 ) : DataService()
 
 /**
+ * Saves the current data (the part [mapping] selects, if any) as a new object of the app's [collection] on the phone,
+ * with [fields] added, then runs [thenDo] with the saved object. Its ${field} placeholders are filled from the data
+ * the form showed (for a form: the screen's or the row's), then from the submitted values.
+ */
+@Serializable
+class SaveData(
+    val collection: String,
+    val fields: JsonObject? = null,
+    val thenDo: Event? = null,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
+/**
  * How a list asks for more items: either the query [parameter] (such as "skip") grows by [step], the page size,
  * from its value in the first URL (0 without one), until a page has fewer than [step] items; or the next page's URL
  * is the response's value at [urlFrom], until there is none.
@@ -106,7 +120,8 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("show", ShowView.serializer()) { it is ShowView },
         TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent },
         TypedSerializer.Type("open", OpenLink.serializer()) { it is OpenLink },
-        TypedSerializer.Type("share", ShareText.serializer()) { it is ShareText }
+        TypedSerializer.Type("share", ShareText.serializer()) { it is ShareText },
+        TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData }
     )
 )
 

@@ -97,6 +97,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
   maps, the dialer or email; nothing else opens)
 - `share` (opens the share sheet on a text)
@@ -110,9 +111,9 @@ Other enums:
 - Text inputs: `plain`, `numeric`, `email`, `password`
 - Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
 
-Do not invent support for PATCH, JavaScript expressions,
-conditions other than `visibleIf`, databases, arbitrary native components, or undocumented style
-properties.
+Do not invent support for PATCH, JavaScript expressions, conditions other than
+`visibleIf`, databases beyond `save` and `stored` (saved objects can't be changed or
+deleted yet), arbitrary native components, or undocumented style properties.
 
 ## Common mistakes
 
@@ -254,6 +255,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `visibleIf`: text
 - `itemView` **(required)**: a view (or `{ "ref": "id" }`). The view repeated for each item; its mappings and placeholders refer to that item
 - `initData`: a REST request, `{ "url": ..., "method": "get" | "post" }`. A REST request whose JSON response is the list's data
+- `stored`: an object. Shows objects the app saved on the phone with a save event, instead of initData or data; mapping is not used
 - `orientation`: one of `"horizontal"`, `"vertical"`, `"grid"`. vertical (default): one item per row; horizontal: a row that scrolls sideways; grid: items side by side in rows of columns
 - `columns`: a whole number (at least 1). Items per row of a grid; 2 by default
 - `emptyText`: text. What the list says when it has no items, instead of No data available; may use ${field} placeholders
@@ -385,6 +387,16 @@ Opens the phone's share sheet on a text, for the user to send to any app.
 - `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 
+#### `save`
+
+Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.
+
+- `collection` **(required)**: text (not empty). The collection to add to, such as "ideas"; each app has its own
+- `fields`: an object. Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { "appId": "${id}" }
+- `thenDo`: an event. The event to run next, with the saved object as data
+- `mapping`: text. Path of the part of the current data to save
+- `data`: an object with any data
+
 ### Actions and references
 
 Where an action is expected, write an action definition or `{ "ref": "id" }` referencing one in the root `actions`.
@@ -405,6 +417,13 @@ Where an action is expected, write an action definition or `{ "ref": "id" }` ref
 - `mapping`: text
 - `data`: an object with any data
 - `nextPage`: a value. How the list asks for more items when it nears its end. Either parameter and step: that query parameter (such as skip) grows by step, the page size, until a page has fewer items. Or urlFrom: the path in the response of the next page's URL, until there is none
+
+#### Saved data for a list (`stored`)
+
+The objects a save event put in a collection, oldest first; it shows them again when that collection changes.
+
+- `collection` **(required)**: text (not empty). The collection's name, as in the save event
+- `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
 
 #### Size (`size`)
 

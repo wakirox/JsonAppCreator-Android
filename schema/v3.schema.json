@@ -236,6 +236,13 @@
             { "type": "null" }
           ]
         },
+        "stored": {
+          "description": "Shows objects the app saved on the phone with a save event, instead of initData or data; mapping is not used",
+          "oneOf": [
+            { "$ref": "#/$defs/storedData" },
+            { "type": "null" }
+          ]
+        },
         "orientation": {
           "description": "vertical (default): one item per row; horizontal: a row that scrolls sideways; grid: items side by side in rows of columns",
           "enum": ["horizontal", "vertical", "grid"],
@@ -250,6 +257,23 @@
         "emptyText": {
           "description": "What the list says when it has no items, instead of No data available; may use ${field} placeholders",
           "$ref": "#/$defs/nullableString"
+        }
+      },
+      "not": {
+        "required": ["initData", "stored"],
+        "properties": { "initData": { "type": "object" }, "stored": { "type": "object" } }
+      },
+      "additionalProperties": false
+    },
+    "storedData": {
+      "type": "object",
+      "description": "The objects a save event put in a collection, oldest first; it shows them again when that collection changes.",
+      "required": ["collection"],
+      "properties": {
+        "collection": { "description": "The collection's name, as in the save event", "$ref": "#/$defs/nonEmptyString" },
+        "where": {
+          "description": "Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { \"appId\": \"${id}\" }",
+          "type": ["object", "null"]
         }
       },
       "additionalProperties": false
@@ -447,14 +471,15 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
         { "if": { "properties": { "type": { "const": "alert" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/alertEvent" } },
         { "if": { "properties": { "type": { "const": "calendar" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/calendarEvent" } },
         { "if": { "properties": { "type": { "const": "open" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/openEvent" } },
-        { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } }
+        { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } },
+        { "if": { "properties": { "type": { "const": "save" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/saveEvent" } }
       ]
     },
     "restEvent": {
@@ -551,6 +576,29 @@
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "saveEvent": {
+      "type": "object",
+      "description": "Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.",
+      "required": ["type", "collection"],
+      "properties": {
+        "type": { "const": "save" },
+        "collection": { "description": "The collection to add to, such as \"ideas\"; each app has its own", "$ref": "#/$defs/nonEmptyString" },
+        "fields": {
+          "description": "Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { \"appId\": \"${id}\" }",
+          "type": ["object", "null"]
+        },
+        "thenDo": {
+          "description": "The event to run next, with the saved object as data",
+          "oneOf": [
+            { "$ref": "#/$defs/event" },
+            { "type": "null" }
+          ]
+        },
+        "mapping": { "description": "Path of the part of the current data to save", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false

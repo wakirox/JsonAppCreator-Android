@@ -9,6 +9,9 @@ import it.sapienza.appinterpreter.model.event.NextPage
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
+import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
+import it.sapienza.appinterpreter.storage.AppData
+import it.sapienza.appinterpreter.storage.MemoryAppStore
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +46,10 @@ class ListPagingTest {
         val items = (skip until minOf(skip + limit, 7)).joinToString { """{ "id": $it }""" }
         respond("""{ "data": [ $items ] }""")
     }
-    private val loadItems = LoadListItemsUseCase(FetchJsonUseCase(JsonHttpClient(engine, "Appkin/test")))
+    private val loadItems = LoadListItemsUseCase(
+        FetchJsonUseCase(JsonHttpClient(engine, "Appkin/test")),
+        LoadStoredItemsUseCase(AppData(MemoryAppStore()), AppRepository({ error("no saved lists here") }))
+    )
 
     private fun list(initData: String) = AppParser(
         """{ "name": "Pages", "version": "1.0", "schemaVersion": 3,

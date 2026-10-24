@@ -6,11 +6,15 @@ import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.event.NextPage
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.view_model.ListView
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
-/** A list's items: from its request when it has one, else from its own data or the screen's. */
-class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase) {
+/** A list's items: what the app saved, or from its request when it has one, else from its own data or the screen's. */
+class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val loadStored: LoadStoredItemsUseCase) {
+
+    /** The saved collections that changed: the lists showing them load again. */
+    val storedChanges: Flow<String> get() = loadStored.changes
 
     /** Some of a list's items, and the URL of the ones after them, if its request has a nextPage and there are more. */
     class Page(val items: List<JsonObject>, val nextUrl: String?)
@@ -18,6 +22,7 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase) {
     suspend operator fun invoke(list: ListView, data: JsonObject?): List<JsonObject> = firstPage(list, data).items
 
     suspend fun firstPage(list: ListView, data: JsonObject?): Page {
+        list.stored?.let { return Page(loadStored(it, data), nextUrl = null) }
         val request = list.initData ?: return Page(itemsIn(list, data ?: JsonObject(emptyMap())), nextUrl = null)
         return page(list, request, fetchJson.url(request, data), data)
     }

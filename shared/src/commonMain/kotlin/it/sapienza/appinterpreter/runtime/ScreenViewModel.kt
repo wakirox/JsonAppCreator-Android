@@ -17,6 +17,7 @@ import it.sapienza.appinterpreter.model.event.Event
 import it.sapienza.appinterpreter.model.event.OpenLink
 import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
+import it.sapienza.appinterpreter.model.event.SaveData
 import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
@@ -27,6 +28,7 @@ import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
 import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
+import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -58,6 +60,7 @@ class ScreenViewModel(
     initialFormValues: InitialFormValuesUseCase,
     submitForm: SubmitFormUseCase,
     private val createCalendarEvent: CreateCalendarEventUseCase,
+    private val saveItem: SaveItemUseCase,
     private val openLink: OpenLinkUseCase,
     findMissingApiKeys: FindMissingApiKeysUseCase,
     loadScreen: LoadScreenUseCase,
@@ -120,10 +123,17 @@ class ScreenViewModel(
         resolved.event?.let { onEvent(it, resolved.data ?: data) }
     }
 
-    /** Sends [form] to its action's event, once every required field is filled in. */
+    /**
+     * Sends [form] to its action's event, once every required field is filled in. A form whose values are saved on the
+     * phone starts empty again, ready for the next one.
+     */
     fun onSubmit(form: FormView, data: JsonObject?) {
         val json = forms.submit(form, data) ?: return
-        resolve(form.action)?.event?.let { onEvent(it, json) }
+        when (val event = resolve(form.action)?.event) {
+            null -> Unit
+            is SaveData -> if (save(event, json, context = data)) forms.reset(form, data)
+            else -> onEvent(event, json)
+        }
     }
 
     fun onEvent(event: Event, data: JsonObject?) {
@@ -132,6 +142,7 @@ class ScreenViewModel(
             // The view receives the part of the data the mapping selects, such as "meals.0".
             is ShowView -> openScreen(event, event.mapping?.let { data?.getObject(it) } ?: data)
             is RESTService -> request(event, data)
+            is SaveData -> save(event, data, context = data)
             is CalendarEvent -> when (val result = createCalendarEvent(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
                 is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
                 is CreateCalendarEventUseCase.Result.BadDate -> alerts.show(result.message)
@@ -161,6 +172,18 @@ class ScreenViewModel(
         val data = payload ?: definition.data
         val title = event.title?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() }
         effectChannel.trySend(Effect.OpenScreen(definition, data, title))
+    }
+
+    /** Saves [values] as [event] says, then runs its next event with the saved object; false when it couldn't. */
+    private fun save(event: SaveData, values: JsonObject?, context: JsonObject?): Boolean {
+        val item = try {
+            saveItem(event, values, context)
+        } catch (e: Exception) {
+            alerts.show(e.message ?: "An error occurred")
+            return false
+        }
+        event.thenDo?.let { onEvent(it, item) }
+        return true
     }
 
     private fun request(event: RESTService, data: JsonObject?) {

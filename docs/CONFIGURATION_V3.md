@@ -14,11 +14,12 @@ LLM. This README documents the currently supported **v3 configuration format**.
 
 - Vertical and horizontal layouts
 - Text, buttons, and remote images
-- Static or API-backed lists
+- Static or API-backed lists, and lists of what the app saved on the phone
 - Forms with text, numeric, email, password, date, selector, and checkbox inputs
 - Click and long-click actions
 - Screen-to-screen navigation
 - GET and POST requests with chained events
+- Saving form entries on the phone, per app
 - Alerts with optional confirmation branches
 - Reusable views and actions referenced by ID
 - Data binding through dot paths and `${placeholder}` interpolation
@@ -224,6 +225,7 @@ A list repeats `itemView` once for every object in a JSON array.
 | `itemView` | view | yes | Template rendered for every array item. |
 | `mapping` | string | yes in normal use | Dot path to the array in the response or inherited `data`. |
 | `initData` | REST service | no | Fetches the list data when the list appears. |
+| `stored` | stored data | no | Shows what the app saved on the phone; see [Save on the phone](#save-on-the-phone). Not with `initData`. |
 | `orientation` | string | no | `vertical` (default), `horizontal`, or `grid`: items side by side in rows. |
 | `columns` | integer | no | Items per row of a `grid`, 1 to 6; 2 by default. |
 | `emptyText` | string | no | What the list says when it has no items, instead of "No data available". Supports `${...}`. |
@@ -473,6 +475,41 @@ Opens the phone's calendar app on a new event, filled in; the user reviews and s
 there, so the app needs no calendar permission. `date` is `dd/MM/yyyy`, as a form's
 `date` field submits it, and `time` is `HH:mm`; without `time` the event lasts all day.
 A timed event lasts `durationMinutes`, 60 by default. Every text may use `${...}`.
+
+### Save on the phone
+
+```json
+{
+  "type": "save",
+  "collection": "ideas",
+  "fields": { "appId": "${id}", "done": false },
+  "thenDo": { "type": "alert", "value": "Saved ${title}" }
+}
+```
+
+Saves the current data, usually a form's submitted values, as a new object of a
+collection kept on the phone. Each app has its own collections, and they stay when the
+app is closed or opened again from Your apps. Every object gets an `id` and a `createdAt`
+(epoch milliseconds). `fields` adds values; their `${...}` placeholders are filled from
+the data the form showed (the screen's, or its list row's), then from the submitted values.
+`thenDo` runs with the saved object. A form saved this way starts empty again.
+
+A list shows a collection with `stored` instead of `initData` or `data`:
+
+```json
+{
+  "type": "list",
+  "stored": { "collection": "ideas", "where": { "appId": "${id}" } },
+  "itemView": { "type": "text", "mapping": "title" }
+}
+```
+
+Objects appear oldest first, and the list updates as soon as one is saved, on this screen
+or another. `where` keeps only the objects whose fields have those values, with
+placeholders from the list's data; so a details screen opened on an app with `id` shows
+only that app's ideas. `mapping` is not used.
+
+Data is kept by the app's name: an app renamed in the editor starts with no saved data.
 
 ### Open a link in another app
 
