@@ -70,10 +70,11 @@ class TextStylesAndTitlesTest {
     }
 
     @Test
-    fun withoutALabelStyleTheLabelLooksLikeTheText() {
+    fun withoutALabelStyleTheLabelIsAHeading() {
         launch()
         val text = shown("Plain\nwritten <b>as is</b>")
-        assertEquals(null, text.weightAt(0))
+        assertEquals(FontWeight.SemiBold, text.weightAt(0))
+        assertEquals("the text under it stays regular", null, text.weightAt(text.text.indexOf("written")))
     }
 
     @Test
