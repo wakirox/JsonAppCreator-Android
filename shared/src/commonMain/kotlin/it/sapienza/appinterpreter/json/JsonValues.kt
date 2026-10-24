@@ -66,17 +66,35 @@ fun formValueToJson(value: Any?): JsonElement = when (value) {
     else -> JsonPrimitive(value.toString())
 }
 
-private val PLACEHOLDER = Regex("(\\$\\{[^}]+\\})")
+private val PLACEHOLDER = Regex("\\$\\{([^}]+)\\}")
 
-/** The text with each ${path} replaced by its value in [data]; placeholders without a value stay as they are. */
-fun String.matchReplace(data: JsonObject?): String {
-    if (data == null) return this
-    var result = this
-    PLACEHOLDER.findAll(this).forEach { match ->
-        val placeholder = match.groupValues[1]
-        data.getValue(placeholder.substring(2, placeholder.length - 1))?.let { value ->
-            result = result.replace(placeholder, value)
-        }
+/** The text with each ${path} replaced by its value in [data]; a placeholder without a value becomes "". */
+fun String.matchReplace(data: JsonObject?): String =
+    PLACEHOLDER.replace(this) { match -> data?.getValue(match.groupValues[1]).orEmpty() }
+
+/** The paths of the placeholders in this text that have no value in [data], in order. */
+fun String.missingPlaceholders(data: JsonObject?): List<String> =
+    PLACEHOLDER.findAll(this).map { it.groupValues[1] }.filter { data?.getValue(it) == null }.distinct().toList()
+
+/**
+ * An address with its placeholders filled in from [data], or null when one of them has no value: such an
+ * address would ask for something else, so it isn't used.
+ */
+fun String.fillAddress(data: JsonObject?): String? =
+    if (missingPlaceholders(data).isEmpty()) matchReplace(data) else null
+
+/**
+ * True when [data] has something at [path]: not missing, null, "", false, 0 or an empty array or object.
+ * This is what "visibleIf" tests.
+ */
+fun JsonObject?.hasValueAt(path: String): Boolean = when (val value = this?.valueAt(path)) {
+    null -> false
+    is JsonArray -> value.isNotEmpty()
+    is JsonObject -> value.isNotEmpty()
+    is JsonPrimitive -> when {
+        value.isString -> value.content.isNotBlank()
+        value.content == "false" -> false
+        else -> value.content.toDoubleOrNull()?.let { it != 0.0 } ?: true
     }
-    return result
+    else -> true
 }

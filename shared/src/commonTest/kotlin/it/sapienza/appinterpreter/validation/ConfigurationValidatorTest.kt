@@ -66,4 +66,33 @@ class ConfigurationValidatorTest {
         assertEquals("$.a[0].0.b", ConfigurationValidator.jsonPath("/a/0/0/b", document))
         assertEquals("$", ConfigurationValidator.jsonPath("", document))
     }
+
+    @Test
+    fun everyViewMayHaveVisibleIfAndTextsShowWhenEmpty() {
+        val views = listOf(
+            """{ "type": "text", "label": "Artist", "mapping": "creators.0.description", "visibleIf": "creators", "showWhenEmpty": true }""",
+            """{ "type": "button", "title": "Plan a visit", "visibleIf": "current_location" }""",
+            """{ "type": "image", "url": "${'$'}{images.web.url}", "visibleIf": "images.web.url" }""",
+            """{ "type": "list", "itemView": { "type": "text" }, "visibleIf": "!items" }""",
+            """{ "type": "form", "formElements": [], "visibleIf": "id" }""",
+            """{ "type": "layout", "views": [ { "ref": "shared", "visibleIf": "a.b" } ], "visibleIf": "x" }"""
+        )
+        val issues = validator.validate(
+            """{ "schemaVersion": 3, "name": "Visible", "version": "1.0",
+                 "mainView": { "type": "layout", "views": [ ${views.joinToString()} ] },
+                 "views": [ { "id": "shared", "type": "text", "title": "Shared" } ] }"""
+        ).issues
+        assertEquals(emptyList(), issues)
+    }
+
+    @Test
+    fun visibleIfIsAPathNotAnExpression() {
+        listOf("a == b", "!!a", "!", "").forEach { condition ->
+            val issues = validator.validate(
+                """{ "schemaVersion": 3, "name": "Visible", "version": "1.0",
+                     "mainView": { "type": "text", "title": "x", "visibleIf": "$condition" } }"""
+            ).issues
+            assertEquals(listOf("$.mainView.visibleIf"), issues.map { it.path }, condition)
+        }
+    }
 }

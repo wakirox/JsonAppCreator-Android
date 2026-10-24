@@ -102,6 +102,7 @@ All views may contain:
 | `action` | action | Inline action or `{ "ref": "action_id" }` reference. |
 | `mapping` | string | Dot path read from the current data object. Meaning varies slightly by view type. |
 | `data` | object | Local data. It overrides inherited data for this node and its children. |
+| `visibleIf` | string | A path in the view's data: the view is shown only when there's a value there. See [Showing views only with data](#showing-views-only-with-data). |
 
 ### `layout`
 
@@ -143,6 +144,11 @@ A layout groups child views.
 | `textStyle` | string | `regular` (default), `italic`, or `bold`. |
 | `textSize` | number | Text size in scale-independent pixels (sp). |
 | `size` | object | Optional `width` and `height`, interpreted as density-independent pixels (dp). |
+| `showWhenEmpty` | boolean | Keep the label when `mapping` (or `title`) has nothing to show. `false` by default: such a text view isn't drawn, label included. |
+
+A text view whose `mapping` finds no value, or whose `title` is empty once its placeholders are
+filled in, isn't drawn at all, so a missing "Technique" doesn't leave its label behind. A text
+view with only a `label` is a heading and is always drawn.
 
 ### `button`
 
@@ -322,9 +328,30 @@ interpolate data:
 
 Dot paths traverse JSON objects, and reach array items by index: `meals.0.strMeal` and
 `meals[0].strMeal` are the same. A list's `initData` URL can use placeholders too, filled
-from the data of the screen it is on. Array values used as text are joined with `, `. Missing
-values remain unreplaced in interpolated strings, so make sure every placeholder exists
-in the data available at that point.
+from the data of the screen it is on. Array values used as text are joined with `, `.
+
+A placeholder with no value (missing or `null`) becomes empty text: `"By ${artist}"` reads
+`By ` when there's no `artist`. Addresses are different. A REST `url` (an event's or a list's
+`initData`) with a placeholder that has no value isn't requested at all: the app says what's
+missing, such as "This item has no creators.0.id", instead of asking for the wrong address.
+An image whose `url` has a placeholder with no value shows "Image unavailable".
+
+### Showing views only with data
+
+Any view, and a `{ "ref": … }` reference, can have `visibleIf`: a path in the view's data. The
+view is shown only when there's a value at that path that isn't `null`, empty text, `false`,
+`0`, or an empty array or object. Start the path with `!` for the opposite: shown only when
+there's no such value. A view that isn't shown takes no space.
+
+```json
+[
+  { "type": "text", "label": "Artist", "mapping": "creators.0.description", "visibleIf": "creators" },
+  { "type": "text", "title": "Artist unknown", "visibleIf": "!creators" },
+  { "type": "button", "title": "Plan a visit", "visibleIf": "current_location", "action": { "ref": "plan_visit" } }
+]
+```
+
+`visibleIf` only tests whether a value is there: it has no comparisons or other expressions.
 
 ## Actions and events
 

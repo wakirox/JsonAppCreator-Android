@@ -5,7 +5,9 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /** Paths in mappings and placeholders, including array items by index ("meals.0" or "meals[0]"). */
 class JsonValuesTest {
@@ -43,8 +45,45 @@ class JsonValuesTest {
 
     @Test
     fun placeholdersAreFilledFromTheData() {
-        assertEquals("Ana likes Arroz, ${'$'}{unknown}", "${'$'}{owner.name} likes ${'$'}{meals.0.strMeal}, ${'$'}{unknown}".matchReplace(response))
-        assertEquals("${'$'}{x}", "${'$'}{x}".matchReplace(null))
+        assertEquals("Ana likes Arroz, ", "${'$'}{owner.name} likes ${'$'}{meals.0.strMeal}, ${'$'}{unknown}".matchReplace(response))
         assertEquals("a", "a".matchReplace(JsonObject(emptyMap())))
+    }
+
+    @Test
+    fun aPlaceholderWithoutAValueBecomesEmpty() {
+        assertEquals("", "${'$'}{x}".matchReplace(null))
+        assertEquals("By ", "By ${'$'}{owner.age}".matchReplace(response))
+        assertEquals("[]", "[${'$'}{nothing}]".matchReplace(response))
+        assertEquals("", "${'$'}{meals.5.strMeal}${'$'}{missing.name}".matchReplace(response))
+        // A value with a dollar sign is inserted as it is.
+        assertEquals("${'$'}1", "${'$'}{v}".matchReplace(JsonText.parse("""{ "v": "${'$'}1" }""")!!.jsonObject))
+    }
+
+    @Test
+    fun missingPlaceholdersAreListedOnce() {
+        assertEquals(listOf("nothing", "missing.id"), "${'$'}{owner.name}/${'$'}{nothing}/${'$'}{missing.id}/${'$'}{nothing}".missingPlaceholders(response))
+        assertEquals(emptyList(), "https://x/${'$'}{meals.1.strMeal}".missingPlaceholders(response))
+        assertEquals(listOf("id"), "${'$'}{id}".missingPlaceholders(null))
+    }
+
+    @Test
+    fun anAddressIsFilledOnlyWhenEveryPlaceholderHasAValue() {
+        assertEquals("https://x/Paella.jpg", "https://x/${'$'}{meals.1.strMeal}.jpg".fillAddress(response))
+        assertNull("https://x/${'$'}{meals.2.strMeal}.jpg".fillAddress(response))
+        assertNull("${'$'}{nothing}".fillAddress(response))
+        assertEquals("https://x/a.jpg", "https://x/a.jpg".fillAddress(null))
+    }
+
+    @Test
+    fun presenceIsWhatVisibleIfTests() {
+        val data = JsonText.parse(
+            """{ "text": "a", "blank": " ", "empty": "", "yes": true, "no": false, "zero": 0, "zeroPoint": 0.0, "one": 1,
+                 "list": [1], "noList": [], "object": { "a": 1 }, "noObject": {}, "nothing": null }"""
+        )!!.jsonObject
+        listOf("text", "yes", "one", "list", "object", "object.a", "list.0").forEach { assertTrue(data.hasValueAt(it), it) }
+        listOf("blank", "empty", "no", "zero", "zeroPoint", "noList", "noObject", "nothing", "missing", "list.3").forEach {
+            assertFalse(data.hasValueAt(it), it)
+        }
+        assertFalse((null as JsonObject?).hasValueAt("text"))
     }
 }

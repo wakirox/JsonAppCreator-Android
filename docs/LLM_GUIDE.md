@@ -109,7 +109,7 @@ Other enums:
 - Form elements: `text`, `selector`, `date`, `checkbox`
 
 Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
-conditional rendering, databases, arbitrary native components, or undocumented style
+conditions other than `visibleIf`, databases, arbitrary native components, or undocumented style
 properties.
 
 ## Common mistakes
@@ -127,6 +127,11 @@ properties.
 - Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one
   object in an array, open its view with a `show` event whose `mapping` selects it, such
   as `"mapping": "meals.0"`.
+- Data from an API is often incomplete. A text view whose `mapping` (or `title`) has nothing
+  to show isn't drawn, label included, and a missing `${...}` becomes empty text. To hide any
+  other view, such as a button that needs a field, give it `"visibleIf": "field"` (shown only
+  when the field has a value) or `"visibleIf": "!field"` (only when it hasn't). It is a path,
+  never a comparison.
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.
