@@ -370,7 +370,7 @@ gallery's copy is deleted; the field sends a list of references, which a `save` 
 `image` view whose `mapping` is that list shows the photos in a row of thumbnails, and a
 tap shows one full screen. Photos that no saved item refers to any more are removed. A
 `rest` request sends each photo in its body as a `data:image/jpeg;base64,...` address
-(scaled to at most 2048 pixels), so a server receives the image itself.
+(scaled to at most 1600 pixels), so a server receives the image itself.
 
 ```json
 { "type": "photos", "mapping": "photos", "title": "Photos", "max": 6 }
@@ -560,7 +560,9 @@ they were saved in:
 }
 ```
 
-Data is kept by the app's name: an app renamed in the editor starts with no saved data.
+Data is kept by the app's name: an app renamed in the editor starts with no saved data. Saved data and photos are
+part of Android's backup to the user's Google account and move with them to a new phone;
+API keys entered in the app don't (the app asks for them again).
 
 ### Change or delete saved data
 

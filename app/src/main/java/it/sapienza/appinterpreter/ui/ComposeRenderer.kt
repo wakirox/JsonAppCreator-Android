@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.launch
 import android.net.Uri
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.unit.Dp
 import androidx.activity.result.contract.ActivityResultContracts
@@ -560,21 +561,33 @@ private fun ImageStrip(urls: List<String>, side: Dp, modifier: Modifier, allowIm
     val context = LocalContext.current
     Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         urls.forEach { url ->
-            var loaded by remember(url) { mutableStateOf(false) }
-            AsyncImage(
-                model = url,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                onState = { loaded = it is AsyncImagePainter.State.Success },
-                // The tag marks a loaded image, which tests wait for.
-                modifier = Modifier.size(side).clip(RoundedCornerShape(12.dp))
-                    .then(if (loaded) Modifier.testTag("image-$url") else Modifier)
-                    .then(
-                        if (allowImagePreview) Modifier.clickable { context.startActivity(createIntentPhotoActivity(context, url)) }
-                        else Modifier
-                    )
-            )
+            var state by remember(url) { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
+            Box(Modifier.size(side).clip(RoundedCornerShape(12.dp))) {
+                AsyncImage(
+                    model = url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    onState = { state = it },
+                    // The tag marks a loaded image, which tests wait for.
+                    modifier = Modifier.matchParentSize()
+                        .then(if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-$url") else Modifier)
+                        .then(
+                            if (allowImagePreview) Modifier.clickable { context.startActivity(createIntentPhotoActivity(context, url)) }
+                            else Modifier
+                        )
+                )
+                // A photo that can't be read (its file gone or damaged) shows as such, not as an empty gap.
+                if (state is AsyncImagePainter.State.Error) BrokenImage(Modifier.matchParentSize())
+            }
         }
+    }
+}
+
+/** Where an image that couldn't be loaded would be: a tile with a broken-image icon. */
+@Composable
+private fun BrokenImage(modifier: Modifier) {
+    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant).semantics { contentDescription = "Image unavailable" }, contentAlignment = Alignment.Center) {
+        Icon(MaterialIcons.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -1127,15 +1140,20 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
                 current.forEach { reference ->
                     var loaded by remember(reference) { mutableStateOf(false) }
                     Box(Modifier.size(PHOTO_THUMB_SIZE)) {
+                        var broken by remember(reference) { mutableStateOf(false) }
                         AsyncImage(
                             model = reference,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            onState = { loaded = it is AsyncImagePainter.State.Success },
+                            onState = {
+                                loaded = it is AsyncImagePainter.State.Success
+                                broken = it is AsyncImagePainter.State.Error
+                            },
                             modifier = Modifier.matchParentSize().clip(RoundedCornerShape(12.dp))
                                 .then(if (loaded) Modifier.testTag("image-$reference") else Modifier)
                                 .clickable { context.startActivity(createIntentPhotoActivity(context, reference)) }
                         )
+                        if (broken) BrokenImage(Modifier.matchParentSize().clip(RoundedCornerShape(12.dp)))
                         FilledTonalIconButton(
                             onClick = { onChange(JsonArray((current - reference).map(::JsonPrimitive)).takeIf { it.isNotEmpty() }) },
                             shapes = IconButtonDefaults.shapes(),

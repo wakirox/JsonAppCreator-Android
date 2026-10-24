@@ -92,7 +92,9 @@ class AppIdeasScreenshotTest {
             item(
                 "title" to "Widgets for the home screen, the lock screen and the watch face, in every size",
                 "description" to "Today's rain at a glance\nTomorrow's forecast underneath\nA tap opens the app ☔",
-                "priority" to "Low", "appId" to "app-rainy", "done" to false
+                "priority" to "Low", "appId" to "app-rainy", "done" to false,
+                // A photo whose file is gone (lost, say): it shows as unavailable, not as a gap.
+                "photos" to JsonArray(listOf(JsonPrimitive("appkin-photo:missing.jpg")))
             )
         )
         data.add(
@@ -216,6 +218,10 @@ class AppIdeasScreenshotTest {
         awaitText("Widgets for the home screen, the lock screen and the watch face, in every size")
         awaitTag("image-appkin-photo:sky.jpg")
         awaitTag("image-appkin-photo:rain.jpg")
+        composeRule.waitUntil(timeoutMillis = WAIT_TIMEOUT_MS) {
+            composeRule.onAllNodesWithContentDescription("Image unavailable").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.waitForIdle()
     }
 
     private fun awaitTag(tag: String) {
