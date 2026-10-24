@@ -673,6 +673,10 @@
           "description": "Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { \"appId\": \"${id}\" }",
           "type": ["object", "null"]
         },
+        "unique": {
+          "description": "A field that tells saved objects apart, such as \"key\": saving an object with the same value there replaces the one already saved (keeping its id) instead of adding another",
+          "$ref": "#/$defs/nullableString"
+        },
         "thenDo": {
           "description": "The event to run next, with the saved object as data",
           "oneOf": [

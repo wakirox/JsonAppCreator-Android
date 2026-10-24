@@ -408,6 +408,7 @@ Saves the current data (a form's submitted values) on the phone as a new object 
 
 - `collection` **(required)**: text (not empty). The collection to add to, such as "ideas"; each app has its own
 - `fields`: an object. Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { "appId": "${id}" }
+- `unique`: text. A field that tells saved objects apart, such as "key": saving an object with the same value there replaces the one already saved (keeping its id) instead of adding another
 - `thenDo`: an event. The event to run next, with the saved object as data
 - `mapping`: text. Path of the part of the current data to save
 - `data`: an object with any data

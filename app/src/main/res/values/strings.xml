@@ -21,6 +21,11 @@
     <string name="home_menu_about">About Appkin</string>
     <string name="home_about_text">Open source under the MIT licence, with no ads, no account and no data collected. The format reference, a guide for AI apps and more examples are on GitHub.</string>
     <string name="home_about_github">Open GitHub</string>
+    <string name="about_contact">Questions or a problem to report: info@wakirox.app</string>
+    <string name="about_credits">Credits</string>
+    <string name="about_credits_commons">Masterpieces shows public-domain works; the images come from Wikimedia Commons.</string>
+    <string name="about_tmdb_logo">TMDB logo</string>
+    <string name="about_credits_tmdb">The Movies example uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.</string>
     <string name="home_examples_note">Change an example with Edit this app in its ⋮ menu, and your version is kept under Your apps.</string>
 
     <!-- Home page: how it works -->
@@ -39,12 +44,12 @@
     <string name="how_menu_note">Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, put it on your home screen, or come back here.</string>
 
     <!-- Bundled examples -->
-    <string name="example_art_explorer">Art Explorer</string>
-    <string name="example_art_explorer_about">A live museum collection: search it, meet the artists, plan a visit</string>
+    <string name="example_masterpieces">Masterpieces</string>
+    <string name="example_masterpieces_about">25 famous paintings and prints, with maps, links and your favourites</string>
     <string name="example_app_ideas">App ideas</string>
     <string name="example_app_ideas_about">Notes on your app ideas, kept on the phone: tick them off by priority</string>
-    <string name="example_movie_db">The Movie DB</string>
-    <string name="example_movie_db_about">Movies from an online API</string>
+    <string name="example_movies">Movies</string>
+    <string name="example_movies_about">Popular films and the people in them, from TMDB</string>
 
     <!-- An app's menu and About dialog -->
     <string name="navigate_back">Back</string>

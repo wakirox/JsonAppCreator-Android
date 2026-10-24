@@ -7,6 +7,8 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import it.sapienza.appinterpreter.di.appModule
+import it.sapienza.appinterpreter.utils.ImageCacheExpiry
+import it.sapienza.appinterpreter.utils.SharedPreferencesStore
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import org.koin.android.ext.koin.androidContext
@@ -24,6 +26,9 @@ class AppRatioApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@AppRatioApplication)
             modules(appModule)
         }
+        ImageCacheExpiry(SharedPreferencesStore(this, "ImageCache")) {
+            SingletonImageLoader.get(this).diskCache?.clear()
+        }.check()
     }
 
     /** Coil loads images through the app's OkHttp client, so they carry its User-Agent. */

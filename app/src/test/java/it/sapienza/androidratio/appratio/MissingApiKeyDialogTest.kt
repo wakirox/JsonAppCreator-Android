@@ -85,8 +85,8 @@ class MissingApiKeyDialogTest {
         composeRule.waitForIdle()
 
         assertEquals(TMDB_CONFIGURATION_ID, domainPreferences.getString(CONFIGURATION_ID_KEY, null))
-        assertTrue(domainPreferences.getString(JSON_KEY, null).orEmpty().contains("THE MOVIE DB"))
-        composeRule.onNodeWithText("THE MOVIE DB").assertExists()
+        assertTrue(domainPreferences.getString(JSON_KEY, null).orEmpty().contains("\"name\": \"Movies\""))
+        composeRule.onNodeWithText("Movies").assertExists()
     }
 
     private companion object {
