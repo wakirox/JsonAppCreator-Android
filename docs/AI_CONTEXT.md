@@ -45,15 +45,16 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 10. For every list, provide `itemView` and a `mapping` selecting an array of objects.
 11. If a list has `initData`, ensure its endpoint returns a JSON object containing the
     mapped array.
-12. Use HTTPS endpoints that require no custom headers. Never write a real API key,
+12. Use HTTPS endpoints. Never write a real API key,
     token, password, or other secret into the JSON. When an API needs a key in its URL
-    (a query parameter or a path segment), write a named placeholder instead: two
-    underscores, an uppercase name, two underscores, for example
-    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__`. Appkin asks the user
+    (a query parameter or a path segment) or in a header, write a named placeholder
+    instead: two underscores, an uppercase name, two underscores, for example
+    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__` or
+    `"headers": { "Authorization": "Bearer __EXAMPLE_TOKEN__" }`. Appkin asks the user
     for each placeholder's value when the app opens, stores it encrypted on the device,
-    and fills it into every request URL. Use one name per key and reuse it in every URL
-    that needs it. A key that the API accepts only in a header can't be used: pick
-    another API.
+    and fills it into every request. Use one name per key and reuse it wherever it's
+    needed. For a request that can fail in a way the user should understand, add
+    `onError` (its data has `error.message`).
 13. Make every mapping and placeholder match the real data exactly, including case and
     nesting.
 14. Prefer a small working configuration over speculative or undocumented fields.
@@ -97,42 +98,67 @@ Events:
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
 - `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it)
+- `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
+  maps, the dialer or email; nothing else opens)
+- `share` (opens the share sheet on a text)
 
 Other enums:
 
-- Orientations: `vertical`, `horizontal`
+- Orientations: `vertical`, `horizontal` (and `grid`, for lists only)
 - Actions: `click`, `longclick`
-- HTTP methods: `get`, `post`
+- HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
 - Text inputs: `plain`, `numeric`, `email`, `password`
-- Form elements: `text`, `selector`, `date`, `checkbox`
+- Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`
 
-Do not invent support for custom headers, DELETE/PUT/PATCH, JavaScript expressions,
-conditional rendering, databases beyond `save` and `stored` (saved objects can't be
-changed or deleted yet), arbitrary native components, or undocumented style properties.
+Do not invent support for PATCH, JavaScript expressions, conditions other than
+`visibleIf`, databases beyond `save` and `stored` (saved objects can't be changed or
+deleted yet), arbitrary native components, or undocumented style properties.
 
 ## Common mistakes
 
 - A button shows its `title` (or the value its `mapping` selects). A button's `label` is
   not displayed.
-- A text view shows its `label` as a first line, then the `mapping` value or `title`, in
-  one style. Use `textStyle` and `textSize` for emphasis. A web address written out in
-  a text view (`https://...`) becomes a link that opens in the browser; this is the only
-  way to link to a web page.
+- A text view shows its `label` as a heading, then the `mapping` value or `title` under it as
+  a quieter line. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style the
+  label on its own (`"labelStyle": "bold"` over regular text). When a value holds HTML,
+  such as a museum's description, add `"format": "html"`. An image's `"scale": "fit"` shows
+  the whole picture instead of cropping it; a `show` event's `title` names the screen it
+  opens. A web address written out in
+  a text view (`https://...`) becomes a link that opens in the browser. For a button that
+  opens a page, a map, the dialer or email, use an `open` event.
 - A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
   from `data` on the list or a parent, or from `initData` for a REST endpoint.
+  For an API with pages (a `skip`, `offset` or `page` parameter, or a "next" link), add
+  `"nextPage": { "parameter": "skip", "step": 40 }` (the page size) or
+  `"nextPage": { "urlFrom": "info.next" }` to `initData`, and the list loads more as it's
+  scrolled. `"orientation": "grid"` with `"columns": 2` shows items side by side;
+  `emptyText` says what an empty list means.
 - Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
   fields of that one item, not to the whole response.
 - Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one
   object in an array, open its view with a `show` event whose `mapping` selects it, such
   as `"mapping": "meals.0"`.
+- Data from an API is often incomplete. A text view whose `mapping` (or `title`) has nothing
+  to show isn't drawn, label included, and a missing `${...}` becomes empty text. To hide any
+  other view, such as a button that needs a field, give it `"visibleIf": "field"` (shown only
+  when the field has a value) or `"visibleIf": "!field"` (only when it hasn't). It is a path,
+  never a comparison.
+- In a URL, Appkin percent-encodes what each `${...}` inserts: write `?q=${q}`, never encode
+  a placeholder yourself. Fixed text in a URL is sent as written, so encode it
+  (`type=Arms%20and%20Armor`).
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.
 - An inline action needs both `id` and `event`. To reuse one, define it in the root
   `actions` and reference it with `{ "ref": "id" }`.
-- Form fields are `text`, `selector`, `date` and `checkbox`; there is no `input`,
-  `dropdown` or `switch`. Dates are `dd/MM/yyyy`.
+- Form fields are `text`, `selector`, `date`, `time`, `checkbox` and `hidden`; there is no
+  `input`, `dropdown` or `switch`. Dates are `dd/MM/yyyy`, times `HH:mm`. A selector option
+  is a string or `{ "label": "Any type", "value": "" }`. To send something from the screen
+  with a form (an item's id), use a `hidden` field: `{ "type": "hidden", "mapping": "id",
+  "value": "${id}" }`.
+- A URL query parameter that is just a placeholder (`&type=${type}`) is left out when the
+  value is empty or missing, so optional filters need no extra work.
 - Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
 - Give every app an `icon`: one emoji that fits what it is about, such as `"🏍️"` for a
   motorcycle guide or `"📚"` for a book club. It is the app's icon on the home page and the
@@ -176,6 +202,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`)
 - `mapping`: text
 - `data`: an object with any data
+- `visibleIf`: text
 - `orientation`: one of `"horizontal"`, `"vertical"`. How the child views are arranged; vertical by default
 - `views` **(required)**: an array; each item is a view (or `{ "ref": "id" }`). The child views, in order
 
@@ -185,11 +212,15 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`)
 - `mapping`: text. Path of a value in the current data to show as the text, such as owner.name
 - `data`: an object with any data
+- `visibleIf`: text
 - `textSize`: a number (at least 0). Font size in sp
 - `size`: a size, `{ "width": number, "height": number }` in dp
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The text, when no mapping value is shown
 - `label`: text. First line of the text view, shown above the text
+- `labelStyle`: one of `"regular"`, `"italic"`, `"bold"`. The label's own style, so a bold heading needn't make its text bold; without it the label looks like the text
+- `format`: one of `"plain"`, `"html"`. plain (default), or html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions
+- `showWhenEmpty`: `true` or `false`. Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all
 
 #### `button`
 
@@ -197,6 +228,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`). What a tap does
 - `mapping`: text. Path of a value in the current data to use as the button's text
 - `data`: an object with any data
+- `visibleIf`: text
 - `textSize`: a number (at least 0)
 - `size`: a size, `{ "width": number, "height": number }` in dp
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
@@ -209,8 +241,10 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`)
 - `mapping`: text. Path of an image address in the current data
 - `data`: an object with any data
+- `visibleIf`: text
 - `url`: text. Image address; may use ${field} placeholders
 - `size`: a size, `{ "width": number, "height": number }` in dp
+- `scale`: one of `"crop"`, `"fit"`. crop (default): the picture fills its space and its edges may be cut; fit: the whole picture shows, inside its space
 
 #### `list`
 
@@ -218,10 +252,13 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`). What tapping an item does; its event receives that item
 - `mapping`: text. Path of the array of objects to show, in data or in the initData response
 - `data`: an object with any data
+- `visibleIf`: text
 - `itemView` **(required)**: a view (or `{ "ref": "id" }`). The view repeated for each item; its mappings and placeholders refer to that item
 - `initData`: a REST request, `{ "url": ..., "method": "get" | "post" }`. A REST request whose JSON response is the list's data
 - `stored`: an object. Shows objects the app saved on the phone with a save event, instead of initData or data; mapping is not used
-- `orientation`: one of `"horizontal"`, `"vertical"`
+- `orientation`: one of `"horizontal"`, `"vertical"`, `"grid"`. vertical (default): one item per row; horizontal: a row that scrolls sideways; grid: items side by side in rows of columns
+- `columns`: a whole number (at least 1). Items per row of a grid; 2 by default
+- `emptyText`: text. What the list says when it has no items, instead of No data available; may use ${field} placeholders
 
 #### `form`
 
@@ -229,6 +266,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `action`: an action (or `{ "ref": "id" }`). Runs on submit, with the submitted object as data
 - `mapping`: text
 - `data`: an object with any data
+- `visibleIf`: text
 - `title`: text. Heading above the fields
 - `buttonTitle`: text. The submit button's text; Submit by default
 - `formElements` **(required)**: an array; each item is a form field. The fields; each one puts its value under its mapping in the submitted object
@@ -253,8 +291,8 @@ The items of a form's `formElements`.
 - `title` **(required)**: text
 - `description`: text
 - `mandatory`: `true` or `false`
-- `options` **(required)**: an array; each item is text
-- `selection`: text
+- `options` **(required)**: an array; each item is text. The choices: each is a string, shown and submitted, or { "label": shown, "value": submitted }, such as { "label": "Any type", "value": "" }
+- `selection`: text. The value chosen at first
 
 #### `date`
 
@@ -274,6 +312,23 @@ The items of a form's `formElements`.
 - `mandatory`: `true` or `false`. Must be checked before submitting
 - `value`: `true` or `false`
 
+#### `time`
+
+A time of day, picked on a clock and submitted as HH:mm, as a calendar event's time takes it.
+
+- `mapping` **(required)**: text (not empty)
+- `title` **(required)**: text
+- `description`: text
+- `mandatory`: `true` or `false`
+- `value`: text. The time at first, HH:mm
+
+#### `hidden`
+
+A value the form sends without showing it, such as the id of the item on screen.
+
+- `mapping` **(required)**: text (not empty). Key of the submitted object that receives the value
+- `value`: text. The value, sent as text; may use ${field} placeholders filled in from the screen's data. Without it, the data's value at mapping is sent
+
 ### Events
 
 What an action does: the `event` of an action definition.
@@ -281,8 +336,10 @@ What an action does: the `event` of an action definition.
 #### `rest`
 
 - `url` **(required)**: text (not empty). HTTPS address; may use ${field} placeholders from the current data
-- `method`: one of `"get"`, `"post"`
+- `method`: one of `"get"`, `"post"`, `"put"`, `"delete"`. get (default), post, put or delete; post and put send the current data as a JSON body
+- `headers`: an object
 - `thenDo`: an event. The event to run next, with the JSON response as data
+- `onError`: an event. The event to run when the request fails, instead of an alert; its data is the request's, plus error.message and, for an HTTP error, error.status
 - `mapping`: text
 - `data`: an object with any data
 
@@ -291,6 +348,7 @@ What an action does: the `event` of an action definition.
 - `view` **(required)**: a view (or `{ "ref": "id" }`). The view to open; it receives the current data
 - `mapping`: text. Path of the part of the current data the view receives
 - `data`: an object with any data
+- `title`: text. The opened screen's title in the app bar, instead of the app's name; may use ${field} placeholders from the data it receives
 
 #### `alert`
 
@@ -311,6 +369,22 @@ Opens the phone's calendar app on a new event, filled in; the user reviews and s
 - `location`: text. Where it happens; may use ${field} placeholders
 - `description`: text. Notes for the event; may use ${field} placeholders
 - `mapping`: text
+- `data`: an object with any data
+
+#### `open`
+
+Hands an address to another app on the phone: https or http opens the browser, geo: a map, tel: the dialer (nothing is called) and mailto: an email app. No other kinds of address are opened.
+
+- `url` **(required)**: text. An https:, http:, geo:, tel: or mailto: address, or a placeholder holding one, such as ${url}; values placeholders insert are percent-encoded
+- `mapping`: text. Path of the part of the current data the address is filled in from
+- `data`: an object with any data
+
+#### `share`
+
+Opens the phone's share sheet on a text, for the user to send to any app.
+
+- `text` **(required)**: text (not empty). What is shared; may use ${field} placeholders, such as "${title} ${url}"
+- `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 
 #### `save`
@@ -337,10 +411,12 @@ Where an action is expected, write an action definition or `{ "ref": "id" }` ref
 #### REST data for a list (`initData`)
 
 - `url` **(required)**: text (not empty)
-- `method`: one of `"get"`, `"post"`
+- `method`: one of `"get"`, `"post"`, `"put"`, `"delete"`. get (default), post, put or delete; post and put send the current data as a JSON body
+- `headers`: an object
 - `thenDo`: an event
 - `mapping`: text
 - `data`: an object with any data
+- `nextPage`: a value. How the list asks for more items when it nears its end. Either parameter and step: that query parameter (such as skip) grows by step, the page size, until a page has fewer items. Or urlFrom: the path in the response of the next page's URL, until there is none
 
 #### Saved data for a list (`stored`)
 

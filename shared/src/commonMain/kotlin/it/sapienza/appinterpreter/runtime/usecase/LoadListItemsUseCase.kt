@@ -2,6 +2,9 @@ package it.sapienza.appinterpreter.runtime.usecase
 
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.getArray
+import it.sapienza.appinterpreter.json.getValue
+import it.sapienza.appinterpreter.model.event.NextPage
+import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.view_model.ListView
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonArray
@@ -13,9 +16,28 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
     /** The saved collections that changed: the lists showing them load again. */
     val storedChanges: Flow<String> get() = loadStored.changes
 
-    suspend operator fun invoke(list: ListView, data: JsonObject?): List<JsonObject> {
-        list.stored?.let { return loadStored(it, data) }
-        val source = list.initData?.let { fetchJson(it, data) } ?: data ?: JsonObject(emptyMap())
+    /** Some of a list's items, and the URL of the ones after them, if its request has a nextPage and there are more. */
+    class Page(val items: List<JsonObject>, val nextUrl: String?)
+
+    suspend operator fun invoke(list: ListView, data: JsonObject?): List<JsonObject> = firstPage(list, data).items
+
+    suspend fun firstPage(list: ListView, data: JsonObject?): Page {
+        list.stored?.let { return Page(loadStored(it, data), nextUrl = null) }
+        val request = list.initData ?: return Page(itemsIn(list, data ?: JsonObject(emptyMap())), nextUrl = null)
+        return page(list, request, fetchJson.url(request, data), data)
+    }
+
+    /** The page at [url], a [Page.nextUrl] of [list]. */
+    suspend fun nextPage(list: ListView, url: String, data: JsonObject?): Page =
+        page(list, list.initData ?: return Page(emptyList(), nextUrl = null), url, data)
+
+    private suspend fun page(list: ListView, request: RESTService, url: String, data: JsonObject?): Page {
+        val response = fetchJson.fetch(url, request, data)
+        val items = itemsIn(list, response)
+        return Page(items, request.nextPage?.let { nextUrl(it, url, response, items.size) })
+    }
+
+    private fun itemsIn(list: ListView, source: JsonObject): List<JsonObject> {
         val array = list.mapping?.let { source.getArray(it) } ?: legacyArray(list) ?: return emptyList()
         return array.mapIndexed { index, item ->
             item as? JsonObject ?: throw IllegalArgumentException("Value $item at $index cannot be converted to JSONObject")
@@ -40,5 +62,39 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
             message.contains("timeout", ignoreCase = true) ->
             "Unable to load data. Check your connection and try again."
         else -> "Unable to load data. $message"
+    }
+
+    companion object {
+        /** Pages a list loads at most, so a service that never says "no more" can't load forever. */
+        const val MAX_PAGES = 50
+
+        /** The URL after [url], which gave [count] items in [response], or null when there are no more. */
+        fun nextUrl(next: NextPage, url: String, response: JsonObject, count: Int): String? {
+            if (count == 0) return null
+            next.urlFrom?.let { path -> return response.getValue(path)?.trim()?.takeIf { it.isNotEmpty() && it != url } }
+            val parameter = next.parameter?.takeIf { it.isNotBlank() } ?: return null
+            val step = next.step?.takeIf { it > 0 } ?: return null
+            if (count < step) return null
+            return withParameter(url, parameter, (parameterValue(url, parameter) ?: 0) + step)
+        }
+
+        private fun parameterValue(url: String, name: String): Int? =
+            query(url).firstOrNull { it.substringBefore('=') == name }?.substringAfter('=', "")?.toIntOrNull()
+
+        private fun query(url: String): List<String> =
+            url.substringAfter('?', "").substringBefore('#').split('&').filter { it.isNotEmpty() }
+
+        /** [url] with its query parameter [name] set to [value], added at the end when it has none. */
+        fun withParameter(url: String, name: String, value: Int): String {
+            val fragment = url.substringAfter('#', "").let { if (it.isEmpty()) "" else "#$it" }
+            val base = url.substringBefore('#').substringBefore('?')
+            val parameters = query(url)
+            val updated = if (parameters.any { it.substringBefore('=') == name }) {
+                parameters.map { if (it.substringBefore('=') == name) "$name=$value" else it }
+            } else {
+                parameters + "$name=$value"
+            }
+            return "$base?${updated.joinToString("&")}$fragment"
+        }
     }
 }

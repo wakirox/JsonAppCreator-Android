@@ -38,6 +38,25 @@ class CalendarEvent(
     override val data: JsonObject? = null
 ) : Event()
 
+/**
+ * Hands [url] to the phone: a web page opens in the browser, geo: a map, tel: the dialer (nothing is called) and
+ * mailto: an email app. Placeholders in it are filled in from the current data.
+ */
+@Serializable
+class OpenLink(
+    val url: String,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
+/** Opens the phone's share sheet on [text], filled in from the current data. */
+@Serializable
+class ShareText(
+    val text: String,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
 /** Fills lists with data from a service, then runs [thenDo]. */
 abstract class DataService : Event() {
     abstract val thenDo: Event?
@@ -49,7 +68,13 @@ class RESTService(
     val method: CallServiceMethod? = CallServiceMethod.get,
     override val thenDo: Event? = null,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    /** A list's initData only: how to ask for the items after these. */
+    val nextPage: NextPage? = null,
+    /** Request headers, such as "Authorization"; values may use ${field} placeholders and __API_KEY__ ones. */
+    val headers: Map<String, String>? = null,
+    /** An event's only: what runs when the request fails, with the data and "error" ({ message, status }). */
+    val onError: Event? = null
 ) : DataService()
 
 /**
@@ -66,11 +91,25 @@ class SaveData(
     override val data: JsonObject? = null
 ) : Event()
 
+/**
+ * How a list asks for more items: either the query [parameter] (such as "skip") grows by [step], the page size,
+ * from its value in the first URL (0 without one), until a page has fewer than [step] items; or the next page's URL
+ * is the response's value at [urlFrom], until there is none.
+ */
+@Serializable
+class NextPage(
+    val parameter: String? = null,
+    val step: Int? = null,
+    val urlFrom: String? = null
+)
+
 @Serializable
 class ShowView(
     val view: MView,
     override val mapping: String? = null,
-    override val data: JsonObject? = null
+    override val data: JsonObject? = null,
+    /** The opened screen's title in the app bar, instead of the app's name; placeholders come from its data. */
+    val title: String? = null
 ) : Event()
 
 object EventSerializer : TypedSerializer<Event>(
@@ -80,11 +119,16 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("alert", AlertMessage.serializer()) { it is AlertMessage },
         TypedSerializer.Type("show", ShowView.serializer()) { it is ShowView },
         TypedSerializer.Type("calendar", CalendarEvent.serializer()) { it is CalendarEvent },
+        TypedSerializer.Type("open", OpenLink.serializer()) { it is OpenLink },
+        TypedSerializer.Type("share", ShareText.serializer()) { it is ShareText },
         TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData }
     )
 )
 
 @Serializable
 enum class CallServiceMethod {
-    get, post
+    get, post, put, delete;
+
+    /** Whether the request sends its data as a JSON body. */
+    val sendsBody: Boolean get() = this == post || this == put
 }

@@ -17,6 +17,7 @@ import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
+import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.security.ConfigurationKeys
@@ -64,7 +65,7 @@ class StoredDataScreenTest {
         )
         return ScreenViewModel(
             saved, alerts, fetch, LoadListItemsUseCase(fetch, LoadStoredItemsUseCase(appData, repository)), InitialFormValuesUseCase(),
-            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
+            SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository), OpenLinkUseCase(),
             FindMissingApiKeysUseCase(current, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
             LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )

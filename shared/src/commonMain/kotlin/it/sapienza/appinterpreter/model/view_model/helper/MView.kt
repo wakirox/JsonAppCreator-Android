@@ -22,6 +22,12 @@ abstract class MView {
     abstract val mapping: String?
     abstract val data: JsonObject?
 
+    /**
+     * A path in the view's data: the view is shown only when something is there (see hasValueAt). "!path" shows it
+     * only when nothing is. Null: always shown.
+     */
+    open val visibleIf: String? get() = null
+
     open val referenceId: String?
         get() = id
 
@@ -38,7 +44,8 @@ class ViewReference(
     override val action: Action? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null,
-    val ref: String? = null
+    val ref: String? = null,
+    override val visibleIf: String? = null
 ) : MView() {
     override val referenceId: String?
         get() = ref ?: id

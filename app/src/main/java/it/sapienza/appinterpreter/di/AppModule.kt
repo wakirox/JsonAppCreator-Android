@@ -7,6 +7,7 @@ import it.sapienza.appinterpreter.runtime.AppRepository
 import it.sapienza.appinterpreter.runtime.CurrentConfiguration
 import it.sapienza.appinterpreter.runtime.RuntimeStrings
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
+import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
@@ -43,6 +44,7 @@ val appModule = module {
     factory { InitialFormValuesUseCase() }
     factory { SubmitFormUseCase() }
     factory { CreateCalendarEventUseCase() }
+    factory { OpenLinkUseCase() }
     factory { FindMissingApiKeysUseCase(get(), ConfigurationApiKeys.keys) }
     factory { LoadScreenUseCase(get(), get()) }
 
@@ -57,6 +59,7 @@ val appModule = module {
             submitForm = get(),
             createCalendarEvent = get(),
             saveItem = get(),
+            openLink = get(),
             findMissingApiKeys = get(),
             loadScreen = get(),
             strings = get(),

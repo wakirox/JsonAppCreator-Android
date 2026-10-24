@@ -103,6 +103,7 @@ All views may contain:
 | `action` | action | Inline action or `{ "ref": "action_id" }` reference. |
 | `mapping` | string | Dot path read from the current data object. Meaning varies slightly by view type. |
 | `data` | object | Local data. It overrides inherited data for this node and its children. |
+| `visibleIf` | string | A path in the view's data: the view is shown only when there's a value there. See [Showing views only with data](#showing-views-only-with-data). |
 
 ### `layout`
 
@@ -144,6 +145,17 @@ A layout groups child views.
 | `textStyle` | string | `regular` (default), `italic`, or `bold`. |
 | `textSize` | number | Text size in scale-independent pixels (sp). |
 | `size` | object | Optional `width` and `height`, interpreted as density-independent pixels (dp). |
+| `labelStyle` | string | The label's weight and slant: `regular`, `italic` or `bold`. By default the label is a semi-bold heading, and the text under it a quieter supporting line. |
+| `format` | string | `plain` (default) or `html`: the text is simple HTML (`<b>`, `<i>`, `<em>`, `<strong>`, `<u>`, `<br>`, `<p>`, `<a href>`). |
+| `showWhenEmpty` | boolean | Keep the label when `mapping` (or `title`) has nothing to show. `false` by default: such a text view isn't drawn, label included. |
+
+A text view with an `action` shows an arrow at its end, so it reads as something to tap.
+Buttons on their own are tonal; a form's submit button is the filled one, at the form's
+end.
+
+A text view whose `mapping` finds no value, or whose `title` is empty once its placeholders are
+filled in, isn't drawn at all, so a missing "Technique" doesn't leave its label behind. A text
+view with only a `label` is a heading and is always drawn.
 
 ### `button`
 
@@ -170,6 +182,8 @@ A button supports the text properties above and normally includes an `action`.
 - `url` is the fallback/static image URL and supports `${...}` interpolation.
 - `mapping` may instead read the complete URL from the current data object.
 - `size.width` and `size.height` are dp. The default height is 220 dp.
+- `scale` is `crop` (default: the picture fills its space and its edges may be cut) or
+  `fit` (the whole picture shows, inside its space).
 - Tapping an image without an action opens its full-screen preview. Images inside list
   cards do not open a preview unless the surrounding list/card supplies navigation.
 - Use HTTPS URLs. Cleartext HTTP traffic is disabled.
@@ -212,7 +226,9 @@ A list repeats `itemView` once for every object in a JSON array.
 | `mapping` | string | yes in normal use | Dot path to the array in the response or inherited `data`. |
 | `initData` | REST service | no | Fetches the list data when the list appears. |
 | `stored` | stored data | no | Shows what the app saved on the phone; see [Save on the phone](#save-on-the-phone). Not with `initData`. |
-| `orientation` | string | no | `vertical` (default) or `horizontal`. |
+| `orientation` | string | no | `vertical` (default), `horizontal`, or `grid`: items side by side in rows. |
+| `columns` | integer | no | Items per row of a `grid`, 1 to 6; 2 by default. |
+| `emptyText` | string | no | What the list says when it has no items, instead of "No data available". Supports `${...}`. |
 | `action` | action | no | Runs with the tapped item as its data payload. |
 
 The response must be a JSON object, and the selected array must contain JSON objects.
@@ -232,6 +248,27 @@ For local data, place an array in a parent or list `data` object and select it w
   "itemView": { "type": "text", "mapping": "name" }
 }
 ```
+
+#### More pages
+
+A list loaded with `initData` can keep loading as it's scrolled: `initData.nextPage` says how
+to ask for the next page.
+
+```json
+"initData": {
+  "url": "https://api.example.com/works?q=${q}&limit=40",
+  "nextPage": { "parameter": "skip", "step": 40 }
+}
+```
+
+With `parameter` and `step`, the next page's URL is the last one with that query parameter
+grown by `step` (from its value in the URL, or 0), until a page has fewer than `step` items:
+make `step` the page size. With `"urlFrom": "info.next"` instead, the next page's URL is the
+response's value at that path, until there is none. A list that fills the screen loads its
+next page when its end comes into view; a list inside a screen that scrolls as a whole shows
+a "Show more" button. A list loads 50 pages at most.
+
+Pulling a screen down loads its `initData` lists again, from their first page.
 
 ### `form`
 
@@ -287,12 +324,35 @@ Supported form elements:
 | `selector` | `mapping`, `title`, `description`, `options`, `selection`, `mandatory` |
 | `date` | `mapping`, `title`, `description`, `value`, `min`, `max`, `mandatory` |
 | `checkbox` | `mapping`, `title`, `description`, `value`, `mandatory` |
+| `time` | `mapping`, `title`, `description`, `value` (`HH:mm`), `mandatory` |
+| `hidden` | `mapping`, `value` |
 
 `textType` is `plain` (default), `numeric`, `email`, or `password`. Dates shown through
 mapped form data use `dd/MM/yyyy`. `mandatory: true` blocks submission until a text
 (not just spaces), selector, or date value is set, or a checkbox is checked; the error
 names the missing fields. Without `mandatory`, a field is optional. Values filled in from
 the screen's data count as set and are submitted.
+
+A selector's `options` are strings, each shown and submitted as it is, or objects that
+show one thing and submit another:
+
+```json
+"options": [ { "label": "Any type", "value": "" }, "Painting", "Print" ]
+```
+
+`selection` and values from the screen's data are option values, not labels.
+
+A `time` field opens a clock and submits `HH:mm` on a 24-hour clock, which a calendar
+event's `time` takes: `"time": "${time}"`.
+
+A `hidden` field isn't shown; it sends `value` with the form, with placeholders filled in
+from the screen's data, such as `{ "type": "hidden", "mapping": "id", "value": "${id}" }`.
+Without `value` it sends the screen data's value at `mapping`. Its value is sent as text.
+
+In a request URL, a query parameter that is a single placeholder, such as
+`&type=${type}`, is optional: when that value is missing or empty (an optional field left
+blank, or an "Any type" option with the value `""`), the parameter is left out rather than
+sent empty.
 
 ## Data binding
 
@@ -324,9 +384,37 @@ interpolate data:
 
 Dot paths traverse JSON objects, and reach array items by index: `meals.0.strMeal` and
 `meals[0].strMeal` are the same. A list's `initData` URL can use placeholders too, filled
-from the data of the screen it is on. Array values used as text are joined with `, `. Missing
-values remain unreplaced in interpolated strings, so make sure every placeholder exists
-in the data available at that point.
+from the data of the screen it is on. Array values used as text are joined with `, `.
+
+A placeholder with no value (missing or `null`) becomes empty text: `"By ${artist}"` reads
+`By ` when there's no `artist`. Addresses are different. A REST `url` (an event's or a list's
+`initData`) with a placeholder that has no value isn't requested at all: the app says what's
+missing, such as "This item has no creators.0.id", instead of asking for the wrong address.
+An image whose `url` has a placeholder with no value shows "Image unavailable".
+
+In a REST `url`, an `initData` URL or an image `url`, each value a placeholder inserts is
+percent-encoded, so `?type=${type}` with `arms & armor` requests `?type=arms%20%26%20armor`
+and a value can't add parameters of its own. The rest of the address is used exactly as
+written, so encode any fixed text in it yourself (`department=Japanese%20Art`). A placeholder
+that starts the address, such as `"url": "${images.web.url}"`, supplies a whole address and
+is used as it is.
+
+### Showing views only with data
+
+Any view, and a `{ "ref": … }` reference, can have `visibleIf`: a path in the view's data. The
+view is shown only when there's a value at that path that isn't `null`, empty text, `false`,
+`0`, or an empty array or object. Start the path with `!` for the opposite: shown only when
+there's no such value. A view that isn't shown takes no space.
+
+```json
+[
+  { "type": "text", "label": "Artist", "mapping": "creators.0.description", "visibleIf": "creators" },
+  { "type": "text", "title": "Artist unknown", "visibleIf": "!creators" },
+  { "type": "button", "title": "Plan a visit", "visibleIf": "current_location", "action": { "ref": "plan_visit" } }
+]
+```
+
+`visibleIf` only tests whether a value is there: it has no comparisons or other expressions.
 
 ## Actions and events
 
@@ -365,6 +453,9 @@ Action properties:
 `view` can be a `ref` object targeting a root `views` entry or a complete inline view. The
 current event data is passed to the destination view. Android's Back button returns to
 the previous view.
+
+`title` names the opened screen in the app bar, instead of the app's name. Its placeholders
+come from the data the screen receives: `"title": "Works by ${name}"`.
 
 ### Add an event to the calendar
 
@@ -420,6 +511,29 @@ only that app's ideas. `mapping` is not used.
 
 Data is kept by the app's name: an app renamed in the editor starts with no saved data.
 
+### Open a link in another app
+
+```json
+{ "type": "open", "url": "${url}" }
+```
+
+Hands an address to the phone: `https:` and `http:` open the browser, `geo:` a map
+(`geo:0,0?q=${address}`), `tel:` the dialer with the number filled in (nothing is called,
+so the app needs no call permission) and `mailto:` an email app. Only these kinds of
+address are opened; anything else, such as `javascript:` or `file:`, is refused with a
+message. Placeholders work as in REST URLs: what they insert is percent-encoded, a
+placeholder that starts the address may hold a whole address, and a missing value stops
+the link with "This item has no …". `mapping` selects the part of the data to use.
+
+### Share text
+
+```json
+{ "type": "share", "text": "${title}\n${url}" }
+```
+
+Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
+with no value becomes empty text.
+
 ### Call a REST endpoint
 
 ```json
@@ -434,18 +548,26 @@ Data is kept by the app's name: an app renamed in the editor starts with no save
 }
 ```
 
-- `method` is `get` (default) or `post`.
+- `method` is `get` (default), `post`, `put` or `delete`.
 - `${...}` values in `url` come from the action's active data.
-- POST sends the active data as an `application/json` body.
-- `thenDo` receives the JSON response object and may be any event.
-- Only HTTPS, JSON-object response bodies, and successful HTTP `2xx` statuses are currently handled.
-- Custom headers, authentication configuration, and JSON arrays
-  at the response root are not currently supported.
+- POST and PUT send the active data as an `application/json` body.
+- `headers` adds request headers. Their values may use `${...}` (a missing value stops the
+  request, as in the URL) and API-key placeholders, which go in as they are:
+  `"headers": { "Authorization": "Bearer __API_TOKEN__" }`. Appkin sets `User-Agent`,
+  `Host`, `Content-Type` and `Content-Length` itself. A list's `initData` takes `method` and
+  `headers` too.
+- `thenDo` receives the JSON response object and may be any event. An empty answer, as a
+  DELETE often gives, is an empty object.
+- `onError` runs instead of the error alert when the request fails. Its data is the
+  request's data plus `error.message` and, for an HTTP error, `error.status`:
+  `"onError": { "type": "alert", "value": "Couldn't save ${name}: ${error.message}" }`.
+- Only HTTPS, JSON-object response bodies, and successful HTTP `2xx` statuses are handled.
+  JSON arrays at the response root are not supported.
 
 #### API-key placeholders
 
 Keep credentials outside configuration JSON by using an uppercase named placeholder
-in a REST URL:
+in a REST URL or header:
 
 ```json
 {
