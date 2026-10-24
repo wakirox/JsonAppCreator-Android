@@ -101,6 +101,8 @@ Events:
 - `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
+- `back` (closes the current screen, such as after a form saves an edit)
+- `copy` (copies a text to the clipboard, to paste in a chat)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
   maps, the dialer or email; nothing else opens)
 - `share` (opens the share sheet on a text)
@@ -237,7 +239,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The button's text
 - `label`: text. Not displayed on buttons: use title. On a button with only an icon, what screen readers say, such as "Delete ${title}"
-- `icon`: one of `"add"`, `"check"`, `"close"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
+- `icon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
 
 #### `image`
 
@@ -254,6 +256,10 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 
 - `id`: text (not empty)
 - `action`: an action (or `{ "ref": "id" }`). What tapping an item does; its event receives that item
+- `swipeToStart`: an action (or `{ "ref": "id" }`). What swiping an item towards the start (left) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it
+- `swipeToStartIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the start; delete by default
+- `swipeToEnd`: an action (or `{ "ref": "id" }`). What swiping an item towards the end (right) does; its event receives that item, such as an update marking it done
+- `swipeToEndIcon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. The icon under an item swiped towards the end; check by default
 - `mapping`: text. Path of the array of objects to show, in data or in the initData response
 - `data`: an object with any data
 - `visibleIf`: text
@@ -277,7 +283,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 
 #### `check`
 
-A tick box, ticked when the data's true/false value at mapping is true. Ticking it runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through.
+A tick box, ticked when the data's true/false value at mapping is true. Ticking the box runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through. Only the box ticks: a tap on the title reaches the list item.
 
 - `id`: text (not empty)
 - `action`: an action (or `{ "ref": "id" }`). Runs when the box is ticked or unticked, with the data where the value at mapping says so; usually an update event
@@ -434,6 +440,21 @@ Removes saved objects: the one whose id is id (the current data's by default), o
 - `mapping`: text. Path of the part of the current data the id or where is filled in from
 - `data`: an object with any data
 
+#### `back`
+
+Closes the current screen and goes back to the one that opened it, as the phone's Back does; such as after saving an edit.
+
+- `mapping`: text
+- `data`: an object with any data
+
+#### `copy`
+
+Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone confirms it.
+
+- `text` **(required)**: text (not empty). What is copied; may use ${field} placeholders, and a line whose placeholders all have no value is left out, such as "${title}\n${description}"
+- `mapping`: text. Path of the part of the current data the text is filled in from
+- `data`: an object with any data
+
 ### Actions and references
 
 Where an action is expected, write an action definition or `{ "ref": "id" }` referencing one in the root `actions`.
@@ -461,7 +482,7 @@ The objects a save event put in a collection, oldest first; it shows them again 
 
 - `collection` **(required)**: text (not empty). The collection's name, as in the save event
 - `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
-- `sort`: an object. The order: by the field by; values listed in order come first, in that order (such as ["High", "Medium", "Low"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in
+- `sort`: an object. The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)
 
 #### Size (`size`)
 

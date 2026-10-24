@@ -2,12 +2,19 @@
 
 package it.sapienza.appinterpreter.ui
 
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
@@ -434,6 +441,7 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.add -> Icons.Filled.Add
     ButtonIcon.check -> Icons.Filled.Check
     ButtonIcon.close -> Icons.Filled.Close
+    ButtonIcon.copy -> Icons.Filled.ContentCopy
     ButtonIcon.delete -> Icons.Filled.Delete
     ButtonIcon.edit -> Icons.Filled.Edit
     ButtonIcon.email -> Icons.Filled.Email
@@ -451,17 +459,16 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
 /** What a screen reader says for an icon without a label, such as "Delete". */
 private fun ButtonIcon.spokenName(): String = name.replaceFirstChar { it.uppercase() }
 
-/** A tick box: ticked when the data's value is true; ticking it runs the action at once. A ticked title is struck through. */
+/**
+ * A tick box: ticked when the data's value is true; ticking it runs the action at once. A ticked title is struck
+ * through. Only the box ticks, so a tap on the title reaches the list item (to open it, say).
+ */
 @Composable
 private fun RenderCheck(view: CheckView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
     val checked = data?.getValue(view.mapping) == "true"
-    // The whole row ticks, title included.
-    Row(
-        modifier.fillMaxWidth().toggleable(value = checked, role = Role.Checkbox, onValueChange = { screen.onCheck(view, data, it) }),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(checked, onCheckedChange = null)
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked, onCheckedChange = { screen.onCheck(view, data, it) })
         Spacer(Modifier.width(12.dp))
         Text(
             view.title?.matchReplace(data).orEmpty(),
@@ -571,7 +578,7 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                 GridRow(view, row, index * view.columnCount)
             }
             else -> state.items.forEachIndexed { index, item ->
-                ListCard(
+                SwipeableListCard(
                     view = view,
                     item = item,
                     modifier = Modifier.fillMaxWidth().testTag("list-position-$index")
@@ -611,7 +618,7 @@ private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.En
             items = state.items,
             key = { index, item -> listItemKey(view, index, item) }
         ) { _, item ->
-            ListCard(view, item, Modifier.fillMaxWidth())
+            SwipeableListCard(view, item, Modifier.fillMaxWidth())
         }
     }
     if (state.items.isNotEmpty() && (state.canLoadMore || state.moreErrorMessage != null)) {
@@ -673,6 +680,45 @@ private fun ListLoadError(message: String, onRetry: () -> Unit) {
 
 private fun listItemKey(view: ListView, index: Int, item: JsonObject): String =
     "${System.identityHashCode(view)}-$index-${item.optString("id")}"
+
+/**
+ * A list card that can be swiped when the list has swipe actions: towards the start (a delete, say) or the end (done,
+ * say). The swipe runs the action with the item and the card slides back, so it only goes when the action removes it.
+ */
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifier) {
+    if (view.swipeToStart == null && view.swipeToEnd == null) return ListCard(view, item, modifier)
+    val screen = LocalScreen.current
+    val scope = rememberCoroutineScope()
+    val state = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        state = state,
+        modifier = modifier,
+        enableDismissFromStartToEnd = view.swipeToEnd != null,
+        enableDismissFromEndToStart = view.swipeToStart != null,
+        onDismiss = { direction ->
+            screen.onAction(if (direction == SwipeToDismissBoxValue.StartToEnd) view.swipeToEnd else view.swipeToStart, item)
+            scope.launch { state.reset() }
+        },
+        backgroundContent = {
+            val towardsEnd = state.dismissDirection == SwipeToDismissBoxValue.StartToEnd
+            val colors = MaterialTheme.colorScheme
+            Box(
+                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp))
+                    .background(if (towardsEnd) colors.primaryContainer else colors.errorContainer)
+                    .padding(horizontal = 24.dp),
+                contentAlignment = if (towardsEnd) Alignment.CenterStart else Alignment.CenterEnd
+            ) {
+                Icon(
+                    (if (towardsEnd) view.swipeToEndIcon ?: ButtonIcon.check else view.swipeToStartIcon ?: ButtonIcon.delete).vector(),
+                    contentDescription = null,
+                    tint = if (towardsEnd) colors.onPrimaryContainer else colors.onErrorContainer
+                )
+            }
+        }
+    ) { ListCard(view, item, Modifier.fillMaxWidth()) }
+}
 
 @Composable
 private fun ListCard(view: ListView, item: JsonObject, modifier: Modifier) {

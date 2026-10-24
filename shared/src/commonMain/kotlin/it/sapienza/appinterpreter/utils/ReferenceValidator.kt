@@ -93,6 +93,8 @@ internal class ReferenceValidator {
         }
         node["itemView"]?.let { visitView(it, "$path.itemView", ownerId) }
         node["action"]?.let { visitAction(it, "$path.action") }
+        node["swipeToStart"]?.let { visitAction(it, "$path.swipeToStart") }
+        node["swipeToEnd"]?.let { visitAction(it, "$path.swipeToEnd") }
         node["initData"]?.let { visitEvent(it, "$path.initData") }
     }
 

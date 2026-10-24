@@ -8,7 +8,11 @@ import android.graphics.Canvas
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
@@ -104,6 +108,33 @@ class AppIdeasScreenshotTest {
     fun ideasDark() {
         openRainy()
         assertScreenshot("app_ideas_ideas_dark")
+    }
+
+    @Test
+    fun swipingAnIdeaAwayAsksBeforeDeletingIt() {
+        openRainy()
+        composeRule.onNodeWithTag("list-item-idea-3").performTouchInput { swipeLeft() }
+        awaitText("Delete Rain alerts on the watch?")
+        composeRule.onNodeWithText("Cancel").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Rain alerts on the watch").assertExists()
+
+        composeRule.onNodeWithTag("list-item-idea-3").performTouchInput { swipeLeft() }
+        awaitText("Delete Rain alerts on the watch?")
+        composeRule.onNodeWithText("OK").performClick()
+        composeRule.waitUntil(WAIT_TIMEOUT_MS) {
+            composeRule.onAllNodesWithText("Rain alerts on the watch", useUnmergedTree = true).fetchSemanticsNodes().isEmpty()
+        }
+    }
+
+    @Test
+    fun swipingAnIdeaTowardsTheEndMarksItDone() {
+        openRainy()
+        composeRule.onNodeWithTag("list-item-idea-3").performTouchInput { swipeRight() }
+        composeRule.waitUntil(WAIT_TIMEOUT_MS) {
+            AppData(SharedPreferencesStore(context, DATA_PREFERENCES)).items(AppLibrary.idOf("App ideas"), "ideas")
+                .first { it["id"].toString() == "\"idea-3\"" }["done"].toString() == "true"
+        }
     }
 
     private fun openRainy() {

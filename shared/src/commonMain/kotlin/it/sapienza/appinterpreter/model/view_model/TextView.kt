@@ -50,7 +50,7 @@ class TextView(
 /** A button's icon, from the phone's standard set. */
 @Serializable
 enum class ButtonIcon {
-    add, check, close, delete, edit, email, favorite, info, phone, place, refresh, search, settings, share, star
+    add, check, close, copy, delete, edit, email, favorite, info, phone, place, refresh, search, settings, share, star
 }
 
 /**
