@@ -215,6 +215,24 @@ class AppIdeasScreenshotTest {
         assertScreenshot("app_ideas_new_idea")
     }
 
+    @Test
+    fun aSwipedCardThatStaysInPlaceSlidesBack() {
+        openRainy()
+        // Dark mode is done already and last: swiping it done again changes nothing about its place in the list.
+        val card = composeRule.onNodeWithTag("list-item-idea-1")
+        val left = card.fetchSemanticsNode().boundsInRoot.left
+        card.performTouchInput { swipeRight() }
+        val saved = { AppData(SharedPreferencesStore(context, DATA_PREFERENCES)).items(AppLibrary.idOf("App ideas"), "ideas") }
+        composeRule.waitUntil(WAIT_TIMEOUT_MS) { saved().first { it["id"].toString() == "\"idea-1\"" }["updatedAt"] != null }
+        val firstUpdate = saved().first { it["id"].toString() == "\"idea-1\"" }["updatedAt"].toString()
+        // A swipe runs its action once: the slide back must not settle the card swiped again (which did, endlessly).
+        composeRule.mainClock.advanceTimeBy(1_500)
+        assertEquals("one swipe, one update", firstUpdate, saved().first { it["id"].toString() == "\"idea-1\"" }["updatedAt"].toString())
+        composeRule.waitUntil(5_000) {
+            composeRule.onAllNodesWithTag("list-item-idea-1").fetchSemanticsNodes().singleOrNull()?.boundsInRoot?.left?.let { kotlin.math.abs(it - left) < 1f } == true
+        }
+    }
+
     /** Taps [tag] and moves to the screen it opens (Robolectric doesn't start activities on its own). */
     private fun openTapped(tag: String) {
         composeRule.onNodeWithTag(tag).performClick()

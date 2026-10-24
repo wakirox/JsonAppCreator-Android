@@ -9,6 +9,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -784,17 +786,23 @@ private fun listItemKey(view: ListView, index: Int, item: JsonObject): String =
 private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifier) {
     if (view.swipeToStart == null && view.swipeToEnd == null) return ListCard(view, item, modifier)
     val screen = LocalScreen.current
-    val scope = rememberCoroutineScope()
     val state = rememberSwipeToDismissBoxState()
+    // Once the card has come to rest swiped (settledValue: its animation done), the action runs once and the card
+    // slides back. Acting any earlier (onDismiss, or currentValue) races the end of the swipe animation, which can undo
+    // the slide back and, with onDismiss, run the action again and again.
+    val currentItem by rememberUpdatedState(item)
+    LaunchedEffect(state) {
+        snapshotFlow { state.settledValue }.collect { value ->
+            if (value == SwipeToDismissBoxValue.Settled) return@collect
+            screen.onAction(if (value == SwipeToDismissBoxValue.StartToEnd) view.swipeToEnd else view.swipeToStart, currentItem)
+            state.reset()
+        }
+    }
     SwipeToDismissBox(
         state = state,
         modifier = modifier,
         enableDismissFromStartToEnd = view.swipeToEnd != null,
         enableDismissFromEndToStart = view.swipeToStart != null,
-        onDismiss = { direction ->
-            screen.onAction(if (direction == SwipeToDismissBoxValue.StartToEnd) view.swipeToEnd else view.swipeToStart, item)
-            scope.launch { state.reset() }
-        },
         backgroundContent = {
             val towardsEnd = state.dismissDirection == SwipeToDismissBoxValue.StartToEnd
             val colors = MaterialTheme.colorScheme
