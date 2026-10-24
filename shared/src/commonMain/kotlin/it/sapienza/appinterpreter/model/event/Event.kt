@@ -133,6 +133,14 @@ class NextPage(
     val urlFrom: String? = null
 )
 
+/** Copies [text] to the clipboard, filled from the data; a line whose placeholders all lack a value is left out. */
+@Serializable
+class CopyText(
+    val text: String,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
 /** Closes the current screen and goes back to the one that opened it, as the phone's Back does. */
 @Serializable
 class GoBack(
@@ -161,7 +169,8 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("save", SaveData.serializer()) { it is SaveData },
         TypedSerializer.Type("update", UpdateData.serializer()) { it is UpdateData },
         TypedSerializer.Type("delete", DeleteData.serializer()) { it is DeleteData },
-        TypedSerializer.Type("back", GoBack.serializer()) { it is GoBack }
+        TypedSerializer.Type("back", GoBack.serializer()) { it is GoBack },
+        TypedSerializer.Type("copy", CopyText.serializer()) { it is CopyText }
     )
 )
 

@@ -102,6 +102,7 @@ Events:
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `back` (closes the current screen, such as after a form saves an edit)
+- `copy` (copies a text to the clipboard, to paste in a chat)
 - `open` (hands a `https:`, `http:`, `geo:`, `tel:` or `mailto:` address to the browser,
   maps, the dialer or email; nothing else opens)
 - `share` (opens the share sheet on a text)
@@ -238,7 +239,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The button's text
 - `label`: text. Not displayed on buttons: use title. On a button with only an icon, what screen readers say, such as "Delete ${title}"
-- `icon`: one of `"add"`, `"check"`, `"close"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
+- `icon`: one of `"add"`, `"check"`, `"close"`, `"copy"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
 
 #### `image`
 
@@ -255,6 +256,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 
 - `id`: text (not empty)
 - `action`: an action (or `{ "ref": "id" }`). What tapping an item does; its event receives that item
+- `swipeAction`: an action (or `{ "ref": "id" }`). What swiping an item away (towards the start) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it
 - `mapping`: text. Path of the array of objects to show, in data or in the initData response
 - `data`: an object with any data
 - `visibleIf`: text
@@ -440,6 +442,14 @@ Removes saved objects: the one whose id is id (the current data's by default), o
 Closes the current screen and goes back to the one that opened it, as the phone's Back does; such as after saving an edit.
 
 - `mapping`: text
+- `data`: an object with any data
+
+#### `copy`
+
+Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone confirms it.
+
+- `text` **(required)**: text (not empty). What is copied; may use ${field} placeholders, and a line whose placeholders all have no value is left out, such as "${title}\n${description}"
+- `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 
 ### Actions and references

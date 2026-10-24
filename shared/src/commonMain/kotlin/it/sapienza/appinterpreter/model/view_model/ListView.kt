@@ -16,6 +16,8 @@ class ListView(
     val itemView: MView,
     val initData: RESTService? = null,
     val stored: StoredData? = null,
+    /** Runs when an item is swiped away (towards the start), with that item as data: a delete, say. */
+    val swipeAction: Action? = null,
     val orientation: LayoutOrientation = LayoutOrientation.vertical,
     override val id: String? = null,
     override val action: Action? = null,

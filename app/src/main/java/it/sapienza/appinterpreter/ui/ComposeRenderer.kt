@@ -2,6 +2,11 @@
 
 package it.sapienza.appinterpreter.ui
 
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.Icons
@@ -88,6 +93,8 @@ import it.sapienza.appinterpreter.runtime.ViewVisibility
 import it.sapienza.appinterpreter.runtime.text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -434,6 +441,7 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.add -> Icons.Filled.Add
     ButtonIcon.check -> Icons.Filled.Check
     ButtonIcon.close -> Icons.Filled.Close
+    ButtonIcon.copy -> CopyIcon
     ButtonIcon.delete -> Icons.Filled.Delete
     ButtonIcon.edit -> Icons.Filled.Edit
     ButtonIcon.email -> Icons.Filled.Email
@@ -446,6 +454,17 @@ private fun ButtonIcon.vector(): ImageVector = when (this) {
     ButtonIcon.settings -> Icons.Filled.Settings
     ButtonIcon.share -> Icons.Filled.Share
     ButtonIcon.star -> Icons.Filled.Star
+}
+
+/** Material's "content copy" icon, which the core icon set lacks. */
+private val CopyIcon: ImageVector by lazy {
+    ImageVector.Builder("Copy", 24.dp, 24.dp, 24f, 24f).addPath(
+        PathParser().parsePathString(
+            "M16,1L4,1c-1.1,0 -2,0.9 -2,2v14h2L4,3h12L16,1zM19,5L8,5c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h11c1.1,0 " +
+                "2,-0.9 2,-2L21,7c0,-1.1 -0.9,-2 -2,-2zM19,21L8,21L8,7h11v14z"
+        ).toNodes(),
+        fill = SolidColor(Color.Black)
+    ).build()
 }
 
 /** What a screen reader says for an icon without a label, such as "Delete". */
@@ -570,7 +589,7 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                 GridRow(view, row, index * view.columnCount)
             }
             else -> state.items.forEachIndexed { index, item ->
-                ListCard(
+                SwipeableListCard(
                     view = view,
                     item = item,
                     modifier = Modifier.fillMaxWidth().testTag("list-position-$index")
@@ -610,7 +629,7 @@ private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.En
             items = state.items,
             key = { index, item -> listItemKey(view, index, item) }
         ) { _, item ->
-            ListCard(view, item, Modifier.fillMaxWidth())
+            SwipeableListCard(view, item, Modifier.fillMaxWidth())
         }
     }
     if (state.items.isNotEmpty() && (state.canLoadMore || state.moreErrorMessage != null)) {
@@ -672,6 +691,37 @@ private fun ListLoadError(message: String, onRetry: () -> Unit) {
 
 private fun listItemKey(view: ListView, index: Int, item: JsonObject): String =
     "${System.identityHashCode(view)}-$index-${item.optString("id")}"
+
+/**
+ * A list card that can be swiped away towards the start when the list has a swipe action: the swipe runs it with the
+ * item (a delete asks first, say) and the card slides back, so it only goes when the action removes the item.
+ */
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifier) {
+    if (view.swipeAction == null) return ListCard(view, item, modifier)
+    val screen = LocalScreen.current
+    val scope = rememberCoroutineScope()
+    val state = rememberSwipeToDismissBoxState()
+    SwipeToDismissBox(
+        state = state,
+        modifier = modifier,
+        enableDismissFromStartToEnd = false,
+        onDismiss = {
+            screen.onAction(view.swipeAction, item)
+            scope.launch { state.reset() }
+        },
+        backgroundContent = {
+            Box(
+                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = 24.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+            }
+        }
+    ) { ListCard(view, item, Modifier.fillMaxWidth()) }
+}
 
 @Composable
 private fun ListCard(view: ListView, item: JsonObject, modifier: Modifier) {

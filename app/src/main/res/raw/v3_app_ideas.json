@@ -44,38 +44,27 @@
           }
         },
         "itemView": {
-          "type": "layout",
-          "orientation": "horizontal",
-          "views": [
-            {
-              "type": "text",
-              "mapping": "name",
-              "textStyle": "bold"
-            },
-            {
-              "type": "button",
-              "icon": "delete",
-              "label": "Delete ${name}",
-              "action": {
-                "id": "delete_app",
-                "event": {
-                  "type": "alert",
-                  "value": "Delete ${name} and its ideas?",
-                  "thenDoOK": {
-                    "type": "delete",
-                    "collection": "apps",
-                    "thenDo": {
-                      "type": "delete",
-                      "collection": "ideas",
-                      "where": {
-                        "appId": "${id}"
-                      }
-                    }
-                  }
+          "type": "text",
+          "mapping": "name",
+          "textStyle": "bold"
+        },
+        "swipeAction": {
+          "id": "delete_app",
+          "event": {
+            "type": "alert",
+            "value": "Delete ${name} and its ideas?",
+            "thenDoOK": {
+              "type": "delete",
+              "collection": "apps",
+              "thenDo": {
+                "type": "delete",
+                "collection": "ideas",
+                "where": {
+                  "appId": "${id}"
                 }
               }
             }
-          ]
+          }
         }
       }
     ]
@@ -121,7 +110,8 @@
               "collection": "ideas",
               "fields": {
                 "appId": "${id}",
-                "done": false
+                "done": false,
+                "appName": "${name}"
               }
             }
           }
@@ -187,17 +177,13 @@
               },
               {
                 "type": "button",
-                "icon": "delete",
-                "label": "Delete ${title}",
+                "icon": "copy",
+                "label": "Copy ${title}",
                 "action": {
-                  "id": "delete_idea",
+                  "id": "copy_idea",
                   "event": {
-                    "type": "alert",
-                    "value": "Delete ${title}?",
-                    "thenDoOK": {
-                      "type": "delete",
-                      "collection": "ideas"
-                    }
+                    "type": "copy",
+                    "text": "${title}\n${description}\nPriority: ${priority}\nAn idea for my app ${appName}"
                   }
                 }
               }
@@ -211,6 +197,17 @@
                 "ref": "idea"
               },
               "title": "Edit idea"
+            }
+          },
+          "swipeAction": {
+            "id": "delete_idea",
+            "event": {
+              "type": "alert",
+              "value": "Delete ${title}?",
+              "thenDoOK": {
+                "type": "delete",
+                "collection": "ideas"
+              }
             }
           }
         }

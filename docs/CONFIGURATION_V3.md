@@ -169,7 +169,7 @@ A button supports the text properties above and normally includes an `action`.
 }
 ```
 
-`icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `delete`,
+`icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `copy`, `delete`,
 `edit`, `email`, `favorite`, `info`, `phone`, `place`, `refresh`, `search`, `settings`,
 `share` or `star`. With a `title` it sits before the text; without one the button is just
 the icon, keeps its small size and sits centred in a row, and `label` (supports `${...}`)
@@ -240,6 +240,7 @@ A list repeats `itemView` once for every object in a JSON array.
 | `columns` | integer | no | Items per row of a `grid`, 1 to 6; 2 by default. |
 | `emptyText` | string | no | What the list says when it has no items, instead of "No data available". Supports `${...}`. |
 | `action` | action | no | Runs with the tapped item as its data payload. |
+| `swipeAction` | action | no | Runs when an item is swiped away towards the start, with that item: usually an alert that asks, then a `delete`. The item slides back unless the action removes it. |
 
 The response must be a JSON object, and the selected array must contain JSON objects.
 For local data, place an array in a parent or list `data` object and select it with
@@ -603,6 +604,16 @@ the link with "This item has no …". `mapping` selects the part of the data to 
 
 Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
 with no value becomes empty text.
+
+### Copy text
+
+```json
+{ "type": "copy", "text": "${title}\n${description}\nPriority: ${priority}" }
+```
+
+Copies `text` to the clipboard, to paste in a chat or a note; the phone confirms it. A
+line whose placeholders all have no value is left out, so an item without a description
+copies without an empty line.
 
 ### Go back
 

@@ -1,5 +1,7 @@
 package it.sapienza.appinterpreter.activity
 
+import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -165,6 +167,9 @@ class MainActivity : ComponentActivity() {
         }
         is ScreenViewModel.Effect.Share -> startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title)))
         ScreenViewModel.Effect.Close -> finish()
+        // Android 13 and up (the app's minimum) shows its own "Copied" confirmation.
+        is ScreenViewModel.Effect.Copy ->
+            getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(title, effect.text))
     }
 
     private fun addToHomeScreen() {

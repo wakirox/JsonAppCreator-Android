@@ -12,6 +12,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.UpdateData
+import it.sapienza.appinterpreter.model.view_model.ButtonIcon
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
@@ -181,7 +182,7 @@ class StoredDataScreenTest {
         return Ideas(home, rainy, tasse, rainyScreen)
     }
 
-    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views, and a Delete button. */
+    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views and its buttons. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
 
     /** An idea row's tick box, at the top of its column. */
@@ -223,27 +224,25 @@ class StoredDataScreenTest {
     }
 
     @Test
-    fun deletingAnIdeaAsksFirst() {
+    fun swipingAnIdeaAwayAsksBeforeDeleting() {
         val ideas = ideas()
         val screen = ideas.rainyScreen
-        val delete = assertIs<ButtonView>(screen.row()[1])
+        val swipe = screen.list().swipeAction
 
-        screen.onAction(delete.action, screen.items(ideas.rainy)[0])
+        screen.onAction(swipe, screen.items(ideas.rainy)[0])
         assertEquals("Delete Dark mode?", alerts.alert?.text)
         alerts.answer(ok = false)
         assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
 
-        screen.onAction(delete.action, screen.items(ideas.rainy)[0])
+        screen.onAction(swipe, screen.items(ideas.rainy)[0])
         alerts.answer(ok = true)
         assertEquals(listOf("Widgets"), screen.shown(ideas.rainy, "title"))
     }
 
     @Test
-    fun deletingAnAppDeletesItsIdeasButNoOthers() {
+    fun swipingAnAppAwayDeletesItsIdeasButNoOthers() {
         val ideas = ideas()
-        val delete = assertIs<ButtonView>(ideas.home.row()[1])
-
-        ideas.home.onAction(delete.action, ideas.rainy)
+        ideas.home.onAction(ideas.home.list().swipeAction, ideas.rainy)
         assertEquals("Delete Rainy and its ideas?", alerts.alert?.text)
         alerts.answer(ok = true)
 
@@ -326,5 +325,24 @@ class StoredDataScreenTest {
         screen.onCheck(screen.check(), screen.items(ideas.rainy)[0], checked = true)
 
         assertEquals(listOf("Dark mode", "Widgets", "Tile"), screen.shown(ideas.rainy, "title"))
+    }
+
+    @Test
+    fun theCopyButtonCopiesTheIdeaWithoutLinesItHasNoValueFor() = runTest {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        val copy = screen.row().filterIsInstance<ButtonView>().first { it.icon == ButtonIcon.copy }
+        screen.forms.set(screen.form(), ideas.rainy, "description", "A tile for today's rain")
+        screen.add("title", "Tile", ideas.rainy)
+        val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
+        val darkMode = screen.items(ideas.rainy).first { it.getValue("title") == "Dark mode" }
+
+        screen.onAction(copy.action, tile)
+        assertEquals(
+            "Tile\nA tile for today's rain\nPriority: Medium\nAn idea for my app Rainy",
+            assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text
+        )
+        screen.onAction(copy.action, darkMode)
+        assertEquals("Dark mode\nPriority: Medium\nAn idea for my app Rainy", assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text)
     }
 }

@@ -73,6 +73,15 @@ private val PLACEHOLDER = Regex("\\$\\{([^}]+)\\}")
 fun String.matchReplace(data: JsonObject?): String =
     PLACEHOLDER.replace(this) { match -> data?.getValue(match.groupValues[1]).orEmpty() }
 
+/**
+ * The text filled from [data] line by line, for text a person reads elsewhere (copied, say): a line whose placeholders
+ * all lack a value is left out, as are the blank lines at either end.
+ */
+fun String.filledLines(data: JsonObject?): String = lines().mapNotNull { line ->
+    val paths = PLACEHOLDER.findAll(line).map { it.groupValues[1] }.toList()
+    if (paths.isNotEmpty() && paths.all { data?.getValue(it) == null }) null else line.matchReplace(data)
+}.joinToString("\n").trim()
+
 /** The paths of the placeholders in this text that have no value in [data], in order. */
 fun String.missingPlaceholders(data: JsonObject?): List<String> =
     PLACEHOLDER.findAll(this).map { it.groupValues[1] }.filter { data?.getValue(it) == null }.distinct().toList()

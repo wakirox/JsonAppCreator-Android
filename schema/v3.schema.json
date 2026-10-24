@@ -213,7 +213,7 @@
         "icon": {
           "description": "An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size",
           "type": ["string", "null"],
-          "enum": ["add", "check", "close", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null]
+          "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null]
         }
       },
       "additionalProperties": false
@@ -246,6 +246,7 @@
         "type": { "const": "list" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
         "action": { "description": "What tapping an item does; its event receives that item", "$ref": "#/$defs/action" },
+        "swipeAction": { "description": "What swiping an item away (towards the start) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it", "$ref": "#/$defs/action" },
         "mapping": { "description": "Path of the array of objects to show, in data or in the initData response", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
         "visibleIf": { "$ref": "#/$defs/visibleIf" },
@@ -511,7 +512,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -522,7 +523,8 @@
         { "if": { "properties": { "type": { "const": "save" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/saveEvent" } },
         { "if": { "properties": { "type": { "const": "update" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/updateEvent" } },
         { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } },
-        { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } }
+        { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } },
+        { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } }
       ]
     },
     "restEvent": {
@@ -619,6 +621,18 @@
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "copyEvent": {
+      "type": "object",
+      "description": "Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone confirms it.",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "copy" },
+        "text": { "description": "What is copied; may use ${field} placeholders, and a line whose placeholders all have no value is left out, such as \"${title}\\n${description}\"", "$ref": "#/$defs/nonEmptyString" },
+        "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false
