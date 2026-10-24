@@ -117,10 +117,10 @@
           "emptyText": "No ideas for ${name} yet.",
           "itemView": {
             "type": "layout",
-            "orientation": "horizontal",
             "views": [
               {
                 "type": "layout",
+                "orientation": "horizontal",
                 "views": [
                   {
                     "type": "text",
@@ -129,44 +129,44 @@
                     "textSize": 17
                   },
                   {
-                    "type": "text",
-                    "mapping": "description",
-                    "textSize": 14
-                  },
-                  {
-                    "type": "image",
-                    "mapping": "photos",
-                    "size": {
-                      "height": 64
-                    },
-                    "visibleIf": "photos"
-                  },
-                  {
-                    "type": "text",
-                    "title": "${priority} priority",
-                    "textSize": 13,
-                    "textStyle": "bold",
-                    "visibleIf": "priority"
-                  },
-                  {
-                    "type": "text",
-                    "title": "✓ Done",
-                    "textSize": 13,
-                    "visibleIf": "done"
+                    "type": "button",
+                    "icon": "copy",
+                    "label": "Copy ${title}",
+                    "action": {
+                      "id": "copy_idea",
+                      "event": {
+                        "type": "copy",
+                        "text": "${title}\n${description}\nPriority: ${priority}\nAn idea for my app ${appName}"
+                      }
+                    }
                   }
                 ]
               },
               {
-                "type": "button",
-                "icon": "copy",
-                "label": "Copy ${title}",
-                "action": {
-                  "id": "copy_idea",
-                  "event": {
-                    "type": "copy",
-                    "text": "${title}\n${description}\nPriority: ${priority}\nAn idea for my app ${appName}"
-                  }
-                }
+                "type": "text",
+                "mapping": "description",
+                "textSize": 14
+              },
+              {
+                "type": "image",
+                "mapping": "photos",
+                "size": {
+                  "height": 64
+                },
+                "visibleIf": "photos"
+              },
+              {
+                "type": "text",
+                "title": "${priority} priority",
+                "textSize": 13,
+                "textStyle": "bold",
+                "visibleIf": "priority"
+              },
+              {
+                "type": "text",
+                "title": "✓ Done",
+                "textSize": 13,
+                "visibleIf": "done"
               }
             ]
           },

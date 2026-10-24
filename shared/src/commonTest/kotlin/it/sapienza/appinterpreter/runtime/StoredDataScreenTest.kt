@@ -18,6 +18,7 @@ import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
@@ -204,8 +205,14 @@ class StoredDataScreenTest {
     /** The app screen's button that opens the new-idea screen. */
     private fun ScreenViewModel.newIdeaButton() = assertIs<ButtonView>(views.first { it is ButtonView && it.title == "New idea" })
 
-    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views and its buttons. */
+    /** The views of [list]'s items: the item view's own (the title row first), in order. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
+
+    /** Every view inside [list]'s item view, nested ones included. */
+    private fun ScreenViewModel.itemViews(): List<MView> {
+        fun all(view: MView): List<MView> = listOf(view) + ((view as? Layout)?.views.orEmpty().flatMap(::all))
+        return all(list().itemView)
+    }
 
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
@@ -214,7 +221,7 @@ class StoredDataScreenTest {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
         assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
-        val doneLine = assertIs<Layout>(screen.row()[0]).views.last()
+        val doneLine = screen.row().last()
         assertEquals("done", doneLine.visibleIf)
 
         screen.onAction(screen.list().swipeToEnd, screen.items(rainy)[0])
@@ -371,7 +378,9 @@ class StoredDataScreenTest {
     fun theCopyButtonCopiesTheIdeaWithoutLinesItHasNoValueFor() = runTest {
         val ideas = ideas()
         val screen = ideas.rainyScreen
-        val copy = screen.row().filterIsInstance<ButtonView>().first { it.icon == ButtonIcon.copy }
+        val copy = screen.itemViews().filterIsInstance<ButtonView>().first { it.icon == ButtonIcon.copy }
+        val titleRow = assertIs<Layout>(screen.row()[0])
+        assertEquals(copy, titleRow.views.last(), "the copy button ends the title row")
         ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "description", "A tile for today's rain")
         ideas.rainyNew.add("title", "Tile", ideas.rainy)
         val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
