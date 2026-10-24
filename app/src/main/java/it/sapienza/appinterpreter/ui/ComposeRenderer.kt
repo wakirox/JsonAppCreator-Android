@@ -2,10 +2,12 @@
 
 package it.sapienza.appinterpreter.ui
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonArray
 import kotlinx.coroutines.launch
+import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.clickable
@@ -105,6 +107,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import it.sapienza.appinterpreter.storage.Photos
 import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.utils.PhotoStore
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
@@ -559,6 +562,7 @@ private fun RenderImage(
 @Composable
 private fun ImageStrip(urls: List<String>, side: Dp, modifier: Modifier, allowImagePreview: Boolean) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     Row(modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         urls.forEach { url ->
             var state by remember(url) { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
@@ -572,7 +576,7 @@ private fun ImageStrip(urls: List<String>, side: Dp, modifier: Modifier, allowIm
                     modifier = Modifier.matchParentSize()
                         .then(if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-$url") else Modifier)
                         .then(
-                            if (allowImagePreview) Modifier.clickable { context.startActivity(createIntentPhotoActivity(context, url)) }
+                            if (allowImagePreview) Modifier.clickable { openFullSize(context, scope, url) }
                             else Modifier
                         )
                 )
@@ -580,6 +584,14 @@ private fun ImageStrip(urls: List<String>, side: Dp, modifier: Modifier, allowIm
                 if (state is AsyncImagePainter.State.Error) BrokenImage(Modifier.matchParentSize())
             }
         }
+    }
+}
+
+/** Shows [url] full screen: for a kept photo, its original (or copy) rather than the thumbnail lists show. */
+private fun openFullSize(context: Context, scope: CoroutineScope, url: String) {
+    scope.launch {
+        val address = if (Photos.isPhoto(url)) PhotoStore(context).fullSize(url) else url
+        context.startActivity(createIntentPhotoActivity(context, address))
     }
 }
 
@@ -1151,7 +1163,7 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
                             },
                             modifier = Modifier.matchParentSize().clip(RoundedCornerShape(12.dp))
                                 .then(if (loaded) Modifier.testTag("image-$reference") else Modifier)
-                                .clickable { context.startActivity(createIntentPhotoActivity(context, reference)) }
+                                .clickable { openFullSize(context, scope, reference) }
                         )
                         if (broken) BrokenImage(Modifier.matchParentSize().clip(RoundedCornerShape(12.dp)))
                         FilledTonalIconButton(

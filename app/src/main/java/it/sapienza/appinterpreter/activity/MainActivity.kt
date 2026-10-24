@@ -157,7 +157,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    private fun handle(effect: ScreenViewModel.Effect) = when (effect) {
+    private suspend fun handle(effect: ScreenViewModel.Effect) = when (effect) {
         is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload, effect.title)
         is ScreenViewModel.Effect.AddToCalendar ->
             if (!AndroidCalendarWriter(this).add(effect.entry)) alerts.show(getString(R.string.no_calendar_app)) else Unit
@@ -168,7 +168,7 @@ class MainActivity : ComponentActivity() {
         }
         is ScreenViewModel.Effect.Share -> {
             val store = PhotoStore(this)
-            val photos = effect.photos.mapNotNull { store.shareable(this, it) }
+            val photos = effect.photos.mapNotNull { store.shareable(it) }
             startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title), photos))
         }
         ScreenViewModel.Effect.Close -> finish()

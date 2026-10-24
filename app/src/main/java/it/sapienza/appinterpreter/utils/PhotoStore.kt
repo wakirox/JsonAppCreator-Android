@@ -1,6 +1,7 @@
 package it.sapienza.appinterpreter.utils
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -9,54 +10,125 @@ import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.UUID
 
 /**
- * The photos JSON apps keep, in the app's private storage: each picked photo is copied in (scaled down to at most
- * [MAX_SIDE] pixels, as JPEG), so it stays after the gallery's copy goes, and is referred to as "appkin-photo:<name>".
- * They're backed up with the app's data, whose cloud backup must stay under 25 MB, so they're kept small: a photo is
- * around 300 KB.
+ * The photos JSON apps keep, referred to as "appkin-photo:<name>". A photo picked from the gallery isn't copied: the
+ * app keeps a link to it (a lasting read permission) and its own small thumbnail ([THUMB_SIDE] px), which lists show,
+ * the backup carries and which stands in once the original is gone (deleted, or on a new phone). When Android won't
+ * keep the link (an app may hold only so many), a copy of the photo ([MAX_SIDE] px) is kept instead. Photos kept before
+ * links (a full copy as the thumbnail) still work.
  */
 class PhotoStore(context: Context) {
-    private val resolver = context.contentResolver
-    private val folder = File(context.filesDir, "photos")
+    private val context = context.applicationContext
+    private val resolver = this.context.contentResolver
+    private val folder = File(this.context.filesDir, "photos")
+    private val copies = File(folder, "full")
+    private val links = SharedPreferencesStore(this.context, LINKS)
 
-    /** Copies the photo at [uri] in and gives its reference. */
+    /** Keeps the photo at [uri]: a link to it and a thumbnail (or, without a link, a copy), and gives its reference. */
     suspend fun add(uri: Uri): String = withContext(Dispatchers.IO) {
-        val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
-            val (width, height) = info.size.width to info.size.height
-            val scale = MAX_SIDE.toFloat() / maxOf(width, height)
-            if (scale < 1) decoder.setTargetSize((width * scale).toInt().coerceAtLeast(1), (height * scale).toInt().coerceAtLeast(1))
-        }
-        folder.mkdirs()
         val name = "${UUID.randomUUID()}.jpg"
-        File(folder, name).outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, it)) }
+        folder.mkdirs()
+        File(folder, name).writeBytes(jpeg(uri, THUMB_SIDE))
+        val linked = runCatching { resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }.isSuccess
+        if (linked) {
+            links.put(name, uri.toString())
+        } else {
+            copies.mkdirs()
+            File(copies, name).writeBytes(jpeg(uri, MAX_SIDE))
+        }
         Photos.reference(name)
     }
 
-    /** A kept photo's bytes, for a request that sends it. */
-    val reader = PhotoReader { reference -> withContext(Dispatchers.IO) { file(reference)?.takeIf(File::isFile)?.readBytes() } }
-
-    /** A content address another app can read (the FileProvider's), for sharing a kept photo; null when it's gone. */
-    fun shareable(context: Context, reference: String): Uri? =
-        file(reference)?.takeIf(File::isFile)?.let { FileProvider.getUriForFile(context, "${context.packageName}.files", it) }
-
-    /** The file a reference points to, or null when [reference] isn't a photo. */
+    /** The thumbnail a reference points to (what lists show), or null when [reference] isn't a photo. */
     fun file(reference: String): File? = Photos.fileName(reference)?.let { File(folder, it) }
 
+    /** The original photo, while the link to it still reads; null otherwise. */
+    private fun original(reference: String): Uri? {
+        val uri = Photos.fileName(reference)?.let(links::get)?.let(Uri::parse) ?: return null
+        return uri.takeIf { runCatching { resolver.openInputStream(it)?.close() != null }.getOrDefault(false) }
+    }
+
+    /** The largest version there is: the original, else the kept copy, else the thumbnail. */
+    private fun best(reference: String): Any? =
+        original(reference) ?: Photos.fileName(reference)?.let { File(copies, it) }?.takeIf(File::isFile)
+            ?: file(reference)?.takeIf(File::isFile)
+
+    /** What the full-screen view loads for [reference]: the original or the kept copy, else the thumbnail itself. */
+    suspend fun fullSize(reference: String): String = withContext(Dispatchers.IO) {
+        when (val best = best(reference)) {
+            is Uri -> best.toString()
+            is File -> Uri.fromFile(best).toString()
+            else -> reference
+        }
+    }
+
+    /** A photo's bytes for a request that sends it: the original scaled to [MAX_SIDE], else what's kept. */
+    val reader = PhotoReader { reference ->
+        withContext(Dispatchers.IO) {
+            when (val best = best(reference)) {
+                is Uri -> runCatching { jpeg(best, MAX_SIDE) }.getOrNull()
+                is File -> best.readBytes()
+                else -> null
+            }
+        }
+    }
+
     /**
-     * Deletes the photos no saved data refers to ([referenced]) that are older than [graceMillis], so a photo picked
-     * in a form not yet saved survives.
+     * A content address another app can read (the FileProvider's), for sharing: a copy of the best version in the
+     * shared cache, as the gallery's own address can't be passed on. Null when nothing is left.
+     */
+    suspend fun shareable(reference: String): Uri? = withContext(Dispatchers.IO) {
+        val name = Photos.fileName(reference) ?: return@withContext null
+        val bytes = reader.jpeg(reference) ?: return@withContext null
+        val shared = File(context.cacheDir, "shared/photos").apply { mkdirs() }
+        val file = File(shared, name).apply { writeBytes(bytes) }
+        FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+    }
+
+    /**
+     * Forgets the photos no saved data refers to ([referenced]) that are older than [graceMillis], so a photo picked in
+     * a form not yet saved survives: their thumbnail, copy and link (and its read permission) go.
      */
     fun deleteUnused(referenced: Set<String>, now: Long = System.currentTimeMillis(), graceMillis: Long = DAY): Int =
-        folder.listFiles().orEmpty().count { file ->
-            Photos.reference(file.name) !in referenced && now - file.lastModified() > graceMillis && file.delete()
+        folder.listFiles().orEmpty().filter(File::isFile).count { file ->
+            val unused = Photos.reference(file.name) !in referenced && now - file.lastModified() > graceMillis
+            if (unused) forget(file.name)
+            unused
         }
 
+    private fun forget(name: String) {
+        links.get(name)?.let { uri ->
+            runCatching { resolver.releasePersistableUriPermission(Uri.parse(uri), Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            links.remove(name)
+        }
+        File(copies, name).delete()
+        File(folder, name).delete()
+    }
+
+    /** The image at [uri] as JPEG, scaled to fit [side] pixels (never up). */
+    private fun jpeg(uri: Uri, side: Int): ByteArray {
+        val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
+            val (width, height) = info.size.width to info.size.height
+            val scale = side.toFloat() / maxOf(width, height)
+            if (scale < 1) decoder.setTargetSize((width * scale).toInt().coerceAtLeast(1), (height * scale).toInt().coerceAtLeast(1))
+        }
+        return ByteArrayOutputStream().also { check(bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, it)) }.toByteArray()
+    }
+
     companion object {
+        /** A thumbnail's longest side: enough for lists and a decent fallback full screen. */
+        const val THUMB_SIDE = 640
+
+        /** A kept copy's (or an upload's) longest side. */
         const val MAX_SIDE = 1600
         private const val QUALITY = 80
         private const val DAY = 24L * 60 * 60 * 1000
+
+        /** The links to originals, by thumbnail name. Not backed up: a link only reads on the phone that made it. */
+        const val LINKS = "PhotoLinks"
     }
 }

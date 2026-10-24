@@ -11,6 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -32,19 +33,20 @@ class ShareWithPhotosTest {
         FileProvider::class.java.getDeclaredField("sCache").apply { isAccessible = true }.let { (it.get(null) as MutableMap<*, *>).clear() }
     }
 
-    private fun photo(name: String): Uri {
+    private suspend fun photo(name: String): Uri {
         checkNotNull(store.file("appkin-photo:$name")).apply { parentFile?.mkdirs(); writeText("jpeg") }
-        return checkNotNull(store.shareable(context, "appkin-photo:$name"))
+        return checkNotNull(store.shareable("appkin-photo:$name"))
     }
 
     private fun Intent.target(): Intent = checkNotNull(IntentCompat.getParcelableExtra(this, Intent.EXTRA_INTENT, Intent::class.java))
 
     @Test
-    fun keptPhotosAreSharedThroughTheAppsFileProvider() {
+    fun keptPhotosAreSharedAsACopyThroughTheAppsFileProvider() = runTest {
         val uri = photo("a.jpg")
         assertEquals("content", uri.scheme)
         assertEquals("${context.packageName}.files", uri.authority)
-        assertNull("a photo that's gone isn't offered", store.shareable(context, "appkin-photo:gone.jpg"))
+        assertEquals("jpeg", context.contentResolver.openInputStream(uri)!!.use { it.readBytes().decodeToString() })
+        assertNull("a photo that's gone isn't offered", store.shareable("appkin-photo:gone.jpg"))
     }
 
     @Test

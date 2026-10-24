@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Only shared apps and the photos an app shares (from its share event) are offered to other apps. -->
+<!-- Only what is being shared is offered to other apps: shared apps, and copies of shared photos, in cache/shared/. -->
 <paths>
     <cache-path name="shared" path="shared/" />
-    <files-path name="photos" path="photos/" />
 </paths>
