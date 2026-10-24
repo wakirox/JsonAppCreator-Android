@@ -3,6 +3,7 @@ package it.sapienza.appinterpreter.runtime
 import androidx.lifecycle.SavedStateHandle
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
 import it.sapienza.appinterpreter.json.getValue
@@ -55,7 +56,9 @@ class ScreenViewModelTest {
             { "type": "button", "title": "Call", "action": { "id": "call", "event": { "type": "open", "url": "tel:${'$'}{phone}" } } },
             { "type": "button", "title": "Run", "action": { "id": "run", "event": { "type": "open", "url": "${'$'}{script}" } } },
             { "type": "button", "title": "Titled", "action": { "id": "titled", "event": { "type": "show", "view": { "ref": "details" }, "title": "About ${'$'}{who}" } } },
-            { "type": "button", "title": "Untitled", "action": { "id": "untitled", "event": { "type": "show", "view": { "ref": "details" }, "title": "${'$'}{nobody}" } } }
+            { "type": "button", "title": "Untitled", "action": { "id": "untitled", "event": { "type": "show", "view": { "ref": "details" }, "title": "${'$'}{nobody}" } } },
+            { "type": "button", "title": "Delete", "action": { "id": "delete", "event": { "type": "rest", "method": "delete", "url": "https://example.com/gone",
+              "onError": { "type": "alert", "value": "${'$'}{who} couldn't delete it: ${'$'}{error.message} (${'$'}{error.status})" } } } }
           ] },
           "views": [ { "id": "details", "type": "text", "title": "Details" } ]
         }
@@ -72,7 +75,10 @@ class ScreenViewModelTest {
         val current = CurrentConfiguration { json }
         val keys = ConfigurationKeys(MemorySecretStore(), mapOf("test" to mapOf("KEY" to "k"))) { "bundled:test" }
         val fetch = FetchJsonUseCase(
-            JsonHttpClient(MockEngine { respond("""{ "message": "Loaded from ${it.url.encodedPath}" }""") }, "Appkin/test", keys::replaceForCurrentConfiguration)
+            JsonHttpClient(MockEngine {
+                if (it.url.encodedPath.endsWith("/gone")) respond("{}", HttpStatusCode.NotFound)
+                else respond("""{ "message": "Loaded from ${it.url.encodedPath}" }""")
+            }, "Appkin/test", keys::replaceForCurrentConfiguration)
         )
         return ScreenViewModel(
             SavedStateHandle(), alerts, fetch, LoadListItemsUseCase(fetch), InitialFormValuesUseCase(), SubmitFormUseCase(),
@@ -170,6 +176,16 @@ class ScreenViewModelTest {
 
         screen.onAction(views[8].action, screen.screen?.data)
         assertNull(assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title, "an empty title leaves the app's name")
+    }
+
+    @Test
+    fun onErrorRunsInsteadOfTheAlertWithWhatWentWrong() = runTest {
+        val screen = screen()
+
+        screen.onAction((screen.screen?.definition as Layout).views[9].action, screen.screen?.data)
+
+        val alert = withContext(Dispatchers.Default) { withTimeout(10_000) { alerts.alertState.first { it != null } } }
+        assertEquals("Ana couldn't delete it: Request failed with 404 (404)", alert?.text)
     }
 
     @Test

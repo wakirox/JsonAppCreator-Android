@@ -70,7 +70,11 @@ class RESTService(
     override val mapping: String? = null,
     override val data: JsonObject? = null,
     /** A list's initData only: how to ask for the items after these. */
-    val nextPage: NextPage? = null
+    val nextPage: NextPage? = null,
+    /** Request headers, such as "Authorization"; values may use ${field} placeholders and __API_KEY__ ones. */
+    val headers: Map<String, String>? = null,
+    /** An event's only: what runs when the request fails, with the data and "error" ({ message, status }). */
+    val onError: Event? = null
 ) : DataService()
 
 /**
@@ -108,5 +112,8 @@ object EventSerializer : TypedSerializer<Event>(
 
 @Serializable
 enum class CallServiceMethod {
-    get, post
+    get, post, put, delete;
+
+    /** Whether the request sends its data as a JSON body. */
+    val sendsBody: Boolean get() = this == post || this == put
 }

@@ -32,5 +32,10 @@ object ConfigurationApiKeys {
         return keys.replaceForCurrentConfiguration(text)
     }
 
+    fun replaceInHeaderForCurrentConfiguration(text: String): String {
+        check(::keys.isInitialized) { "ConfigurationApiKeys has not been initialized" }
+        return keys.replaceInHeaderForCurrentConfiguration(text)
+    }
+
     internal fun decodeBundledValues(encoded: String) = ConfigurationKeys.decodeBundledValues(encoded)
 }

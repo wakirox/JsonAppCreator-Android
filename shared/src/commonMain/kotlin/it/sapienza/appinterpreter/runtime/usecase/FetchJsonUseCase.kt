@@ -1,6 +1,8 @@
 package it.sapienza.appinterpreter.runtime.usecase
 
 import it.sapienza.appinterpreter.json.fillAddress
+import it.sapienza.appinterpreter.json.matchReplace
+import it.sapienza.appinterpreter.json.missingPlaceholders
 import it.sapienza.appinterpreter.json.missingAddressPlaceholders
 import it.sapienza.appinterpreter.model.event.CallServiceMethod
 import it.sapienza.appinterpreter.model.event.RESTService
@@ -19,9 +21,15 @@ class FetchJsonUseCase(private val client: JsonHttpClient) {
     fun url(event: RESTService, data: JsonObject?): String =
         event.url.fillAddress(data) ?: throw MissingValueException(event.url.missingAddressPlaceholders(data).first())
 
-    /** [url], already filled in (such as a list's next page), asked for as [event] says. */
+    /** [url], already filled in (such as a list's next page), asked for as [event] says, with its headers. */
     suspend fun fetch(url: String, event: RESTService, data: JsonObject?): JsonObject =
-        client.request(url, post = event.method == CallServiceMethod.post, body = data)
+        client.request(url, event.method ?: CallServiceMethod.get, body = data, headers = headers(event, data))
+
+    /** [event]'s headers filled in from [data]; like the URL, a header needing a value [data] lacks isn't sent. */
+    fun headers(event: RESTService, data: JsonObject?): Map<String, String> = event.headers.orEmpty().mapValues { (_, value) ->
+        value.missingPlaceholders(data).firstOrNull()?.let { throw MissingValueException(it) }
+        value.matchReplace(data)
+    }
 }
 
 /** A request needs the value at [path], which the data doesn't have. */

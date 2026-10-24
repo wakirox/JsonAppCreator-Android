@@ -21,6 +21,11 @@ object HttpClient {
 
     /** The shared engine's client for REST events and lists, running on [client]. */
     val json: JsonHttpClient by lazy {
-        JsonHttpClient(OkHttp.create { preconfigured = client }, USER_AGENT, ConfigurationApiKeys::replaceForCurrentConfiguration)
+        JsonHttpClient(
+            OkHttp.create { preconfigured = client },
+            USER_AGENT,
+            ConfigurationApiKeys::replaceForCurrentConfiguration,
+            ConfigurationApiKeys::replaceInHeaderForCurrentConfiguration
+        )
     }
 }

@@ -14,17 +14,21 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import it.sapienza.appinterpreter.model.event.CallServiceMethod
 
 class JsonHttpClientTest {
     private val requests = mutableListOf<String>()
+    private val headers = mutableListOf<Map<String, String>>()
 
     private fun client(status: HttpStatusCode = HttpStatusCode.OK, body: String = """{"ok":true}""") = JsonHttpClient(
         MockEngine { request ->
             requests += "${request.method.value} ${request.url} ${request.headers[HttpHeaders.UserAgent]} ${request.body.toByteArray().decodeToString()}"
+            headers += request.headers.names().associateWith { request.headers[it].orEmpty() }
             respond(body, status, headersOf(HttpHeaders.ContentType, "application/json"))
         },
         JsonHttpClient.userAgent("1.2", "Test"),
-        resolveUrl = { it.replace("__KEY__", "secret") }
+        resolveUrl = { it.replace("__KEY__", "secret") },
+        resolveHeader = { it.replace("__KEY__", "a b+c") }
     )
 
     @Test
@@ -55,5 +59,37 @@ class JsonHttpClientTest {
             assertFailsWith<IllegalStateException> { client().request("https://e.com?k=__OTHER_KEY__", false, null) }.message
         )
         assertEquals(3, requests.size, "no request without its key")
+    }
+
+    @Test
+    fun putSendsTheDataAndDeleteDoesNot() = runTest {
+        val data = JsonObject(mapOf("name" to JsonPrimitive("Ana")))
+        client().request("https://example.com/p/1", CallServiceMethod.put, data)
+        assertEquals("""PUT https://example.com/p/1""", requests.last().substringBefore(" Appkin"))
+        assertEquals("""{"name":"Ana"}""", requests.last().substringAfterLast(' '))
+        client().request("https://example.com/p/1", CallServiceMethod.delete, data)
+        assertEquals("DELETE https://example.com/p/1", requests.last().substringBefore(" Appkin"))
+        assertEquals("", requests.last().substringAfterLast(' '))
+    }
+
+    @Test
+    fun headersAreSentWithTheirKeysAsTheyAre() = runTest {
+        client().request("https://example.com/a", CallServiceMethod.get, null, mapOf("Authorization" to "Bearer __KEY__", "Accept-Language" to "it"))
+        assertEquals("Bearer a b+c", headers.last()["Authorization"], "a header's key isn't URL-encoded")
+        assertEquals("it", headers.last()["Accept-Language"])
+        assertEquals(
+            "Missing configuration API key: OTHER",
+            assertFailsWith<IllegalStateException> { client().request("https://e.com", CallServiceMethod.get, null, mapOf("X-Key" to "__OTHER__")) }.message
+        )
+        listOf("User-Agent", "host", "Content-Type").forEach { name ->
+            assertFailsWith<IllegalArgumentException> { client().request("https://e.com", CallServiceMethod.get, null, mapOf(name to "x")) }
+        }
+        assertEquals(1, requests.size)
+    }
+
+    @Test
+    fun anEmptyAnswerIsAnEmptyObjectAndAStatusIsKept() = runTest {
+        assertEquals(JsonObject(emptyMap()), client(HttpStatusCode.NoContent, body = "").request("https://e.com/1", CallServiceMethod.delete, null))
+        assertEquals(404, assertFailsWith<HttpStatusException> { client(HttpStatusCode.NotFound).request("https://e.com", false, null) }.status)
     }
 }

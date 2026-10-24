@@ -17,8 +17,13 @@ import kotlin.test.assertFailsWith
 /** A request's URL is filled in from the data, and isn't sent at all when the data lacks one of its values. */
 class FetchJsonUseCaseTest {
     private val requested = mutableListOf<String>()
+    private val sentHeaders = mutableListOf<String>()
     private val fetch = FetchJsonUseCase(
-        JsonHttpClient(MockEngine { request -> requested += request.url.toString(); respond("""{ "ok": "yes" }""") }, "Appkin/test")
+        JsonHttpClient(MockEngine { request ->
+            requested += request.url.toString()
+            sentHeaders += request.headers["X-Artwork"].orEmpty()
+            respond("""{ "ok": "yes" }""")
+        }, "Appkin/test")
     )
     private val artwork = JsonText.parse("""{ "creators": [ { "id": 42 } ], "creatorsless": [] }""") as JsonObject
 
@@ -54,5 +59,17 @@ class FetchJsonUseCaseTest {
         assertFailsWith<MissingValueException> { fetch(RESTService("https://example.com/${'$'}{id}"), null) }
         fetch(RESTService("https://example.com/plain"), null)
         assertEquals(listOf("https://example.com/plain"), requested)
+    }
+
+    @Test
+    fun headersAreFilledInLikeTheUrl() = runTest {
+        fetch(RESTService("https://example.com/a", headers = mapOf("X-Artwork" to "creator ${'$'}{creators.0.id}")), artwork)
+        assertEquals(listOf("creator 42"), sentHeaders)
+
+        val error = assertFailsWith<MissingValueException> {
+            fetch(RESTService("https://example.com/a", headers = mapOf("X-Artwork" to "${'$'}{creatorsless.0.id}")), artwork)
+        }
+        assertEquals("creatorsless.0.id", error.path)
+        assertEquals(1, requested.size)
     }
 }

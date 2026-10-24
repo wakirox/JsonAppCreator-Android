@@ -507,18 +507,26 @@ with no value becomes empty text.
 }
 ```
 
-- `method` is `get` (default) or `post`.
+- `method` is `get` (default), `post`, `put` or `delete`.
 - `${...}` values in `url` come from the action's active data.
-- POST sends the active data as an `application/json` body.
-- `thenDo` receives the JSON response object and may be any event.
-- Only HTTPS, JSON-object response bodies, and successful HTTP `2xx` statuses are currently handled.
-- Custom headers, authentication configuration, and JSON arrays
-  at the response root are not currently supported.
+- POST and PUT send the active data as an `application/json` body.
+- `headers` adds request headers. Their values may use `${...}` (a missing value stops the
+  request, as in the URL) and API-key placeholders, which go in as they are:
+  `"headers": { "Authorization": "Bearer __API_TOKEN__" }`. Appkin sets `User-Agent`,
+  `Host`, `Content-Type` and `Content-Length` itself. A list's `initData` takes `method` and
+  `headers` too.
+- `thenDo` receives the JSON response object and may be any event. An empty answer, as a
+  DELETE often gives, is an empty object.
+- `onError` runs instead of the error alert when the request fails. Its data is the
+  request's data plus `error.message` and, for an HTTP error, `error.status`:
+  `"onError": { "type": "alert", "value": "Couldn't save ${name}: ${error.message}" }`.
+- Only HTTPS, JSON-object response bodies, and successful HTTP `2xx` statuses are handled.
+  JSON arrays at the response root are not supported.
 
 #### API-key placeholders
 
 Keep credentials outside configuration JSON by using an uppercase named placeholder
-in a REST URL:
+in a REST URL or header:
 
 ```json
 {

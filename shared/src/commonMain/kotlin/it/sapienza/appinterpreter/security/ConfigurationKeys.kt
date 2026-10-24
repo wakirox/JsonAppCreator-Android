@@ -33,14 +33,19 @@ class ConfigurationKeys(
     }
 
     /** [text] (a request URL) with the current configuration's keys in place of their placeholders, URL-encoded. */
-    fun replaceForCurrentConfiguration(text: String): String {
+    fun replaceForCurrentConfiguration(text: String): String = replace(text, encode = true)
+
+    /** [text] (a request header's value) with the current configuration's keys in place of their placeholders, as they are. */
+    fun replaceInHeaderForCurrentConfiguration(text: String): String = replace(text, encode = false)
+
+    private fun replace(text: String, encode: Boolean): String {
         val names = ApiKeyPlaceholders.names(text)
         if (names.isEmpty()) return text
         val configurationId = currentConfigurationId()
         val values = buildMap {
             bundledName(configurationId)?.let { putAll(bundledValues[it].orEmpty()) }
             names.forEach { name -> secrets.read(configurationId, name)?.let { put(name, it) } }
-        }.mapValues { (_, value) -> UriEncoding.encode(value) }
+        }.mapValues { (_, value) -> if (encode) UriEncoding.encode(value) else value }
         return ApiKeyPlaceholders.replace(text, values)
     }
 

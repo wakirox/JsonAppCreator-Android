@@ -36,7 +36,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import it.sapienza.appinterpreter.utils.httpclient.HttpStatusException
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * One screen of a JSON app. It loads the screen, keeps its forms ([FormsState]) and lists ([ListsState]), and runs
@@ -169,10 +172,19 @@ class ScreenViewModel(
                 event.thenDo?.let { onEvent(it, response) }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: MissingValueException) {
-                alerts.show(strings.valueMissing(e.path))
             } catch (e: Exception) {
-                alerts.show(e.message ?: "An error occurred")
+                val message = (e as? MissingValueException)?.let { strings.valueMissing(it.path) } ?: e.message ?: "An error occurred"
+                val onError = event.onError
+                if (onError == null) {
+                    alerts.show(message)
+                } else {
+                    // The error event gets the request's data and what went wrong, as ${error.message}.
+                    val error = buildMap<String, JsonElement> {
+                        put("message", JsonPrimitive(message))
+                        (e as? HttpStatusException)?.let { put("status", JsonPrimitive(it.status)) }
+                    }
+                    onEvent(onError, JsonObject(data.orEmpty() + ("error" to JsonObject(error))))
+                }
             } finally {
                 requests -= 1
                 busy.value = requests > 0
