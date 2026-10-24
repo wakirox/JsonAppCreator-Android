@@ -169,7 +169,7 @@ A button supports the text properties above and normally includes an `action`.
 }
 ```
 
-`icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `delete`,
+`icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `copy`, `delete`,
 `edit`, `email`, `favorite`, `info`, `phone`, `place`, `refresh`, `search`, `settings`,
 `share` or `star`. With a `title` it sits before the text; without one the button is just
 the icon, keeps its small size and sits centred in a row, and `label` (supports `${...}`)
@@ -240,6 +240,8 @@ A list repeats `itemView` once for every object in a JSON array.
 | `columns` | integer | no | Items per row of a `grid`, 1 to 6; 2 by default. |
 | `emptyText` | string | no | What the list says when it has no items, instead of "No data available". Supports `${...}`. |
 | `action` | action | no | Runs with the tapped item as its data payload. |
+| `swipeToStart` | action | no | Runs when an item is swiped towards the start (left), with that item: usually an alert that asks, then a `delete`. The item slides back unless the action removes it. `swipeToStartIcon` picks the icon underneath (`delete` by default). |
+| `swipeToEnd` | action | no | Runs when an item is swiped towards the end (right), with that item: such as an `update` with `"fields": { "done": true }`. `swipeToEndIcon` picks the icon underneath (`check` by default). |
 
 The response must be a JSON object, and the selected array must contain JSON objects.
 For local data, place an array in a parent or list `data` object and select it with
@@ -527,7 +529,10 @@ one is saved, on this screen or another. `where` keeps only the objects whose fi
 placeholders from the list's data; so a details screen opened on an app with `id` shows
 only that app's ideas. `mapping` is not used.
 
-`sort` orders the list by a field. Values listed in `order` come first, in that order;
+`sort` orders the list by a field, or by several: give a list, and each later sort
+orders what the earlier ones leave tied, such as `[{ "by": "done", "order": ["false",
+"true"] }, { "by": "priority", "order": ["High", "Medium", "Low"] }]` for open ideas first,
+then by priority. Values listed in `order` come first, in that order;
 the others follow, numbers by size and text alphabetically, and objects without the field
 come last. `"descending": true` turns the order round. Objects that tie keep the order
 they were saved in:
@@ -567,7 +572,8 @@ chain the two with `thenDo` to delete an app and its ideas. Lists showing the co
 update at once.
 
 A `check` view marks items done without a form: it is ticked when the data's value at
-`mapping` is true, and ticking it runs its action with that value turned over. In a stored
+`mapping` is true, and ticking the box runs its action with that value turned over (a
+tap on the title goes to the list item, to open it for editing, say). In a stored
 list's `itemView`, an `update` saves it straight away, and a ticked title is struck through:
 
 ```json
@@ -601,6 +607,25 @@ the link with "This item has no …". `mapping` selects the part of the data to 
 
 Opens the phone's share sheet on `text`, for the user to send to any app. A placeholder
 with no value becomes empty text.
+
+### Copy text
+
+```json
+{ "type": "copy", "text": "${title}\n${description}\nPriority: ${priority}" }
+```
+
+Copies `text` to the clipboard, to paste in a chat or a note; the phone confirms it. A
+line whose placeholders all have no value is left out, so an item without a description
+copies without an empty line.
+
+### Go back
+
+```json
+{ "type": "back" }
+```
+
+Closes the current screen and returns to the one that opened it, as the phone's Back
+does, such as in the `thenDo` of a form that saves an edit.
 
 ### Call a REST endpoint
 

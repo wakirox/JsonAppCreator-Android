@@ -123,4 +123,13 @@ class JsonValuesTest {
         }
         assertFalse((null as JsonObject?).hasValueAt("text"))
     }
+
+    @Test
+    fun filledLinesLeavesOutLinesWithNothingToShow() {
+        val data = JsonText.parse("""{ "title": "Tile", "priority": "High" }""") as JsonObject
+        assertEquals("Tile\nPriority: High", "${'$'}{title}\n${'$'}{description}\nPriority: ${'$'}{priority}".filledLines(data))
+        assertEquals("Fixed line\nTile", "Fixed line\n${'$'}{title}".filledLines(data), "lines without placeholders stay")
+        assertEquals("Tile and", "${'$'}{title} and ${'$'}{missing}".filledLines(data), "a line with some values keeps them")
+        assertEquals("", "${'$'}{missing}".filledLines(data))
+    }
 }

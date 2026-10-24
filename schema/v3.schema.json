@@ -178,7 +178,7 @@
     },
     "checkView": {
       "type": "object",
-      "description": "A tick box, ticked when the data's true/false value at mapping is true. Ticking it runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through.",
+      "description": "A tick box, ticked when the data's true/false value at mapping is true. Ticking the box runs its action at once with that value turned over, so an update event saves it; a ticked title is struck through. Only the box ticks: a tap on the title reaches the list item.",
       "required": ["type", "mapping"],
       "properties": {
         "type": { "const": "check" },
@@ -213,7 +213,7 @@
         "icon": {
           "description": "An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size",
           "type": ["string", "null"],
-          "enum": ["add", "check", "close", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null]
+          "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null]
         }
       },
       "additionalProperties": false
@@ -246,6 +246,10 @@
         "type": { "const": "list" },
         "id": { "$ref": "#/$defs/nonEmptyString" },
         "action": { "description": "What tapping an item does; its event receives that item", "$ref": "#/$defs/action" },
+        "swipeToStart": { "description": "What swiping an item towards the start (left) does; its event receives that item, such as an alert asking before a delete. The item slides back unless the action removes it", "$ref": "#/$defs/action" },
+        "swipeToStartIcon": { "description": "The icon under an item swiped towards the start; delete by default", "type": ["string", "null"], "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null] },
+        "swipeToEnd": { "description": "What swiping an item towards the end (right) does; its event receives that item, such as an update marking it done", "$ref": "#/$defs/action" },
+        "swipeToEndIcon": { "description": "The icon under an item swiped towards the end; check by default", "type": ["string", "null"], "enum": ["add", "check", "close", "copy", "delete", "edit", "email", "favorite", "info", "phone", "place", "refresh", "search", "settings", "share", "star", null] },
         "mapping": { "description": "Path of the array of objects to show, in data or in the initData response", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" },
         "visibleIf": { "$ref": "#/$defs/visibleIf" },
@@ -286,6 +290,17 @@
       },
       "additionalProperties": false
     },
+    "storedSort": {
+      "type": "object",
+      "description": "By the field by; values listed in order come first, in that order (such as [\"High\", \"Medium\", \"Low\"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in.",
+      "required": ["by"],
+      "properties": {
+        "by": { "description": "The field to sort by, such as \"priority\"", "$ref": "#/$defs/nonEmptyString" },
+        "order": { "description": "Values in the order they come first", "type": ["array", "null"], "items": { "type": "string" } },
+        "descending": { "description": "Turns the order round", "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "storedData": {
       "type": "object",
       "description": "The objects a save event put in a collection, oldest first; it shows them again when that collection changes.",
@@ -297,15 +312,12 @@
           "type": ["object", "null"]
         },
         "sort": {
-          "description": "The order: by the field by; values listed in order come first, in that order (such as [\"High\", \"Medium\", \"Low\"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in.",
-          "type": ["object", "null"],
-          "required": ["by"],
-          "properties": {
-            "by": { "description": "The field to sort by, such as \"priority\"", "$ref": "#/$defs/nonEmptyString" },
-            "order": { "description": "Values in the order they come first", "type": ["array", "null"], "items": { "type": "string" } },
-            "descending": { "description": "Turns the order round", "type": "boolean" }
-          },
-          "additionalProperties": false
+          "description": "The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)",
+          "oneOf": [
+            { "$ref": "#/$defs/storedSort" },
+            { "type": "array", "items": { "$ref": "#/$defs/storedSort" }, "minItems": 1 },
+            { "type": "null" }
+          ]
         }
       },
       "additionalProperties": false
@@ -503,7 +515,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -513,7 +525,9 @@
         { "if": { "properties": { "type": { "const": "share" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/shareEvent" } },
         { "if": { "properties": { "type": { "const": "save" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/saveEvent" } },
         { "if": { "properties": { "type": { "const": "update" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/updateEvent" } },
-        { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } }
+        { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } },
+        { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } },
+        { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } }
       ]
     },
     "restEvent": {
@@ -609,6 +623,29 @@
         "durationMinutes": { "description": "How long a timed event lasts; 60 by default", "type": ["integer", "null"], "minimum": 1 },
         "location": { "description": "Where it happens; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "description": { "description": "Notes for the event; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "mapping": { "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "copyEvent": {
+      "type": "object",
+      "description": "Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone confirms it.",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "copy" },
+        "text": { "description": "What is copied; may use ${field} placeholders, and a line whose placeholders all have no value is left out, such as \"${title}\\n${description}\"", "$ref": "#/$defs/nonEmptyString" },
+        "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "backEvent": {
+      "type": "object",
+      "description": "Closes the current screen and goes back to the one that opened it, as the phone's Back does; such as after saving an edit.",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "back" },
         "mapping": { "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },

@@ -12,6 +12,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.UpdateData
+import it.sapienza.appinterpreter.model.view_model.ButtonIcon
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
@@ -181,27 +182,45 @@ class StoredDataScreenTest {
         return Ideas(home, rainy, tasse, rainyScreen)
     }
 
-    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views, and a Delete button. */
+    /** The row view of [list]'s items: a horizontal layout of (in this example) the item's views and its buttons. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
 
-    /** An idea row's tick box, at the top of its column. */
-    private fun ScreenViewModel.check() = assertIs<CheckView>(assertIs<Layout>(row()[0]).views[0])
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
     @Test
-    fun aNewIdeaIsNotDoneAndTickingItSavesAtOnce() {
+    fun aNewIdeaIsNotDoneAndOnlyADoneIdeaShowsDone() {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
         assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
-        val check = screen.check()
+        val doneLine = assertIs<Layout>(screen.row()[0]).views.last()
+        assertEquals("done", doneLine.visibleIf)
 
-        screen.onCheck(check, screen.items(rainy)[1], checked = true)
-        assertEquals(listOf("false", "true"), screen.shown(rainy, "done"))
-        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(rainy, "title"), "the title and order stay")
-        assertEquals("true", AppData(store).items(AppLibrary.idOf("App ideas"), "ideas")[1].getValue("done"), "saved on the phone")
+        screen.onAction(screen.list().swipeToEnd, screen.items(rainy)[0])
 
-        screen.onCheck(check, screen.items(rainy)[1], checked = false)
-        assertEquals(listOf("false", "false"), screen.shown(rainy, "done"))
+        assertEquals(listOf(false, true), screen.items(rainy).map { ViewVisibility.holds(doneLine.visibleIf, it) })
+    }
+
+    @Test
+    fun aCheckViewSavesItsValueAtOnce() {
+        val app = """
+            {
+              "schemaVersion": 3, "name": "Tasks", "version": "1.0",
+              "mainView": { "type": "list", "stored": { "collection": "tasks" },
+                "itemView": { "type": "check", "mapping": "done", "title": "${'$'}{title}",
+                  "action": { "id": "tick", "event": { "type": "update", "collection": "tasks" } } } }
+            }
+        """
+        val appData = AppData(store, newId = { "t1" })
+        appData.add(AppLibrary.idOf("Tasks"), "tasks", JsonText.parse("""{ "title": "Buy milk", "done": false }""") as JsonObject)
+        val screen = screen(appData, app = app)
+        val list = assertIs<ListView>(screen.screen?.definition)
+        val check = assertIs<CheckView>(list.itemView)
+        fun done() = screen.lists.get(list, null).content.value.items.single().getValue("done")
+
+        screen.onCheck(check, screen.lists.get(list, null).content.value.items.single(), checked = true)
+        assertEquals("true", done())
+        screen.onCheck(check, screen.lists.get(list, null).content.value.items.single(), checked = false)
+        assertEquals("false", done())
     }
 
     @Test
@@ -223,27 +242,25 @@ class StoredDataScreenTest {
     }
 
     @Test
-    fun deletingAnIdeaAsksFirst() {
+    fun swipingAnIdeaAwayAsksBeforeDeleting() {
         val ideas = ideas()
         val screen = ideas.rainyScreen
-        val delete = assertIs<ButtonView>(screen.row()[1])
+        val swipe = screen.list().swipeToStart
 
-        screen.onAction(delete.action, screen.items(ideas.rainy)[0])
+        screen.onAction(swipe, screen.items(ideas.rainy)[0])
         assertEquals("Delete Dark mode?", alerts.alert?.text)
         alerts.answer(ok = false)
         assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
 
-        screen.onAction(delete.action, screen.items(ideas.rainy)[0])
+        screen.onAction(swipe, screen.items(ideas.rainy)[0])
         alerts.answer(ok = true)
         assertEquals(listOf("Widgets"), screen.shown(ideas.rainy, "title"))
     }
 
     @Test
-    fun deletingAnAppDeletesItsIdeasButNoOthers() {
+    fun swipingAnAppAwayDeletesItsIdeasButNoOthers() {
         val ideas = ideas()
-        val delete = assertIs<ButtonView>(ideas.home.row()[1])
-
-        ideas.home.onAction(delete.action, ideas.rainy)
+        ideas.home.onAction(ideas.home.list().swipeToStart, ideas.rainy)
         assertEquals("Delete Rainy and its ideas?", alerts.alert?.text)
         alerts.answer(ok = true)
 
@@ -289,6 +306,74 @@ class StoredDataScreenTest {
         val home = screen(AppData(store))
         home.onEvent(DeleteData("apps", thenDo = AlertMessage(value = "Done")), JsonText.parse("""{ "id": "gone" }""") as JsonObject)
         assertEquals("Done", alerts.alert?.text)
+    }
+
+    @Test
+    fun tappingAnIdeaEditsItAndSavingGoesBack() = runTest {
+        val ideas = ideas()
+        val list = ideas.rainyScreen.list()
+        val darkMode = ideas.rainyScreen.items(ideas.rainy).first { it.getValue("title") == "Dark mode" }
+
+        ideas.rainyScreen.onAction(list.action, darkMode)
+        val open = assertIs<ScreenViewModel.Effect.OpenScreen>(ideas.rainyScreen.effects.first())
+        assertEquals("idea", open.view.id)
+        assertEquals("Edit idea", open.title)
+        val edit = screen(AppData(store), "idea", open.payload)
+        val form = edit.form()
+        assertEquals("Dark mode", edit.forms.values(form, open.payload)["title"], "the form starts filled in")
+        assertEquals("Medium", edit.forms.values(form, open.payload)["priority"])
+
+        edit.forms.set(form, open.payload, "title", "Dark theme")
+        edit.forms.set(form, open.payload, "priority", "High")
+        edit.onSubmit(form, open.payload)
+
+        assertIs<ScreenViewModel.Effect.Close>(edit.effects.first())
+        val saved = AppData(store).items(AppLibrary.idOf("App ideas"), "ideas").first { it.getValue("id") == darkMode.getValue("id") }
+        assertEquals(listOf("Dark theme", "High", ideas.rainy.getValue("id")), listOf("title", "priority", "appId").map { saved.getValue(it) })
+    }
+
+    @Test
+    fun doneIdeasGoLastThenByPriority() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        screen.forms.set(screen.form(), ideas.rainy, "priority", "High")
+        screen.add("title", "Tile", ideas.rainy)
+        assertEquals(listOf("Tile", "Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"))
+
+        screen.onAction(screen.list().swipeToEnd, screen.items(ideas.rainy)[0])
+
+        assertEquals(listOf("Dark mode", "Widgets", "Tile"), screen.shown(ideas.rainy, "title"))
+    }
+
+    @Test
+    fun theCopyButtonCopiesTheIdeaWithoutLinesItHasNoValueFor() = runTest {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        val copy = screen.row().filterIsInstance<ButtonView>().first { it.icon == ButtonIcon.copy }
+        screen.forms.set(screen.form(), ideas.rainy, "description", "A tile for today's rain")
+        screen.add("title", "Tile", ideas.rainy)
+        val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
+        val darkMode = screen.items(ideas.rainy).first { it.getValue("title") == "Dark mode" }
+
+        screen.onAction(copy.action, tile)
+        assertEquals(
+            "Tile\nA tile for today's rain\nPriority: Medium\nAn idea for my app Rainy",
+            assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text
+        )
+        screen.onAction(copy.action, darkMode)
+        assertEquals("Dark mode\nPriority: Medium\nAn idea for my app Rainy", assertIs<ScreenViewModel.Effect.Copy>(screen.effects.first()).text)
+    }
+
+    @Test
+    fun swipingAnIdeaTowardsTheEndMarksItDone() {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        val widgets = screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" }
+
+        screen.onAction(screen.list().swipeToEnd, widgets)
+
+        assertEquals(listOf("Dark mode", "Widgets"), screen.shown(ideas.rainy, "title"), "done ideas go last")
+        assertEquals("true", screen.items(ideas.rainy).last().getValue("done"))
     }
 
     @Test

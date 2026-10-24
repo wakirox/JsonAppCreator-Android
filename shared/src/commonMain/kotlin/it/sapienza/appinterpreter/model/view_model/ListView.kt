@@ -5,6 +5,10 @@ import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
@@ -12,6 +16,14 @@ class ListView(
     val itemView: MView,
     val initData: RESTService? = null,
     val stored: StoredData? = null,
+    /** Runs when an item is swiped towards the start (left), with that item as data: a delete, say. */
+    val swipeToStart: Action? = null,
+    /** The icon shown under an item swiped towards the start; a bin by default. */
+    val swipeToStartIcon: ButtonIcon? = null,
+    /** Runs when an item is swiped towards the end (right), with that item as data: marking it done, say. */
+    val swipeToEnd: Action? = null,
+    /** The icon shown under an item swiped towards the end; a tick by default. */
+    val swipeToEndIcon: ButtonIcon? = null,
     val orientation: LayoutOrientation = LayoutOrientation.vertical,
     override val id: String? = null,
     override val action: Action? = null,
@@ -35,8 +47,18 @@ class ListView(
 class StoredData(
     val collection: String,
     val where: JsonObject? = null,
-    val sort: StoredSort? = null
+    @Serializable(with = StoredSortsSerializer::class) val sort: List<StoredSort>? = null
 )
+
+/**
+ * The order of a stored list, one StoredSort or a list of them: each later one orders the objects the earlier ones
+ * leave tied, such as done ideas last, then by priority.
+ */
+object StoredSortsSerializer : JsonTransformingSerializer<List<StoredSort>>(ListSerializer(StoredSort.serializer())) {
+    override fun transformDeserialize(element: JsonElement): JsonElement = element as? JsonArray ?: JsonArray(listOf(element))
+
+    override fun transformSerialize(element: JsonElement): JsonElement = (element as? JsonArray)?.singleOrNull() ?: element
+}
 
 /**
  * The order of a stored list: by the field [by], with the values in [order] first and in that order (such as "High",
