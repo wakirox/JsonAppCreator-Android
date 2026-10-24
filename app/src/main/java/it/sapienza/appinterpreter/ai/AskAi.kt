@@ -21,15 +21,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
+import java.text.NumberFormat
 
 /**
  * Working with an AI app the user already has. Appkin contains no AI: it shares instructions to the AI app
@@ -55,6 +58,10 @@ object AskAi {
             request = request
         )
     }
+
+    /** Roughly how many tokens of the AI chat the instructions take (see [TokenEstimate]). */
+    fun tokens(context: Context, currentApp: String?, request: String?): Int =
+        TokenEstimate.of(context(context, currentApp, request))
 
     /** Opens the share sheet with [text], to send to the AI app the user picks. */
     fun shareToAiApp(context: Context, text: String) {
@@ -99,6 +106,9 @@ fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss:
     var request by rememberSaveable { mutableStateOf("") }
     var includeCurrent by rememberSaveable { mutableStateOf(changeCurrentByDefault && currentApp != null) }
     fun prompt() = AskAi.context(context, currentApp.takeIf { includeCurrent }, request)
+    // The instructions (and the current app) are built once per choice; the request is added as it's typed.
+    val baseTokens = remember(includeCurrent) { AskAi.tokens(context, currentApp.takeIf { includeCurrent }, null) }
+    val tokens = TokenEstimate.rounded(baseTokens + TokenEstimate.of(request))
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -133,6 +143,13 @@ fun AskAiDialog(currentApp: String?, changeCurrentByDefault: Boolean, onDismiss:
                         Text("Change the current app")
                     }
                 }
+                Text(
+                    "About ${NumberFormat.getIntegerInstance().format(tokens)} tokens: the AI app reads them before " +
+                        "your chat starts, out of the space it has for the whole chat.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("ai-token-estimate")
+                )
             }
         },
         confirmButton = {
