@@ -41,12 +41,6 @@
     <!-- Bundled examples -->
     <string name="example_art_explorer">Art Explorer</string>
     <string name="example_art_explorer_about">A live museum collection: search it, meet the artists, plan a visit</string>
-    <string name="example_masterpieces">Masterpieces</string>
-    <string name="example_masterpieces_about">A gallery of famous paintings with a screen for each</string>
-    <string name="example_hello">Hello</string>
-    <string name="example_hello_about">The smallest app: one screen of text</string>
-    <string name="example_summer_run">Summer Run</string>
-    <string name="example_summer_run_about">A race sign-up form with required fields</string>
     <string name="example_app_ideas">App ideas</string>
     <string name="example_app_ideas_about">Notes on your app ideas, kept on the phone: tick them off by priority</string>
     <string name="example_movie_db">The Movie DB</string>
