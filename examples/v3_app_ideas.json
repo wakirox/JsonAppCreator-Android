@@ -28,8 +28,8 @@
             { "type": "text", "mapping": "name", "textStyle": "bold" },
             {
               "type": "button",
-              "title": "Delete",
-              "size": { "width": 110 },
+              "icon": "delete",
+              "label": "Delete ${name}",
               "action": {
                 "id": "delete_app",
                 "event": {
@@ -78,8 +78,8 @@
               },
               {
                 "type": "button",
-                "title": "Delete",
-                "size": { "width": 110 },
+                "icon": "delete",
+                "label": "Delete ${title}",
                 "action": {
                   "id": "delete_idea",
                   "event": { "type": "alert", "value": "Delete ${title}?", "thenDoOK": { "type": "delete", "collection": "ideas" } }

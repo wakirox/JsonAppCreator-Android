@@ -71,3 +71,19 @@ Failures write the actual and diff images to
 
 Failures write the actual and diff images to
 `app/build/outputs/ask-ai-screenshots/`.
+
+# App ideas screenshot tests
+
+`AppIdeasScreenshotTest` opens `examples/v3_app_ideas.json` with saved apps and ideas
+at 448 x 900, compared exactly (any changed pixel fails):
+
+- `app_ideas_apps` / `app_ideas_apps_dark`: the apps, each with a delete icon
+- `app_ideas_ideas` / `app_ideas_ideas_dark`: one app's ideas, one ticked
+
+```sh
+./gradlew testDebugUnitTest --tests '*AppIdeasScreenshotTest'
+./gradlew testDebugUnitTest --tests '*AppIdeasScreenshotTest' -PrecordScreenshots=true
+```
+
+Failures write the actual and diff images to
+`app/build/outputs/app-ideas-screenshots/`.

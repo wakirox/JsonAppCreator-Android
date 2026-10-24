@@ -236,7 +236,8 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `size`: a size, `{ "width": number, "height": number }` in dp
 - `textStyle`: one of `"regular"`, `"italic"`, `"bold"`
 - `title`: text. The button's text
-- `label`: text. Not displayed on buttons: use title
+- `label`: text. Not displayed on buttons: use title. On a button with only an icon, what screen readers say, such as "Delete ${title}"
+- `icon`: one of `"add"`, `"check"`, `"close"`, `"delete"`, `"edit"`, `"email"`, `"favorite"`, `"info"`, `"phone"`, `"place"`, `"refresh"`, `"search"`, `"settings"`, `"share"`, `"star"`. An icon from the phone's standard set, before the title; without a title the button is just the icon, in its own small size
 
 #### `image`
 

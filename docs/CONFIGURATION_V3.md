@@ -169,6 +169,16 @@ A button supports the text properties above and normally includes an `action`.
 }
 ```
 
+`icon` adds an icon from the phone's standard set: `add`, `check`, `close`, `delete`,
+`edit`, `email`, `favorite`, `info`, `phone`, `place`, `refresh`, `search`, `settings`,
+`share` or `star`. With a `title` it sits before the text; without one the button is just
+the icon, keeps its small size and sits centred in a row, and `label` (supports `${...}`)
+is what screen readers say:
+
+```json
+{ "type": "button", "icon": "delete", "label": "Delete ${title}", "action": { "ref": "delete_idea" } }
+```
+
 ### `image`
 
 ```json

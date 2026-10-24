@@ -5,6 +5,21 @@ package it.sapienza.appinterpreter.ui
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,7 +55,9 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -73,6 +90,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -109,6 +127,7 @@ import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.action.Action
 import it.sapienza.appinterpreter.model.action.ActionType
+import it.sapienza.appinterpreter.model.view_model.ButtonIcon
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
@@ -270,7 +289,13 @@ private fun RenderLayout(
     val screen = LocalScreen.current
     val resolvedChildren = screen.shownViews(layout.views, data)
     if (layout.orientation == LayoutOrientation.horizontal) {
-        Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        // A row with an icon button (such as Delete beside a tick box) centres its views on it; other rows keep them at the top.
+        val centred = resolvedChildren.any { it.isIconOnly() }
+        Row(
+            modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = if (centred) Alignment.CenterVertically else Alignment.Top
+        ) {
             resolvedChildren.forEach { child ->
                 RenderNode(child, data, rowChildModifier(child), allowImagePreview)
             }
@@ -287,11 +312,13 @@ private fun ScreenViewModel.shownViews(views: List<MView>, data: JsonObject?): L
     views.mapNotNull { view -> resolve(view).takeIf { ViewVisibility.isShown(it, it.data ?: data, reference = view) } }
 
 private fun columnChildModifier(model: MView): Modifier {
+    if (model.isIconOnly()) return Modifier
     val width = model.explicitWidth()
     return if (width == null) Modifier.fillMaxWidth() else Modifier.width(width.dp)
 }
 
 private fun RowScope.rowChildModifier(model: MView): Modifier {
+    if (model.isIconOnly()) return Modifier
     val width = model.explicitWidth()
     return if (width == null) Modifier.weight(1f) else Modifier.width(width.dp)
 }
@@ -375,18 +402,54 @@ private fun bodyText(view: TextualView, text: String, links: TextLinkStyles): An
 private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier) {
     val screen = LocalScreen.current
     val action = screen.resolve(view.action)
-    val title = view.text(data)
+    val onClick = { if (action?.type != ActionType.longclick) screen.onAction(view.action, data) }
+    val longClick = if (action?.type == ActionType.longclick) Modifier.combinedClickable(
+        onClick = {},
+        onLongClick = { screen.onAction(view.action, data) }
+    ) else Modifier
+    val icon = view.icon
+    if (icon != null && view.isIconOnly()) {
+        val description = view.label?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() } ?: icon.spokenName()
+        FilledTonalIconButton(onClick = onClick, modifier = modifier.then(longClick)) { Icon(icon.vector(), contentDescription = description) }
+        return
+    }
     // A button on its own is tonal: a form's submit button is the screen's one filled button.
     FilledTonalButton(
-        onClick = { if (action?.type != ActionType.longclick) screen.onAction(view.action, data) },
-        modifier = modifier.fillMaxWidth().then(
-            if (action?.type == ActionType.longclick) Modifier.combinedClickable(
-                onClick = {},
-                onLongClick = { screen.onAction(view.action, data) }
-            ) else Modifier
-        )
-    ) { Text(title) }
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth().then(longClick),
+        contentPadding = if (icon != null) ButtonDefaults.ButtonWithIconContentPadding else ButtonDefaults.ContentPadding
+    ) {
+        if (icon != null) {
+            Icon(icon.vector(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        }
+        Text(view.text(data))
+    }
 }
+
+/** A button that shows only its icon: it keeps its own size, and the row it is in is centred on it. */
+private fun MView.isIconOnly(): Boolean = this is ButtonView && icon != null && title.isNullOrBlank() && mapping == null
+
+private fun ButtonIcon.vector(): ImageVector = when (this) {
+    ButtonIcon.add -> Icons.Filled.Add
+    ButtonIcon.check -> Icons.Filled.Check
+    ButtonIcon.close -> Icons.Filled.Close
+    ButtonIcon.delete -> Icons.Filled.Delete
+    ButtonIcon.edit -> Icons.Filled.Edit
+    ButtonIcon.email -> Icons.Filled.Email
+    ButtonIcon.favorite -> Icons.Filled.Favorite
+    ButtonIcon.info -> Icons.Filled.Info
+    ButtonIcon.phone -> Icons.Filled.Phone
+    ButtonIcon.place -> Icons.Filled.Place
+    ButtonIcon.refresh -> Icons.Filled.Refresh
+    ButtonIcon.search -> Icons.Filled.Search
+    ButtonIcon.settings -> Icons.Filled.Settings
+    ButtonIcon.share -> Icons.Filled.Share
+    ButtonIcon.star -> Icons.Filled.Star
+}
+
+/** What a screen reader says for an icon without a label, such as "Delete". */
+private fun ButtonIcon.spokenName(): String = name.replaceFirstChar { it.uppercase() }
 
 /** A tick box: ticked when the data's value is true; ticking it runs the action at once. A ticked title is struck through. */
 @Composable
