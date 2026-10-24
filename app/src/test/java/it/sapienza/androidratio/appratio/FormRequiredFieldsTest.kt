@@ -2,7 +2,6 @@ package it.sapienza.androidratio.appratio
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -66,7 +65,7 @@ class FormRequiredFieldsTest {
 
     @Test
     fun prefilledValuesCountAsFilledInAndAreSubmitted() {
-        composeRule.onNode(isToggleable()).performClick()
+        composeRule.onNodeWithText("I accept the rules").performClick()
         composeRule.onNodeWithText("Sign up").performClick()
         composeRule.waitForIdle()
 

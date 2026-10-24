@@ -29,6 +29,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -143,10 +145,10 @@ fun EditorScreen(
             TopAppBar(
                 title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
-                    IconButton(onClick = ::leave) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = ::leave) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 },
                 actions = {
-                    IconButton(onClick = { insertOpen = true }) { Icon(Icons.Filled.Add, contentDescription = "Insert") }
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = { insertOpen = true }) { Icon(Icons.Filled.Add, contentDescription = "Insert") }
                     DropdownMenu(expanded = insertOpen, onDismissRequest = { insertOpen = false }) {
                         Snippets.all.groupBy { it.formField }.toSortedMap().forEach { (formFields, group) ->
                             if (formFields) HorizontalDivider()
@@ -170,7 +172,7 @@ fun EditorScreen(
                             }
                         }
                     }
-                    IconButton(onClick = {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                         // The text that is checked is the text that runs, even if typing goes on meanwhile.
                         val text = value.text
                         scope.launch {
@@ -183,7 +185,7 @@ fun EditorScreen(
                             }
                         }
                     }) { Icon(Icons.Filled.PlayArrow, contentDescription = "Run") }
-                    IconButton(onClick = { moreOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = { moreOpen = true }) { Icon(Icons.Filled.MoreVert, contentDescription = "More") }
                     DropdownMenu(expanded = moreOpen, onDismissRequest = { moreOpen = false }) {
                         DropdownMenuItem(text = { Text("Format") }, onClick = {
                             moreOpen = false
@@ -266,12 +268,12 @@ fun EditorScreen(
             title = { Text("Use the answer from your AI app?") },
             text = { Text("It replaces the text in the editor. The check then shows anything to fix.") },
             confirmButton = {
-                TextButton(onClick = {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = {
                     value = TextFieldValue(prettyJson(json), TextRange(0))
                     pasted = null
                 }) { Text("Replace") }
             },
-            dismissButton = { TextButton(onClick = { pasted = null }) { Text("Cancel") } }
+            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { pasted = null }) { Text("Cancel") } }
         )
     }
 
@@ -280,8 +282,8 @@ fun EditorScreen(
             onDismissRequest = { confirmDiscard = false },
             title = { Text("Discard changes?") },
             text = { Text(if (unsavedSource != null) "This app hasn't been run or saved." else "Your edits haven't been run or saved.") },
-            confirmButton = { TextButton(onClick = { confirmDiscard = false; onBack() }) { Text("Discard") } },
-            dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Keep editing") } }
+            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { confirmDiscard = false; onBack() }) { Text("Discard") } },
+            dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { confirmDiscard = false }) { Text("Keep editing") } }
         )
     }
 }
@@ -366,7 +368,7 @@ private fun IssueBar(
                 }
             }
             if (open && !issues.isNullOrEmpty()) {
-                TextButton(onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
                     Text("Send problems to your AI app…")
                 }
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {

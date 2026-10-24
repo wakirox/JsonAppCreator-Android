@@ -3,8 +3,16 @@
 package it.sapienza.appinterpreter.ui
 
 import kotlinx.coroutines.launch
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButton
 import androidx.compose.foundation.background
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -56,11 +64,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -200,7 +207,7 @@ fun RendererScreen(model: MView, data: JsonObject? = model.data, loading: Boolea
                 modifier = Modifier.align(Alignment.Center),
                 shape = RoundedCornerShape(20.dp)
             ) {
-                CircularProgressIndicator(Modifier.padding(24.dp))
+                LoadingIndicator(Modifier.padding(24.dp))
             }
         }
     }
@@ -417,11 +424,11 @@ private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier
     val icon = view.icon
     if (icon != null && view.isIconOnly()) {
         val description = view.label?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() } ?: icon.spokenName()
-        FilledTonalIconButton(onClick = onClick, modifier = modifier.then(longClick)) { Icon(icon.vector(), contentDescription = description) }
+        FilledTonalIconButton(shapes = IconButtonDefaults.shapes(), onClick = onClick, modifier = modifier.then(longClick)) { Icon(icon.vector(), contentDescription = description) }
         return
     }
     // A button on its own is tonal: a form's submit button is the screen's one filled button.
-    FilledTonalButton(
+    FilledTonalButton(shapes = ButtonDefaults.shapes(), 
         onClick = onClick,
         modifier = modifier.fillMaxWidth().then(longClick),
         contentPadding = if (icon != null) ButtonDefaults.ButtonWithIconContentPadding else ButtonDefaults.ContentPadding
@@ -526,7 +533,7 @@ private fun RenderImage(
         when (state) {
             is AsyncImagePainter.State.Success -> {}
             is AsyncImagePainter.State.Error -> ImagePlaceholder(Modifier.matchParentSize()) { Text("Image unavailable") }
-            else -> ImagePlaceholder(Modifier.matchParentSize()) { CircularProgressIndicator(Modifier.size(32.dp)) }
+            else -> ImagePlaceholder(Modifier.matchParentSize()) { LoadingIndicator(Modifier.size(32.dp)) }
         }
     }
 }
@@ -546,7 +553,7 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         when {
-            state.waiting -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            state.waiting -> LoadingIndicator(Modifier.align(Alignment.CenterHorizontally))
             state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
             state.items.isEmpty() -> EmptyList(view, entry)
             view.orientation == LayoutOrientation.horizontal &&
@@ -599,7 +606,7 @@ private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.En
     when {
         state.waiting -> item(key = "list-loading-${System.identityHashCode(view)}") {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                LoadingIndicator()
             }
         }
         state.errorMessage != null -> item(key = "list-error-${System.identityHashCode(view)}") {
@@ -660,9 +667,9 @@ private fun MoreItems(entry: ListsState.Entry, state: ListsState.Content, automa
             state.moreErrorMessage != null -> ListLoadError(state.moreErrorMessage.orEmpty()) { screen.lists.loadMore(entry) }
             state.loadingMore || automatic -> {
                 if (automatic) LaunchedEffect(entry, state.items.size) { screen.lists.loadMore(entry) }
-                CircularProgressIndicator(Modifier.size(32.dp))
+                LoadingIndicator(Modifier.size(32.dp))
             }
-            else -> OutlinedButton(onClick = { screen.lists.loadMore(entry) }) { Text("Show more") }
+            else -> OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { screen.lists.loadMore(entry) }) { Text("Show more") }
         }
     }
 }
@@ -675,7 +682,7 @@ private fun ListLoadError(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(message, style = MaterialTheme.typography.bodyMedium)
-        OutlinedButton(onClick = onRetry) { Text("Retry") }
+        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onRetry) { Text("Retry") }
     }
 }
 
@@ -898,7 +905,7 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(onClick = { screen.onSubmit(view, data) }, modifier = Modifier.align(Alignment.End)) {
+        Button(shapes = ButtonDefaults.shapes(), onClick = { screen.onSubmit(view, data) }, modifier = Modifier.align(Alignment.End)) {
             Text(view.buttonTitle ?: "Submit")
         }
     }
@@ -947,7 +954,7 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
     var picking by remember { mutableStateOf(false) }
     Column {
         FieldTitle(item.title)
-        OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
+        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
         Description(item.description)
     }
     if (!picking) return
@@ -963,12 +970,12 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
     DatePickerDialog(
         onDismissRequest = { picking = false },
         confirmButton = {
-            TextButton(onClick = {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = {
                 state.selectedDateMillis?.let { onChange(localDay(it).stringValue()) }
                 picking = false
             }) { Text(stringResource(android.R.string.ok)) }
         },
-        dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } }
+        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } }
     ) { DatePicker(state) }
 }
 
@@ -978,7 +985,7 @@ private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit)
     var picking by remember { mutableStateOf(false) }
     Column {
         FieldTitle(item.title)
-        OutlinedButton(onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
+        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
         Description(item.description)
     }
     if (!picking) return
@@ -991,12 +998,12 @@ private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit)
     AlertDialog(
         onDismissRequest = { picking = false },
         confirmButton = {
-            TextButton(onClick = {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = {
                 onChange(FormDates.formatTime(state.hour, state.minute))
                 picking = false
             }) { Text(stringResource(android.R.string.ok)) }
         },
-        dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } },
+        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } },
         text = { TimePicker(state) }
     )
 }
@@ -1012,18 +1019,44 @@ private fun localDay(utcMillis: Long): Date =
 private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         FieldTitle(item.title)
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            item.options.forEach { option ->
-                FilterChip(
-                    selected = selected == option.value,
-                    onClick = { onChange(option.value) },
-                    label = { Text(option.label) }
-                )
+        // Material 3 Expressive: a few short options are one connected button group across the width; more, or long
+        // ones, are separate toggle buttons that wrap onto further lines.
+        val options = item.options
+        val connected = options.size in 2..CONNECTED_OPTIONS && options.all { it.label.length <= CONNECTED_LABEL_LENGTH }
+        val choice = @Composable { index: Int, modifier: Modifier ->
+            val option = options[index]
+            val checked = selected == option.value
+            ToggleButton(
+                checked = checked,
+                onCheckedChange = { onChange(option.value) },
+                shapes = when {
+                    !connected -> ToggleButtonDefaults.shapesFor(ButtonDefaults.MinHeight)
+                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    index == options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                modifier = modifier.semantics {
+                    role = Role.RadioButton
+                    this.selected = checked
+                }
+            ) { Text(option.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        }
+        if (connected) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                options.indices.forEach { choice(it, Modifier.weight(1f)) }
+            }
+        } else {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                options.indices.forEach { choice(it, Modifier) }
             }
         }
         Description(item.description)
     }
 }
+
+/** A selector with this many options or fewer, all short, is drawn as one connected group. */
+private const val CONNECTED_OPTIONS = 4
+private const val CONNECTED_LABEL_LENGTH = 12
 
 /** The title above a date, time or choice field, in the field labels' style. */
 @Composable

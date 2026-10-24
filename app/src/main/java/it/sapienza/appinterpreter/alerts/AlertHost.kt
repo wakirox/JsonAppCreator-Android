@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.alerts
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,10 +18,10 @@ fun AlertHost(viewModel: AlertsViewModel) {
         onDismissRequest = {},
         text = { Text(shown.text) },
         confirmButton = {
-            TextButton(onClick = { viewModel.answer(ok = true) }) { Text(stringResource(android.R.string.ok)) }
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = { viewModel.answer(ok = true) }) { Text(stringResource(android.R.string.ok)) }
         },
         dismissButton = shown.onCancel?.let {
-            { TextButton(onClick = { viewModel.answer(ok = false) }) { Text(stringResource(android.R.string.cancel)) } }
+            { TextButton(shapes = ButtonDefaults.shapes(), onClick = { viewModel.answer(ok = false) }) { Text(stringResource(android.R.string.cancel)) } }
         }
     )
 }

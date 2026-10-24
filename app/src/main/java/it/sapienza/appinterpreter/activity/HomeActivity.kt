@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -119,7 +121,7 @@ class HomeActivity : AppCompatActivity() {
                     TopAppBar(
                         title = { Text(stringResource(R.string.app_name)) },
                         actions = {
-                            IconButton(onClick = { menuExpanded = true }) {
+                            IconButton(shapes = IconButtonDefaults.shapes(), onClick = { menuExpanded = true }) {
                                 Icon(painterResource(R.drawable.baseline_more_vert_24), contentDescription = stringResource(R.string.menu_open))
                             }
                             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
@@ -149,11 +151,11 @@ class HomeActivity : AppCompatActivity() {
                                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                FilledTonalButton(onClick = { EditorActivity.newApp(this@HomeActivity) }, Modifier.weight(1f)) {
+                                FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = { EditorActivity.newApp(this@HomeActivity) }, modifier = Modifier.weight(1f)) {
                                     Icon(Icons.Filled.Add, contentDescription = null, Modifier.size(18.dp))
                                     Text(stringResource(R.string.home_new_app), Modifier.padding(start = 8.dp))
                                 }
-                                OutlinedButton(onClick = { AskAiActivity.newApp(this@HomeActivity) }, Modifier.weight(1f)) { Text(stringResource(R.string.home_ask_ai)) }
+                                OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { AskAiActivity.newApp(this@HomeActivity) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.home_ask_ai)) }
                             }
                         }
                         item { SectionHeader(stringResource(R.string.home_your_apps)) }
@@ -177,15 +179,15 @@ class HomeActivity : AppCompatActivity() {
                                 leadingContent = { AppIconView(app.name, app.icon) },
                                 trailingContent = {
                                     Row {
-                                        IconButton(onClick = {
+                                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
                                             if (!HomeShortcuts(this@HomeActivity).pin(app)) {
                                                 Toast.makeText(this@HomeActivity, R.string.shortcuts_unsupported, Toast.LENGTH_LONG).show()
                                             }
                                         }) { Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.home_add_to_home_screen)) }
-                                        IconButton(onClick = { ShareApp.share(this@HomeActivity, app.name, app.json) }) {
+                                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = { ShareApp.share(this@HomeActivity, app.name, app.json) }) {
                                             Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.home_share))
                                         }
-                                        IconButton(onClick = { deleting = app }) {
+                                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = { deleting = app }) {
                                             Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.home_delete))
                                         }
                                     }
@@ -242,9 +244,9 @@ class HomeActivity : AppCompatActivity() {
                                 Text(stringResource(R.string.about_credits_tmdb))
                             }
                         },
-                        confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } },
+                        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } },
                         dismissButton = {
-                            TextButton(onClick = {
+                            TextButton(shapes = ButtonDefaults.shapes(), onClick = {
                                 startActivity(Intent(Intent.ACTION_VIEW, GITHUB.toUri()))
                             }) { Text(stringResource(R.string.home_about_github)) }
                         }
@@ -256,14 +258,14 @@ class HomeActivity : AppCompatActivity() {
                         title = { Text(stringResource(R.string.home_delete_title, app.name)) },
                         text = { Text(stringResource(R.string.home_delete_text)) },
                         confirmButton = {
-                            TextButton(onClick = {
+                            TextButton(shapes = ButtonDefaults.shapes(), onClick = {
                                 AppLibrary.of(this).delete(app.id)
                                 HomeShortcuts(this).disable(app.id)
                                 apps = AppLibrary.of(this).all()
                                 deleting = null
                             }) { Text(stringResource(R.string.home_delete), color = MaterialTheme.colorScheme.error) }
                         },
-                        dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.home_cancel)) } }
+                        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { deleting = null }) { Text(stringResource(R.string.home_cancel)) } }
                     )
                 }
             }
@@ -328,7 +330,7 @@ private fun HowItWorks(expanded: Boolean, onToggle: () -> Unit, onOpenGuide: () 
                     stringResource(R.string.how_menu_note),
                     style = MaterialTheme.typography.bodySmall
                 )
-                TextButton(onClick = onOpenGuide, contentPadding = PaddingValues(0.dp)) {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onOpenGuide, contentPadding = PaddingValues(0.dp)) {
                     Text(stringResource(R.string.how_format_guide))
                 }
             }

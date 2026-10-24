@@ -16,8 +16,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -195,7 +196,7 @@ private fun NothingToOpenDialog(shared: String, onDismiss: () -> Unit) {
                     "editor and use ⋮ → Paste answer from your AI app."
             )
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } }
+        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text("OK") } }
     )
 }
 
@@ -208,7 +209,7 @@ private fun ReadingChat(link: String, onBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
+        LoadingIndicator()
         Text("Reading your shared ${ShareLinks.service(link)} chat…", style = MaterialTheme.typography.titleMedium)
         Text(
             "Appkin opens the public page of the link, as a browser would, and takes the last app the AI " +
@@ -232,7 +233,7 @@ private fun ChatNotReadDialog(service: String, onDismiss: () -> Unit) {
                     "the file it made), then use Paste answer from your AI app."
             )
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("OK") } }
+        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text("OK") } }
     )
 }
 

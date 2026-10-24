@@ -9,6 +9,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -70,7 +72,7 @@ fun MainScreen(
                 },
                 navigationIcon = {
                     if (onBack != null) {
-                        IconButton(onClick = onBack) {
+                        IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.navigate_back)
@@ -79,7 +81,7 @@ fun MainScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { menuExpanded = true }) {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = { menuExpanded = true }) {
                         Icon(
                             painter = painterResource(R.drawable.baseline_more_vert_24),
                             contentDescription = stringResource(R.string.menu_open)
@@ -175,7 +177,7 @@ fun MainScreen(
                     )
                 }
             },
-            confirmButton = { TextButton(onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } }
+            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } }
         )
     }
 }

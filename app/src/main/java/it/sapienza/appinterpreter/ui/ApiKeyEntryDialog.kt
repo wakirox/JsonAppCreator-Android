@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -57,13 +58,13 @@ fun ApiKeyEntryDialog(
             }
         },
         confirmButton = {
-            Button(
+            Button(shapes = ButtonDefaults.shapes(), 
                 enabled = canConfirm,
                 onClick = { onConfirm(values.filterValues { it.isNotEmpty() }) }
             ) { Text("Load configuration") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.padding(end = 4.dp)) {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss, modifier = Modifier.padding(end = 4.dp)) {
                 Text("Cancel")
             }
         }
