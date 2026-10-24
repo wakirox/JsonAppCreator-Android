@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Material icons the core icon set lacks, path for path from google/material-design-icons (Apache 2.0, the
- * "materialicons" 24px style). They're copied in rather than taken from material-icons-extended: the release isn't
- * minified, so that library would ship all its icons.
+ * "materialicons" 24px style). They're copied in rather than taken from material-icons-extended, a very large
+ * library for two icons (and all of it in any build R8 doesn't shrink, such as -Pminify=false).
  */
 object MaterialIcons {
     val AddPhotoAlternate: ImageVector by lazy {
