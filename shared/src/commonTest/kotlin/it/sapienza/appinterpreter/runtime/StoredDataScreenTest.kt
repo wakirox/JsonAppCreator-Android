@@ -391,12 +391,12 @@ class StoredDataScreenTest {
 
         screen.onAction(share.action, tile)
         val shared = assertIs<ScreenViewModel.Effect.Share>(screen.effects.first())
-        assertEquals("Tile\nA tile for today's rain\nPriority: Medium\nAn idea for my app Rainy", shared.text)
+        assertEquals("Tile\nA tile for today's rain", shared.text, "title and description only")
         assertEquals(listOf("appkin-photo:a.jpg", "appkin-photo:b.jpg"), shared.photos)
 
         screen.onAction(share.action, darkMode)
         val textOnly = assertIs<ScreenViewModel.Effect.Share>(screen.effects.first())
-        assertEquals("Dark mode\nPriority: Medium\nAn idea for my app Rainy", textOnly.text, "no empty line for the missing description")
+        assertEquals("Dark mode", textOnly.text, "no empty line for the missing description")
         assertEquals(emptyList(), textOnly.photos)
     }
 

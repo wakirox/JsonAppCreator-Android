@@ -136,7 +136,7 @@
                       "id": "share_idea",
                       "event": {
                         "type": "share",
-                        "text": "${title}\n${description}\nPriority: ${priority}\nAn idea for my app ${appName}",
+                        "text": "${title}\n${description}",
                         "photos": "photos"
                       }
                     }
@@ -251,8 +251,7 @@
               "collection": "ideas",
               "fields": {
                 "appId": "${id}",
-                "done": false,
-                "appName": "${name}"
+                "done": false
               },
               "thenDo": {
                 "type": "back"
