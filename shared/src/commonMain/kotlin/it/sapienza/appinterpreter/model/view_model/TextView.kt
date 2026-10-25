@@ -18,7 +18,7 @@ abstract class TextualView : MView() {
     /** The label's style, when it differs from the text's; null: the label looks like the text. */
     open val labelStyle: TextStyle? get() = null
 
-    /** How the text is written: plain (null) or simple HTML. */
+    /** How the text is written: plain (null), simple HTML or Markdown. */
     open val format: TextFormat? get() = null
 }
 
@@ -26,7 +26,9 @@ abstract class TextualView : MView() {
 enum class TextFormat {
     plain,
     /** Simple HTML: <b>, <i>, <em>, <strong>, <u>, <br>, <p> and <a href>. */
-    html
+    html,
+    /** Markdown, as AI apps write it: headings, bold, italics, lists, quotes, code and links (see Markdown). */
+    markdown
 }
 
 @Serializable

@@ -4,6 +4,10 @@ import android.content.ClipboardManager
 import android.content.Intent
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -96,6 +100,53 @@ class AskAiScreenTest {
         composeRule.onNodeWithTag("ai-request").performScrollTo().performTextInput("Add a screen with the opening hours. ".repeat(20))
         val withRequest = tokens()
         assertTrue("740 characters add about 200: ${withRequest - withApp}", withRequest - withApp in 100..300)
+    }
+
+    @Test
+    fun shortInstructionsWithLinksAreMuchSmallerLinkToThisBuildAndAreRemembered() {
+        launch(Intent(context, AskAiActivity::class.java))
+        val all = tokens()
+        composeRule.onNodeWithTag("ai-instructions-links").performScrollTo().performClick()
+        val short = tokens()
+        assertTrue("$short of $all", short * 2 < all)
+        composeRule.onNodeWithText("Share to AI app…").performClick()
+        composeRule.waitForIdle()
+        val send = IntentCompat.getParcelableExtra(startedIntent(), Intent.EXTRA_INTENT, Intent::class.java)!!
+        val prompt = send.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        assertTrue(prompt.contains("https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"))
+        scenario?.close()
+
+        launch(Intent(context, AskAiActivity::class.java))
+        assertEquals("the choice is kept for next time", short, tokens())
+        composeRule.onNodeWithTag("ai-instructions-all").performScrollTo().performClick()
+        assertEquals(all, tokens())
+    }
+
+    @Test
+    fun thePreviewShowsExactlyWhatIsSentAndCanSendIt() {
+        launch(Intent(context, AskAiActivity::class.java))
+        composeRule.onNodeWithTag("ai-request").performScrollTo().performTextInput("A list of my favourite books")
+        composeRule.onNodeWithTag("ai-preview").performScrollTo().performClick()
+        composeRule.onNodeWithText("What's sent").assertIsDisplayed()
+        // Formatted, the Markdown marks are gone; as sent, they are there.
+        composeRule.onNodeWithTag("ai-preview-text").performScrollToNode(hasText("A list of my favourite books", substring = true))
+        composeRule.onNodeWithText("A list of my favourite books", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Your task").assertIsDisplayed()
+        composeRule.onNodeWithTag("ai-preview-text").performScrollToIndex(0)
+        composeRule.onNodeWithTag("ai-preview-raw").performClick()
+        composeRule.onNodeWithTag("ai-preview-text").performScrollToNode(hasText("## Your task"))
+        composeRule.onNodeWithText("## Your task").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Back").performClick()
+        composeRule.onNodeWithText("Ask your AI app").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("ai-preview").performScrollTo().performClick()
+        composeRule.onNodeWithText("Share to AI app…").performClick()
+        composeRule.waitForIdle()
+        val send = IntentCompat.getParcelableExtra(startedIntent(), Intent.EXTRA_INTENT, Intent::class.java)!!
+        val prompt = send.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        assertTrue(prompt.contains("Create an Appkin v3 configuration for this app: A list of my favourite books"))
+        assertTrue(isFinishing())
     }
 
     @Test

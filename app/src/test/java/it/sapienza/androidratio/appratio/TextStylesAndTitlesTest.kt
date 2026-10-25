@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.test.core.app.ActivityScenario
@@ -24,7 +25,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
-/** A label's own style, HTML text, and the title a show event gives the screen it opens. */
+/** A label's own style, HTML and Markdown text, and the title a show event gives the screen it opens. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], qualifiers = "w448dp-h900dp-mdpi")
 class TextStylesAndTitlesTest {
@@ -70,6 +71,17 @@ class TextStylesAndTitlesTest {
     }
 
     @Test
+    fun markdownIsShownWithoutItsMarksStyledAndWithItsLinks() {
+        launch()
+        val text = shown("Tips\nGo early\n\nBuy tickets at the site.\n\n•  Bring water\n•  Wear shoes")
+        assertEquals(FontWeight.Bold, text.weightAt(text.text.indexOf("Go early")))
+        assertEquals(FontWeight.Bold, text.weightAt(text.text.indexOf("tickets")))
+        assertEquals(FontStyle.Italic, text.slantAt(text.text.indexOf("water")))
+        val link = text.getLinkAnnotations(0, text.length).single().item as LinkAnnotation.Url
+        assertEquals("https://example.com/t", link.url)
+    }
+
+    @Test
     fun withoutALabelStyleTheLabelIsAHeading() {
         launch()
         val text = shown("Plain\nwritten <b>as is</b>")
@@ -103,6 +115,7 @@ class TextStylesAndTitlesTest {
                 "views": [
                   { "type": "text", "label": "About", "labelStyle": "bold", "mapping": "description", "format": "html" },
                   { "type": "text", "label": "Plain", "title": "written <b>as is</b>" },
+                  { "type": "text", "label": "Tips", "format": "markdown", "title": "## Go early\nBuy **tickets** at [the site](https://example.com/t).\n\n- Bring *water*\n- Wear shoes" },
                   { "type": "button", "title": "Works", "action": { "id": "works", "event": { "type": "show", "view": { "ref": "works" }, "title": "Works by ${'$'}{name}" } } }
                 ]
               },

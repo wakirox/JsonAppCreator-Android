@@ -38,10 +38,15 @@ class AskAiActivity : AppCompatActivity() {
                     canChangeCurrent = askAi.canChangeCurrent,
                     changeCurrent = askAi.changeCurrent,
                     onChangeCurrentChange = askAi::onChangeCurrentChange,
+                    withLinks = askAi.withLinks,
+                    onWithLinksChange = askAi::onWithLinksChange,
                     tokens = askAi.tokens,
                     onShare = askAi::share,
                     onCopy = askAi::copy,
-                    onBack = ::finish
+                    onBack = ::finish,
+                    preview = askAi.preview,
+                    onPreview = askAi::openPreview,
+                    onClosePreview = askAi::closePreview
                 )
             }
         }

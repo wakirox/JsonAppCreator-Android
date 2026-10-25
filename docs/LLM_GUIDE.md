@@ -101,6 +101,7 @@ Other enums:
 - Actions: `click`, `longclick`
 - HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
+- Text formats: `plain`, `html`, `markdown`
 - Text inputs: `plain`, `numeric`, `email`, `password`, `url`
 - Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone), `tags` (labels a stored list can filter on)
 
@@ -117,7 +118,9 @@ components, or undocumented style properties.
 - A text view shows its `label` as a heading, then the `mapping` value or `title` under it
   as a quieter line. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style
   the label alone (`"labelStyle": "bold"`). For a value holding HTML, add
-  `"format": "html"`. A web address written in a text view becomes a link.
+  `"format": "html"`; for longer text you write yourself (a description, tips),
+  `"format": "markdown"` allows headings, **bold**, *italics*, lists and links. A web address
+  written in a text view becomes a link.
 - An image's `"scale": "fit"` shows the whole picture instead of cropping it.
 - Sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
 - Give every app an `icon`: one emoji that fits it, such as `"🏍️"` for a motorcycle guide.

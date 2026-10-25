@@ -193,7 +193,8 @@ class ConfigurationValidatorTest {
             emptyList(),
             issues("""{ "type": "button", "title": "Go", "action": { "id": "go", "event": { "type": "show", "view": { "ref": "x" }, "title": "Works by ${'$'}{name}" } } }""")
         )
-        assertEquals(listOf("$.mainView.format"), issues("""{ "type": "text", "title": "x", "format": "markdown" }"""))
+        assertEquals(emptyList(), issues("""{ "type": "text", "title": "**x**", "format": "markdown" }"""))
+        assertEquals(listOf("$.mainView.format"), issues("""{ "type": "text", "title": "x", "format": "rtf" }"""))
         assertEquals(listOf("$.mainView.scale"), issues("""{ "type": "image", "url": "https://x/a.jpg", "scale": "stretch" }"""))
     }
 

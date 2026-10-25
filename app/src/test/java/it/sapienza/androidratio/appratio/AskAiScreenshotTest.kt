@@ -24,8 +24,8 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Golden images of the "Ask your AI app" screen: a new app (empty, and with a request), changing the current app, and
- * the dark theme. Compared exactly: any changed pixel fails.
+ * Golden images of the "Ask your AI app" screen: a new app (empty, and with a request), changing the current app, the
+ * short instructions with links, the preview of what's sent, and the dark theme. Compared exactly: any changed pixel fails.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -48,6 +48,19 @@ class AskAiScreenshotTest {
     fun withoutACurrentApp() = assertScreenshot("ask_ai_no_current_app", request = "", canChangeCurrent = false)
 
     @Test
+    fun shortWithLinks() = assertScreenshot("ask_ai_short_links", request = "", withLinks = true)
+
+    @Test
+    fun preview() = assertScreenshot(
+        "ask_ai_preview",
+        request = "",
+        preview = "# Appkin: context for AI assistants\n\nAppkin turns a **JSON configuration** into a native app.\n\n" +
+            "## Generation rules\n\n1. Use only the properties this document describes.\n2. Reference a view with `{ \"ref\": \"id\" }`.\n\n" +
+            "```json\n{\n  \"schemaVersion\": 3\n}\n```\n\n" +
+            "## Your task\n\nCreate an Appkin v3 configuration for this app: A list of my favourite books"
+    )
+
+    @Test
     fun dark() = assertScreenshot("ask_ai_new_app_dark", request = "", darkTheme = true)
 
     private fun assertScreenshot(
@@ -55,7 +68,9 @@ class AskAiScreenshotTest {
         request: String,
         changeCurrent: Boolean = false,
         canChangeCurrent: Boolean = true,
-        darkTheme: Boolean = false
+        darkTheme: Boolean = false,
+        withLinks: Boolean = false,
+        preview: String? = null
     ) {
         composeRule.setContent {
             AppTheme(darkTheme = darkTheme, dynamicColor = false) {
@@ -66,10 +81,13 @@ class AskAiScreenshotTest {
                         canChangeCurrent = canChangeCurrent,
                         changeCurrent = changeCurrent,
                         onChangeCurrentChange = {},
+                        withLinks = withLinks,
+                        onWithLinksChange = {},
                         tokens = 12_345,
                         onShare = {},
                         onCopy = {},
-                        onBack = {}
+                        onBack = {},
+                        preview = preview
                     )
                 }
             }

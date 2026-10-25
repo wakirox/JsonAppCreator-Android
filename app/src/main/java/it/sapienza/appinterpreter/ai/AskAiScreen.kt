@@ -1,13 +1,16 @@
 package it.sapienza.appinterpreter.ai
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
@@ -17,24 +20,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,17 +50,35 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.markdown.Markdown
+import it.sapienza.appinterpreter.ui.markdownText
 import java.text.NumberFormat
 
 /** Ideas to start from: tapping one writes its request in the field. */
@@ -65,8 +90,8 @@ private val IDEAS = listOf(
 )
 
 /**
- * Starts working with an AI app: what to ask for (with ideas to start from), whether to change the current app, how
- * the round trip goes, and how much of the AI chat the instructions take. Appkin has no AI inside, which the screen
+ * Starts working with an AI app: what to ask for (with ideas to start from), whether to change the current app, all
+ * the instructions or the short ones with links, how the round trip goes, and how much of the AI chat they take. Appkin has no AI inside, which the screen
  * says once, plainly. Share and Copy stay above the keyboard.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,11 +102,20 @@ fun AskAiScreen(
     canChangeCurrent: Boolean,
     changeCurrent: Boolean,
     onChangeCurrentChange: (Boolean) -> Unit,
+    withLinks: Boolean,
+    onWithLinksChange: (Boolean) -> Unit,
     tokens: Int,
     onShare: () -> Unit,
     onCopy: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    preview: String? = null,
+    onPreview: () -> Unit = {},
+    onClosePreview: () -> Unit = {}
 ) {
+    if (preview != null) {
+        PromptPreview(preview, tokens, onShare, onCopy, onClosePreview)
+        return
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -91,24 +125,7 @@ fun AskAiScreen(
                 }
             )
         },
-        bottomBar = {
-            Surface(tonalElevation = 3.dp) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                ) {
-                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onCopy) { Text("Copy") }
-                    Button(shapes = ButtonDefaults.shapes(), onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Share to AI app…")
-                    }
-                }
-            }
-        }
+        bottomBar = { SendBar(onShare, onCopy) }
     ) { padding ->
         Column(
             Modifier
@@ -133,8 +150,129 @@ fun AskAiScreen(
                 if (!changeCurrent) Ideas(onRequestChange)
             }
             if (canChangeCurrent) ChangeCurrent(changeCurrent, onChangeCurrentChange)
+            Instructions(withLinks, onWithLinksChange)
             HowItWorks()
             Note(Icons.Filled.Info, "About ${NumberFormat.getIntegerInstance().format(tokens)} tokens: your AI app reads them before the chat starts.", textTag = "ai-token-estimate")
+            OutlinedButton(
+                shapes = ButtonDefaults.shapes(),
+                onClick = onPreview,
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                modifier = Modifier.testTag("ai-preview")
+            ) {
+                Icon(painterResource(R.drawable.baseline_visibility_24), contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("See what's sent")
+            }
+        }
+    }
+}
+
+/** Copy and Share, above the keyboard and the navigation bar. */
+@Composable
+private fun SendBar(onShare: () -> Unit, onCopy: () -> Unit) {
+    Surface(tonalElevation = 3.dp) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+        ) {
+            OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onCopy) { Text("Copy") }
+            Button(shapes = ButtonDefaults.shapes(), onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Share to AI app…")
+            }
+        }
+    }
+}
+
+/**
+ * Exactly what Share and Copy send, to read before sending: formatted (its Markdown styled) or as sent (the raw text),
+ * in parts (a lazy list, as it can be long), selectable, with the same Copy and Share. Back returns to the request.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCopy: () -> Unit, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
+    var formatted by rememberSaveable { mutableStateOf(true) }
+    val paragraphs = remember(prompt) { prompt.trimEnd().split(Regex("\n{2,}")) }
+    // Formatted, consecutive list items stay together, one line apart.
+    val blocks = remember(prompt) {
+        Markdown.parse(prompt).fold(mutableListOf<List<Markdown.Block>>()) { groups, block ->
+            val last = groups.lastOrNull()
+            if (block is Markdown.Block.ListItem && last?.last() is Markdown.Block.ListItem) groups[groups.lastIndex] = last + block
+            else groups += listOf(block)
+            groups
+        }
+    }
+    val links = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline))
+    val codeBackground = MaterialTheme.colorScheme.surfaceContainerHighest
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("What's sent") },
+                navigationIcon = {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onClose) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                }
+            )
+        },
+        bottomBar = { SendBar(onShare, onCopy) }
+    ) { padding ->
+        SelectionContainer {
+            LazyColumn(
+                Modifier.padding(padding).fillMaxSize().testTag("ai-preview-text"),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Note(
+                            Icons.Filled.Info,
+                            "${NumberFormat.getIntegerInstance().format(prompt.length)} characters, " +
+                                "about ${NumberFormat.getIntegerInstance().format(tokens)} tokens. Your request and app are at the end."
+                        )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                            listOf(true to "Formatted", false to "As sent").forEachIndexed { index, (styled, label) ->
+                                ToggleButton(
+                                    checked = formatted == styled,
+                                    onCheckedChange = { formatted = styled },
+                                    shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                    colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .testTag(if (styled) "ai-preview-formatted" else "ai-preview-raw")
+                                        .semantics {
+                                            role = Role.RadioButton
+                                            selected = formatted == styled
+                                        }
+                                ) { Text(label, maxLines = 1) }
+                            }
+                        }
+                    }
+                }
+                if (formatted) {
+                    items(blocks) { group ->
+                        val code = group.singleOrNull() as? Markdown.Block.Code
+                        if (code != null) {
+                            Surface(color = codeBackground, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    code.text,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        } else {
+                            Text(markdownText(group, links, codeBackground), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                } else {
+                    items(paragraphs) { paragraph ->
+                        Text(paragraph, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                    }
+                }
+            }
         }
     }
 }
@@ -190,6 +328,46 @@ private fun ChangeCurrent(checked: Boolean, onChange: (Boolean) -> Unit) {
             }
             Spacer(Modifier.width(12.dp))
             Switch(checked = checked, onCheckedChange = null)
+        }
+    }
+}
+
+/**
+ * What the AI app gets: all the instructions, or the short ones that link to the rest; a connected button group
+ * (Material 3 Expressive), with a line saying what the choice means.
+ */
+@Composable
+private fun Instructions(withLinks: Boolean, onChange: (Boolean) -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Instructions", style = MaterialTheme.typography.titleSmall)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                listOf(false to "Send all", true to "Short + links").forEachIndexed { index, (short, label) ->
+                    ToggleButton(
+                        checked = withLinks == short,
+                        onCheckedChange = { onChange(short) },
+                        shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                        // The card is surfaceContainer, the default unchecked colour: a step up keeps both choices visible.
+                        colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag(if (short) "ai-instructions-links" else "ai-instructions-all")
+                            .semantics {
+                                role = Role.RadioButton
+                                selected = withLinks == short
+                            }
+                    ) { Text(label, maxLines = 1) }
+                }
+            }
+            Text(
+                if (withLinks) {
+                    "The rules and a list of every property, with links to the details: shorter, for AI apps that can open links."
+                } else {
+                    "Every rule, property and example in the chat: longer, but works with any AI app."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.di
 
+import it.sapienza.appinterpreter.ai.AiInstructionsChoice
 import it.sapienza.appinterpreter.ai.AskAiViewModel
 import it.sapienza.appinterpreter.ai.BuildAiPromptUseCase
 import it.sapienza.appinterpreter.ai.LoadAppToChangeUseCase
@@ -58,7 +59,8 @@ val appModule = module {
 
     factory { LoadAppToChangeUseCase(androidContext()) }
     factory { BuildAiPromptUseCase(androidContext()) }
-    viewModel { AskAiViewModel(saved = get(), loadAppToChange = get(), buildPrompt = get()) }
+    factory { AiInstructionsChoice(SharedPreferencesStore(androidContext(), "AskAi")) }
+    viewModel { AskAiViewModel(saved = get(), loadAppToChange = get(), buildPrompt = get(), instructions = get()) }
 
     // A screen shares its activity's alerts, so the activity passes its AlertsViewModel in.
     viewModel { (alerts: AlertsViewModel) ->

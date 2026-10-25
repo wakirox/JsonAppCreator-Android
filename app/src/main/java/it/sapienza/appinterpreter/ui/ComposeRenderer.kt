@@ -399,7 +399,7 @@ private fun RenderText(
     }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
         .let { base -> if (label.isNotEmpty()) base.copy(color = colors.onSurfaceVariant) else base.copy(color = colors.onSurface) }
     val links = linkStyles()
-    val body = bodyText(view, text, links)
+    val body = bodyText(view, text, links, colors.surfaceContainerHighest)
     val display = buildAnnotatedString {
         if (label.isNotEmpty()) {
             // The label is a heading: a title's size and weight, unless labelStyle (or textSize) says otherwise.
@@ -438,9 +438,16 @@ private fun RenderText(
     }
 }
 
-/** A text view's text with its links: simple HTML when its format says so, else plain text with web addresses linked. */
-private fun bodyText(view: TextualView, text: String, links: TextLinkStyles): AnnotatedString {
-    val body = if (view.format == TextFormat.html) AnnotatedString.fromHtml(text, links) else linkified(text, links)
+/**
+ * A text view's text with its links: simple HTML or Markdown when its format says so, else plain text with web
+ * addresses linked. [codeBackground] is behind Markdown's code.
+ */
+private fun bodyText(view: TextualView, text: String, links: TextLinkStyles, codeBackground: Color): AnnotatedString {
+    val body = when (view.format) {
+        TextFormat.html -> AnnotatedString.fromHtml(text, links)
+        TextFormat.markdown -> markdownText(text, links, codeBackground)
+        else -> linkified(text, links)
+    }
     val end = body.text.trimEnd().length
     return if (end < body.length) body.subSequence(0, end) else body
 }
@@ -970,7 +977,7 @@ private fun RenderHorizontalCardText(view: TextualView, data: JsonObject?, modif
         }
         if (supportingText.isNotEmpty()) {
             Text(
-                text = bodyText(view, supportingText, linkStyles()),
+                text = bodyText(view, supportingText, linkStyles(), MaterialTheme.colorScheme.surfaceContainerHighest),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 overflow = TextOverflow.Ellipsis

@@ -6,7 +6,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.editor.EditorIssue
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 
 /**
@@ -22,21 +24,34 @@ object AskAi {
         return AiContext.examples(raw(R.raw.v3_ai_checklist), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)).map { it.json }
     }
 
-    fun context(context: Context, currentApp: String?, request: String?): String {
-        fun asset(name: String) = context.assets.open(name).bufferedReader().use { it.readText() }
+    /** docs/AI_CONTEXT.md on GitHub at the commit this app was built from, which the short instructions link to. */
+    val links = AiContext.Links(
+        page = "https://github.com/wakirox/JsonAppCreator-Android/blob/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md",
+        raw = "https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"
+    )
+
+    /** The instructions: everything, or with [withLinks] the short version that links to the rest. */
+    fun context(context: Context, currentApp: String?, request: String?, withLinks: Boolean = false): String {
         fun raw(id: Int) = context.resources.openRawResource(id).bufferedReader().use { it.readText() }
         return AiContext.build(
-            guide = asset(GUIDE_ASSET),
-            schemaJson = asset(ConfigurationValidator.ASSET_PATH),
+            guide = asset(context, GUIDE_ASSET),
+            schemaJson = asset(context, ConfigurationValidator.ASSET_PATH),
             examples = AiContext.examples(raw(R.raw.v3_ai_checklist), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)),
             currentApp = currentApp,
-            request = request
+            request = request,
+            links = links.takeIf { withLinks }
         )
     }
 
     /** Roughly how many tokens of the AI chat the instructions take (see [TokenEstimate]). */
-    fun tokens(context: Context, currentApp: String?, request: String?): Int =
-        TokenEstimate.of(context(context, currentApp, request))
+    fun tokens(context: Context, currentApp: String?, request: String?, withLinks: Boolean = false): Int =
+        TokenEstimate.of(context(context, currentApp, request, withLinks))
+
+    /** A message asking the AI app to fix [issues] in [json], with the reference for the parts they are in. */
+    fun fixRequest(context: Context, json: String, issues: List<EditorIssue>): String =
+        AiContext.fixRequest(json, issues, asset(context, ConfigurationValidator.ASSET_PATH))
+
+    private fun asset(context: Context, name: String) = context.assets.open(name).bufferedReader().use { it.readText() }
 
     /** Opens the share sheet with [text], to send to the AI app the user picks. */
     fun shareToAiApp(context: Context, text: String) {
