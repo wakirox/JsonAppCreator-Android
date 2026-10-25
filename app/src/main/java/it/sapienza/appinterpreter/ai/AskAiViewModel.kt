@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
  * The "Ask your AI app" screen: the request, whether to change the app it was opened with, whether to send all the
- * instructions or the short ones with links (remembered for next time), and how many tokens they take. Sharing and copying go back to the activity as effects. The choices are kept in [saved], so they
+ * instructions or the short ones with links (remembered for next time), how many tokens they take, and a preview of
+ * exactly what is sent. Sharing and copying go back to the activity as effects. The choices are kept in [saved], so they
  * survive rotation and the process being stopped.
  */
 class AskAiViewModel(
@@ -70,6 +71,20 @@ class AskAiViewModel(
         instructions.withLinks = short
     }
 
+    /** The exact text Share and Copy send, while the user looks at it before sending; null when not previewing. */
+    var preview by mutableStateOf<String?>(if (saved.get<Boolean>(KEY_PREVIEW) == true) prompt() else null)
+        private set
+
+    fun openPreview() {
+        preview = prompt()
+        saved[KEY_PREVIEW] = true
+    }
+
+    fun closePreview() {
+        preview = null
+        saved[KEY_PREVIEW] = false
+    }
+
     fun share() {
         effectChannel.trySend(Effect.Share(prompt()))
     }
@@ -91,6 +106,7 @@ class AskAiViewModel(
 
         private const val KEY_REQUEST = "request"
         private const val KEY_CHANGE_CURRENT = "change_current"
+        private const val KEY_PREVIEW = "preview"
 
         private fun subject(saved: SavedStateHandle): AskAiSubject = when (saved.get<String>(EXTRA_SUBJECT)) {
             SUBJECT_CURRENT_APP -> AskAiSubject.CurrentApp

@@ -1,13 +1,16 @@
 package it.sapienza.appinterpreter.ai
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
@@ -17,25 +20,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -48,18 +54,22 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import it.sapienza.androidratio.appratio.R
 import java.text.NumberFormat
 
 /** Ideas to start from: tapping one writes its request in the field. */
@@ -88,8 +98,15 @@ fun AskAiScreen(
     tokens: Int,
     onShare: () -> Unit,
     onCopy: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    preview: String? = null,
+    onPreview: () -> Unit = {},
+    onClosePreview: () -> Unit = {}
 ) {
+    if (preview != null) {
+        PromptPreview(preview, tokens, onShare, onCopy, onClosePreview)
+        return
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -99,24 +116,7 @@ fun AskAiScreen(
                 }
             )
         },
-        bottomBar = {
-            Surface(tonalElevation = 3.dp) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                ) {
-                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onCopy) { Text("Copy") }
-                    Button(shapes = ButtonDefaults.shapes(), onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Share to AI app…")
-                    }
-                }
-            }
-        }
+        bottomBar = { SendBar(onShare, onCopy) }
     ) { padding ->
         Column(
             Modifier
@@ -144,6 +144,78 @@ fun AskAiScreen(
             Instructions(withLinks, onWithLinksChange)
             HowItWorks()
             Note(Icons.Filled.Info, "About ${NumberFormat.getIntegerInstance().format(tokens)} tokens: your AI app reads them before the chat starts.", textTag = "ai-token-estimate")
+            OutlinedButton(
+                shapes = ButtonDefaults.shapes(),
+                onClick = onPreview,
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                modifier = Modifier.testTag("ai-preview")
+            ) {
+                Icon(painterResource(R.drawable.baseline_visibility_24), contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("See what's sent")
+            }
+        }
+    }
+}
+
+/** Copy and Share, above the keyboard and the navigation bar. */
+@Composable
+private fun SendBar(onShare: () -> Unit, onCopy: () -> Unit) {
+    Surface(tonalElevation = 3.dp) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+        ) {
+            OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onCopy) { Text("Copy") }
+            Button(shapes = ButtonDefaults.shapes(), onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Share to AI app…")
+            }
+        }
+    }
+}
+
+/**
+ * Exactly what Share and Copy send, to read before sending: the text in paragraphs (a lazy list, as it can be long),
+ * selectable, with the same Copy and Share. Back returns to the request.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCopy: () -> Unit, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
+    val paragraphs = remember(prompt) { prompt.trimEnd().split(Regex("\n{2,}")) }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("What's sent") },
+                navigationIcon = {
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onClose) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                }
+            )
+        },
+        bottomBar = { SendBar(onShare, onCopy) }
+    ) { padding ->
+        SelectionContainer {
+            LazyColumn(
+                Modifier.padding(padding).fillMaxSize().testTag("ai-preview-text"),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Note(
+                        Icons.Filled.Info,
+                        "${NumberFormat.getIntegerInstance().format(prompt.length)} characters, " +
+                            "about ${NumberFormat.getIntegerInstance().format(tokens)} tokens. Your request and app are at the end."
+                    )
+                }
+                items(paragraphs) { paragraph ->
+                    Text(paragraph, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                }
+            }
         }
     }
 }

@@ -43,7 +43,10 @@ class AskAiActivity : AppCompatActivity() {
                     tokens = askAi.tokens,
                     onShare = askAi::share,
                     onCopy = askAi::copy,
-                    onBack = ::finish
+                    onBack = ::finish,
+                    preview = askAi.preview,
+                    onPreview = askAi::openPreview,
+                    onClosePreview = askAi::closePreview
                 )
             }
         }

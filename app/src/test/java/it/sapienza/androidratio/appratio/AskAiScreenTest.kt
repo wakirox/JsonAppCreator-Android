@@ -4,6 +4,9 @@ import android.content.ClipboardManager
 import android.content.Intent
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -116,6 +119,27 @@ class AskAiScreenTest {
         assertEquals("the choice is kept for next time", short, tokens())
         composeRule.onNodeWithTag("ai-instructions-all").performScrollTo().performClick()
         assertEquals(all, tokens())
+    }
+
+    @Test
+    fun thePreviewShowsExactlyWhatIsSentAndCanSendIt() {
+        launch(Intent(context, AskAiActivity::class.java))
+        composeRule.onNodeWithTag("ai-request").performScrollTo().performTextInput("A list of my favourite books")
+        composeRule.onNodeWithTag("ai-preview").performScrollTo().performClick()
+        composeRule.onNodeWithText("What's sent").assertIsDisplayed()
+        composeRule.onNodeWithTag("ai-preview-text").performScrollToNode(hasText("A list of my favourite books", substring = true))
+        composeRule.onNodeWithText("A list of my favourite books", substring = true).assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("Back").performClick()
+        composeRule.onNodeWithText("Ask your AI app").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("ai-preview").performScrollTo().performClick()
+        composeRule.onNodeWithText("Share to AI app…").performClick()
+        composeRule.waitForIdle()
+        val send = IntentCompat.getParcelableExtra(startedIntent(), Intent.EXTRA_INTENT, Intent::class.java)!!
+        val prompt = send.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        assertTrue(prompt.contains("Create an Appkin v3 configuration for this app: A list of my favourite books"))
+        assertTrue(isFinishing())
     }
 
     @Test

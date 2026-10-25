@@ -25,7 +25,7 @@ import java.io.FileOutputStream
 
 /**
  * Golden images of the "Ask your AI app" screen: a new app (empty, and with a request), changing the current app, the
- * short instructions with links, and the dark theme. Compared exactly: any changed pixel fails.
+ * short instructions with links, the preview of what's sent, and the dark theme. Compared exactly: any changed pixel fails.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -51,6 +51,14 @@ class AskAiScreenshotTest {
     fun shortWithLinks() = assertScreenshot("ask_ai_short_links", request = "", withLinks = true)
 
     @Test
+    fun preview() = assertScreenshot(
+        "ask_ai_preview",
+        request = "",
+        preview = "# Appkin: context for AI assistants\n\nAppkin is an Android app that turns a JSON configuration into a native app.\n\n" +
+            "## Your task\n\nCreate an Appkin v3 configuration for this app: A list of my favourite books"
+    )
+
+    @Test
     fun dark() = assertScreenshot("ask_ai_new_app_dark", request = "", darkTheme = true)
 
     private fun assertScreenshot(
@@ -59,7 +67,8 @@ class AskAiScreenshotTest {
         changeCurrent: Boolean = false,
         canChangeCurrent: Boolean = true,
         darkTheme: Boolean = false,
-        withLinks: Boolean = false
+        withLinks: Boolean = false,
+        preview: String? = null
     ) {
         composeRule.setContent {
             AppTheme(darkTheme = darkTheme, dynamicColor = false) {
@@ -75,7 +84,8 @@ class AskAiScreenshotTest {
                         tokens = 12_345,
                         onShare = {},
                         onCopy = {},
-                        onBack = {}
+                        onBack = {},
+                        preview = preview
                     )
                 }
             }
