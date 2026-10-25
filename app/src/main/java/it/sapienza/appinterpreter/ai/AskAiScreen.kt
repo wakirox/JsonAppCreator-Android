@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,6 +44,8 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,6 +54,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,8 +71,8 @@ private val IDEAS = listOf(
 )
 
 /**
- * Starts working with an AI app: what to ask for (with ideas to start from), whether to change the current app, how
- * the round trip goes, and how much of the AI chat the instructions take. Appkin has no AI inside, which the screen
+ * Starts working with an AI app: what to ask for (with ideas to start from), whether to change the current app, all
+ * the instructions or the short ones with links, how the round trip goes, and how much of the AI chat they take. Appkin has no AI inside, which the screen
  * says once, plainly. Share and Copy stay above the keyboard.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +83,8 @@ fun AskAiScreen(
     canChangeCurrent: Boolean,
     changeCurrent: Boolean,
     onChangeCurrentChange: (Boolean) -> Unit,
+    withLinks: Boolean,
+    onWithLinksChange: (Boolean) -> Unit,
     tokens: Int,
     onShare: () -> Unit,
     onCopy: () -> Unit,
@@ -133,6 +141,7 @@ fun AskAiScreen(
                 if (!changeCurrent) Ideas(onRequestChange)
             }
             if (canChangeCurrent) ChangeCurrent(changeCurrent, onChangeCurrentChange)
+            Instructions(withLinks, onWithLinksChange)
             HowItWorks()
             Note(Icons.Filled.Info, "About ${NumberFormat.getIntegerInstance().format(tokens)} tokens: your AI app reads them before the chat starts.", textTag = "ai-token-estimate")
         }
@@ -190,6 +199,46 @@ private fun ChangeCurrent(checked: Boolean, onChange: (Boolean) -> Unit) {
             }
             Spacer(Modifier.width(12.dp))
             Switch(checked = checked, onCheckedChange = null)
+        }
+    }
+}
+
+/**
+ * What the AI app gets: all the instructions, or the short ones that link to the rest; a connected button group
+ * (Material 3 Expressive), with a line saying what the choice means.
+ */
+@Composable
+private fun Instructions(withLinks: Boolean, onChange: (Boolean) -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Instructions", style = MaterialTheme.typography.titleSmall)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                listOf(false to "Send all", true to "Short + links").forEachIndexed { index, (short, label) ->
+                    ToggleButton(
+                        checked = withLinks == short,
+                        onCheckedChange = { onChange(short) },
+                        shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                        // The card is surfaceContainer, the default unchecked colour: a step up keeps both choices visible.
+                        colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag(if (short) "ai-instructions-links" else "ai-instructions-all")
+                            .semantics {
+                                role = Role.RadioButton
+                                selected = withLinks == short
+                            }
+                    ) { Text(label, maxLines = 1) }
+                }
+            }
+            Text(
+                if (withLinks) {
+                    "The rules and a list of every property, with links to the details: shorter, for AI apps that can open links."
+                } else {
+                    "Every rule, property and example in the chat: longer, but works with any AI app."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

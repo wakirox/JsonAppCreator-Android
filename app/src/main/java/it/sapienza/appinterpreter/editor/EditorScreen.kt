@@ -72,7 +72,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import it.sapienza.appinterpreter.json.JsonText
-import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.AskAi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -257,7 +256,7 @@ fun EditorScreen(
                 text = value.text,
                 onToggle = { issuesOpen = !issuesOpen },
                 onIssue = { issue -> issue.offset?.let(::jumpTo) },
-                onSendToAi = { found -> AskAi.shareToAiApp(context, AiContext.fixRequest(value.text, found)) }
+                onSendToAi = { found -> AskAi.shareToAiApp(context, AskAi.fixRequest(context, value.text, found)) }
             )
         }
     }

@@ -18,34 +18,49 @@ object AiContext {
 
     data class Example(val title: String, val about: String, val json: String)
 
+    /**
+     * Where the full context is published: docs/AI_CONTEXT.md at the commit the app was built from, so it describes
+     * exactly what this app runs. [page] is GitHub's page (with an anchor for every heading), [raw] the plain text.
+     */
+    data class Links(val page: String, val raw: String)
+
+    /**
+     * The whole context; with [links], the short version instead: the rules and an outline of every view, form field
+     * and event, each linking to its full description, and links to the examples.
+     */
     fun build(
         guide: String,
         schemaJson: String,
         examples: List<Example>,
         currentApp: String? = null,
-        request: String? = null
-    ): String = buildString {
+        request: String? = null,
+        links: Links? = null
+    ): String {
+        val reference = SchemaReference(schemaJson)
+        val rules = rules(guide).trim()
+        val full = document(FULL_INTRO, rules, reference.markdown().trim() + "\n" + examplesMarkdown(examples), currentApp, request)
+        if (links == null) return full
+        val anchors = GitHubAnchors.of(full)
+        val intro = "Appkin is an Android app that turns a JSON configuration into a native app. You write the configuration; " +
+            "the app validates it against the v3 schema and runs it. This is the short version of the contract: the rules, " +
+            "then every view, form field and event with its properties. The complete reference, with what each property " +
+            "means and three full examples, is at ${links.raw}. If you can open links, read it, or the linked part, for " +
+            "anything you're unsure of. Use only what they describe."
+        return document(intro, rules, outline(reference, anchors, links) + "\n" + exampleLinks(examples, anchors, links), currentApp, request)
+    }
+
+    private const val FULL_INTRO = "Appkin is an Android app that turns a JSON configuration into a native app. You write the " +
+        "configuration; the app validates it against the v3 schema and runs it. This document is the complete contract: " +
+        "use only what it describes."
+
+    private fun document(intro: String, rules: String, reference: String, currentApp: String?, request: String?) = buildString {
         appendLine("# Appkin: context for AI assistants")
         appendLine()
-        appendLine(
-            "Appkin is an Android app that turns a JSON configuration into a native app. You write the " +
-                "configuration; the app validates it against the v3 schema and runs it. This document is the " +
-                "complete contract: use only what it describes."
-        )
+        appendLine(intro)
         appendLine()
-        appendLine(rules(guide).trim())
+        appendLine(rules)
         appendLine()
-        appendLine(SchemaReference(schemaJson).markdown().trim())
-        examples.forEachIndexed { index, example ->
-            appendLine()
-            appendLine("## Example ${index + 1}: ${example.title}")
-            appendLine()
-            appendLine(example.about)
-            appendLine()
-            appendLine("```json")
-            appendLine(example.json.trim())
-            appendLine("```")
-        }
+        append(reference)
         if (currentApp != null) {
             appendLine()
             appendLine("## The current configuration")
@@ -73,6 +88,56 @@ object AiContext {
                 "will send them to you to fix."
         )
         appendLine()
+    }
+
+    private fun examplesMarkdown(examples: List<Example>) = buildString {
+        examples.forEachIndexed { index, example ->
+            appendLine()
+            appendLine("## Example ${index + 1}: ${example.title}")
+            appendLine()
+            appendLine(example.about)
+            appendLine()
+            appendLine("```json")
+            appendLine(example.json.trim())
+            appendLine("```")
+        }
+    }
+
+    /** Each part of the reference on one line: its properties (required ones in bold) and a link to the full part. */
+    private fun outline(reference: SchemaReference, anchors: GitHubAnchors, links: Links) = buildString {
+        appendLine("## Reference")
+        appendLine()
+        appendLine(
+            "Every property allowed, **required** ones in bold; unknown properties are rejected. Each link opens the " +
+                "full description: types, allowed values and what the property does."
+        )
+        reference.groups.forEach { group ->
+            appendLine()
+            appendLine("### ${group.heading}")
+            appendLine()
+            group.about?.let { appendLine(it); appendLine() }
+            group.sections.forEach { section ->
+                val names = section.properties.joinToString(", ") { if (it.required) "**${it.name}**" else it.name }
+                val anchor = if (section.kind == SchemaReference.Kind.Root) anchors.of(group.heading) else anchors.of(section.heading, after = group.heading)
+                val name = if (section.kind == SchemaReference.Kind.Root) "Root" else section.heading
+                append("- $name: $names")
+                anchor?.let { append(" ([details](${links.page}#$it))") }
+                appendLine()
+            }
+        }
+    }
+
+    private fun exampleLinks(examples: List<Example>, anchors: GitHubAnchors, links: Links) = buildString {
+        appendLine()
+        appendLine("## Examples")
+        appendLine()
+        appendLine("Complete, valid configurations to follow, in the full reference:")
+        appendLine()
+        examples.forEachIndexed { index, example ->
+            val heading = "Example ${index + 1}: ${example.title}"
+            val anchor = anchors.of(heading)?.let { "${links.page}#$it" } ?: links.raw
+            appendLine("- [$heading]($anchor)")
+        }
     }
 
     /**
@@ -232,8 +297,11 @@ object AiContext {
 
     private fun parses(json: String) = runCatching { JsonText.parse(json) }.isSuccess
 
-    /** A message asking a model to fix the problems the editor found, with their lines and paths, and the JSON. */
-    fun fixRequest(json: String, issues: List<EditorIssue>): String = buildString {
+    /**
+     * A message asking a model to fix the problems the editor found, with their lines and paths, the reference for the
+     * parts they are in (with [schemaJson]), and the JSON.
+     */
+    fun fixRequest(json: String, issues: List<EditorIssue>, schemaJson: String? = null): String = buildString {
         appendLine("Appkin reports these problems in the configuration below:")
         appendLine()
         issues.forEach { issue ->
@@ -247,124 +315,19 @@ object AiContext {
                 "${fileName(json)} if you can create files, otherwise as only the JSON with no comments."
         )
         appendLine()
+        val sections = schemaJson?.let { IssueSections(SchemaReference(it)).of(json, issues) }.orEmpty()
+        if (sections.isNotEmpty()) {
+            appendLine("The reference for these parts:")
+            appendLine()
+            sections.forEach { (title, text) ->
+                appendLine("#### $title")
+                appendLine()
+                append(text)
+            }
+        }
         appendLine("```json")
         appendLine(json.trim())
         append("```")
         appendLine()
-    }
-}
-
-/** A readable reference of the v3 schema: the root, every view, form field and event, actions and references. */
-private class SchemaReference(schemaJson: String) {
-    private val root: JsonNode = JsonNode.parse(schemaJson)
-    private val defs: JsonNode = root.path("\$defs")
-
-    fun markdown(): String = buildString {
-        appendLine("## Reference")
-        appendLine()
-        appendLine("Generated from the v3 JSON Schema. Unknown properties are rejected. **Required** properties are marked.")
-        appendLine()
-        appendLine("### Root object")
-        appendLine()
-        properties(root)
-        section("Views", "viewDefinition", "Every view has a `type`. Where a view is expected, `{ \"ref\": \"id\" }` " +
-            "may reference a view defined in the root `views` instead.")
-        section("Form fields", "formElement", "The items of a form's `formElements`.")
-        section("Events", "event", "What an action does: the `event` of an action definition. An event's `data`, like an " +
-            "action's, is the data it runs with instead of the current data (a form's submitted values still come first).")
-        appendLine("### Actions and references")
-        appendLine()
-        appendLine("Where an action is expected, write an action definition or `{ \"ref\": \"id\" }` referencing one in the root `actions`.")
-        appendLine()
-        listOf(
-            "Action definition" to "actionDefinition",
-            "REST data for a list (`initData`)" to "initialRestService",
-            "Saved data for a list (`stored`)" to "storedData",
-            "Order of a stored list (`sort`)" to "storedSort",
-            "Size (`size`)" to "size"
-        ).forEach { (title, def) ->
-            appendLine("#### $title")
-            appendLine()
-            properties(defs.path(def))
-        }
-    }
-
-    private fun StringBuilder.section(title: String, def: String, about: String) {
-        appendLine("### $title")
-        appendLine()
-        appendLine(about)
-        appendLine()
-        defs.path(def).path("allOf").forEach { branch ->
-            val type = branch.path("if").path("properties").path("type").path("const").asText()
-            appendLine("#### `$type`")
-            appendLine()
-            properties(resolve(branch.path("then")), skip = setOf("type"))
-        }
-    }
-
-    private fun StringBuilder.properties(node: JsonNode, skip: Set<String> = emptySet()) {
-        val schema = resolve(node)
-        schema.path("description").asText(null)?.let { appendLine(it); appendLine() }
-        val required = schema.path("required").map { it.asText() }.toSet()
-        schema.path("properties").fields().forEach { (name, value) ->
-            if (name in skip) return@forEach
-            val description = value.path("description").asText(null)
-            append("- `$name`")
-            if (name in required) append(" **(required)**")
-            append(": ${describe(value)}")
-            description?.let { append(". ${it.trimEnd('.')}") }
-            appendLine()
-        }
-        appendLine()
-    }
-
-    /** A short type description: "text", "number", one of the allowed values, a view, an array of form fields... */
-    private fun describe(node: JsonNode): String {
-        when (node.path("\$ref").asText("").removePrefix("#/\$defs/")) {
-            "view" -> return "a view (or `{ \"ref\": \"id\" }`)"
-            "viewDefinition" -> return "a view"
-            "action" -> return "an action (or `{ \"ref\": \"id\" }`)"
-            "actionDefinition" -> return "an action definition"
-            "event" -> return "an event"
-            "formElement" -> return "a form field"
-            "data" -> return "an object with any data"
-            "size" -> return "a size, `{ \"width\": number, \"height\": number }` in dp"
-            "nonEmptyString" -> return "text (not empty)"
-            "nullableString" -> return "text"
-            "dateValue" -> return "a date, `dd/MM/yyyy`"
-            "storedSort" -> return "a sort, `{ \"by\": \"field\" }` (see Order of a stored list), or a list of sorts"
-            "initialRestService" -> return "a REST request, `{ \"url\": ..., \"method\": \"get\" | \"post\" }`"
-            "" -> Unit
-            else -> return describe(resolve(node))
-        }
-        node.path("oneOf").takeIf { it.isArray }?.let { options ->
-            options.firstOrNull { it.path("type").asText() != "null" }?.let { return describe(it) }
-        }
-        node.path("const").takeIf { !it.isMissing }?.let { return "always `$it`" }
-        node.path("enum").takeIf { it.isArray }?.let { values ->
-            return "one of " + values.filterNot { it.isNull }.joinToString(", ") { "`$it`" }
-        }
-        val types = node.path("type").let { t -> if (t.isArray) t.map { it.asText() } else listOfNotNull(t.asText(null)) }
-            .filter { it != "null" }
-        if ("array" in types) return "an array; each item is " + describe(node.path("items"))
-        val minimum = node.path("minimum").takeIf { it.isNumber }?.let { " (at least $it)" }.orEmpty()
-        return when (types.firstOrNull()) {
-            "string" -> "text"
-            "integer" -> "a whole number$minimum"
-            "number" -> "a number$minimum"
-            "boolean" -> "`true` or `false`"
-            "object" -> "an object"
-            else -> "a value"
-        }
-    }
-
-    private fun resolve(node: JsonNode): JsonNode {
-        var current = node
-        repeat(16) {
-            val ref = current.path("\$ref").asText("")
-            if (!ref.startsWith("#/\$defs/")) return current
-            current = defs.path(ref.removePrefix("#/\$defs/"))
-        }
-        return current
     }
 }

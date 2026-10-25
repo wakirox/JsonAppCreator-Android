@@ -24,8 +24,8 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Golden images of the "Ask your AI app" screen: a new app (empty, and with a request), changing the current app, and
- * the dark theme. Compared exactly: any changed pixel fails.
+ * Golden images of the "Ask your AI app" screen: a new app (empty, and with a request), changing the current app, the
+ * short instructions with links, and the dark theme. Compared exactly: any changed pixel fails.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -48,6 +48,9 @@ class AskAiScreenshotTest {
     fun withoutACurrentApp() = assertScreenshot("ask_ai_no_current_app", request = "", canChangeCurrent = false)
 
     @Test
+    fun shortWithLinks() = assertScreenshot("ask_ai_short_links", request = "", withLinks = true)
+
+    @Test
     fun dark() = assertScreenshot("ask_ai_new_app_dark", request = "", darkTheme = true)
 
     private fun assertScreenshot(
@@ -55,7 +58,8 @@ class AskAiScreenshotTest {
         request: String,
         changeCurrent: Boolean = false,
         canChangeCurrent: Boolean = true,
-        darkTheme: Boolean = false
+        darkTheme: Boolean = false,
+        withLinks: Boolean = false
     ) {
         composeRule.setContent {
             AppTheme(darkTheme = darkTheme, dynamicColor = false) {
@@ -66,6 +70,8 @@ class AskAiScreenshotTest {
                         canChangeCurrent = canChangeCurrent,
                         changeCurrent = changeCurrent,
                         onChangeCurrentChange = {},
+                        withLinks = withLinks,
+                        onWithLinksChange = {},
                         tokens = 12_345,
                         onShare = {},
                         onCopy = {},

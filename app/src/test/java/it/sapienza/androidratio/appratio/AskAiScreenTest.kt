@@ -99,6 +99,26 @@ class AskAiScreenTest {
     }
 
     @Test
+    fun shortInstructionsWithLinksAreMuchSmallerLinkToThisBuildAndAreRemembered() {
+        launch(Intent(context, AskAiActivity::class.java))
+        val all = tokens()
+        composeRule.onNodeWithTag("ai-instructions-links").performScrollTo().performClick()
+        val short = tokens()
+        assertTrue("$short of $all", short * 2 < all)
+        composeRule.onNodeWithText("Share to AI app…").performClick()
+        composeRule.waitForIdle()
+        val send = IntentCompat.getParcelableExtra(startedIntent(), Intent.EXTRA_INTENT, Intent::class.java)!!
+        val prompt = send.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        assertTrue(prompt.contains("https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"))
+        scenario?.close()
+
+        launch(Intent(context, AskAiActivity::class.java))
+        assertEquals("the choice is kept for next time", short, tokens())
+        composeRule.onNodeWithTag("ai-instructions-all").performScrollTo().performClick()
+        assertEquals(all, tokens())
+    }
+
+    @Test
     fun shareStartsAChooserWithThePromptAndCloses() {
         launch(currentApp())
         composeRule.onNodeWithTag("ai-request").performScrollTo().performTextInput("A list of my favourite books")

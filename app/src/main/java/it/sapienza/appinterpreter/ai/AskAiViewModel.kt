@@ -10,14 +10,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
- * The "Ask your AI app" screen: the request, whether to change the app it was opened with, and how many tokens the
- * instructions take. Sharing and copying go back to the activity as effects. The choices are kept in [saved], so they
+ * The "Ask your AI app" screen: the request, whether to change the app it was opened with, whether to send all the
+ * instructions or the short ones with links (remembered for next time), and how many tokens they take. Sharing and copying go back to the activity as effects. The choices are kept in [saved], so they
  * survive rotation and the process being stopped.
  */
 class AskAiViewModel(
     private val saved: SavedStateHandle,
     loadAppToChange: LoadAppToChangeUseCase,
     private val buildPrompt: BuildAiPromptUseCase,
+    private val instructions: AiInstructionsChoice,
 ) : ViewModel() {
 
     sealed interface Effect {
@@ -37,13 +38,17 @@ class AskAiViewModel(
     var changeCurrent by mutableStateOf(saved[KEY_CHANGE_CURRENT] ?: (subject is AskAiSubject.EditorText && canChangeCurrent))
         private set
 
+    /** Whether to send the short instructions, which link to the full reference, instead of all of them. */
+    var withLinks by mutableStateOf(instructions.withLinks)
+        private set
+
     // The instructions (and the app) are measured once per choice; the request is added as it's typed.
-    private val baseTokens = mutableMapOf<Boolean, Int>()
+    private val baseTokens = mutableMapOf<Pair<Boolean, Boolean>, Int>()
 
     /** About how many tokens the instructions take, rounded (see [TokenEstimate]). */
     val tokens: Int
         get() {
-            val base = baseTokens.getOrPut(changeCurrent) { TokenEstimate.of(buildPrompt(app(), null)) }
+            val base = baseTokens.getOrPut(changeCurrent to withLinks) { TokenEstimate.of(buildPrompt(app(), null, withLinks)) }
             return TokenEstimate.rounded(base + TokenEstimate.of(request))
         }
 
@@ -60,6 +65,11 @@ class AskAiViewModel(
         saved[KEY_CHANGE_CURRENT] = changeCurrent
     }
 
+    fun onWithLinksChange(short: Boolean) {
+        withLinks = short
+        instructions.withLinks = short
+    }
+
     fun share() {
         effectChannel.trySend(Effect.Share(prompt()))
     }
@@ -70,7 +80,7 @@ class AskAiViewModel(
 
     private fun app() = appToChange.takeIf { changeCurrent }
 
-    private fun prompt() = buildPrompt(app(), request)
+    private fun prompt() = buildPrompt(app(), request, withLinks)
 
     companion object {
         /** Intent extras, read through the SavedStateHandle: which app, and the path of the editor's text. */

@@ -116,6 +116,39 @@ class AiContextTest {
         assertEquals("Gemini", ShareLinks.service("https://share.gemini.google/x"))
     }
 
+    private val links = AiContext.Links(page = "https://example.com/page", raw = "https://example.com/raw")
+    private val short by lazy {
+        AiContext.build(
+            guide = Files.readString(Path.of("..", "docs", "LLM_GUIDE.md")),
+            schemaJson = schema,
+            examples = AiContext.examples(raw("v3_ai_checklist"), raw("v3_race_signup"), raw("v3_open_access_art")),
+            links = links
+        )
+    }
+
+    @Test
+    fun theShortVersionLinksEveryPartToTheFullReference() {
+        val anchors = Regex("""\(\[details]\(https://example\.com/page#([a-z0-9_-]+)\)\)""").findAll(short).map { it.groupValues[1] }.toList()
+        // The root, 7 views, 8 form fields, 11 events and 5 nested parts, each with its own anchor.
+        assertEquals(32, anchors.size)
+        assertEquals(anchors.size, anchors.toSet().size)
+        listOf("list", "text", "text-1", "save", "order-of-a-stored-list-sort", "root-object").forEach { assertTrue(it, it in anchors) }
+        // Each anchor is a heading of the full context (GitHub's anchor for it).
+        val headings = Regex("(?m)^#{2,4} (.+)$").findAll(context).map { it.groupValues[1] }.toList()
+        assertTrue(headings.contains("Order of a stored list (`sort`)"))
+        assertTrue(short.contains("https://example.com/page#example-1-a-checklist-saved-on-the-phone-with-a-detail-screen"))
+        assertTrue(short.contains("https://example.com/raw"))
+        assertTrue(Regex("(?m)^- `list`: id, .*\\*\\*itemView\\*\\*, .*stored, ").containsMatchIn(short))
+    }
+
+    @Test
+    fun theShortVersionKeepsTheRulesAndTaskButNotTheExamplesJson() {
+        assertTrue(short.contains("## Common mistakes"))
+        assertTrue(short.contains("## Your task"))
+        assertEquals("only the skeleton in the rules, no example JSON", 1, Regex("```json").findAll(short).count())
+        assertTrue("well under half: ${short.length} of ${context.length}", short.length * 2 < context.length)
+    }
+
     @Test
     fun aFixRequestListsTheProblemsWithLinesAndPaths() {
         val json = "{\n  \"name\": 1\n}"

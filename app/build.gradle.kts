@@ -37,6 +37,12 @@ fun jsonString(value: String): String = buildString {
 }
 
 val appVersionName = environmentValue("APP_VERSION_NAME")?.trim() ?: "1.0"
+
+// The commit the app is built from: the short AI instructions link to docs/AI_CONTEXT.md as it is there.
+val aiDocsRef = providers.exec {
+    commandLine("git", "rev-parse", "HEAD")
+    isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim() }.getOrElse("").takeIf { Regex("[0-9a-f]{40}").matches(it) } ?: "master"
 val suppliedVersionCode = environmentValue("APP_VERSION_CODE")?.trim()
 val appVersionCode = suppliedVersionCode?.toIntOrNull() ?: if (suppliedVersionCode == null) {
     1
@@ -161,6 +167,7 @@ android {
         versionCode = appVersionCode
         versionName = appVersionName
         buildConfigField("String", "CONFIG_API_KEYS_BASE64", "\"$bundledConfigApiKeysBase64\"")
+        buildConfigField("String", "AI_DOCS_REF", "\"$aiDocsRef\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
