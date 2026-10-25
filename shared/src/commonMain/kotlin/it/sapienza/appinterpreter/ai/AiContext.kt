@@ -3,7 +3,6 @@ package it.sapienza.appinterpreter.ai
 import it.sapienza.appinterpreter.json.JsonNode
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.sameValue
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
@@ -77,39 +76,27 @@ object AiContext {
     }
 
     /**
-     * The worked examples, from the bundled configurations: a static list with a detail screen (shortened to three
-     * items), a form with an alert, and a list loaded from a REST API.
+     * The worked examples, from the bundled configurations: a checklist saved on the phone with a detail screen, a form
+     * with an alert, and a list loaded from a REST API.
      */
-    fun examples(masterpieces: String, signUpForm: String, restList: String): List<Example> {
-        val gallery = shortened(JsonText.parse(masterpieces)!!)
-        return listOf(
-            Example(
-                "a static list with a detail screen",
-                "The list's items are in `data`; tapping one shows the reusable `artwork` view with that item.",
-                written(gallery)
-            ),
-            Example(
-                "a form with required fields and an alert",
-                "Submitting runs the form's action with the filled-in values, so the alert can use `${'$'}{name}`.",
-                prettyJson(signUpForm)
-            ),
-            Example(
-                "a list loaded from a REST API, with a detail screen",
-                "`initData` loads the JSON; `mapping` selects its array; each item's fields fill the item view and the detail.",
-                prettyJson(restList)
-            )
+    fun examples(checklist: String, signUpForm: String, restList: String): List<Example> = listOf(
+        Example(
+            "a checklist saved on the phone, with a detail screen",
+            "The list starts with its `initialItems`, saved once; `unique` adds the ones a later version brings. Ticking " +
+                "runs the `tick` update, and `sort` puts visited places last. Tapping an item shows the reusable `place` view.",
+            prettyJson(checklist)
+        ),
+        Example(
+            "a form with required fields and an alert",
+            "Submitting runs the form's action with the filled-in values, so the alert can use `${'$'}{name}`.",
+            prettyJson(signUpForm)
+        ),
+        Example(
+            "a list loaded from a REST API, with a detail screen",
+            "`initData` loads the JSON; `mapping` selects its array; each item's fields fill the item view and the detail.",
+            prettyJson(restList)
         )
-    }
-
-    /** [masterpieces] with only its first three artworks. */
-    private fun shortened(tree: JsonElement): JsonElement {
-        val root = tree as? JsonObject ?: return tree
-        val mainView = root["mainView"] as? JsonObject ?: return tree
-        val data = mainView["data"] as? JsonObject ?: return tree
-        val artworks = data["artworks"] as? JsonArray ?: return tree
-        val shorter = JsonObject(data + ("artworks" to JsonArray(artworks.take(3))))
-        return JsonObject(root + ("mainView" to JsonObject(mainView + ("data" to shorter))))
-    }
+    )
 
     /**
      * A tree as the app wrote it with Jackson's default mapper and then formatted it: decimals as a Double prints

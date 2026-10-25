@@ -53,7 +53,9 @@ class StoredData(
     /** A field of tags (a list, or text with commas): the list offers a chip per tag in use, to show only those. */
     val filterBy: String? = null,
     /** Saved in [collection] the first time the list opens, when nothing was ever saved there: a checklist to tick off. */
-    val initialItems: List<JsonObject>? = null
+    val initialItems: List<JsonObject>? = null,
+    /** A field telling [initialItems] apart: those a later version adds are saved too (see AppData.addFirst). */
+    val unique: String? = null
 )
 
 /** One order a stored list offers, by its [title] (keep it short: they share a row). */

@@ -343,10 +343,14 @@
           "$ref": "#/$defs/nullableString"
         },
         "initialItems": {
-          "description": "Objects saved in the collection the first time the list opens, when nothing was ever saved there: a checklist to tick off (places to visit, things to pack), whose items update and delete then change like any saved object. Later versions of the app don't add them again",
+          "description": "Objects saved in the collection the first time the list opens, when nothing was ever saved there: a checklist to tick off (places to visit, things to pack), whose items update and delete then change like any saved object. Give each a key field and set unique so a later version's new items are added too",
           "type": ["array", "null"],
           "minItems": 1,
           "items": { "type": "object" }
+        },
+        "unique": {
+          "description": "A field of initialItems that tells them apart, such as \"key\": each time the list opens, the initial items whose value there was never added are saved (a later version's new places); the ones already saved stay as the user left them, and deleted ones don't come back",
+          "$ref": "#/$defs/nullableString"
         }
       },
       "additionalProperties": false

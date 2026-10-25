@@ -64,6 +64,44 @@ class AppDataTest {
         assertEquals(false, data.addFirst("app:trip", "other", emptyList()))
     }
 
+    private fun place(key: String, visited: Boolean = false) =
+        JsonObject(mapOf("key" to JsonPrimitive(key), "visited" to JsonPrimitive(visited)))
+
+    @Test
+    fun withAUniqueFieldALaterVersionsNewItemsAreAddedAndTheSavedOnesKept() {
+        data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion")), unique = "key")
+        val bastion = data.items("app:trip", "places").last().getValue("id")!!
+        data.update("app:trip", "places", bastion, JsonObject(mapOf("visited" to JsonPrimitive(true))))
+
+        assertEquals(true, data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion"), place("baths")), unique = "key"))
+        val items = data.items("app:trip", "places")
+        assertEquals(listOf("parliament", "bastion", "baths"), items.map { it.getValue("key") })
+        assertEquals("true", items[1].getValue("visited"), "the user's tick stays")
+        assertEquals(false, data.addFirst("app:trip", "places", listOf(place("parliament"), place("baths")), unique = "key"))
+    }
+
+    @Test
+    fun aDeletedInitialItemDoesntComeBack() {
+        data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion")), unique = "key")
+        data.delete("app:trip", "places") { it.getValue("key") == "bastion" }
+        assertEquals(false, data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion")), unique = "key"))
+        assertEquals(listOf("parliament"), data.items("app:trip", "places").map { it.getValue("key") })
+    }
+
+    @Test
+    fun turningUniqueOnLaterAddsOnlyTheItemsNotSavedYet() {
+        data.addFirst("app:trip", "places", listOf(place("parliament")))
+        data.addFirst("app:trip", "places", listOf(place("parliament"), place("baths")), unique = "key")
+        assertEquals(listOf("parliament", "baths"), data.items("app:trip", "places").map { it.getValue("key") })
+    }
+
+    @Test
+    fun initialItemsWithoutTheUniqueFieldAreOnlyAddedTheFirstTime() {
+        data.addFirst("app:trip", "places", listOf(named("Note")), unique = "key")
+        data.addFirst("app:trip", "places", listOf(named("Note"), place("baths")), unique = "key")
+        assertEquals(listOf("Note", null), data.items("app:trip", "places").map { it.getValue("name") })
+    }
+
     @Test
     fun unreadableDataReadsAsEmpty() {
         store.put("""["app:ideas","apps"]""", "not json")

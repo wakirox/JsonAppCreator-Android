@@ -28,7 +28,7 @@ class AiContextTest {
         AiContext.build(
             guide = Files.readString(Path.of("..", "docs", "LLM_GUIDE.md")),
             schemaJson = schema,
-            examples = AiContext.examples(raw("v3_ai_gallery"), raw("v3_race_signup"), raw("v3_open_access_art"))
+            examples = AiContext.examples(raw("v3_ai_checklist"), raw("v3_race_signup"), raw("v3_open_access_art"))
         )
     }
 
@@ -85,7 +85,7 @@ class AiContextTest {
     fun theAisLastAppIsFoundInASharedChatEvenWhenEscapedTwice() {
         val mapper = com.fasterxml.jackson.databind.ObjectMapper()
         fun escaped(json: String) = mapper.writeValueAsString(json).removeSurrounding("\"")
-        val example = raw("v3_ai_gallery")
+        val example = raw("v3_ai_checklist")
         val first = "{ \"schemaVersion\": 3, \"name\": \"Books\", \"version\": \"1\", \"mainView\": { \"type\": \"text\" } }"
         val last = "{ \"schemaVersion\": 3, \"name\": \"Books 2\", \"version\": \"1\", \"mainView\": { \"type\": \"text\", \"label\": \"{title}\" } }"
         // Like Gemini's response: the chat (prompt with its example, then two answers) is a string inside a string.

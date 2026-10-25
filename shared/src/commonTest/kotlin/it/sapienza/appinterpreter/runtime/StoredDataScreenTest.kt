@@ -322,6 +322,28 @@ class StoredDataScreenTest {
     }
 
     @Test
+    fun aNewVersionsInitialItemsJoinTheListWithoutUndoingTicks() {
+        fun version(vararg places: String) = """
+            {
+              "schemaVersion": 3, "name": "Trip", "version": "1.0",
+              "mainView": { "type": "list",
+                "stored": { "collection": "places", "unique": "key",
+                  "initialItems": [${places.joinToString { """{ "key": "$it", "name": "$it", "visited": false }""" }}] },
+                "itemView": { "type": "check", "mapping": "visited", "title": "${'$'}{name}",
+                  "action": { "id": "tick", "event": { "type": "update", "collection": "places" } } } }
+            }
+        """
+        val first = screen(AppData(store), app = version("Parliament", "Bastion"))
+        val list = assertIs<ListView>(first.screen?.definition)
+        first.onCheck(assertIs<CheckView>(list.itemView), first.lists.get(list, null).content.value.items.first(), checked = true)
+
+        val second = screen(AppData(store), app = version("Parliament", "Bastion", "Baths"))
+        val items = second.lists.get(assertIs<ListView>(second.screen?.definition), null).content.value.items
+        assertEquals(listOf("Parliament", "Bastion", "Baths"), items.map { it.getValue("name") })
+        assertEquals(listOf("true", "false", "false"), items.map { it.getValue("visited") })
+    }
+
+    @Test
     fun anEventsOwnDataIsWhatItSaves() {
         val appData = AppData(store)
         val home = screen(appData)
