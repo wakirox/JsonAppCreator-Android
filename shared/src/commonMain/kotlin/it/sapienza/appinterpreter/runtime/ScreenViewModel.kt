@@ -159,11 +159,15 @@ class ScreenViewModel(
             null -> Unit
             is SaveData -> if (store(event.thenDo) { saveItem(event, json, context = data) }) forms.reset(form, data)
             is UpdateData -> store(event.thenDo) { updateItem(event, json, context = data) }
-            else -> onEvent(event, json)
+            else -> perform(event, json)
         }
     }
 
-    fun onEvent(event: Event, data: JsonObject?) {
+    /** Runs [event] with its own data, or [current] when it has none (as an action's data does). */
+    fun onEvent(event: Event, current: JsonObject?) = perform(event, event.data ?: current)
+
+    /** Runs [event] with [data] as it is: a form's submitted values, which the event's own data doesn't replace. */
+    private fun perform(event: Event, data: JsonObject?) {
         when (event) {
             is AlertMessage -> showAlert(event, data)
             // The view receives the part of the data the mapping selects, such as "meals.0".

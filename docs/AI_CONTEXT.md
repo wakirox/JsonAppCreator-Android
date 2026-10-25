@@ -98,7 +98,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
-- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`, and its `initialItems` fill the collection the first time)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `back` (closes the current screen, such as after a form saves an edit)
@@ -155,6 +155,12 @@ components, or undocumented style properties.
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.
+- For a list the user ticks off or edits, such as places to visit or things to pack, use a
+  `stored` list with `initialItems` (the full objects, each with every field its views
+  show) and a `check` whose action is an `update` of that collection. Don't add a button
+  that saves the starting items: the list saves them itself, once. Order it with
+  `"sort": [{ "by": "visited" }, { "by": "order" }]`: `false` comes before `true`, and
+  `order` values are always text (`["High", "Low"]`, `["false", "true"]`).
 - An inline action needs both `id` and `event`. To reuse one, define it in the root
   `actions` and reference it with `{ "ref": "id" }`.
 - Form fields are `text`, `selector`, `date`, `time`, `checkbox` and `hidden`; there is no
@@ -373,7 +379,7 @@ Short labels the user adds one by one (Enter adds one), shown as chips; it submi
 
 ### Events
 
-What an action does: the `event` of an action definition.
+What an action does: the `event` of an action definition. An event's `data`, like an action's, is the data it runs with instead of the current data (a form's submitted values still come first).
 
 #### `rest`
 
@@ -505,9 +511,18 @@ The objects a save event put in a collection, oldest first; it shows them again 
 
 - `collection` **(required)**: text (not empty). The collection's name, as in the save event
 - `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the list's data, such as { "appId": "${id}" }
-- `sort`: an object. The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)
+- `sort`: a sort, `{ "by": "field" }` (see Order of a stored list), or a list of sorts. The order: one sort, or a list where each later sort orders what the earlier ones leave tied (such as done last, then by priority)
 - `sortOptions`: an array; each item is an object. Orders the user can choose, as a row of buttons above the list (the first until they choose); they replace sort. Keep titles short, such as Status, Priority, Newest
 - `filterBy`: text. A field of tags (a tags field's list, or text with commas): the list offers a chip per tag in use, after All, to show only items with that tag
+- `initialItems`: an array; each item is an object. Objects saved in the collection the first time the list opens, when nothing was ever saved there: a checklist to tick off (places to visit, things to pack), whose items update and delete then change like any saved object. Later versions of the app don't add them again
+
+#### Order of a stored list (`sort`)
+
+By the field by; values listed in order come first, in that order (such as ["High", "Medium", "Low"]), then the others, numbers by size and text alphabetically. Objects without the field come last; ties keep the order they were saved in.
+
+- `by` **(required)**: text (not empty). The field to sort by, such as "priority"
+- `order`: an array; each item is text. Values in the order they come first, always as text, also for numbers and true/false (such as ["false", "true"])
+- `descending`: `true` or `false`. Turns the order round
 
 #### Size (`size`)
 

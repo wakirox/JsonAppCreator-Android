@@ -283,7 +283,8 @@ private class SchemaReference(schemaJson: String) {
         section("Views", "viewDefinition", "Every view has a `type`. Where a view is expected, `{ \"ref\": \"id\" }` " +
             "may reference a view defined in the root `views` instead.")
         section("Form fields", "formElement", "The items of a form's `formElements`.")
-        section("Events", "event", "What an action does: the `event` of an action definition.")
+        section("Events", "event", "What an action does: the `event` of an action definition. An event's `data`, like an " +
+            "action's, is the data it runs with instead of the current data (a form's submitted values still come first).")
         appendLine("### Actions and references")
         appendLine()
         appendLine("Where an action is expected, write an action definition or `{ \"ref\": \"id\" }` referencing one in the root `actions`.")
@@ -292,6 +293,7 @@ private class SchemaReference(schemaJson: String) {
             "Action definition" to "actionDefinition",
             "REST data for a list (`initData`)" to "initialRestService",
             "Saved data for a list (`stored`)" to "storedData",
+            "Order of a stored list (`sort`)" to "storedSort",
             "Size (`size`)" to "size"
         ).forEach { (title, def) ->
             appendLine("#### $title")
@@ -343,6 +345,7 @@ private class SchemaReference(schemaJson: String) {
             "nonEmptyString" -> return "text (not empty)"
             "nullableString" -> return "text"
             "dateValue" -> return "a date, `dd/MM/yyyy`"
+            "storedSort" -> return "a sort, `{ \"by\": \"field\" }` (see Order of a stored list), or a list of sorts"
             "initialRestService" -> return "a REST request, `{ \"url\": ..., \"method\": \"get\" | \"post\" }`"
             "" -> Unit
             else -> return describe(resolve(node))

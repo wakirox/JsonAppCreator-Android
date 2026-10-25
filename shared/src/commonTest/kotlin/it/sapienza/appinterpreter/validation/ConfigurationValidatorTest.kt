@@ -38,6 +38,10 @@ class ConfigurationValidatorTest {
         assertEquals(emptyList(), list(""""initData": null, "stored": { "collection": "ideas" },"""))
         assertTrue(list(""""initData": { "url": "https://example.com" }, "stored": { "collection": "ideas" },""").isNotEmpty())
         assertTrue(list(""""stored": { "where": {} },""").isNotEmpty())
+        assertEquals(emptyList(), list(""""stored": { "collection": "places", "initialItems": [{ "name": "Bastion", "visited": false }] },"""))
+        assertTrue(list(""""stored": { "collection": "places", "initialItems": [] },""").isNotEmpty())
+        assertTrue(list(""""stored": { "collection": "places", "initialItems": ["Bastion"] },""").isNotEmpty())
+        assertTrue(list(""""stored": { "collection": "places", "sort": [{ "by": "visited", "order": [false, true] }] },""").isNotEmpty())
     }
 
     @Test

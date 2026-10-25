@@ -100,7 +100,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
-- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`)
+- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`, and its `initialItems` fill the collection the first time)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `back` (closes the current screen, such as after a form saves an edit)
@@ -157,6 +157,12 @@ components, or undocumented style properties.
 - `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
   string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
   `{title}`.
+- For a list the user ticks off or edits, such as places to visit or things to pack, use a
+  `stored` list with `initialItems` (the full objects, each with every field its views
+  show) and a `check` whose action is an `update` of that collection. Don't add a button
+  that saves the starting items: the list saves them itself, once. Order it with
+  `"sort": [{ "by": "visited" }, { "by": "order" }]`: `false` comes before `true`, and
+  `order` values are always text (`["High", "Low"]`, `["false", "true"]`).
 - An inline action needs both `id` and `event`. To reuse one, define it in the root
   `actions` and reference it with `{ "ref": "id" }`.
 - Form fields are `text`, `selector`, `date`, `time`, `checkbox` and `hidden`; there is no
