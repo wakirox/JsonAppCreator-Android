@@ -97,6 +97,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 val missingKeys by screen.missingKeys.collectAsState()
                 val loading by screen.loading.collectAsState()
+                val data by screen.data.collectAsState()
                 if (missingKeys == null) {
                     CompositionLocalProvider(LocalScreen provides screen) {
                         MainScreen(
@@ -105,7 +106,7 @@ class MainActivity : ComponentActivity() {
                             version = app.version,
                             changelog = app.changelog,
                             model = shown.definition,
-                            modelData = shown.data,
+                            modelData = data,
                             loading = loading,
                             onEditApp = { EditorActivity.edit(this) },
                             onNewApp = { EditorActivity.newApp(this) },

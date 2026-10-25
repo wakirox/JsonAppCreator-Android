@@ -65,7 +65,7 @@ import kotlinx.serialization.json.contentOrNull
  * and [EXTRA_SCREEN_PAYLOAD] holds its data.
  */
 class ScreenViewModel(
-    saved: SavedStateHandle,
+    private val saved: SavedStateHandle,
     val alerts: AlertsViewModel,
     private val fetchJson: FetchJsonUseCase,
     loadListItems: LoadListItemsUseCase,
@@ -113,6 +113,14 @@ class ScreenViewModel(
     /** What this screen shows, or null when it can't be shown (an alert says why). */
     val screen: ScreenRuntimeState? = (loaded as? LoadScreenUseCase.Result.Ready)?.screen
 
+    private val shownData = MutableStateFlow(screen?.data)
+
+    /**
+     * The data the screen shows: what it was opened with, then the saved object it is, as this screen changes it (a
+     * detail screen's tick shows at once, and a second tap turns it back).
+     */
+    val data: StateFlow<JsonObject?> = shownData.asStateFlow()
+
     val forms = FormsState(saved, initialFormValues, submitForm)
     val lists = ListsState(viewModelScope, loadListItems)
 
@@ -158,7 +166,7 @@ class ScreenViewModel(
         when (val event = resolve(form.action)?.event) {
             null -> Unit
             is SaveData -> if (store(event.thenDo) { saveItem(event, json, context = data) }) forms.reset(form, data)
-            is UpdateData -> store(event.thenDo) { updateItem(event, json, context = data) }
+            is UpdateData -> store(event.thenDo) { updateItem(event, json, context = data).also(::follow) }
             else -> perform(event, json)
         }
     }
@@ -174,7 +182,7 @@ class ScreenViewModel(
             is ShowView -> openScreen(event, event.mapping?.let { data?.getObject(it) } ?: data)
             is RESTService -> request(event, data)
             is SaveData -> store(event.thenDo) { saveItem(event, data, context = data) }
-            is UpdateData -> store(event.thenDo) { updateItem(event, data, context = data) }
+            is UpdateData -> store(event.thenDo) { updateItem(event, data, context = data).also(::follow) }
             is DeleteData -> store(event.thenDo) { deleteItems(event, data).let { data } }
             is GoBack -> effectChannel.trySend(Effect.Close)
             is CopyText -> {
@@ -224,6 +232,19 @@ class ScreenViewModel(
      * Saves, changes or deletes data on the phone with [change], then runs [thenDo] with what it gives back (the saved
      * object, or the data a delete had); false, after an alert says why, when it couldn't.
      */
+    /**
+     * [updated], a saved object just changed: when it is the one this screen shows (the same id), the screen shows its
+     * new values, kept with the screen's arguments so they survive the process being stopped.
+     */
+    private fun follow(updated: JsonObject) {
+        val shown = shownData.value ?: return
+        val id = shown["id"] ?: return
+        if (updated["id"] != id) return
+        val now = JsonObject(shown + updated)
+        shownData.value = now
+        if (saved.contains(EXTRA_SCREEN_PAYLOAD)) saved[EXTRA_SCREEN_PAYLOAD] = now.toString()
+    }
+
     private fun store(thenDo: Event?, change: () -> JsonObject?): Boolean {
         val result = try {
             change()
