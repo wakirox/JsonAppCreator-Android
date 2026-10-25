@@ -34,15 +34,27 @@ class AppData(
 
     /** Saves [item] at the end of [collection], with an "id" and "createdAt" (epoch milliseconds) unless it has them. */
     fun add(appId: String, collection: String, item: JsonObject): JsonObject {
-        val saved = JsonObject(
-            buildMap {
-                put("id", JsonPrimitive(newId()))
-                put("createdAt", JsonPrimitive(now()))
-                putAll(item)
-            }
-        )
+        val saved = stamped(item)
         save(appId, collection, items(appId, collection) + saved)
         return saved
+    }
+
+    private fun stamped(item: JsonObject) = JsonObject(
+        buildMap {
+            put("id", JsonPrimitive(newId()))
+            put("createdAt", JsonPrimitive(now()))
+            putAll(item)
+        }
+    )
+
+    /**
+     * Saves [items] in [collection], each as [add] would, unless something was ever saved there (even if it was all
+     * deleted since); says whether it did.
+     */
+    fun addFirst(appId: String, collection: String, items: List<JsonObject>): Boolean {
+        if (items.isEmpty() || store.contains(key(appId, collection))) return false
+        save(appId, collection, items.map(::stamped))
+        return true
     }
 
     /**

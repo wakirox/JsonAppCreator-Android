@@ -16,7 +16,7 @@ import kotlinx.serialization.json.contentOrNull
 
 /**
  * The current app's saved objects a list shows: those of its collection that match its "where", filled from [data],
- * in its "sort" order.
+ * in its "sort" order. Its "initialItems" are saved first, the first time.
  */
 class LoadStoredItemsUseCase(private val appData: AppData, private val repository: AppRepository) {
 
@@ -27,6 +27,7 @@ class LoadStoredItemsUseCase(private val appData: AppData, private val repositor
 
     fun load(stored: StoredData, data: JsonObject?, choice: ListChoice = ListChoice()): Result {
         val match = StoredMatch(stored.where, data)
+        stored.initialItems?.let { appData.addFirst(currentAppId(), stored.collection, it) }
         val matching = appData.items(currentAppId(), stored.collection).filter(match::matches)
         val tags = stored.filterBy?.let { field -> tagsIn(matching, field) }.orEmpty()
         val shown = choice.tag?.takeIf { stored.filterBy != null }

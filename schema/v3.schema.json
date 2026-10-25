@@ -296,7 +296,7 @@
       "required": ["by"],
       "properties": {
         "by": { "description": "The field to sort by, such as \"priority\"", "$ref": "#/$defs/nonEmptyString" },
-        "order": { "description": "Values in the order they come first", "type": ["array", "null"], "items": { "type": "string" } },
+        "order": { "description": "Values in the order they come first, always as text, also for numbers and true/false (such as [\"false\", \"true\"])", "type": ["array", "null"], "items": { "type": "string" } },
         "descending": { "description": "Turns the order round", "type": "boolean" }
       },
       "additionalProperties": false
@@ -341,6 +341,12 @@
         "filterBy": {
           "description": "A field of tags (a tags field's list, or text with commas): the list offers a chip per tag in use, after All, to show only items with that tag",
           "$ref": "#/$defs/nullableString"
+        },
+        "initialItems": {
+          "description": "Objects saved in the collection the first time the list opens, when nothing was ever saved there: a checklist to tick off (places to visit, things to pack), whose items update and delete then change like any saved object. Later versions of the app don't add them again",
+          "type": ["array", "null"],
+          "minItems": 1,
+          "items": { "type": "object" }
         }
       },
       "additionalProperties": false

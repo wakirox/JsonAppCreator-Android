@@ -37,6 +37,8 @@ class AiContextTest {
         listOf("layout", "text", "button", "image", "list", "form", "selector", "date", "time", "checkbox", "hidden", "photos", "tags", "rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy", "check")
             .forEach { assertTrue("missing #### `$it`", context.contains("#### `$it`")) }
         assertTrue(context.contains("## Common mistakes"))
+        assertTrue("the keys of a sort", context.contains("#### Order of a stored list (`sort`)") && context.contains("- `by` **(required)**"))
+        assertTrue(context.contains("- `initialItems`"))
         assertTrue("repository-only sections are left out", !context.contains("./gradlew"))
     }
 

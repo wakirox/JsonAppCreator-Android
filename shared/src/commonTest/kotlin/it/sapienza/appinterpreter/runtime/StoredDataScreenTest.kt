@@ -16,6 +16,7 @@ import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.DeleteData
+import it.sapienza.appinterpreter.model.event.SaveData
 import it.sapienza.appinterpreter.model.event.UpdateData
 import it.sapienza.appinterpreter.model.view_model.ButtonIcon
 import it.sapienza.appinterpreter.model.view_model.ButtonView
@@ -267,6 +268,84 @@ class StoredDataScreenTest {
         assertEquals("true", done())
         screen.onCheck(check, screen.lists.get(list, null).content.value.items.single(), checked = false)
         assertEquals("false", done())
+    }
+
+    /** A trip checklist: three places it starts with, ticked off as visited, the visited ones last. */
+    private val checklist = """
+        {
+          "schemaVersion": 3, "name": "Trip", "version": "1.0",
+          "mainView": { "type": "list",
+            "stored": { "collection": "places", "sort": [{ "by": "visited" }, { "by": "order" }],
+              "initialItems": [
+                { "name": "Parliament", "photo": "https://example.com/p.jpg", "visited": false, "order": 1 },
+                { "name": "Bastion", "photo": "https://example.com/b.jpg", "visited": false, "order": 2 },
+                { "name": "Baths", "photo": "https://example.com/t.jpg", "visited": false, "order": 3 }
+              ] },
+            "itemView": { "type": "check", "mapping": "visited", "title": "${'$'}{name}",
+              "action": { "id": "tick", "event": { "type": "update", "collection": "places" } } } }
+        }
+    """
+
+    @Test
+    fun aStoredListStartsWithItsInitialItemsWithEveryField() {
+        val screen = screen(AppData(store), app = checklist)
+        val list = assertIs<ListView>(screen.screen?.definition)
+        val items = screen.lists.get(list, null).content.value.items
+        assertEquals(listOf("Parliament", "Bastion", "Baths"), items.map { it.getValue("name") })
+        assertEquals("https://example.com/b.jpg", items[1].getValue("photo"))
+        assertEquals(3, items.map { it.getValue("id") }.toSet().size, "each one gets its own id")
+    }
+
+    @Test
+    fun aTickedInitialItemGoesLastAndStaysTickedWhenTheAppOpensAgain() {
+        val appData = AppData(store)
+        val screen = screen(appData, app = checklist)
+        val list = assertIs<ListView>(screen.screen?.definition)
+        fun names(on: ScreenViewModel) = on.lists.get(list, null).content.value.items.map { it.getValue("name") }
+
+        screen.onCheck(assertIs<CheckView>(list.itemView), screen.lists.get(list, null).content.value.items.first(), checked = true)
+        assertEquals(listOf("Bastion", "Baths", "Parliament"), names(screen), "visited (true) after not visited (false)")
+
+        val again = screen(AppData(store), app = checklist)
+        assertEquals(listOf("Bastion", "Baths", "Parliament"), names(again), "the initial items aren't saved again")
+        assertEquals(3, appData.items(AppLibrary.idOf("Trip"), "places").size)
+    }
+
+    @Test
+    fun initialItemsDontComeBackOnceTheUserDeletedThem() {
+        val appData = AppData(store)
+        val first = screen(appData, app = checklist)
+        assertEquals(3, first.lists.get(assertIs<ListView>(first.screen?.definition), null).content.value.items.size)
+        appData.delete(AppLibrary.idOf("Trip"), "places") { true }
+        val again = screen(AppData(store), app = checklist)
+        assertEquals(emptyList(), again.lists.get(assertIs<ListView>(again.screen?.definition), null).content.value.items)
+    }
+
+    @Test
+    fun anEventsOwnDataIsWhatItSaves() {
+        val appData = AppData(store)
+        val home = screen(appData)
+        val save = SaveData("apps", thenDo = SaveData("apps", data = JsonText.parse("""{ "name": "Tasse" }""") as JsonObject),
+            data = JsonText.parse("""{ "name": "Rainy" }""") as JsonObject)
+        home.onEvent(save, JsonText.parse("""{ "name": "ignored" }""") as JsonObject)
+        assertEquals(listOf("Rainy", "Tasse"), appData.items(AppLibrary.idOf("App ideas"), "apps").map { it.getValue("name") })
+    }
+
+    @Test
+    fun aFormStillSavesWhatWasTypedWhenItsEventHasData() {
+        val app = """
+            {
+              "schemaVersion": 3, "name": "Notes", "version": "1.0",
+              "mainView": { "type": "form", "formElements": [{ "type": "text", "mapping": "text", "title": "Text" }],
+                "action": { "id": "keep", "event": { "type": "save", "collection": "notes", "data": { "text": "fixed" } } } }
+            }
+        """
+        val appData = AppData(store)
+        val screen = screen(appData, app = app)
+        val form = assertIs<FormView>(screen.screen?.definition)
+        screen.forms.set(form, null, "text", "typed")
+        screen.onSubmit(form, null)
+        assertEquals(listOf("typed"), appData.items(AppLibrary.idOf("Notes"), "notes").map { it.getValue("text") })
     }
 
     @Test

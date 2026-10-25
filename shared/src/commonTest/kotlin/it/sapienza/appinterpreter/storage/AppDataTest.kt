@@ -53,6 +53,18 @@ class AppDataTest {
     }
 
     @Test
+    fun firstItemsAreSavedOnlyInACollectionNothingWasEverSavedIn() {
+        assertEquals(true, data.addFirst("app:trip", "places", listOf(named("Parliament"), named("Bastion"))))
+        assertEquals(listOf("id1", "id2"), data.items("app:trip", "places").map { it.getValue("id") })
+        assertEquals(false, data.addFirst("app:trip", "places", listOf(named("Baths"))))
+
+        data.delete("app:trip", "places") { true }
+        assertEquals(false, data.addFirst("app:trip", "places", listOf(named("Baths"))), "not after the user emptied it")
+        assertEquals(emptyList(), data.items("app:trip", "places"))
+        assertEquals(false, data.addFirst("app:trip", "other", emptyList()))
+    }
+
+    @Test
     fun unreadableDataReadsAsEmpty() {
         store.put("""["app:ideas","apps"]""", "not json")
         assertEquals(emptyList(), data.items("app:ideas", "apps"))

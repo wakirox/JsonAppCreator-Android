@@ -51,7 +51,9 @@ class StoredData(
     /** Orders the user can choose above the list (the first is used until they do); they replace [sort]. */
     val sortOptions: List<SortOption>? = null,
     /** A field of tags (a list, or text with commas): the list offers a chip per tag in use, to show only those. */
-    val filterBy: String? = null
+    val filterBy: String? = null,
+    /** Saved in [collection] the first time the list opens, when nothing was ever saved there: a checklist to tick off. */
+    val initialItems: List<JsonObject>? = null
 )
 
 /** One order a stored list offers, by its [title] (keep it short: they share a row). */
