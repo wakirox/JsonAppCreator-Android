@@ -248,6 +248,43 @@ class StoredDataScreenTest {
     }
 
     @Test
+    fun aDetailScreensTickShowsAtOnceAndASecondTapTurnsItBack() {
+        val app = """
+            {
+              "schemaVersion": 3, "name": "Trip", "version": "1.0",
+              "mainView": { "type": "list", "stored": { "collection": "places" },
+                "itemView": { "type": "text", "title": "${'$'}{name}" },
+                "action": { "id": "open", "event": { "type": "show", "view": { "ref": "place" } } } },
+              "views": [ { "id": "place", "type": "layout", "views": [
+                { "type": "text", "title": "${'$'}{name}" },
+                { "type": "check", "mapping": "visited", "title": "Visited",
+                  "action": { "id": "tick", "event": { "type": "update", "collection": "places" } } } ] } ]
+            }
+        """
+        val appData = AppData(store, newId = { "p1" })
+        val place = appData.add(AppLibrary.idOf("Trip"), "places", JsonText.parse("""{ "name": "Bastion", "visited": false }""") as JsonObject)
+        val detail = screen(appData, viewId = "place", payload = place, app = app)
+        val check = (detail.screen?.definition as Layout).views.filterIsInstance<CheckView>().single()
+
+        detail.onCheck(check, detail.data.value, checked = true)
+        assertEquals("true", detail.data.value?.getValue("visited"), "the screen shows the tick")
+        assertEquals("Bastion", detail.data.value?.getValue("name"), "and keeps the rest")
+        detail.onCheck(check, detail.data.value, checked = false)
+        assertEquals("false", detail.data.value?.getValue("visited"))
+        assertEquals("false", appData.items(AppLibrary.idOf("Trip"), "places").single().getValue("visited"))
+    }
+
+    @Test
+    fun anUpdateOfAnotherObjectLeavesTheScreensDataAlone() {
+        val appData = AppData(store)
+        val shown = JsonText.parse("""{ "id": "a", "name": "Rainy" }""") as JsonObject
+        val other = appData.add(AppLibrary.idOf("App ideas"), "apps", JsonText.parse("""{ "name": "Tasse" }""") as JsonObject)
+        val screen = screen(appData, viewId = "new_app", payload = shown)
+        screen.onEvent(UpdateData("apps", fields = JsonObject(mapOf("name" to JsonPrimitive("Tasse 2")))), other)
+        assertEquals("Rainy", screen.data.value?.getValue("name"))
+    }
+
+    @Test
     fun aCheckViewSavesItsValueAtOnce() {
         val app = """
             {
