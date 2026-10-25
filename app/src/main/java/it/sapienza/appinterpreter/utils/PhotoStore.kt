@@ -6,13 +6,14 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.storage.Photos
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * The photos JSON apps keep, referred to as "appkin-photo:<name>". A photo picked from the gallery isn't copied: the
@@ -48,7 +49,7 @@ class PhotoStore(context: Context) {
 
     /** The original photo, while the link to it still reads; null otherwise. */
     private fun original(reference: String): Uri? {
-        val uri = Photos.fileName(reference)?.let(links::get)?.let(Uri::parse) ?: return null
+        val uri = Photos.fileName(reference)?.let(links::get)?.toUri() ?: return null
         return uri.takeIf { runCatching { resolver.openInputStream(it)?.close() != null }.getOrDefault(false) }
     }
 
@@ -61,7 +62,7 @@ class PhotoStore(context: Context) {
     suspend fun fullSize(reference: String): String = withContext(Dispatchers.IO) {
         when (val best = best(reference)) {
             is Uri -> best.toString()
-            is File -> Uri.fromFile(best).toString()
+            is File -> best.toUri().toString()
             else -> reference
         }
     }
@@ -102,7 +103,7 @@ class PhotoStore(context: Context) {
 
     private fun forget(name: String) {
         links.get(name)?.let { uri ->
-            runCatching { resolver.releasePersistableUriPermission(Uri.parse(uri), Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            runCatching { resolver.releasePersistableUriPermission(uri.toUri(), Intent.FLAG_GRANT_READ_URI_PERMISSION) }
             links.remove(name)
         }
         File(copies, name).delete()

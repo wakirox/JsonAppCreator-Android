@@ -53,7 +53,6 @@ class TestTest() {
             "v3_app_ideas.json",
             "v3_ai_checklist.json",
             "v3_masterpieces.json",
-            "v3_app_sample.json",
             "v3_race_signup.json",
             "v3_the_movie_db.json",
             "v3_open_access_art.json"

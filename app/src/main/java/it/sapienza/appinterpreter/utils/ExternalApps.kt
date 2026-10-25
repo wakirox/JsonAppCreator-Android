@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import it.sapienza.appinterpreter.activity.EditorActivity
 
 /** The intents of a JSON app's open and share events: other apps on the phone do the rest. */
@@ -15,7 +16,7 @@ object ExternalApps {
      * needs no call permission, and mailto: goes to email apps alone.
      */
     fun open(url: String, scheme: String): Intent {
-        val uri = Uri.parse(url)
+        val uri = url.toUri()
         return when (scheme) {
             "tel" -> Intent(Intent.ACTION_DIAL, uri)
             "mailto" -> Intent(Intent.ACTION_SENDTO, uri)

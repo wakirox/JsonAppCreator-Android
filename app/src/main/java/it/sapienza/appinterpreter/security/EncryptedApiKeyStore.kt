@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.core.content.edit
 import java.security.KeyStore
 import java.security.MessageDigest
 import javax.crypto.Cipher
@@ -40,7 +41,7 @@ internal class EncryptedApiKeyStore(context: Context) : SecretStore {
             Base64.encodeToString(cipher.iv, Base64.NO_WRAP),
             Base64.encodeToString(cipher.doFinal(value.toByteArray(Charsets.UTF_8)), Base64.NO_WRAP)
         ).joinToString(".")
-        preferences.edit().putString(storageKey(configurationId, name), encoded).apply()
+        preferences.edit { putString(storageKey(configurationId, name), encoded) }
     }
 
     private fun encryptionKey(): SecretKey {

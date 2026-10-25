@@ -235,6 +235,15 @@ android {
         buildConfig = true
     }
 
+    // Lint is a gate: any warning fails the build, and :shared (no lint task of its own) is checked with the app.
+    // The rules that only say a newer version exists stay informational (app/lint.xml); bump those on their own.
+    lint {
+        abortOnError = true
+        warningsAsErrors = true
+        checkDependencies = true
+        lintConfig = file("lint.xml")
+    }
+
     sourceSets {
         getByName("main") {
             // Package the canonical repository schema without maintaining a second copy.
