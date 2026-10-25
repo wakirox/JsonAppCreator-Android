@@ -6,8 +6,9 @@ definitions, read the [v3 configuration reference](CONFIGURATION_V3.md) and the
 
 ## Output contract
 
-When the user asks for a configuration file, return one valid JSON object with no
-comments, Markdown fences, or surrounding prose.
+Return the configuration as one valid JSON object, with no comments, Markdown fences or
+prose inside or around it. When you can create a file, put the JSON in the file; a short
+note beside it may say what you left out and why, such as an image you couldn't verify.
 
 Every new configuration must begin with these root fields:
 
@@ -28,59 +29,44 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 
 ## Generation rules
 
-1. Use only properties defined by `schema/v3.schema.json`. The schema rejects unknown
-   properties.
-2. Use lowercase enum strings exactly as documented.
-3. Make `mainView` an inline layout unless it intentionally references a reusable root
-   view.
-4. Put reusable screen definitions in root `views` and reusable behavior in root
-   `actions`.
-5. Use `{ "ref": "id" }` for every view or action reference. Do not generate the
-   legacy ID-only reference form.
-6. Give every definition a unique, non-empty ID when it will be referenced.
-7. Give every action definition a complete `event`.
-8. Trace the data available at every node. List templates receive one item object,
-   REST continuations receive the response object, and forms produce their submitted
-   object.
-9. Use `mapping` for a single value or array path. Use `${path}` when composing a
-   string or URL from one or more values.
-10. For every list, provide `itemView` and a `mapping` selecting an array of objects.
-11. If a list has `initData`, ensure its endpoint returns a JSON object containing the
-    mapped array.
-12. Use HTTPS endpoints. Never write a real API key,
-    token, password, or other secret into the JSON. When an API needs a key in its URL
-    (a query parameter or a path segment) or in a header, write a named placeholder
-    instead: two underscores, an uppercase name, two underscores, for example
-    `https://api.example.com/items?api_key=__EXAMPLE_API_KEY__` or
-    `"headers": { "Authorization": "Bearer __EXAMPLE_TOKEN__" }`. Appkin asks the user
-    for each placeholder's value when the app opens, stores it encrypted on the device,
-    and fills it into every request. Use one name per key and reuse it wherever it's
-    needed. For a request that can fail in a way the user should understand, add
-    `onError` (its data has `error.message`).
-13. Make every mapping and placeholder match the real data exactly, including case and
-    nesting.
-14. Prefer a small working configuration over speculative or undocumented fields.
-15. Before returning the result, validate JSON syntax and confirm every reference
-    resolves to exactly one definition.
+1. Use only the properties this document describes, with lowercase enum values exactly
+   as written. The schema rejects unknown properties.
+2. Make `mainView` an inline view unless it intentionally references a reusable root
+   view. Put reusable screens in root `views` and reusable behaviour in root `actions`.
+3. Reference a reusable view or action with `{ "ref": "id" }`, never `{ "id": "..." }`
+   alone. Give every referenced definition a unique, non-empty `id`.
+4. Give every action definition a complete `event`.
+5. Trace the data at every node: a list's `itemView` gets one item, a `rest` event's
+   `thenDo` gets the response, a form's action gets the submitted values, and a `show`
+   event's view gets the current data.
+6. Use `mapping` for a path to one value or array; use `${path}` to build text or a URL
+   from values. Match the real data exactly, including case and nesting.
+7. Every list needs an `itemView` and one source of items: `mapping` to an array of
+   objects (in `data`, or in the `initData` response), or `stored` for objects saved on
+   the phone (no `mapping`).
+8. Use HTTPS. Never write a real API key, token, password or other secret into the
+   JSON: write a placeholder of two underscores, an uppercase name and two underscores,
+   such as `?api_key=__EXAMPLE_API_KEY__` or
+   `"headers": { "Authorization": "Bearer __EXAMPLE_TOKEN__" }`. Appkin asks the user for
+   each value when the app opens, stores it encrypted and fills it into every request.
+   Use one name per key.
+9. Prefer a small working configuration over speculative or undocumented fields.
+10. Before answering, check the JSON syntax and that every reference resolves to exactly
+    one definition.
 
 ## Data-flow checklist
 
 Before writing JSON, identify:
 
-- Initial static data, if any
+- The fixed data, if any, and the data saved on the phone (which collections)
 - The exact shape of every REST response
-- Which object is active when each action runs
-- Which array each list maps
-- Which payload each form creates
-- Which response or item object each destination view receives
+- Which object is the current data when each action runs
+- Which array, or which collection, each list shows
+- Which values each form submits
+- Which object each opened view receives
 
-Then construct the configuration in this order:
-
-1. Reusable destination views
-2. Reusable actions and event chains
-3. Main view
-4. References
-5. Final syntax and schema validation
+Then build the configuration in this order: reusable views, reusable actions and event
+chains, the main view, references, and a final syntax and schema check.
 
 ## Supported language
 
@@ -100,7 +86,7 @@ Events:
 - `rest`
 - `alert`
 - `calendar` (opens the phone's calendar app on a new event, for the user to save)
-- `save` (saves the current data, such as a form's values, in a collection on the phone; a list with `stored` shows it, filtered with `where` and ordered with `sort`, and its `initialItems` fill the collection the first time)
+- `save` (saves the current data, such as a form's values, in a collection on the phone)
 - `update` (changes a saved object, by default the one with the current data's `id`)
 - `delete` (removes a saved object, or all that match `where`; put it behind an alert to ask first)
 - `back` (closes the current screen, such as after a form saves an edit)
@@ -124,66 +110,78 @@ components, or undocumented style properties.
 
 ## Common mistakes
 
-- A button shows its `title` (or the value its `mapping` selects). A button's `label` is
-  not displayed.
-- A text view shows its `label` as a heading, then the `mapping` value or `title` under it as
-  a quieter line. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style the
-  label on its own (`"labelStyle": "bold"` over regular text). When a value holds HTML,
-  such as a museum's description, add `"format": "html"`. An image's `"scale": "fit"` shows
-  the whole picture instead of cropping it; a `show` event's `title` names the screen it
-  opens. A web address written out in
-  a text view (`https://...`) becomes a link that opens in the browser. For a button that
-  opens a page, a map, the dialer or email, use an `open` event.
-- A list needs `mapping` (the path to an array of objects) and `itemView`. Its data comes
-  from `data` on the list or a parent, or from `initData` for a REST endpoint.
+### Text, buttons and images
+
+- A button shows its `title` (or the value its `mapping` selects); its `label` is not
+  displayed.
+- A text view shows its `label` as a heading, then the `mapping` value or `title` under it
+  as a quieter line. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style
+  the label alone (`"labelStyle": "bold"`). For a value holding HTML, add
+  `"format": "html"`. A web address written in a text view becomes a link.
+- An image's `"scale": "fit"` shows the whole picture instead of cropping it.
+- Sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
+- Give every app an `icon`: one emoji that fits it, such as `"🏍️"` for a motorcycle guide.
+  It is the app's icon on the home page and the phone's home screen.
+
+### Lists and data
+
+- A list's fixed items go in `data` on the list or a parent; a REST list uses `initData`.
   For an API with pages (a `skip`, `offset` or `page` parameter, or a "next" link), add
   `"nextPage": { "parameter": "skip", "step": 40 }` (the page size) or
-  `"nextPage": { "urlFrom": "info.next" }` to `initData`, and the list loads more as it's
-  scrolled. `"orientation": "grid"` with `"columns": 2` shows items side by side;
-  `emptyText` says what an empty list means.
-- Inside `itemView` and in views opened by a list item, mappings and `${...}` refer to the
-  fields of that one item, not to the whole response.
-- Paths reach array items by index: `meals.0.strMeal`. When a REST response wraps one
-  object in an array, open its view with a `show` event whose `mapping` selects it, such
-  as `"mapping": "meals.0"`.
-- Data from an API is often incomplete. A text view whose `mapping` (or `title`) has nothing
-  to show isn't drawn, label included, and a missing `${...}` becomes empty text. To hide any
-  other view, such as a button that needs a field, give it `"visibleIf": "field"` (shown only
-  when the field has a value) or `"visibleIf": "!field"` (only when it hasn't). It is a path,
-  never a comparison.
-- In a URL, Appkin percent-encodes what each `${...}` inserts: write `?q=${q}`, never encode
-  a placeholder yourself. Fixed text in a URL is sent as written, so encode it
-  (`type=Arms%20and%20Armor`).
-- `mapping` is a plain path such as `owner.name`; `${owner.name}` is only for building a
-  string, such as a URL or a label. A placeholder always starts with `$`: `${title}`, never
-  `{title}`.
+  `"nextPage": { "urlFrom": "info.next" }` to `initData`. `"orientation": "grid"` with
+  `"columns": 2` shows items side by side; `emptyText` says what an empty list means.
+- Inside `itemView`, and in views opened from an item, mappings and `${...}` refer to that
+  one item's fields, not to the whole response.
+- Paths reach array items by index: `meals.0.strMeal`. When a response wraps one object in
+  an array, open its view with a `show` event whose `mapping` is `"meals.0"`.
+- `mapping` is a plain path such as `owner.name`; `${owner.name}` only builds text. A
+  placeholder always starts with `$`: `${title}`, never `{title}`.
+- Data is often incomplete. A text view with nothing to show isn't drawn, label included,
+  and a missing `${...}` becomes empty text. To hide another view, such as a button that
+  needs a field, use `"visibleIf": "field"` (shown when it has a value) or
+  `"visibleIf": "!field"`. It is a path, never a comparison.
+- An event's `data`, like an action's, replaces the current data it runs with; a form's
+  submitted values still come first.
+
+### Forms
+
+- Form fields are `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` and
+  `tags`; there is no `input`, `dropdown` or `switch`. Dates are `dd/MM/yyyy`, times
+  `HH:mm`. A selector option is a string or `{ "label": "Any type", "value": "" }`.
+- To send something from the screen with a form, such as an item's id, use a `hidden`
+  field: `{ "type": "hidden", "mapping": "id", "value": "${id}" }`.
+
+### Saved on the phone
+
 - For a list the user ticks off or edits, such as places to visit or things to pack, use a
-  `stored` list with `initialItems` (the full objects, each with every field its views
-  show) and a `check` whose action is an `update` of that collection. Don't add a button
-  that saves the starting items: the list saves them itself, once. Order it with
-  `"sort": [{ "by": "visited" }, { "by": "order" }]`: `false` comes before `true`, and
-  `order` values are always text (`["High", "Low"]`, `["false", "true"]`).
-- An inline action needs both `id` and `event`. To reuse one, define it in the root
+  `stored` list with `initialItems`: the full objects, each with every field its views
+  show and a `key`, plus `"unique": "key"`. The list saves them itself the first time, and
+  later versions' new items are added without undoing ticks; never add a button that
+  saves them. Tick with a `check` whose action is an `update` of that collection.
+- Order a stored list with `"sort": [{ "by": "visited" }, { "by": "order" }]`: `false`
+  comes before `true`. `order` lists values to put first, always as text
+  (`["High", "Low"]`, `["false", "true"]`); `"descending": true` turns it round.
+
+### Links and requests
+
+- In a URL, Appkin percent-encodes what each `${...}` inserts: write `?q=${q}`, never
+  encode a placeholder yourself. Fixed text is sent as written, so encode it
+  (`type=Arms%20and%20Armor`). A query parameter that is only a placeholder
+  (`&type=${type}`) is left out when the value is empty.
+- Never invent or guess an address (images, `rest` URLs, web pages) or its parts (folders,
+  file names, IDs, sizes): it almost never loads, or shows the wrong thing. Use addresses
+  the user gives, fields of a REST response, or ones you are certain of; otherwise leave
+  them out.
+- For a request that can fail in a way the user should understand, add `onError` (its
+  data has `error.message`).
+- For a button that opens a page, a map, the dialer or email, use an `open` event.
+
+### Structure
+
+- An inline action needs both `id` and `event`; to reuse one, define it in the root
   `actions` and reference it with `{ "ref": "id" }`.
-- Form fields are `text`, `selector`, `date`, `time`, `checkbox` and `hidden`; there is no
-  `input`, `dropdown` or `switch`. Dates are `dd/MM/yyyy`, times `HH:mm`. A selector option
-  is a string or `{ "label": "Any type", "value": "" }`. To send something from the screen
-  with a form (an item's id), use a `hidden` field: `{ "type": "hidden", "mapping": "id",
-  "value": "${id}" }`.
-- A URL query parameter that is just a placeholder (`&type=${type}`) is left out when the
-  value is empty or missing, so optional filters need no extra work.
-- Image and text sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
-- Give every app an `icon`: one emoji that fits what it is about, such as `"🏍️"` for a
-  motorcycle guide or `"📚"` for a book club. It is the app's icon on the home page and the
-  phone's home screen.
-- Don't invent image addresses or IDs (such as cover IDs): a made-up one shows a different
-  picture or none. Use addresses the user gives, fields of a REST response, or images you
-  are certain of; otherwise leave the image out and say so.
-- The same goes for every link (images, `rest` URLs, web pages): write an address only in a
-  form you know works, exactly as it is published. Never build one by guessing its parts
-  (folders, file names, IDs, hashes, sizes): a guessed address almost never loads.
-- A screen opened with a `show` event already has the system Back gesture and button:
-  don't add "Back" buttons or alerts that only explain how to go back.
+- A screen opened with `show` already has Back: don't add Back buttons or alerts that
+  explain it. Its `title` names the screen.
 - JSON has no comments and no trailing commas.
 
 ## Validate generated output

@@ -373,7 +373,8 @@ object JsonText {
 /** How the app prints JSON numbers, which are kept as written when read. */
 object JsonNumbers {
     /** Whether [literal] has a fraction or an exponent. */
-    fun isDecimal(literal: String) = literal.any { it == '.' || it == 'e' || it == 'E' }
+    fun isDecimal(literal: String) =
+        (literal.firstOrNull()?.let { it == '-' || it.isDigit() } == true) && literal.any { it == '.' || it == 'e' || it == 'E' }
 
     /**
      * [literal] as the old Android code showed a number read from JSON: whole numbers as they are (as a long when they

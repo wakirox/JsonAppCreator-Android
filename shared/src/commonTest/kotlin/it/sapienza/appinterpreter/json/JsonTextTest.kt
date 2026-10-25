@@ -14,6 +14,14 @@ import kotlin.test.assertTrue
 class JsonTextTest {
 
     @Test
+    fun doubleNumbersLeaveTrueAndFalseAlone() {
+        val value = JsonText.parse("""{ "a": 0.10, "b": false, "c": true, "d": 3 }""")!!
+        assertEquals("""{"a":0.1,"b":false,"c":true,"d":3}""", JsonText.withDoubleNumbers(value).toString())
+        assertEquals(false, JsonNumbers.isDecimal("false"))
+        assertEquals(true, JsonNumbers.isDecimal("-1e3"))
+    }
+
+    @Test
     fun readsValuesAndKeepsNumbersAsWritten() {
         val value = JsonText.parse("""{ "a": 0.10, "b": [1, -2, 3e2], "c": "x\"é\n", "d": true, "e": null }""")!!.jsonObject
         assertEquals("0.10", value["a"]!!.jsonPrimitive.content)

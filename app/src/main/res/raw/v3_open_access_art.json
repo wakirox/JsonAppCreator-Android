@@ -92,7 +92,7 @@
       "event": {
         "type": "show",
         "view": {
-          "id": "artwork_detail"
+          "ref": "artwork_detail"
         }
       }
     }

@@ -51,7 +51,7 @@ class TestTest() {
     @test fun parsesMenuSamples() {
         listOf(
             "v3_app_ideas.json",
-            "v3_ai_gallery.json",
+            "v3_ai_checklist.json",
             "v3_masterpieces.json",
             "v3_app_sample.json",
             "v3_race_signup.json",

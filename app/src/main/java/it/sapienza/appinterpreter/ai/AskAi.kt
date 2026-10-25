@@ -19,7 +19,7 @@ object AskAi {
     /** The example configurations exactly as the prompt shows them, to tell them apart from an AI's answer. */
     fun promptExamples(context: Context): List<String> {
         fun raw(id: Int) = context.resources.openRawResource(id).bufferedReader().use { it.readText() }
-        return AiContext.examples(raw(R.raw.v3_ai_gallery), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)).map { it.json }
+        return AiContext.examples(raw(R.raw.v3_ai_checklist), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)).map { it.json }
     }
 
     fun context(context: Context, currentApp: String?, request: String?): String {
@@ -28,7 +28,7 @@ object AskAi {
         return AiContext.build(
             guide = asset(GUIDE_ASSET),
             schemaJson = asset(ConfigurationValidator.ASSET_PATH),
-            examples = AiContext.examples(raw(R.raw.v3_ai_gallery), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)),
+            examples = AiContext.examples(raw(R.raw.v3_ai_checklist), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)),
             currentApp = currentApp,
             request = request
         )

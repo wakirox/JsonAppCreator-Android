@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 3,
+  "name": "Budapest checklist",
+  "icon": "🇭🇺",
+  "author": "Appkin",
+  "version": "1.0.0",
+  "mainView": {
+    "type": "list",
+    "stored": {
+      "collection": "places",
+      "unique": "key",
+      "sort": [
+        {
+          "by": "visited"
+        },
+        {
+          "by": "order"
+        }
+      ],
+      "initialItems": [
+        {
+          "key": "parliament",
+          "name": "Parliament",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Hungarian_Parliament_Building.jpg?width=800",
+          "description": "The Gothic Revival seat of the National Assembly, on the Danube.",
+          "tickets": "https://www.parlament.hu/web/visitor-centre",
+          "order": 1,
+          "visited": false
+        },
+        {
+          "key": "bastion",
+          "name": "Fisherman's Bastion",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Hal%C3%A1szb%C3%A1stya.jpg?width=800",
+          "description": "Neo-Gothic terraces with the best view over Pest.",
+          "order": 2,
+          "visited": false
+        },
+        {
+          "key": "matthias",
+          "name": "Matthias Church",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Matthias_Church_Budapest.jpg?width=800",
+          "description": "Coloured roof tiles in the heart of the Castle District.",
+          "tickets": "https://www.matyas-templom.hu/",
+          "order": 3,
+          "visited": false
+        }
+      ]
+    },
+    "itemView": {
+      "type": "layout",
+      "views": [
+        {
+          "type": "image",
+          "url": "${photo}",
+          "size": {
+            "height": 200
+          }
+        },
+        {
+          "type": "check",
+          "mapping": "visited",
+          "title": "${name}",
+          "action": {
+            "ref": "tick"
+          }
+        }
+      ]
+    },
+    "action": {
+      "id": "open_place",
+      "event": {
+        "type": "show",
+        "title": "${name}",
+        "view": {
+          "ref": "place"
+        }
+      }
+    }
+  },
+  "views": [
+    {
+      "id": "place",
+      "type": "layout",
+      "views": [
+        {
+          "type": "image",
+          "url": "${photo}",
+          "size": {
+            "height": 260
+          }
+        },
+        {
+          "type": "text",
+          "label": "${name}",
+          "title": "${description}",
+          "labelStyle": "bold"
+        },
+        {
+          "type": "check",
+          "mapping": "visited",
+          "title": "Visited",
+          "action": {
+            "ref": "tick"
+          }
+        },
+        {
+          "type": "button",
+          "title": "Tickets (official site)",
+          "icon": "open",
+          "visibleIf": "tickets",
+          "action": {
+            "id": "tickets",
+            "event": {
+              "type": "open",
+              "url": "${tickets}"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "tick",
+      "event": {
+        "type": "update",
+        "collection": "places"
+      }
+    }
+  ]
+}

@@ -27,7 +27,7 @@ class LoadStoredItemsUseCase(private val appData: AppData, private val repositor
 
     fun load(stored: StoredData, data: JsonObject?, choice: ListChoice = ListChoice()): Result {
         val match = StoredMatch(stored.where, data)
-        stored.initialItems?.let { appData.addFirst(currentAppId(), stored.collection, it) }
+        stored.initialItems?.let { appData.addFirst(currentAppId(), stored.collection, it, stored.unique) }
         val matching = appData.items(currentAppId(), stored.collection).filter(match::matches)
         val tags = stored.filterBy?.let { field -> tagsIn(matching, field) }.orEmpty()
         val shown = choice.tag?.takeIf { stored.filterBy != null }
