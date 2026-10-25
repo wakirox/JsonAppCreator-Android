@@ -1,6 +1,7 @@
 package it.sapienza.androidratio.appratio
 
 import coil3.ImageLoader
+import coil3.annotation.DelicateCoilApi
 import coil3.SingletonImageLoader
 import coil3.imageDecoderEnabled
 import coil3.map.Mapper
@@ -19,7 +20,7 @@ import android.net.Uri
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -73,6 +74,8 @@ class AppIdeasScreenshotTest {
     @get:Rule
     val composeRule = createEmptyComposeRule()
 
+    // The tests swap in their own image loader, which Coil marks as delicate.
+    @OptIn(DelicateCoilApi::class)
     @Before
     fun setUp() {
         // Robolectric has no ImageDecoder: decode with BitmapFactory, and read the app's photos as the app does.

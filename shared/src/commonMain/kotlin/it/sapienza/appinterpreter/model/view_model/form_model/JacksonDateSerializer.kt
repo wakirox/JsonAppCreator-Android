@@ -1,6 +1,7 @@
 package it.sapienza.appinterpreter.model.view_model.form_model
 
 import it.sapienza.appinterpreter.json.JsonNumbers
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -67,6 +68,8 @@ object JacksonDateSerializer : KSerializer<Long?> {
         return era * 146_097 + doe - 719_468
     }
 
+    // Writing a null is still marked experimental in kotlinx.serialization.
+    @OptIn(ExperimentalSerializationApi::class)
     override fun serialize(encoder: Encoder, value: Long?) {
         if (value == null) encoder.encodeNull() else encoder.encodeLong(value)
     }

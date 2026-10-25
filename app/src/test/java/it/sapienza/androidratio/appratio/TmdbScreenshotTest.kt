@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -24,6 +24,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import coil3.ImageLoader
+import coil3.annotation.DelicateCoilApi
 import coil3.SingletonImageLoader
 import coil3.imageDecoderEnabled
 import org.junit.After
@@ -60,6 +61,8 @@ class TmdbScreenshotTest {
     @get:Rule
     val composeRule = createEmptyComposeRule()
 
+    // The tests swap in their own image loader, which Coil marks as delicate.
+    @OptIn(DelicateCoilApi::class)
     @Before
     fun setUp() {
         // Robolectric has no ImageDecoder, which Coil uses on Android 10 and up: decode with BitmapFactory here.

@@ -146,7 +146,7 @@ class ScreenViewModelTest {
         val screen = screen()
         val views = (screen.screen?.definition as Layout).views
 
-        screen.onAction(views[3].action, screen.screen?.data)
+        screen.onAction(views[3].action, screen.screen.data)
 
         val open = assertIs<ScreenViewModel.Effect.OpenUrl>(screen.effects.first())
         assertEquals("https://example.com/?q=Ana & co", open.url)
@@ -157,7 +157,7 @@ class ScreenViewModelTest {
     fun aShareEventOpensTheShareSheetOnItsText() = runTest {
         val screen = screen()
 
-        screen.onAction((screen.screen?.definition as Layout).views[4].action, screen.screen?.data)
+        screen.onAction((screen.screen?.definition as Layout).views[4].action, screen.screen.data)
 
         assertEquals("Ana says hi", assertIs<ScreenViewModel.Effect.Share>(screen.effects.first()).text)
     }
@@ -167,11 +167,11 @@ class ScreenViewModelTest {
         val screen = screen()
         val views = (screen.screen?.definition as Layout).views
 
-        screen.onAction(views[5].action, screen.screen?.data)
+        screen.onAction(views[5].action, screen.screen.data)
         assertEquals("This item has no phone", alerts.alert?.text)
         alerts.answer(ok = true)
 
-        screen.onAction(views[6].action, screen.screen?.data)
+        screen.onAction(views[6].action, screen.screen.data)
         assertEquals("Appkin only opens web, map, phone and email addresses, not javascript:alert(1)", alerts.alert?.text)
     }
 
@@ -180,10 +180,10 @@ class ScreenViewModelTest {
         val screen = screen()
         val views = (screen.screen?.definition as Layout).views
 
-        screen.onAction(views[7].action, screen.screen?.data)
+        screen.onAction(views[7].action, screen.screen.data)
         assertEquals("About Ana", assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title)
 
-        screen.onAction(views[8].action, screen.screen?.data)
+        screen.onAction(views[8].action, screen.screen.data)
         assertNull(assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title, "an empty title leaves the app's name")
     }
 
@@ -191,7 +191,7 @@ class ScreenViewModelTest {
     fun onErrorRunsInsteadOfTheAlertWithWhatWentWrong() = runTest {
         val screen = screen()
 
-        screen.onAction((screen.screen?.definition as Layout).views[9].action, screen.screen?.data)
+        screen.onAction((screen.screen?.definition as Layout).views[9].action, screen.screen.data)
 
         val alert = withContext(Dispatchers.Default) { withTimeout(10_000) { alerts.alertState.first { it != null } } }
         assertEquals("Ana couldn't delete it: Request failed with 404 (404)", alert?.text)

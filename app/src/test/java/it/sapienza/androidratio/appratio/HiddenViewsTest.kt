@@ -3,7 +3,7 @@ package it.sapienza.androidratio.appratio
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.Dp
 import androidx.test.core.app.ActivityScenario

@@ -171,7 +171,6 @@ class HomeActivity : AppCompatActivity() {
                         }
                         itemsIndexed(apps, key = { _, app -> app.id }) { index, app ->
                             ListItem(
-                                headlineContent = { Text(app.name) },
                                 supportingContent = {
                                     // Under a minute, "0 minutes ago" reads oddly.
                                     val opened = if (System.currentTimeMillis() - app.savedAt < DateUtils.MINUTE_IN_MILLIS)
@@ -200,13 +199,12 @@ class HomeActivity : AppCompatActivity() {
                                     DomainController.setJsonFile(app.json, this@HomeActivity, app.configurationId)
                                     openCurrentApp()
                                 }
-                            )
+                            ) { Text(app.name) }
                         }
                         item { SectionHeader(stringResource(R.string.home_examples)) }
                         itemsIndexed(EXAMPLES) { index, (name, about, resource, icon) ->
                             val title = stringResource(name)
                             ListItem(
-                                headlineContent = { Text(title) },
                                 supportingContent = { Text(stringResource(about)) },
                                 leadingContent = { AppIconView(title, icon) },
                                 colors = groupedItemColors(),
@@ -214,7 +212,7 @@ class HomeActivity : AppCompatActivity() {
                                     DomainController.setJsonFile(resource, this@HomeActivity)
                                     openCurrentApp()
                                 }
-                            )
+                            ) { Text(title) }
                         }
                         item {
                             Text(

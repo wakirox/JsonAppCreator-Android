@@ -73,7 +73,7 @@ fun PhotoScreen(url: String?, onBack: () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     var size by remember { mutableStateOf(IntSize.Zero) }
-    val transform = rememberTransformableState { zoom, pan, _ ->
+    val transform = rememberTransformableState { _, zoom, pan, _ ->
         val (nextScale, nextOffset) = PhotoZoom.next(scale, offset, zoom, pan, size)
         scale = nextScale
         offset = nextOffset

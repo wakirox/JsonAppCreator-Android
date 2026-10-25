@@ -91,7 +91,7 @@ class ModelSerializationTest {
             """
         ).parseApplication2()
         val views = (app.mainView as Layout).views
-        assertNull((app.mainView as Layout).orientation)
+        assertNull(app.mainView.orientation)
         assertEquals(18f, assertIs<TextView>(views[0]).textSize)
         assertEquals(TextStyle.regular, (views[0] as TextView).textStyle)
         assertTrue(assertIs<ButtonView>(views[1]).action!!.isReference())

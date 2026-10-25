@@ -7,6 +7,10 @@ plugins {
 }
 
 kotlin {
+    // A compiler warning fails the build, on every target (the app's too).
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
     android {
         namespace = "it.sapienza.appinterpreter.shared"
         compileSdk = 37
