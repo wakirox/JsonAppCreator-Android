@@ -54,7 +54,11 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,11 +69,16 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.markdown.Markdown
+import it.sapienza.appinterpreter.ui.markdownText
 import java.text.NumberFormat
 
 /** Ideas to start from: tapping one writes its request in the field. */
@@ -180,14 +189,26 @@ private fun SendBar(onShare: () -> Unit, onCopy: () -> Unit) {
 }
 
 /**
- * Exactly what Share and Copy send, to read before sending: the text in paragraphs (a lazy list, as it can be long),
- * selectable, with the same Copy and Share. Back returns to the request.
+ * Exactly what Share and Copy send, to read before sending: formatted (its Markdown styled) or as sent (the raw text),
+ * in parts (a lazy list, as it can be long), selectable, with the same Copy and Share. Back returns to the request.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCopy: () -> Unit, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
+    var formatted by rememberSaveable { mutableStateOf(true) }
     val paragraphs = remember(prompt) { prompt.trimEnd().split(Regex("\n{2,}")) }
+    // Formatted, consecutive list items stay together, one line apart.
+    val blocks = remember(prompt) {
+        Markdown.parse(prompt).fold(mutableListOf<List<Markdown.Block>>()) { groups, block ->
+            val last = groups.lastOrNull()
+            if (block is Markdown.Block.ListItem && last?.last() is Markdown.Block.ListItem) groups[groups.lastIndex] = last + block
+            else groups += listOf(block)
+            groups
+        }
+    }
+    val links = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline))
+    val codeBackground = MaterialTheme.colorScheme.surfaceContainerHighest
     Scaffold(
         topBar = {
             TopAppBar(
@@ -206,14 +227,50 @@ private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCo
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Note(
-                        Icons.Filled.Info,
-                        "${NumberFormat.getIntegerInstance().format(prompt.length)} characters, " +
-                            "about ${NumberFormat.getIntegerInstance().format(tokens)} tokens. Your request and app are at the end."
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Note(
+                            Icons.Filled.Info,
+                            "${NumberFormat.getIntegerInstance().format(prompt.length)} characters, " +
+                                "about ${NumberFormat.getIntegerInstance().format(tokens)} tokens. Your request and app are at the end."
+                        )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                            listOf(true to "Formatted", false to "As sent").forEachIndexed { index, (styled, label) ->
+                                ToggleButton(
+                                    checked = formatted == styled,
+                                    onCheckedChange = { formatted = styled },
+                                    shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                                    colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .testTag(if (styled) "ai-preview-formatted" else "ai-preview-raw")
+                                        .semantics {
+                                            role = Role.RadioButton
+                                            selected = formatted == styled
+                                        }
+                                ) { Text(label, maxLines = 1) }
+                            }
+                        }
+                    }
                 }
-                items(paragraphs) { paragraph ->
-                    Text(paragraph, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                if (formatted) {
+                    items(blocks) { group ->
+                        val code = group.singleOrNull() as? Markdown.Block.Code
+                        if (code != null) {
+                            Surface(color = codeBackground, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    code.text,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        } else {
+                            Text(markdownText(group, links, codeBackground), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                } else {
+                    items(paragraphs) { paragraph ->
+                        Text(paragraph, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                    }
                 }
             }
         }

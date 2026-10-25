@@ -99,6 +99,7 @@ Other enums:
 - Actions: `click`, `longclick`
 - HTTP methods: `get`, `post`, `put`, `delete`
 - Text styles: `regular`, `italic`, `bold`
+- Text formats: `plain`, `html`, `markdown`
 - Text inputs: `plain`, `numeric`, `email`, `password`, `url`
 - Form elements: `text`, `selector`, `date`, `time`, `checkbox`, `hidden`, `photos` (pick photos from the gallery, kept on the phone), `tags` (labels a stored list can filter on)
 
@@ -115,7 +116,9 @@ components, or undocumented style properties.
 - A text view shows its `label` as a heading, then the `mapping` value or `title` under it
   as a quieter line. Use `textStyle` and `textSize` for emphasis, and `labelStyle` to style
   the label alone (`"labelStyle": "bold"`). For a value holding HTML, add
-  `"format": "html"`. A web address written in a text view becomes a link.
+  `"format": "html"`; for longer text you write yourself (a description, tips),
+  `"format": "markdown"` allows headings, **bold**, *italics*, lists and links. A web address
+  written in a text view becomes a link.
 - An image's `"scale": "fit"` shows the whole picture instead of cropping it.
 - Sizes are numbers (dp and sp), not strings: `"size": { "height": 200 }`.
 - Give every app an `icon`: one emoji that fits it, such as `"🏍️"` for a motorcycle guide.
@@ -228,7 +231,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `title`: text. The text, when no mapping value is shown
 - `label`: text. First line of the text view, shown above the text
 - `labelStyle`: one of `"regular"`, `"italic"`, `"bold"`. The label's own style, so a bold heading needn't make its text bold; without it the label looks like the text
-- `format`: one of `"plain"`, `"html"`. plain (default), or html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions
+- `format`: one of `"plain"`, `"html"`, `"markdown"`. plain (default); html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions; or markdown: headings (#), **bold**, *italics*, lists (- or 1.), quotes (>), `code` and [links](https://...), such as a description you write
 - `showWhenEmpty`: `true` or `false`. Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all
 
 #### `button`

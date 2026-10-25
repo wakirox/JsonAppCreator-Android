@@ -4,6 +4,7 @@ import android.content.ClipboardManager
 import android.content.Intent
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.hasText
@@ -127,8 +128,14 @@ class AskAiScreenTest {
         composeRule.onNodeWithTag("ai-request").performScrollTo().performTextInput("A list of my favourite books")
         composeRule.onNodeWithTag("ai-preview").performScrollTo().performClick()
         composeRule.onNodeWithText("What's sent").assertIsDisplayed()
+        // Formatted, the Markdown marks are gone; as sent, they are there.
         composeRule.onNodeWithTag("ai-preview-text").performScrollToNode(hasText("A list of my favourite books", substring = true))
         composeRule.onNodeWithText("A list of my favourite books", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Your task").assertIsDisplayed()
+        composeRule.onNodeWithTag("ai-preview-text").performScrollToIndex(0)
+        composeRule.onNodeWithTag("ai-preview-raw").performClick()
+        composeRule.onNodeWithTag("ai-preview-text").performScrollToNode(hasText("## Your task"))
+        composeRule.onNodeWithText("## Your task").assertIsDisplayed()
 
         composeRule.onNodeWithContentDescription("Back").performClick()
         composeRule.onNodeWithText("Ask your AI app").assertIsDisplayed()

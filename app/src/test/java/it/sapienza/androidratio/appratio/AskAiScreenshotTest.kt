@@ -54,7 +54,9 @@ class AskAiScreenshotTest {
     fun preview() = assertScreenshot(
         "ask_ai_preview",
         request = "",
-        preview = "# Appkin: context for AI assistants\n\nAppkin is an Android app that turns a JSON configuration into a native app.\n\n" +
+        preview = "# Appkin: context for AI assistants\n\nAppkin turns a **JSON configuration** into a native app.\n\n" +
+            "## Generation rules\n\n1. Use only the properties this document describes.\n2. Reference a view with `{ \"ref\": \"id\" }`.\n\n" +
+            "```json\n{\n  \"schemaVersion\": 3\n}\n```\n\n" +
             "## Your task\n\nCreate an Appkin v3 configuration for this app: A list of my favourite books"
     )
 
