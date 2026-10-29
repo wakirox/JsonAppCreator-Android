@@ -4,8 +4,13 @@ import SwiftUI
 struct AppkinApp: App {
     var body: some Scene {
         WindowGroup {
-            SketchRoot(screen: UserDefaults.standard.string(forKey: "screen") ?? "home",
-                       open: UserDefaults.standard.string(forKey: "open"))
+            if UserDefaults.standard.string(forKey: "screen") == "run" {
+                // `-screen run -example v3_masterpieces`: a bundled example, drawn by the shared engine.
+                BundledExample(name: UserDefaults.standard.string(forKey: "example") ?? "v3_masterpieces")
+            } else {
+                SketchRoot(screen: UserDefaults.standard.string(forKey: "screen") ?? "home",
+                           open: UserDefaults.standard.string(forKey: "open"))
+            }
         }
     }
 }
