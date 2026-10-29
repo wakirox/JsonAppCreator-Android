@@ -21,7 +21,12 @@
     <string name="home_menu_about">About Appkin</string>
     <string name="home_about_text">Open source under the MIT licence, with no ads, no account and no data collected. The format reference, a guide for AI apps and more examples are on GitHub.</string>
     <string name="home_about_github">Open GitHub</string>
-    <string name="about_contact">Questions or a problem to report: info@wakirox.app</string>
+    <string name="about_contact">Questions, or an app or its content to report: info@wakirox.app</string>
+    <string name="about_report">Report a problem</string>
+    <string name="about_terms">Terms of use</string>
+    <string name="report_subject">Appkin %1$s on Android %2$s: a problem</string>
+    <string name="report_no_email">No email app on this phone: write to %1$s</string>
+    <string name="terms_of_use">Appkin runs apps described in JSON files that you make, open or are sent. Appkin has no gallery of apps: apps travel only as files, between people who choose to share them.\n\nYou are responsible for the apps you run and share and for what they load and show. Use only text, pictures and data you have the right to use, and follow the terms of the services an app connects to, such as an API\'s.\n\nApps made with an AI app can contain mistakes: check what they show before relying on it.\n\nThe examples use public-domain works from Wikimedia Commons, and data and images from TMDB under its terms; Appkin is not endorsed by TMDB.\n\nAppkin is free, has no ads and collects no data. It is open source under the MIT licence and provided as it is, without warranty.\n\nTo report an app, its content or a problem, write to info@wakirox.app.</string>
     <string name="about_credits">Credits</string>
     <string name="about_credits_commons">Masterpieces shows public-domain works; the images come from Wikimedia Commons.</string>
     <string name="about_tmdb_logo">TMDB logo</string>
