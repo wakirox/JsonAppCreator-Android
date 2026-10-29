@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,7 +48,9 @@ fun ApiKeyEntryDialog(
                         label = { Text(name) },
                         supportingText = if (name in savedNames) {
                             { Text("Leave blank to keep the saved value") }
-                        } else null,
+                        } else {
+                            null
+                        },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true,
@@ -58,7 +60,8 @@ fun ApiKeyEntryDialog(
             }
         },
         confirmButton = {
-            Button(shapes = ButtonDefaults.shapes(), 
+            Button(
+                shapes = ButtonDefaults.shapes(),
                 enabled = canConfirm,
                 onClick = { onConfirm(values.filterValues { it.isNotEmpty() }) }
             ) { Text("Load configuration") }

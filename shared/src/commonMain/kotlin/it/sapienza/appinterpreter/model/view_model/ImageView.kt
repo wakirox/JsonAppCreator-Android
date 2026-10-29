@@ -21,5 +21,6 @@ class ImageView(
 
 @Serializable
 enum class ImageScale {
-    crop, fit
+    crop,
+    fit
 }

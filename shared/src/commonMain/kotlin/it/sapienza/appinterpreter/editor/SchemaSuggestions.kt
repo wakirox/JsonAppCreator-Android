@@ -48,7 +48,8 @@ class SchemaSuggestions(schemaJson: String) {
     fun at(text: String, cursor: Int, limit: Int = 16): Suggestions =
         locate(text, cursor)?.let { suggestions(text, it, limit) } ?: Suggestions.NONE
 
-    fun isNumberAt(text: String, cursor: Int): Boolean = locate(text, cursor)?.let { isNumber(text, cursor, it) } ?: false
+    fun isNumberAt(text: String, cursor: Int): Boolean =
+        locate(text, cursor)?.let { isNumber(text, cursor, it) } ?: false
 
     /** The cursor, the facts of each container around it, and the schema of the innermost one. */
     private class Located(val at: JsonCursor, val facts: List<Pair<Set<String>, String?>>, val schema: JsonNode)
@@ -58,7 +59,9 @@ class SchemaSuggestions(schemaJson: String) {
         if (at.position == CursorPosition.NONE) return null
         // The object facts are read without the token being typed, so a half-written string doesn't confuse them.
         val facts = text.removeRange(at.replaceStart, at.replaceEnd).let { clean ->
-            at.containers.map { if (it.isObject) JsonCursor.objectFacts(clean, it.start) else emptySet<String>() to null }
+            at.containers.map {
+                if (it.isObject) JsonCursor.objectFacts(clean, it.start) else emptySet<String>() to null
+            }
         }
         var schema: JsonNode? = root
         for (i in 1 until at.containers.size) {
@@ -75,7 +78,13 @@ class SchemaSuggestions(schemaJson: String) {
         val heading = objectFacts.second ?: (container.slot as? String) ?: if (at.containers.size == 1) "app" else null
 
         if (at.position == CursorPosition.VALUE) {
-            val valueSchema = if (container.isObject) at.key?.let { properties(schema, objectFacts)[it] } else items(schema)
+            val valueSchema = if (container.isObject) {
+                at.key?.let {
+                    properties(schema, objectFacts)[it]
+                }
+            } else {
+                items(schema)
+            }
             val values = valueSchema?.let { values(it) }.orEmpty()
                 .filter { it.startsWith(at.prefix, ignoreCase = true) && it != at.prefix }
                 .take(limit)
@@ -83,10 +92,18 @@ class SchemaSuggestions(schemaJson: String) {
             if (values.isNotEmpty() || !container.isObject) return Suggestions(null, values)
             // Nothing to complete here: offer what the object is still missing, added at its end.
             val close = JsonCursor.closeOf(text, container.start).takeIf { it > 0 } ?: return Suggestions.NONE
-            return Suggestions(heading, missing(schema, objectFacts).take(limit).map { (name, value, required) ->
-                val (position, insert, inside) = memberAtEnd(text, container.start, close, "\"$name\": ${template(value)}")
-                Suggestion(name, position, position, insert, inside, required)
-            })
+            return Suggestions(
+                heading,
+                missing(schema, objectFacts).take(limit).map { (name, value, required) ->
+                    val (position, insert, inside) = memberAtEnd(
+                        text,
+                        container.start,
+                        close,
+                        "\"$name\": ${template(value)}"
+                    )
+                    Suggestion(name, position, position, insert, inside, required)
+                }
+            )
         }
 
         val typed = missing(schema, objectFacts)
@@ -109,13 +126,13 @@ class SchemaSuggestions(schemaJson: String) {
         val key = at.key?.takeIf { at.containers.last().isObject } ?: return false
         val colon = text.lastIndexOf(':', cursor - 1).takeIf { it >= 0 } ?: return false
         val written = text.substring(colon + 1, cursor)
-        if ('\n' in written || !NUMBER_SO_FAR.matches(written.trim())) return false
+        if ('\n' in written || !numberSoFar.matches(written.trim())) return false
         if (written.isNotBlank()) return true
         val types = properties(located.schema, located.facts.last())[key]?.let { types(resolve(it)) }.orEmpty()
         return ("number" in types || "integer" in types) && "string" !in types
     }
 
-    private val NUMBER_SO_FAR = Regex("""-?\d*(\.\d*)?""")
+    private val numberSoFar = Regex("""-?\d*(\.\d*)?""")
 
     /** The attributes the object doesn't have yet, required ones first. */
     private fun missing(schema: JsonNode, facts: Pair<Set<String>, String?>): List<Triple<String, JsonNode, Boolean>> {
@@ -128,7 +145,13 @@ class SchemaSuggestions(schemaJson: String) {
 
     private fun suggestion(label: String, start: Int, end: Int, insert: String, required: Boolean = false): Suggestion {
         // Inside an empty string, object or array value; otherwise after the insertion.
-        val inside = if (insert.endsWith("\"\"") || insert.endsWith("{}") || insert.endsWith("[]")) insert.length - 1 else insert.length
+        val inside = if (insert.endsWith("\"\"") || insert.endsWith("{}") ||
+            insert.endsWith("[]")
+        ) {
+            insert.length - 1
+        } else {
+            insert.length
+        }
         return Suggestion(label, start, end, insert, inside, required)
     }
 
@@ -142,7 +165,13 @@ class SchemaSuggestions(schemaJson: String) {
         while (last > open && text[last].isWhitespace()) last--
         val empty = last == open
         val multiline = text.substring(open, close).contains('\n')
-        val memberCursor = if (member.endsWith("\"\"") || member.endsWith("{}") || member.endsWith("[]")) member.length - 1 else member.length
+        val memberCursor = if (member.endsWith("\"\"") || member.endsWith("{}") ||
+            member.endsWith("[]")
+        ) {
+            member.length - 1
+        } else {
+            member.length
+        }
         if (!multiline) {
             val prefix = if (empty) " " else ", "
             return Triple(last + 1, prefix + member, prefix.length + memberCursor)
@@ -165,7 +194,9 @@ class SchemaSuggestions(schemaJson: String) {
             if (part.has("if")) {
                 val type = part.path("if").path("properties").path("type").path("const").asText(null)
                 if (type != null && type == facts.second) result += required(part.path("then"), facts)
-            } else result += required(part, facts)
+            } else {
+                result += required(part, facts)
+            }
         }
         return result
     }
@@ -194,7 +225,9 @@ class SchemaSuggestions(schemaJson: String) {
             if (part.has("if")) {
                 val type = part.path("if").path("properties").path("type").path("const").asText(null)
                 if (type != null && type == facts.second) result += properties(part.path("then"), facts)
-            } else result += properties(part, facts)
+            } else {
+                result += properties(part, facts)
+            }
         }
         return result
     }
@@ -202,9 +235,13 @@ class SchemaSuggestions(schemaJson: String) {
     /** Property names to offer: the object's properties, plus what would pick a branch it hasn't chosen yet. */
     private fun keySuggestions(node: JsonNode, facts: Pair<Set<String>, String?>): List<Pair<String, JsonNode>> {
         val schema = resolve(node)
-        val choosers = if (schema.has("if") && !facts.first.containsAll(schema.path("if").path("required").map { it.asText() })) {
+        val choosers = if (schema.has("if") &&
+            !facts.first.containsAll(schema.path("if").path("required").map { it.asText() })
+        ) {
             chooserKeys(schema)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
         return (choosers + properties(node, facts).toList()).distinctBy { it.first }
     }
 

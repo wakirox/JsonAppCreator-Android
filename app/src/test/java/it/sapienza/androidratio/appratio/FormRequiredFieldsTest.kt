@@ -69,8 +69,11 @@ class FormRequiredFieldsTest {
         composeRule.onNodeWithText("Sign up").performClick()
         composeRule.waitForIdle()
 
-        assertEquals(0, composeRule.onAllNodesWithText("Please complete", substring = true)
-            .fetchSemanticsNodes().size)
+        assertEquals(
+            0,
+            composeRule.onAllNodesWithText("Please complete", substring = true)
+                .fetchSemanticsNodes().size
+        )
         composeRule.onNodeWithText("Welcome, Alex (10 km)").assertExists()
     }
 

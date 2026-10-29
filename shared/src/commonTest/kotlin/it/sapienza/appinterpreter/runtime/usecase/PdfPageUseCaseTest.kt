@@ -4,13 +4,13 @@ import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.model.event.Event
 import it.sapienza.appinterpreter.model.event.EventSerializer
 import it.sapienza.appinterpreter.model.event.PdfItems
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 
 class PdfPageUseCaseTest {
     private fun event(json: String) = assertIs<PdfItems>(Json.decodeFromString<Event>(EventSerializer, json))
@@ -28,7 +28,9 @@ class PdfPageUseCaseTest {
     @Test
     fun theTitleThenEachObjectsMarkdownWithItsPhotos() {
         val items = listOf(
-            obj("""{ "title": "Dark mode", "priority": "High", "description": "For *night*", "photos": ["appkin-photo:a.jpg", "https://x.org/b.png"] }"""),
+            obj(
+                """{ "title": "Dark mode", "priority": "High", "description": "For *night*", "photos": ["appkin-photo:a.jpg", "https://x.org/b.png"] }"""
+            ),
             obj("""{ "title": "Widgets", "priority": "Low" }""")
         )
         val page = PdfPageUseCase()(pdf, items, app, "App ideas")
@@ -47,7 +49,13 @@ class PdfPageUseCaseTest {
     @Test
     fun aPagelessPdfIsOnePageAsTallAsItsMain() {
         assertFalse(PdfPageUseCase()(pdf, emptyList(), app, "App ideas").pageless, "A4 pages by default")
-        val page = PdfPageUseCase()(event("""{ "type": "pdf", "collection": "c", "text": "x", "pageless": true }"""), emptyList(), null, "A")
+        val page =
+            PdfPageUseCase()(
+                event("""{ "type": "pdf", "collection": "c", "text": "x", "pageless": true }"""),
+                emptyList(),
+                null,
+                "A"
+            )
         assertTrue(page.pageless)
         assertTrue("<body><main>" in page.html && "</main></body>" in page.html, "the phone measures the main")
     }
@@ -55,13 +63,25 @@ class PdfPageUseCaseTest {
     @Test
     fun attachedFilesAreListedByNameAndSize() {
         val withFiles = event("""{ "type": "pdf", "collection": "c", "text": "x", "files": "files" }""")
-        val page = PdfPageUseCase()(withFiles, listOf(obj("""{ "files": [ { "name": "<plan>.pdf", "size": 2430000, "uri": "content://a" } ] }""")), null, "A")
+        val page =
+            PdfPageUseCase()(
+                withFiles,
+                listOf(obj("""{ "files": [ { "name": "<plan>.pdf", "size": 2430000, "uri": "content://a" } ] }""")),
+                null,
+                "A"
+            )
         assertTrue("<ul class=\"files\"><li>📎 &lt;plan&gt;.pdf · 2.4 MB</li></ul>" in page.html)
     }
 
     @Test
     fun savedTextCantAddHtml() {
-        val page = PdfPageUseCase()(pdf, listOf(obj("""{ "title": "<script>x</script>", "description": "a & \"b\"" }""")), app, "App ideas")
+        val page =
+            PdfPageUseCase()(
+                pdf,
+                listOf(obj("""{ "title": "<script>x</script>", "description": "a & \"b\"" }""")),
+                app,
+                "App ideas"
+            )
         assertFalse("<script>" in page.html)
         assertTrue("&lt;script&gt;x&lt;/script&gt;" in page.html)
         assertTrue("a &amp; &quot;b&quot;" in page.html)
@@ -69,10 +89,16 @@ class PdfPageUseCaseTest {
 
     @Test
     fun listsLinksAndTheAppsNameWithoutATitle() {
-        val event = event("""{ "type": "pdf", "collection": "c", "text": "- one\n- [two](https://two.org)\n1. first\n- [bad](javascript:x)" }""")
+        val event =
+            event(
+                """{ "type": "pdf", "collection": "c", "text": "- one\n- [two](https://two.org)\n1. first\n- [bad](javascript:x)" }"""
+            )
         val page = PdfPageUseCase()(event, listOf(obj("{}")), null, "App ideas")
         assertEquals("App ideas", page.title)
-        assertTrue("<ul>\n<li>one</li>\n<li><a href=\"https://two.org\">two</a></li>\n</ul>\n<ol>\n<li value=\"1\">first</li>\n</ol>" in page.html)
+        assertTrue(
+            "<ul>\n<li>one</li>\n<li><a href=\"https://two.org\">two</a></li>\n</ul>\n" +
+                "<ol>\n<li value=\"1\">first</li>\n</ol>" in page.html
+        )
         assertTrue("<li>bad</li>" in page.html, "only web and mail links are kept")
     }
 }

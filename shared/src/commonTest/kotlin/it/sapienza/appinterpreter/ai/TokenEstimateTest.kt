@@ -9,7 +9,11 @@ class TokenEstimateTest {
         assertEquals(0, TokenEstimate.of(""))
         assertEquals(1, TokenEstimate.of("abc"))
         assertEquals(2, TokenEstimate.of("abcde"))
-        assertEquals(6072, TokenEstimate.of("x".repeat(23072)), "the prompt's length, which OpenAI's tokenizer counts as 6,020")
+        assertEquals(
+            6072,
+            TokenEstimate.of("x".repeat(23072)),
+            "the prompt's length, which OpenAI's tokenizer counts as 6,020"
+        )
     }
 
     @Test

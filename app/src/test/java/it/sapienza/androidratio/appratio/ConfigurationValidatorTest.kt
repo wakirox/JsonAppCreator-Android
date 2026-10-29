@@ -1,18 +1,18 @@
 package it.sapienza.androidratio.appratio
 
-import it.sapienza.appinterpreter.validation.fromAssets
-import it.sapienza.appinterpreter.validation.fromSchema
 import it.sapienza.appinterpreter.validation.ConfigurationIssueKind
 import it.sapienza.appinterpreter.validation.ConfigurationSchemaException
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
+import java.nio.file.Files
+import java.nio.file.Path
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.nio.file.Files
-import java.nio.file.Path
 
 class ConfigurationValidatorTest {
     private val validator: ConfigurationValidator by lazy {

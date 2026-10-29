@@ -5,21 +5,22 @@ import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.ModelApplication
 import it.sapienza.appinterpreter.model.ModelJson
-import it.sapienza.appinterpreter.model.event.*
+import it.sapienza.appinterpreter.model.event.AlertMessage
+import it.sapienza.appinterpreter.model.event.Event
+import it.sapienza.appinterpreter.model.event.RESTService
+import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import kotlinx.serialization.json.JsonElement
 
+class AppParser(val obj: String) {
 
-class AppParser(val obj : String) {
-
-    fun parseApplication2() : ModelApplication {
-
+    fun parseApplication2(): ModelApplication {
         /*
-        * per facilitare la scrittura del modello si è deciso di dare la possibilità di riutilizzare determinati elementi
-        * all'iterno del modello specificando solamente l'id di un elemento è possibile referenziarlo dalla lista generale dell'app
-        * Per evitare problemi con la scrittura non è
-        * possibile referenziare un elemento che si trova definito all'interno di un altro elemento*/
+         * per facilitare la scrittura del modello si è deciso di dare la possibilità di riutilizzare determinati elementi
+         * all'iterno del modello specificando solamente l'id di un elemento è possibile referenziarlo dalla lista generale dell'app
+         * Per evitare problemi con la scrittura non è
+         * possibile referenziare un elemento che si trova definito all'interno di un altro elemento*/
 
         val tree = try {
             JsonText.parse(obj)
@@ -53,33 +54,29 @@ class AppParser(val obj : String) {
         return model
     }
 
-    private fun findView(
-        ev: Event,
-        model: ModelApplication
-    ) {
-        when(ev){
-            is ShowView -> if(!ev.view.isReference()){
+    private fun findView(ev: Event, model: ModelApplication) {
+        when (ev) {
+            is ShowView -> if (!ev.view.isReference()) {
                 findGenericView(ev.view, model)
             }
+
             is RESTService -> {
-                ev.thenDo?.let { findView(it,model) }
+                ev.thenDo?.let { findView(it, model) }
             }
+
             is AlertMessage -> {
-                ev.thenDoOK?.let { findView(it,model) }
-                ev.thenDoKO?.let { findView(it,model) }
+                ev.thenDoOK?.let { findView(it, model) }
+                ev.thenDoKO?.let { findView(it, model) }
             }
         }
     }
 
-    private fun findGenericView(
-        view: MView,
-        model: ModelApplication,
-        addSelf: Boolean = true
-    ) {
-        when(view){
+    private fun findGenericView(view: MView, model: ModelApplication, addSelf: Boolean = true) {
+        when (view) {
             is ListView -> {
-                findGenericView(view.itemView,model)
+                findGenericView(view.itemView, model)
             }
+
             is Layout -> {
                 view.views.forEach {
                     findGenericView(it, model)
@@ -97,9 +94,7 @@ class AppParser(val obj : String) {
         if (addSelf && !view.isReference()) {
             model.views.add(view)
         }
-
     }
-
 
     private fun checkModelConsistency(model: ModelApplication) {
         model.actions.firstOrNull { it.isReference() }?.let {
@@ -109,5 +104,4 @@ class AppParser(val obj : String) {
             throw ConfigurationValidationException("$.views", "references cannot be registered as view definitions")
         }
     }
-
 }

@@ -15,7 +15,9 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class AskAiTokenEstimateTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val currentApp = """{ "schemaVersion": 3, "name": "Big", "version": "1.0", "mainView": { "type": "text", "title": "${"x".repeat(38_000)}" } }"""
+    private val currentApp = """{ "schemaVersion": 3, "name": "Big", "version": "1.0", "mainView": { "type": "text", "title": "${"x".repeat(
+        38_000
+    )}" } }"""
 
     @Test
     fun theInstructionsAloneTakeSomeThousandTokens() {
@@ -28,8 +30,14 @@ class AskAiTokenEstimateTest {
     fun theCurrentAppAndTheRequestAddTheirShare() {
         val instructions = AskAi.tokens(context, null, null)
         val withApp = AskAi.tokens(context, currentApp, null)
-        assertTrue("the current app adds about 10,000: ${withApp - instructions}", withApp - instructions in 9_500..10_500)
+        assertTrue(
+            "the current app adds about 10,000: ${withApp - instructions}",
+            withApp - instructions in 9_500..10_500
+        )
         val withRequest = AskAi.tokens(context, null, "A book list. ".repeat(60))
-        assertTrue("780 characters add about 200: ${withRequest - instructions}", withRequest - instructions in 150..250)
+        assertTrue(
+            "780 characters add about 200: ${withRequest - instructions}",
+            withRequest - instructions in 150..250
+        )
     }
 }

@@ -34,7 +34,9 @@ class PhotoStore(context: Context) {
         val name = "${UUID.randomUUID()}.jpg"
         folder.mkdirs()
         File(folder, name).writeBytes(jpeg(uri, THUMB_SIDE))
-        val linked = runCatching { resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }.isSuccess
+        val linked = runCatching {
+            resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }.isSuccess
         if (linked) {
             links.put(name, uri.toString())
         } else {
@@ -115,9 +117,18 @@ class PhotoStore(context: Context) {
         val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(resolver, uri)) { decoder, info, _ ->
             val (width, height) = info.size.width to info.size.height
             val scale = side.toFloat() / maxOf(width, height)
-            if (scale < 1) decoder.setTargetSize((width * scale).toInt().coerceAtLeast(1), (height * scale).toInt().coerceAtLeast(1))
+            if (scale <
+                1
+            ) {
+                decoder.setTargetSize(
+                    (width * scale).toInt().coerceAtLeast(1),
+                    (height * scale).toInt().coerceAtLeast(1)
+                )
+            }
         }
-        return ByteArrayOutputStream().also { check(bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, it)) }.toByteArray()
+        return ByteArrayOutputStream().also {
+            check(bitmap.compress(Bitmap.CompressFormat.JPEG, QUALITY, it))
+        }.toByteArray()
     }
 
     companion object {

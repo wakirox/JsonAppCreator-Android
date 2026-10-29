@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ActionType {
-    click, longclick
+    click,
+    longclick
 }

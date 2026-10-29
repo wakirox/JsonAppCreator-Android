@@ -27,7 +27,8 @@ fun AppIcon.bitmap(name: String, icon: String?): Bitmap {
         val tile = size * 0.40f
         canvas.drawRoundRect(
             RectF(center - tile / 2, center - tile / 2, center + tile / 2, center + tile / 2),
-            tile * 0.28f, tile * 0.28f,
+            tile * 0.28f,
+            tile * 0.28f,
             Paint(Paint.ANTI_ALIAS_FLAG).apply { color = tileColor(name) }
         )
         text.color = android.graphics.Color.WHITE

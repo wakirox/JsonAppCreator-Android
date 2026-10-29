@@ -4,7 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class LayoutOrientation {
-    horizontal, vertical,
+    horizontal,
+    vertical,
+
     /** Lists only: items side by side in rows of ListView.columns. */
     grid
 }

@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonTransformingSerializer
 
 @Serializable
 class ListView(
@@ -60,19 +60,18 @@ class StoredData(
 
 /** One order a stored list offers, by its [title] (keep it short: they share a row). */
 @Serializable
-class SortOption(
-    val title: String,
-    @Serializable(with = StoredSortsSerializer::class) val sort: List<StoredSort>
-)
+class SortOption(val title: String, @Serializable(with = StoredSortsSerializer::class) val sort: List<StoredSort>)
 
 /**
  * The order of a stored list, one StoredSort or a list of them: each later one orders the objects the earlier ones
  * leave tied, such as done ideas last, then by priority.
  */
 object StoredSortsSerializer : JsonTransformingSerializer<List<StoredSort>>(ListSerializer(StoredSort.serializer())) {
-    override fun transformDeserialize(element: JsonElement): JsonElement = element as? JsonArray ?: JsonArray(listOf(element))
+    override fun transformDeserialize(element: JsonElement): JsonElement =
+        element as? JsonArray ?: JsonArray(listOf(element))
 
-    override fun transformSerialize(element: JsonElement): JsonElement = (element as? JsonArray)?.singleOrNull() ?: element
+    override fun transformSerialize(element: JsonElement): JsonElement =
+        (element as? JsonArray)?.singleOrNull() ?: element
 }
 
 /**
@@ -81,8 +80,4 @@ object StoredSortsSerializer : JsonTransformingSerializer<List<StoredSort>>(List
  * tie keep the order they were saved in.
  */
 @Serializable
-class StoredSort(
-    val by: String,
-    val order: List<String>? = null,
-    val descending: Boolean = false
-)
+class StoredSort(val by: String, val order: List<String>? = null, val descending: Boolean = false)

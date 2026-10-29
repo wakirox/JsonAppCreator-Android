@@ -45,11 +45,7 @@ class CalendarEvent(
  * mailto: an email app. Placeholders in it are filled in from the current data.
  */
 @Serializable
-class OpenLink(
-    val url: String,
-    override val mapping: String? = null,
-    override val data: JsonObject? = null
-) : Event()
+class OpenLink(val url: String, override val mapping: String? = null, override val data: JsonObject? = null) : Event()
 
 /** Opens the phone's share sheet on [text], filled in from the current data. */
 @Serializable
@@ -133,19 +129,11 @@ class DeleteData(
  * is the response's value at [urlFrom], until there is none.
  */
 @Serializable
-class NextPage(
-    val parameter: String? = null,
-    val step: Int? = null,
-    val urlFrom: String? = null
-)
+class NextPage(val parameter: String? = null, val step: Int? = null, val urlFrom: String? = null)
 
 /** Copies [text] to the clipboard, filled from the data; a line whose placeholders all lack a value is left out. */
 @Serializable
-class CopyText(
-    val text: String,
-    override val mapping: String? = null,
-    override val data: JsonObject? = null
-) : Event()
+class CopyText(val text: String, override val mapping: String? = null, override val data: JsonObject? = null) : Event()
 
 /**
  * Makes a PDF of the saved objects of [collection] that match [where], in [sort]'s order: [title] at the top, filled
@@ -166,7 +154,8 @@ class PdfItems(
     val pageless: Boolean = false,
     override val mapping: String? = null,
     override val data: JsonObject? = null
-) : Event(), ItemsExport
+) : Event(),
+    ItemsExport
 
 /**
  * Makes a TextPack (a zipped TextBundle: Markdown with its files) of the saved objects, picked and written as a
@@ -185,7 +174,8 @@ class TextPackItems(
     override val emptyText: String? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null
-) : Event(), ItemsExport
+) : Event(),
+    ItemsExport
 
 /** What an event that writes out saved objects ([PdfItems], [TextPackItems]) says about which, and how. */
 interface ItemsExport {
@@ -195,6 +185,7 @@ interface ItemsExport {
     val title: String?
     val text: String
     val photos: String?
+
     /** Where each object keeps its attached files (a files field's list): listed in a PDF, packed in a TextPack. */
     val files: String?
     val emptyText: String?
@@ -202,10 +193,7 @@ interface ItemsExport {
 
 /** Closes the current screen and goes back to the one that opened it, as the phone's Back does. */
 @Serializable
-class GoBack(
-    override val mapping: String? = null,
-    override val data: JsonObject? = null
-) : Event()
+class GoBack(override val mapping: String? = null, override val data: JsonObject? = null) : Event()
 
 @Serializable
 class ShowView(
@@ -237,7 +225,10 @@ object EventSerializer : TypedSerializer<Event>(
 
 @Serializable
 enum class CallServiceMethod {
-    get, post, put, delete;
+    get,
+    post,
+    put,
+    delete;
 
     /** Whether the request sends its data as a JSON body. */
     val sendsBody: Boolean get() = this == post || this == put

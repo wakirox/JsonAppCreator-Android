@@ -30,8 +30,13 @@ object ImageLinks {
             val url = (obj["url"] as? JsonPrimitive)?.contentOrNull
             when {
                 url == null -> Unit
+
                 url.startsWith("https://") && "\${" !in url -> found += "$path.url" to url
-                else -> WHOLE_PLACEHOLDER.matchEntire(url.trim())?.let { fields += it.groupValues[1].substringAfterLast('.') }
+
+                else -> WHOLE_PLACEHOLDER.matchEntire(url.trim())?.let {
+                    fields +=
+                        it.groupValues[1].substringAfterLast('.')
+                }
             }
             (obj["mapping"] as? JsonPrimitive)?.contentOrNull?.let { fields += it.substringAfterLast('.') }
         }
@@ -72,7 +77,9 @@ object ImageLinks {
                 visit(path, element)
                 element.forEach { (key, value) -> walk(value, "$path.$key", visit) }
             }
+
             is JsonArray -> element.forEachIndexed { index, value -> walk(value, "$path[$index]", visit) }
+
             else -> Unit
         }
     }

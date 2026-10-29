@@ -63,8 +63,14 @@ class ListPagingTest {
     ).parseApplication2().mainView as ListView
 
     /** The engine answers on its own thread: wait for [entry] to show what [done] expects. */
-    private suspend fun settled(entry: ListsState.Entry, done: (ListsState.Content) -> Boolean = { !it.waiting && !it.loadingMore && !it.refreshing }) =
-        withContext(Dispatchers.Default) { withTimeout(10_000) { entry.content.first(done) } }
+    private suspend fun settled(
+        entry: ListsState.Entry,
+        done: (ListsState.Content) -> Boolean = {
+            !it.waiting &&
+                !it.loadingMore &&
+                !it.refreshing
+        }
+    ) = withContext(Dispatchers.Default) { withTimeout(10_000) { entry.content.first(done) } }
 
     private val paged = list(
         """{ "url": "https://example.com/works?q=${'$'}{q}&limit=3", "nextPage": { "parameter": "skip", "step": 3 } }"""
@@ -148,19 +154,34 @@ class ListPagingTest {
     fun theNextPagesUrlCanComeFromTheResponse() {
         val next = NextPage(urlFrom = "info.next")
         val withNext = JsonText.parse("""{ "info": { "next": "https://example.com/p2" } }""") as JsonObject
-        assertEquals("https://example.com/p2", LoadListItemsUseCase.nextUrl(next, "https://example.com/p1", withNext, 5))
+        assertEquals(
+            "https://example.com/p2",
+            LoadListItemsUseCase.nextUrl(next, "https://example.com/p1", withNext, 5)
+        )
         assertNull(LoadListItemsUseCase.nextUrl(next, "https://example.com/p2", withNext, 5), "the same page again")
         assertNull(LoadListItemsUseCase.nextUrl(next, "https://example.com/p1", JsonObject(emptyMap()), 5))
-        assertNull(LoadListItemsUseCase.nextUrl(next, "https://example.com/p1", withNext, 0), "an empty page ends the list")
+        assertNull(
+            LoadListItemsUseCase.nextUrl(next, "https://example.com/p1", withNext, 0),
+            "an empty page ends the list"
+        )
     }
 
     @Test
     fun theParameterIsReplacedOrAdded() {
-        assertEquals("https://x/a?skip=40&limit=20", LoadListItemsUseCase.withParameter("https://x/a?skip=20&limit=20", "skip", 40))
-        assertEquals("https://x/a?limit=20&skip=20", LoadListItemsUseCase.withParameter("https://x/a?limit=20", "skip", 20))
+        assertEquals(
+            "https://x/a?skip=40&limit=20",
+            LoadListItemsUseCase.withParameter("https://x/a?skip=20&limit=20", "skip", 40)
+        )
+        assertEquals(
+            "https://x/a?limit=20&skip=20",
+            LoadListItemsUseCase.withParameter("https://x/a?limit=20", "skip", 20)
+        )
         assertEquals("https://x/a?skip=20#top", LoadListItemsUseCase.withParameter("https://x/a#top", "skip", 20))
         val response = JsonObject(emptyMap())
-        assertEquals("https://x/a?skip=40&limit=20", LoadListItemsUseCase.nextUrl(NextPage("skip", 20), "https://x/a?skip=20&limit=20", response, 20))
+        assertEquals(
+            "https://x/a?skip=40&limit=20",
+            LoadListItemsUseCase.nextUrl(NextPage("skip", 20), "https://x/a?skip=20&limit=20", response, 20)
+        )
         assertNull(LoadListItemsUseCase.nextUrl(NextPage("skip", 20), "https://x/a?skip=20", response, 19))
     }
 }

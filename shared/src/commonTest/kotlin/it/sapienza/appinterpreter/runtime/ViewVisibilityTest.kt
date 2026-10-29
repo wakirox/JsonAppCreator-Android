@@ -4,11 +4,11 @@ import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.utils.AppParser
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.JsonObject
 
 /** Which views are drawn when the data lacks what they show. */
 class ViewVisibilityTest {
@@ -56,7 +56,10 @@ class ViewVisibilityTest {
     fun htmlWithOnlyTagsIsEmpty() {
         assertFalse(shown("""{ "type": "text", "label": "About", "title": "<p><br></p>", "format": "html" }"""))
         assertTrue(shown("""{ "type": "text", "label": "About", "title": "<p><em>Eden</em></p>", "format": "html" }"""))
-        assertTrue(shown("""{ "type": "text", "label": "About", "title": "<p><br></p>" }"""), "as plain text, the tags show")
+        assertTrue(
+            shown("""{ "type": "text", "label": "About", "title": "<p><br></p>" }"""),
+            "as plain text, the tags show"
+        )
     }
 
     @Test

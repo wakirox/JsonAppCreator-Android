@@ -18,6 +18,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.dp
 import it.sapienza.appinterpreter.ui.AppIconView
 import it.sapienza.appinterpreter.ui.AppTheme
+import java.io.File
+import java.io.FileOutputStream
+import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -26,9 +29,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
-import java.io.File
-import java.io.FileOutputStream
-import kotlin.math.abs
 
 /** Golden images of [AppIconView]: an app's emoji on its soft colour, or its letter tile over cream. */
 @RunWith(RobolectricTestRunner::class)

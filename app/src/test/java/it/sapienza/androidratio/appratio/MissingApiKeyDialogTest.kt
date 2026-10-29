@@ -9,8 +9,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
-import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.activity.MainActivity
+import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

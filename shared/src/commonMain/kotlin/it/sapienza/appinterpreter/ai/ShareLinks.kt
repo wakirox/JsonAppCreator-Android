@@ -51,9 +51,15 @@ object ShareLinks {
         val id = finalUrl.substringAfter("/share/", "").substringBefore('?').substringBefore('/')
         return when {
             // Gemini's page loads the chat afterwards, with this request of its own.
-            "gemini.google.com" in finalUrl && id.isNotEmpty() -> geminiChat(client, id)?.let { lastConfiguration(it, promptExamples) }
+            "gemini.google.com" in finalUrl && id.isNotEmpty() -> geminiChat(client, id)?.let {
+                lastConfiguration(it, promptExamples)
+            }
+
             "grok.com" in finalUrl && id.isNotEmpty() ->
-                get(client, "https://grok.com/rest/app-chat/share_links/$id").first.let { lastConfiguration(it, promptExamples) }
+                get(client, "https://grok.com/rest/app-chat/share_links/$id").first.let {
+                    lastConfiguration(it, promptExamples)
+                }
+
             else -> null
         }
     }

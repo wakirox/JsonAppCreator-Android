@@ -16,8 +16,10 @@ object SharedApps {
     sealed interface Arrival {
         /** No saved app has its name. */
         data object New : Arrival
+
         /** The same app, unchanged: opening it changes nothing. */
         data object Unchanged : Arrival
+
         /** Another app, or another version, has the name: it's replaced, or both are kept under different names. */
         data class SameName(val saved: AppLibrary.SavedApp) : Arrival
     }
@@ -59,10 +61,19 @@ object SharedApps {
     /** The host of a web address, lowercased, or null when [text] isn't one (as java.net.URI read it). */
     internal fun hostOf(text: String): String? {
         val value = text.trim()
-        if (!value.startsWith("https://", ignoreCase = true) && !value.startsWith("http://", ignoreCase = true)) return null
+        if (!value.startsWith("https://", ignoreCase = true) &&
+            !value.startsWith("http://", ignoreCase = true)
+        ) {
+            return null
+        }
         // ${placeholders} in a path or query aren't valid URI characters, and only the host matters.
         val authority = value.substringAfter("://").substringBefore('/').substringBefore('?').substringBefore('#')
-        if (authority.any { it.isWhitespace() || it in NOT_IN_AUTHORITY || it.code < 0x20 || it.code == 0x7F }) return null
+        if (authority.any {
+                it.isWhitespace() || it in NOT_IN_AUTHORITY || it.code < 0x20 || it.code == 0x7F
+            }
+        ) {
+            return null
+        }
         val hostAndPort = authority.substringAfterLast('@')
         val host: String
         val port: String

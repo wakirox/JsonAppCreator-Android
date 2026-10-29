@@ -26,7 +26,10 @@ class PhotoZoomTest {
 
     @Test
     fun zoomStaysBetweenFullSizeAndSixTimesAndFullSizeIsCentred() {
-        assertEquals(PhotoZoom.MAX_SCALE, PhotoZoom.next(5f, Offset.Zero, zoom = 3f, pan = Offset.Zero, size = screen).first)
+        assertEquals(
+            PhotoZoom.MAX_SCALE,
+            PhotoZoom.next(5f, Offset.Zero, zoom = 3f, pan = Offset.Zero, size = screen).first
+        )
         val (scale, offset) = PhotoZoom.next(2f, Offset(400f, 300f), zoom = 0.1f, pan = Offset.Zero, size = screen)
         assertEquals(1f, scale)
         assertEquals(Offset.Zero, offset)

@@ -18,7 +18,8 @@ object ViewVisibility {
      * [view] was reached through, if any: its visibleIf counts too.
      */
     fun isShown(view: MView, data: JsonObject?, reference: MView? = null): Boolean =
-        holds(reference?.takeIf { it !== view }?.visibleIf, data) && holds(view.visibleIf, data) && hasContent(view, data)
+        holds(reference?.takeIf { it !== view }?.visibleIf, data) && holds(view.visibleIf, data) &&
+            hasContent(view, data)
 
     /** A visibleIf condition: "path" needs a value there, "!path" needs none, and null always holds. */
     fun holds(condition: String?, data: JsonObject?): Boolean {

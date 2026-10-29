@@ -1,7 +1,7 @@
 package it.sapienza.androidratio.appratio
 
 import android.content.Intent
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -32,7 +32,10 @@ class AboutDialogTest {
     fun theTermsOfUseOpenFromAbout() {
         openAbout()
         composeRule.onNodeWithText("Terms of use").performScrollTo().performClick()
-        composeRule.onNodeWithText("You are responsible for the apps you run and share", substring = true).assertExists()
+        composeRule.onNodeWithText(
+            "You are responsible for the apps you run and share",
+            substring = true
+        ).assertExists()
     }
 
     @Test

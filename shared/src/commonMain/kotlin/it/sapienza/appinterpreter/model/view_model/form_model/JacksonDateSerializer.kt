@@ -22,14 +22,22 @@ import kotlinx.serialization.json.JsonPrimitive
 object JacksonDateSerializer : KSerializer<Long?> {
     override val descriptor = PrimitiveSerialDescriptor("JacksonDate", PrimitiveKind.LONG).nullable
 
-    private val ISO = Regex("""(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d)(?::(\d\d))?(?:\.(\d+))?(Z|[+-]\d\d(?::?\d\d)?)?)?""")
+    private val ISO =
+        Regex("""(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d)(?::(\d\d))?(?:\.(\d+))?(Z|[+-]\d\d(?::?\d\d)?)?)?""")
 
     override fun deserialize(decoder: Decoder): Long? {
         val element = (decoder as JsonDecoder).decodeJsonElement()
         if (element is JsonNull) return null
         val primitive = element as? JsonPrimitive ?: throw SerializationException("A date must be a string or a number")
         if (!primitive.isString) {
-            return if (JsonNumbers.isDecimal(primitive.content)) primitive.content.toDouble().toLong() else primitive.content.toLong()
+            return if (JsonNumbers.isDecimal(
+                    primitive.content
+                )
+            ) {
+                primitive.content.toDouble().toLong()
+            } else {
+                primitive.content.toLong()
+            }
         }
         return parse(primitive.content) ?: throw SerializationException(
             "Cannot parse date \"${primitive.content}\": not a timestamp or an ISO 8601 date (yyyy-MM-dd or yyyy-MM-ddTHH:mm:ss)"
@@ -43,10 +51,13 @@ object JacksonDateSerializer : KSerializer<Long?> {
         val match = ISO.matchEntire(trimmed) ?: return null
         val (year, month, day, hour, minute, second, fraction, zone) = match.destructured
         val days = daysFromCivil(year.toLong(), month.toLong(), 1) + day.toLong() - 1
-        val seconds = days * 86_400 + (hour.toLongOrNull() ?: 0) * 3_600 + (minute.toLongOrNull() ?: 0) * 60 + (second.toLongOrNull() ?: 0)
+        val seconds =
+            days * 86_400 + (hour.toLongOrNull() ?: 0) * 3_600 + (minute.toLongOrNull() ?: 0) * 60 +
+                (second.toLongOrNull() ?: 0)
         val millis = fraction.take(3).padEnd(3, '0').takeIf { fraction.isNotEmpty() }?.toLong() ?: 0
         val offsetMinutes = when {
             zone.isEmpty() || zone == "Z" -> 0
+
             else -> {
                 val digits = zone.substring(1).replace(":", "")
                 val minutes = digits.take(2).toInt() * 60 + (digits.drop(2).toIntOrNull() ?: 0)

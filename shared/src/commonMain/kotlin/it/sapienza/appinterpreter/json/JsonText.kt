@@ -14,12 +14,8 @@ import kotlinx.serialization.json.JsonUnquotedLiteral
  * A syntax error in JSON text: where the reader stopped ([offset], and the 1-based [line] and [column]) and why.
  * [reason] is worded like the parser the app used before (Jackson), which the editor turns into plain words.
  */
-class JsonSyntaxException(
-    val offset: Int,
-    val line: Int,
-    val column: Int,
-    val reason: String
-) : IllegalArgumentException("$reason at line $line, column $column")
+class JsonSyntaxException(val offset: Int, val line: Int, val column: Int, val reason: String) :
+    IllegalArgumentException("$reason at line $line, column $column")
 
 /**
  * Strict JSON (RFC 8259) reading and writing for the whole app, in common code. It reads into kotlinx.serialization
@@ -71,10 +67,14 @@ object JsonText {
     /** [element] with every non-integer number as a Double would print it (0.10 becomes 0.1), like Jackson's default. */
     fun withDoubleNumbers(element: JsonElement): JsonElement = when (element) {
         is JsonObject -> JsonObject(element.mapValues { withDoubleNumbers(it.value) })
+
         is JsonArray -> JsonArray(element.map(::withDoubleNumbers))
+
         is JsonPrimitive -> if (!element.isString && element !is JsonNull && JsonNumbers.isDecimal(element.content)) {
             JsonUnquotedLiteral(element.content.toDouble().toString())
-        } else element
+        } else {
+            element
+        }
     }
 
     private fun StringBuilder.write(element: JsonElement, level: Int) {
@@ -97,6 +97,7 @@ object JsonText {
                 newline(level)
                 append('}')
             }
+
             is JsonArray -> {
                 if (element.isEmpty()) {
                     append("[ ]")
@@ -111,7 +112,9 @@ object JsonText {
                 newline(level)
                 append(']')
             }
+
             is JsonNull -> append("null")
+
             is JsonPrimitive -> when {
                 element.isString -> quote(element.content)
                 element.content == "true" || element.content == "false" -> append(element.content)
@@ -131,17 +134,26 @@ object JsonText {
         value.forEach { c ->
             when (c) {
                 '"' -> append("\\\"")
+
                 '\\' -> append("\\\\")
+
                 '\n' -> append("\\n")
+
                 '\r' -> append("\\r")
+
                 '\t' -> append("\\t")
+
                 '\b' -> append("\\b")
+
                 '\u000C' -> append("\\f")
+
                 else -> if (c.code < 0x20) {
                     append("\\u00")
                     append(HEX[c.code shr 4])
                     append(HEX[c.code and 0xF])
-                } else append(c)
+                } else {
+                    append(c)
+                }
             }
         }
         append('"')
@@ -162,7 +174,11 @@ object JsonText {
         fun atEnd() = pos >= text.length
 
         fun skipWhitespace() {
-            while (pos < text.length && (text[pos] == ' ' || text[pos] == '\n' || text[pos] == '\r' || text[pos] == '\t')) pos++
+            while (pos < text.length &&
+                (text[pos] == ' ' || text[pos] == '\n' || text[pos] == '\r' || text[pos] == '\t')
+            ) {
+                pos++
+            }
         }
 
         fun value(path: String): JsonElement {
@@ -171,11 +187,21 @@ object JsonText {
             val c = text[pos]
             return when {
                 c == '{' -> objectAt(path)
+
                 c == '[' -> arrayAt(path)
+
                 c == '"' -> JsonPrimitive(string())
+
                 c == '-' || c in '0'..'9' -> number()
+
                 isWordChar(c) -> word()
-                else -> fail(pos, "Unexpected character (${describe(c)}): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')")
+
+                else -> fail(
+                    pos,
+                    "Unexpected character (${describe(
+                        c
+                    )}): expected a valid value (JSON String, Number, Array, Object or token 'null', 'true' or 'false')"
+                )
             }
         }
 
@@ -197,7 +223,10 @@ object JsonText {
                 skipWhitespace()
                 if (atEnd()) endOfInput("expected a property name")
                 if (text[pos] != '"') {
-                    fail(pos, "Unexpected character (${describe(text[pos])}): was expecting double-quote to start field name")
+                    fail(
+                        pos,
+                        "Unexpected character (${describe(text[pos])}): was expecting double-quote to start field name"
+                    )
                 }
                 val keyStart = pos
                 val key = string()
@@ -206,7 +235,12 @@ object JsonText {
                 skipWhitespace()
                 if (atEnd()) endOfInput("expected a colon")
                 if (text[pos] != ':') {
-                    fail(pos, "Unexpected character (${describe(text[pos])}): was expecting a colon to separate field name and value")
+                    fail(
+                        pos,
+                        "Unexpected character (${describe(
+                            text[pos]
+                        )}): was expecting a colon to separate field name and value"
+                    )
                 }
                 pos++
                 val member = value(keyPath)
@@ -216,12 +250,17 @@ object JsonText {
                 if (atEnd()) endOfInput("expected close marker for Object")
                 when (text[pos]) {
                     ',' -> pos++
+
                     '}' -> {
                         pos++
                         depth--
                         return JsonObject(members)
                     }
-                    else -> fail(pos, "Unexpected character (${describe(text[pos])}): was expecting comma to separate Object entries")
+
+                    else -> fail(
+                        pos,
+                        "Unexpected character (${describe(text[pos])}): was expecting comma to separate Object entries"
+                    )
                 }
             }
         }
@@ -245,12 +284,17 @@ object JsonText {
                 if (atEnd()) endOfInput("expected close marker for Array")
                 when (text[pos]) {
                     ',' -> pos++
+
                     ']' -> {
                         pos++
                         depth--
                         return JsonArray(items)
                     }
-                    else -> fail(pos, "Unexpected character (${describe(text[pos])}): was expecting comma to separate Array entries")
+
+                    else -> fail(
+                        pos,
+                        "Unexpected character (${describe(text[pos])}): was expecting comma to separate Array entries"
+                    )
                 }
             }
         }
@@ -266,33 +310,48 @@ object JsonText {
                         pos++
                         return out.toString()
                     }
+
                     c == '\\' -> {
                         if (pos + 1 >= text.length) endOfInput("in character escape sequence")
                         val escaped = text[pos + 1]
                         pos += 2
                         when (escaped) {
                             '"' -> out.append('"')
+
                             '\\' -> out.append('\\')
+
                             '/' -> out.append('/')
+
                             'b' -> out.append('\b')
+
                             'f' -> out.append('\u000C')
+
                             'n' -> out.append('\n')
+
                             'r' -> out.append('\r')
+
                             't' -> out.append('\t')
+
                             'u' -> {
                                 if (pos + 4 > text.length) endOfInput("in character escape sequence")
                                 val code = text.substring(pos, pos + 4).toIntOrNull(16)
-                                    ?: fail(pos, "Unexpected character in a \\u escape: expected a hex-digit for character escape sequence")
+                                    ?: fail(
+                                        pos,
+                                        "Unexpected character in a \\u escape: expected a hex-digit for character escape sequence"
+                                    )
                                 out.append(code.toChar())
                                 pos += 4
                             }
+
                             else -> fail(pos - 1, "Unrecognized character escape ${describe(escaped)}")
                         }
                     }
+
                     c.code < 0x20 -> fail(
                         pos,
                         "Illegal unquoted character ((CTRL-CHAR, code ${c.code})): has to be escaped using backslash to be included in string value"
                     )
+
                     else -> {
                         out.append(c)
                         pos++
@@ -308,10 +367,21 @@ object JsonText {
             when {
                 text[pos] == '0' -> {
                     pos++
-                    if (!atEnd() && text[pos] in '0'..'9') fail(start, "Invalid numeric value: Leading zeroes not allowed")
+                    if (!atEnd() &&
+                        text[pos] in '0'..'9'
+                    ) {
+                        fail(start, "Invalid numeric value: Leading zeroes not allowed")
+                    }
                 }
+
                 text[pos] in '1'..'9' -> digits()
-                else -> fail(pos, "Unexpected character (${describe(text[pos])}) in numeric value: expected digit (0-9) to follow minus sign, for valid numeric value")
+
+                else -> fail(
+                    pos,
+                    "Unexpected character (${describe(
+                        text[pos]
+                    )}) in numeric value: expected digit (0-9) to follow minus sign, for valid numeric value"
+                )
             }
             if (!atEnd() && text[pos] == '.') {
                 pos++
@@ -323,12 +393,22 @@ object JsonText {
             if (!atEnd() && (text[pos] == 'e' || text[pos] == 'E')) {
                 pos++
                 if (!atEnd() && (text[pos] == '+' || text[pos] == '-')) pos++
-                if (atEnd() || text[pos] !in '0'..'9') fail(pos, "Unexpected character in numeric value: Exponent indicator not followed by a digit")
+                if (atEnd() ||
+                    text[pos] !in '0'..'9'
+                ) {
+                    fail(pos, "Unexpected character in numeric value: Exponent indicator not followed by a digit")
+                }
                 digits()
             }
             if (!atEnd() && isWordChar(text[pos])) {
                 val end = wordEnd(pos)
-                fail(start, "Unrecognized token '${text.substring(start, end)}': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')")
+                fail(
+                    start,
+                    "Unrecognized token '${text.substring(
+                        start,
+                        end
+                    )}': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')"
+                )
             }
             return JsonUnquotedLiteral(text.substring(start, pos))
         }
@@ -343,9 +423,18 @@ object JsonText {
             pos = end
             return when (text.substring(start, end)) {
                 "true" -> JsonPrimitive(true)
+
                 "false" -> JsonPrimitive(false)
+
                 "null" -> JsonNull
-                else -> fail(start, "Unrecognized token '${text.substring(start, end)}': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')")
+
+                else -> fail(
+                    start,
+                    "Unrecognized token '${text.substring(
+                        start,
+                        end
+                    )}': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')"
+                )
             }
         }
 
@@ -373,16 +462,18 @@ object JsonText {
 /** How the app prints JSON numbers, which are kept as written when read. */
 object JsonNumbers {
     /** Whether [literal] has a fraction or an exponent. */
-    fun isDecimal(literal: String) =
-        (literal.firstOrNull()?.let { it == '-' || it.isDigit() } == true) && literal.any { it == '.' || it == 'e' || it == 'E' }
+    fun isDecimal(literal: String) = (literal.firstOrNull()?.let { it == '-' || it.isDigit() } == true) &&
+        literal.any { it == '.' || it == 'e' || it == 'E' }
 
     /**
      * [literal] as the old Android code showed a number read from JSON: whole numbers as they are (as a long when they
      * fit), others as a Double prints them (1.50 is 1.5).
      */
-    fun display(literal: String): String =
-        if (isDecimal(literal)) literal.toDouble().toString()
-        else literal.toLongOrNull()?.toString() ?: literal.toDouble().toString()
+    fun display(literal: String): String = if (isDecimal(literal)) {
+        literal.toDouble().toString()
+    } else {
+        literal.toLongOrNull()?.toString() ?: literal.toDouble().toString()
+    }
 
     /** [literal] as Java's BigDecimal.toString() and BigInteger print it, which is how Jackson wrote exact numbers. */
     fun exact(literal: String): String {
@@ -394,7 +485,13 @@ object JsonNumbers {
         val negative = literal.startsWith('-')
         val body = literal.removePrefix("-")
         val mantissa = body.substringBefore('e').substringBefore('E')
-        val exponent = if (mantissa.length < body.length) body.substring(mantissa.length + 1).removePrefix("+").toInt() else 0
+        val exponent = if (mantissa.length <
+            body.length
+        ) {
+            body.substring(mantissa.length + 1).removePrefix("+").toInt()
+        } else {
+            0
+        }
         val whole = mantissa.substringBefore('.')
         val fraction = if ('.' in mantissa) mantissa.substringAfter('.') else ""
         val unscaled = (whole + fraction).trimStart('0').ifEmpty { "0" }
@@ -420,4 +517,3 @@ object JsonNumbers {
         return scientific.toString()
     }
 }
-

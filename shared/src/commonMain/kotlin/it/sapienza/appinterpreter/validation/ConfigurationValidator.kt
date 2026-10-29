@@ -16,15 +16,9 @@ enum class ConfigurationIssueKind {
     SCHEMA
 }
 
-data class ConfigurationIssue(
-    val path: String,
-    val message: String,
-    val kind: ConfigurationIssueKind
-)
+data class ConfigurationIssue(val path: String, val message: String, val kind: ConfigurationIssueKind)
 
-data class ConfigurationValidationResult(
-    val issues: List<ConfigurationIssue>
-) {
+data class ConfigurationValidationResult(val issues: List<ConfigurationIssue>) {
     val isValid: Boolean
         get() = issues.isEmpty()
 }
@@ -36,10 +30,7 @@ data class ConfigurationValidationResult(
  * failures as values so callers can show all useful paths instead of surfacing
  * only the first conversion exception.
  */
-class ConfigurationValidator private constructor(
-    private val schema: JsonSchema,
-    private val schemaJson: JsonElement
-) {
+class ConfigurationValidator private constructor(private val schema: JsonSchema, private val schemaJson: JsonElement) {
 
     fun validate(json: String): ConfigurationValidationResult {
         val document = try {
@@ -79,34 +70,49 @@ class ConfigurationValidator private constructor(
                 val cut = pointer.lastIndexOf('/')
                 return listOf(
                     issue(
-                        "property '${unescape(pointer.substring(cut + 1))}' is not defined in the schema and the schema does not allow additional properties",
+                        "property '${unescape(
+                            pointer.substring(cut + 1)
+                        )}' is not defined in the schema and the schema does not allow additional properties",
                         at = jsonPath(pointer.substring(0, cut), document)
                     )
                 )
             }
+
             // One issue for each missing property.
             "required" -> (rule as? JsonArray).orEmpty()
                 .map { (it as JsonPrimitive).content }
                 .filter { name -> (instance as? JsonObject)?.containsKey(name) != true }
                 .map { issue("required property '$it' not found") }
-            "enum" -> listOf(issue("does not have a value in the enumeration [" +
-                (rule as? JsonArray).orEmpty().joinToString(", ") { value ->
-                    when {
-                        value is JsonNull -> ""
-                        value is JsonPrimitive && value.isString -> "\"${value.content}\""
-                        else -> value.toString()
-                    }
-                } + "]"))
+
+            "enum" -> listOf(
+                issue(
+                    "does not have a value in the enumeration [" +
+                        (rule as? JsonArray).orEmpty().joinToString(", ") { value ->
+                            when {
+                                value is JsonNull -> ""
+                                value is JsonPrimitive && value.isString -> "\"${value.content}\""
+                                else -> value.toString()
+                            }
+                        } + "]"
+                )
+            )
+
             "const" -> listOf(issue("must be the constant value '${(rule as? JsonPrimitive)?.content ?: rule}'"))
+
             "type" -> listOf(issue("${typeOf(instance)} found, ${expectedTypes(rule)} expected"))
+
             "minimum" -> listOf(issue("must have a minimum value of ${(rule as? JsonPrimitive)?.content}"))
+
             "minLength" -> listOf(issue("must be at least ${(rule as? JsonPrimitive)?.content} characters long"))
+
             else -> listOf(issue(error.message.ifBlank { "Value does not match the v3 configuration schema" }))
         }
         // A "oneOf" whose null branch failed failed as a whole: networknt said so too, at the same place.
         return if (ONE_OF_BRANCH_TYPE.containsMatchIn(location)) {
             messages + issue("must be valid to one and only one schema, but 0 are valid")
-        } else messages
+        } else {
+            messages
+        }
     }
 
     private fun malformed(message: String) = ConfigurationValidationResult(
@@ -138,8 +144,11 @@ class ConfigurationValidator private constructor(
         /** The JSON type of a value as networknt named it: an integer is a whole number, a number has a fraction. */
         private fun typeOf(value: JsonElement?): String = when (value) {
             null, is JsonNull -> "null"
+
             is JsonObject -> "object"
+
             is JsonArray -> "array"
+
             is JsonPrimitive -> when {
                 value.isString -> "string"
                 value.content == "true" || value.content == "false" -> "boolean"
@@ -172,10 +181,12 @@ class ConfigurationValidator private constructor(
                         path.append('.').append(segment)
                         null
                     }
+
                     is JsonObject -> {
                         path.append('.').append(segment)
                         node[segment]
                     }
+
                     else -> {
                         path.append('.').append(segment)
                         null

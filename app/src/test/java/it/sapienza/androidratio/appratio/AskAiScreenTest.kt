@@ -2,21 +2,21 @@ package it.sapienza.androidratio.appratio
 
 import android.content.ClipboardManager
 import android.content.Intent
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.performScrollToIndex
-import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.core.content.IntentCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
@@ -97,7 +97,9 @@ class AskAiScreenTest {
         assertTrue("the current app adds to $instructions: $withApp", withApp > instructions)
         composeRule.onNodeWithText("What to change").assertExists()
 
-        composeRule.onNodeWithTag("ai-request").performScrollTo().performTextInput("Add a screen with the opening hours. ".repeat(20))
+        composeRule.onNodeWithTag(
+            "ai-request"
+        ).performScrollTo().performTextInput("Add a screen with the opening hours. ".repeat(20))
         val withRequest = tokens()
         assertTrue("740 characters add about 200: ${withRequest - withApp}", withRequest - withApp in 100..300)
     }
@@ -113,7 +115,11 @@ class AskAiScreenTest {
         composeRule.waitForIdle()
         val send = IntentCompat.getParcelableExtra(startedIntent(), Intent.EXTRA_INTENT, Intent::class.java)!!
         val prompt = send.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
-        assertTrue(prompt.contains("https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"))
+        assertTrue(
+            prompt.contains(
+                "https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"
+            )
+        )
         scenario?.close()
 
         launch(Intent(context, AskAiActivity::class.java))
@@ -129,7 +135,9 @@ class AskAiScreenTest {
         composeRule.onNodeWithTag("ai-preview").performScrollTo().performClick()
         composeRule.onNodeWithText("What's sent").assertIsDisplayed()
         // Formatted, the Markdown marks are gone; as sent, they are there.
-        composeRule.onNodeWithTag("ai-preview-text").performScrollToNode(hasText("A list of my favourite books", substring = true))
+        composeRule.onNodeWithTag(
+            "ai-preview-text"
+        ).performScrollToNode(hasText("A list of my favourite books", substring = true))
         composeRule.onNodeWithText("A list of my favourite books", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("Your task").assertIsDisplayed()
         composeRule.onNodeWithTag("ai-preview-text").performScrollToIndex(0)
@@ -184,7 +192,8 @@ class AskAiScreenTest {
 
     @Test
     fun theEditorsUnsavedTextIsChangedByDefault() {
-        val unsaved = """{ "schemaVersion": 3, "name": "Unsaved marker app", "version": "1.0", "mainView": { "type": "text", "title": "Hi" } }"""
+        val unsaved = """{ "schemaVersion": 3, "name": "Unsaved marker app", "version": "1.0", """ +
+            """"mainView": { "type": "text", "title": "Hi" } }"""
         launch(
             Intent(context, AskAiActivity::class.java)
                 .putExtra(AskAiViewModel.EXTRA_SUBJECT, AskAiViewModel.SUBJECT_EDITOR_TEXT)

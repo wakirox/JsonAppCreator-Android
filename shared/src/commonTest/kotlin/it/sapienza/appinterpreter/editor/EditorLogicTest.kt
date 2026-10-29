@@ -6,7 +6,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-
 /** The editor's check, suggestions, formatting and snippets, in common code (highlighting is Android UI). */
 class EditorLogicTest {
     private val checker by lazy { ConfigurationChecker(ConfigurationValidator.fromSchema(V3Schema.JSON)) }
@@ -90,7 +89,8 @@ class EditorLogicTest {
     @Test
     fun formFieldsAndEventsAreToldApartByType() {
         assertTrue(
-            "options" in labelsAt("""{ "mainView": { "type": "form", "formElements": [ { "type": "selector", | } ] } }""")
+            "options" in
+                labelsAt("""{ "mainView": { "type": "form", "formElements": [ { "type": "selector", | } ] } }""")
         )
         assertEquals(
             listOf("show", "share"),
@@ -155,7 +155,10 @@ class EditorLogicTest {
 
     @Test
     fun formattingKeepsNumbersAndDuplicatesAndSurvivesLongStrings() {
-        assertEquals("{\n  \"price\": 0.10,\n  \"big\": 12345678901234567890.5\n}", prettyJson("{\"price\":0.10,\"big\":12345678901234567890.5}"))
+        assertEquals(
+            "{\n  \"price\": 0.10,\n  \"big\": 12345678901234567890.5\n}",
+            prettyJson("{\"price\":0.10,\"big\":12345678901234567890.5}")
+        )
         val duplicated = "{\"a\": 1, \"a\": 2}"
         assertEquals(duplicated, prettyJson(duplicated), "a key twice is left as it is")
         val empty = "{\"a\":[],\"b\":{}}"
@@ -203,7 +206,9 @@ class EditorLogicTest {
                     "{ \"type\": \"text\", \"label\": \"Hello\" }",
                     "{ \"type\": \"form\", \"formElements\": [ ${snippet.json} ] }"
                 )
-            } else HELLO.replace("{ \"type\": \"text\", \"label\": \"Hello\" }", snippet.json)
+            } else {
+                HELLO.replace("{ \"type\": \"text\", \"label\": \"Hello\" }", snippet.json)
+            }
             assertEquals(emptyList<EditorIssue>(), checker.check(json), snippet.label)
         }
     }

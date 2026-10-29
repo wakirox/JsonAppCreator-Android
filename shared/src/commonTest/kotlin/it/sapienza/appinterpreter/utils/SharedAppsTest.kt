@@ -3,12 +3,12 @@ package it.sapienza.appinterpreter.utils
 import it.sapienza.appinterpreter.Fixtures
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.sameValue
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /** Sharing an app as its JSON file: the file name, the websites it uses, and how it meets a saved app of that name. */
 class SharedAppsTest {
@@ -71,14 +71,18 @@ class SharedAppsTest {
     fun arrivalComparesWithTheSavedAppOfThatName() {
         assertEquals(SharedApps.Arrival.New, SharedApps.arrival(app("Books"), null))
         // Same content, other formatting: nothing changes.
-        assertEquals(SharedApps.Arrival.Unchanged, SharedApps.arrival(app("Books"), saved(app("Books").replace(" ", ""))))
+        assertEquals(
+            SharedApps.Arrival.Unchanged,
+            SharedApps.arrival(app("Books"), saved(app("Books").replace(" ", "")))
+        )
         val other = saved(app("Books", version = "2"))
         assertEquals(SharedApps.Arrival.SameName(other), SharedApps.arrival(app("Books"), other))
     }
 
     @Test
     fun renamedKeepsEverythingButTheName() {
-        val json = """{ "schemaVersion": 3, "name": "Books", "version": "1", "author": "Ann", "mainView": { "type": "text" } }"""
+        val json = """{ "schemaVersion": 3, "name": "Books", "version": "1", "author": "Ann", """ +
+            """"mainView": { "type": "text" } }"""
         val renamed = SharedApps.renamed(json, "Books 2")
         val tree = JsonText.parse(renamed) as JsonObject
         assertEquals("Books 2", tree.getValue("name").jsonPrimitive.content)

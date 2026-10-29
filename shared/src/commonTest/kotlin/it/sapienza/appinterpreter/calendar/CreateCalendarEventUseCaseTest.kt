@@ -2,13 +2,13 @@ package it.sapienza.appinterpreter.calendar
 
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.model.event.CalendarEvent
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.serialization.json.JsonObject
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 
 class CreateCalendarEventUseCaseTest {
     private val rome = TimeZone.of("Europe/Rome")
@@ -18,7 +18,16 @@ class CreateCalendarEventUseCaseTest {
     @Test
     fun aTimedEventStartsAtThatLocalTime() {
         val entry = assertIs<CreateCalendarEventUseCase.Result.Ready>(
-            create(CalendarEvent(title = "Dinner with ${'$'}{who}", date = "${'$'}{when}", time = "19:30", durationMinutes = 150, description = "${'$'}{guests} guests"), data)
+            create(
+                CalendarEvent(
+                    title = "Dinner with ${'$'}{who}",
+                    date = "${'$'}{when}",
+                    time = "19:30",
+                    durationMinutes = 150,
+                    description = "${'$'}{guests} guests"
+                ),
+                data
+            )
         ).entry
         val begin = LocalDateTime(2026, 10, 20, 19, 30).toInstant(rome).toEpochMilliseconds()
         assertEquals(CalendarEntry("Dinner with Ana", begin, begin + 150 * 60_000L, false, null, "6 guests"), entry)
@@ -26,7 +35,9 @@ class CreateCalendarEventUseCaseTest {
 
     @Test
     fun withoutATimeItCoversThatDayInUtc() {
-        val entry = assertIs<CreateCalendarEventUseCase.Result.Ready>(create(CalendarEvent(title = "Day off", date = "20/10/2026"), data)).entry
+        val entry = assertIs<CreateCalendarEventUseCase.Result.Ready>(
+            create(CalendarEvent(title = "Day off", date = "20/10/2026"), data)
+        ).entry
         val midnight = LocalDateTime(2026, 10, 20, 0, 0).toInstant(TimeZone.UTC).toEpochMilliseconds()
         assertEquals(midnight, entry.beginMillis)
         assertEquals(midnight + 24 * 3_600_000L, entry.endMillis)
@@ -35,7 +46,13 @@ class CreateCalendarEventUseCaseTest {
 
     @Test
     fun aDateThatIsntDdMmYyyyIsExplained() {
-        val result = assertIs<CreateCalendarEventUseCase.Result.BadDate>(create(CalendarEvent(title = "T", date = "2026-10-20", time = "9:00"), data))
-        assertEquals("The event's date and time must be dd/MM/yyyy and HH:mm, but they are \"2026-10-20 9:00\".", result.message)
+        val result =
+            assertIs<CreateCalendarEventUseCase.Result.BadDate>(
+                create(CalendarEvent(title = "T", date = "2026-10-20", time = "9:00"), data)
+            )
+        assertEquals(
+            "The event's date and time must be dd/MM/yyyy and HH:mm, but they are \"2026-10-20 9:00\".",
+            result.message
+        )
     }
 }

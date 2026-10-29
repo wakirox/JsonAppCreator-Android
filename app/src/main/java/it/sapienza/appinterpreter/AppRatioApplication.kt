@@ -1,26 +1,28 @@
 package it.sapienza.appinterpreter
 
 import android.app.Application
-import it.sapienza.androidratio.appratio.BuildConfig
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.map.Mapper
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import it.sapienza.androidratio.appratio.BuildConfig
 import it.sapienza.appinterpreter.di.appModule
+import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.storage.Photos
 import it.sapienza.appinterpreter.utils.ImageCacheExpiry
 import it.sapienza.appinterpreter.utils.PhotoStore
 import it.sapienza.appinterpreter.utils.SharedPreferencesStore
 import it.sapienza.appinterpreter.utils.httpclient.HttpClient
-import it.sapienza.appinterpreter.security.ConfigurationApiKeys
+import java.io.File
+import kotlin.concurrent.thread
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
-import java.io.File
-import kotlin.concurrent.thread
 
-class AppRatioApplication : Application(), SingletonImageLoader.Factory {
+class AppRatioApplication :
+    Application(),
+    SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
@@ -50,6 +52,4 @@ class AppRatioApplication : Application(), SingletonImageLoader.Factory {
             add(Mapper<String, File> { data, _ -> photos.file(data) })
         }
         .build()
-
-
 }

@@ -25,7 +25,11 @@ class PdfPrint(private val activity: Activity, private val shareTitle: String) {
         var html = page.html
         page.photos.forEach { reference ->
             val jpeg = reader.jpeg(reference) ?: return@forEach
-            html = html.replace("\"$reference\"", "\"data:image/jpeg;base64,${Base64.encodeToString(jpeg, Base64.NO_WRAP)}\"")
+            html =
+                html.replace(
+                    "\"$reference\"",
+                    "\"data:image/jpeg;base64,${Base64.encodeToString(jpeg, Base64.NO_WRAP)}\""
+                )
         }
         val view = WebView(activity)
         printing = view
@@ -45,7 +49,10 @@ class PdfPrint(private val activity: Activity, private val shareTitle: String) {
 
     private fun write(view: WebView, page: PdfPageUseCase.Page, attributes: PrintAttributes) {
         val name = fileName(page.title)
-        val folder = File(activity.cacheDir, "shared/pdf").apply { deleteRecursively(); mkdirs() }
+        val folder = File(activity.cacheDir, "shared/pdf").apply {
+            deleteRecursively()
+            mkdirs()
+        }
         val file = File(folder, "$name.pdf")
         PdfFileWriter(attributes).write(view.createPrintDocumentAdapter(name), file) { written ->
             if (written) activity.startActivity(shareIntent(file, name)) else print(view, name, attributes)
@@ -54,7 +61,9 @@ class PdfPrint(private val activity: Activity, private val shareTitle: String) {
     }
 
     private fun print(view: WebView, name: String, attributes: PrintAttributes) {
-        activity.getSystemService(PrintManager::class.java).print(name, view.createPrintDocumentAdapter(name), attributes)
+        activity.getSystemService(
+            PrintManager::class.java
+        ).print(name, view.createPrintDocumentAdapter(name), attributes)
     }
 
     /** The share sheet on the PDF [file], readable by the app the user picks. */

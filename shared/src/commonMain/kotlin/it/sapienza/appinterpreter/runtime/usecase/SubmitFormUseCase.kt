@@ -32,8 +32,10 @@ class SubmitFormUseCase {
         return Result.Ready(toJson(root))
     }
 
-    private fun toJson(map: Map<String, Any>): JsonObject = JsonObject(map.mapValues { (_, value) ->
-        @Suppress("UNCHECKED_CAST")
-        if (value is Map<*, *>) toJson(value as Map<String, Any>) else formValueToJson(value)
-    })
+    private fun toJson(map: Map<String, Any>): JsonObject = JsonObject(
+        map.mapValues { (_, value) ->
+            @Suppress("UNCHECKED_CAST")
+            if (value is Map<*, *>) toJson(value as Map<String, Any>) else formValueToJson(value)
+        }
+    )
 }

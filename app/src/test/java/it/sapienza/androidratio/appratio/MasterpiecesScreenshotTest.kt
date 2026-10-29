@@ -10,7 +10,7 @@ import android.graphics.Paint
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -21,8 +21,13 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.annotation.DelicateCoilApi
 import coil3.imageDecoderEnabled
 import it.sapienza.appinterpreter.activity.MainActivity
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import kotlin.math.abs
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -39,10 +44,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import kotlin.math.abs
 
 /**
  * The Masterpieces example (`res/raw/v3_masterpieces.json`) with its Wikimedia Commons images served by a local server,
@@ -68,6 +69,7 @@ class MasterpiecesScreenshotTest {
     val composeRule = createEmptyComposeRule()
 
     @Before
+    @OptIn(DelicateCoilApi::class)
     fun setUp() {
         // Robolectric has no ImageDecoder, which Coil uses on Android 10 and up: decode with BitmapFactory here.
         SingletonImageLoader.setUnsafe(ImageLoader.Builder(targetContext).imageDecoderEnabled(false).build())
@@ -277,18 +279,15 @@ class MasterpiecesScreenshotTest {
         return checkNotNull(captured)
     }
 
-    private fun outputDirectory(): File =
-        File("build/outputs/masterpieces-screenshots").apply { mkdirs() }
+    private fun outputDirectory(): File = File("build/outputs/masterpieces-screenshots").apply { mkdirs() }
 
     private fun outputFile(name: String): File = File(outputDirectory(), name)
 
-    private fun goldenFile(name: String): File =
-        File(File("src/test/resources/goldens").apply { mkdirs() }, name)
+    private fun goldenFile(name: String): File = File(File("src/test/resources/goldens").apply { mkdirs() }, name)
 
-    private fun readResource(path: String): ByteArray =
-        checkNotNull(javaClass.classLoader?.getResourceAsStream(path)) {
-            "Missing test resource: $path"
-        }.use { it.readBytes() }
+    private fun readResource(path: String): ByteArray = checkNotNull(javaClass.classLoader?.getResourceAsStream(path)) {
+        "Missing test resource: $path"
+    }.use { it.readBytes() }
 
     private fun writeBitmap(bitmap: Bitmap, file: File) {
         FileOutputStream(file).use { stream ->

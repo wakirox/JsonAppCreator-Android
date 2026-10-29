@@ -12,7 +12,10 @@ import java.io.File
 /** Sends an app to someone as its JSON file, through the share sheet: chat apps, email, Quick Share, Drive… */
 object ShareApp {
     fun share(context: Context, name: String, json: String) {
-        val chooser = Intent.createChooser(intent(context, name, json), context.getString(R.string.share_app_title, name))
+        val chooser = Intent.createChooser(
+            intent(context, name, json),
+            context.getString(R.string.share_app_title, name)
+        )
             // Appkin itself takes shared JSON (an AI app's answer), which makes no sense for its own app.
             .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, EditorActivity::class.java)))
         context.startActivity(chooser)

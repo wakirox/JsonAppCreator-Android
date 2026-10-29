@@ -1,8 +1,5 @@
 package it.sapienza.appinterpreter.activity
 
-import it.sapienza.appinterpreter.utils.httpclient.HttpClient
-import it.sapienza.appinterpreter.validation.fromAssets
-import it.sapienza.appinterpreter.validation.fromSchema
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -17,8 +14,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,8 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
 import io.ktor.client.engine.okhttp.OkHttp
-import it.sapienza.appinterpreter.json.JsonText
-import it.sapienza.appinterpreter.json.sameValue
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.AskAi
@@ -46,19 +41,24 @@ import it.sapienza.appinterpreter.editor.EditorScreen
 import it.sapienza.appinterpreter.editor.SchemaSuggestions
 import it.sapienza.appinterpreter.editor.Snippets
 import it.sapienza.appinterpreter.editor.prettyJson
+import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.json.sameValue
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
-import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
-import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.utils.TextHandover
+import it.sapienza.appinterpreter.utils.httpclient.HttpClient
+import it.sapienza.appinterpreter.utils.of
+import it.sapienza.appinterpreter.validation.ConfigurationValidator
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Edits the active configuration, or writes a new app from a template, and runs the result. */
 /** Reads shared chat pages with its own OkHttp client: a browser User-Agent, unlike the app's requests. */
 private val shareLinkClient by lazy { ShareLinks.client(OkHttp.create()) }
 
+/** Edits the active configuration, or writes a new app from a template, and runs the result. */
 class EditorActivity : AppCompatActivity() {
 
     private var pendingSave: String? = null
@@ -96,7 +96,13 @@ class EditorActivity : AppCompatActivity() {
                     } else {
                         ReadingChat(chatLink, onBack = ::finish)
                         LaunchedEffect(chatLink) {
-                            val found = runCatching { ShareLinks.configuration(shareLinkClient, chatLink, AskAi.promptExamples(this@EditorActivity)) }.getOrNull()
+                            val found = runCatching {
+                                ShareLinks.configuration(
+                                    shareLinkClient,
+                                    chatLink,
+                                    AskAi.promptExamples(this@EditorActivity)
+                                )
+                            }.getOrNull()
                             if (found != null) fromChat = found else chatUnreadable = true
                         }
                     }
@@ -116,7 +122,12 @@ class EditorActivity : AppCompatActivity() {
                     },
                     initialText = when {
                         received != null -> prettyJson(received)
-                        newApp -> Snippets.newApp.replaceFirst("\"My app\"", "\"${AppLibrary.of(this).freeName("My app")}\"")
+
+                        newApp -> Snippets.newApp.replaceFirst(
+                            "\"My app\"",
+                            "\"${AppLibrary.of(this).freeName("My app")}\""
+                        )
+
                         else -> prettyJson(DomainController.jsonFile(this))
                     },
                     fromAiApp = received != null && !fromFile,
@@ -131,9 +142,14 @@ class EditorActivity : AppCompatActivity() {
                     suggestions = suggestions,
                     onRun = { text ->
                         // Unchanged content keeps its identity, and so its saved or bundled API keys.
-                        val unchanged = chatLink == null && shared == null && !newApp && sameJson(text, DomainController.jsonFile(this))
-                        if (unchanged) DomainController.setJsonFile(text, this, DomainController.configurationId(this))
-                        else DomainController.setJsonFile(text, this)
+                        val unchanged =
+                            chatLink == null && shared == null && !newApp &&
+                                sameJson(text, DomainController.jsonFile(this))
+                        if (unchanged) {
+                            DomainController.setJsonFile(text, this, DomainController.configurationId(this))
+                        } else {
+                            DomainController.setJsonFile(text, this)
+                        }
                         spawnNew(this)
                         // Opened from another app's share sheet, the editor would otherwise stay in that app's task.
                         finish()
@@ -173,8 +189,12 @@ class EditorActivity : AppCompatActivity() {
             context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_NEW_APP, true))
 
         /** Opens an AI app's answer (copied, then pasted) like a shared one: "From your AI app". */
-        fun aiAnswer(context: Context, answer: String) =
-            context.startActivity(Intent(context, EditorActivity::class.java).putExtra(EXTRA_INCOMING_FILE, TextHandover.write(context, answer)))
+        fun aiAnswer(context: Context, answer: String) = context.startActivity(
+            Intent(
+                context,
+                EditorActivity::class.java
+            ).putExtra(EXTRA_INCOMING_FILE, TextHandover.write(context, answer))
+        )
 
         /** Opens a file's configuration: one with problems, to fix or send to the AI app, or one to look at first. */
         fun openedFile(context: Context, json: String) = context.startActivity(
@@ -194,7 +214,13 @@ private fun NothingToOpenDialog(shared: String, onDismiss: () -> Unit) {
         title = { Text("No app to open") },
         text = {
             Text(
-                (if (link) "That's a link to the chat, not the AI's answer. " else "What you shared has no JSON app in it. ") +
+                (
+                    if (link) {
+                        "That's a link to the chat, not the AI's answer. "
+                    } else {
+                        "What you shared has no JSON app in it. "
+                    }
+                    ) +
                     "In your AI app, share or copy the answer that contains the JSON. If you copied it, open the " +
                     "editor and use ⋮ → Paste answer from your AI app."
             )
@@ -239,4 +265,3 @@ private fun ChatNotReadDialog(service: String, onDismiss: () -> Unit) {
         confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text("OK") } }
     )
 }
-

@@ -1,0 +1,17 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 120
+ktlint_code_style = android_studio
+# Enum values are the JSON format's own words ("crop", "fit"), and model packages keep their names.
+ktlint_standard_enum-entry-name-case = disabled
+ktlint_standard_package-name = disabled
+# Composables are named like classes, as Compose does.
+ktlint_function_naming_ignore_when_annotated_with = Composable

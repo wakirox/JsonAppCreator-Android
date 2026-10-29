@@ -23,7 +23,7 @@ class FormsState(
     private val saved: SavedStateHandle,
     private val initialValues: InitialFormValuesUseCase = InitialFormValuesUseCase(),
     private val submit: SubmitFormUseCase = SubmitFormUseCase(),
-    private val addsNew: (FormView) -> Boolean = { false },
+    private val addsNew: (FormView) -> Boolean = { false }
 ) {
     /** One form on one piece of data: its values by mapping (text, true/false or null) and why it wasn't sent. */
     class Form internal constructor(values: Map<String, Any?>) {
@@ -37,11 +37,15 @@ class FormsState(
 
     /** [form] when it shows [data], to observe: the saved values, else its starting values. */
     fun state(form: FormView, data: JsonObject?): Form = forms.getOrPut(key(form, data)) {
-        val restored = saved.get<String>(key(form, data))?.let { runCatching { JsonText.parse(it) as? JsonObject }.getOrNull() }
-        Form(initialValues(form, data, addsNew(form)).mapValues { (mapping, initial) ->
-            val kept = restored?.get(mapping)
-            if (kept == null || kept is JsonNull) initial else kept.toFormValue()
-        })
+        val restored = saved.get<String>(key(form, data))?.let {
+            runCatching { JsonText.parse(it) as? JsonObject }.getOrNull()
+        }
+        Form(
+            initialValues(form, data, addsNew(form)).mapValues { (mapping, initial) ->
+                val kept = restored?.get(mapping)
+                if (kept == null || kept is JsonNull) initial else kept.toFormValue()
+            }
+        )
     }
 
     /** [form]'s values when it shows [data] now. */

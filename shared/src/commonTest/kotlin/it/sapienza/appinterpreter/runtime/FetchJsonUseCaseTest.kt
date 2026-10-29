@@ -8,22 +8,25 @@ import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonObject
 
 /** A request's URL is filled in from the data, and isn't sent at all when the data lacks one of its values. */
 class FetchJsonUseCaseTest {
     private val requested = mutableListOf<String>()
     private val sentHeaders = mutableListOf<String>()
     private val fetch = FetchJsonUseCase(
-        JsonHttpClient(MockEngine { request ->
-            requested += request.url.toString()
-            sentHeaders += request.headers["X-Artwork"].orEmpty()
-            respond("""{ "ok": "yes" }""")
-        }, "Appkin/test")
+        JsonHttpClient(
+            MockEngine { request ->
+                requested += request.url.toString()
+                sentHeaders += request.headers["X-Artwork"].orEmpty()
+                respond("""{ "ok": "yes" }""")
+            },
+            "Appkin/test"
+        )
     )
     private val artwork = JsonText.parse("""{ "creators": [ { "id": 42 } ], "creatorsless": [] }""") as JsonObject
 
@@ -41,7 +44,10 @@ class FetchJsonUseCaseTest {
 
         fetch(RESTService("https://example.com/api/?type=${'$'}{type}&q=${'$'}{q}&has_image=1"), form)
 
-        assertEquals(listOf("https://example.com/api/?type=arms%20%26%20armor&q=S%C3%A3o%20%231&has_image=1"), requested)
+        assertEquals(
+            listOf("https://example.com/api/?type=arms%20%26%20armor&q=S%C3%A3o%20%231&has_image=1"),
+            requested
+        )
     }
 
     @Test
@@ -63,11 +69,17 @@ class FetchJsonUseCaseTest {
 
     @Test
     fun headersAreFilledInLikeTheUrl() = runTest {
-        fetch(RESTService("https://example.com/a", headers = mapOf("X-Artwork" to "creator ${'$'}{creators.0.id}")), artwork)
+        fetch(
+            RESTService("https://example.com/a", headers = mapOf("X-Artwork" to "creator ${'$'}{creators.0.id}")),
+            artwork
+        )
         assertEquals(listOf("creator 42"), sentHeaders)
 
         val error = assertFailsWith<MissingValueException> {
-            fetch(RESTService("https://example.com/a", headers = mapOf("X-Artwork" to "${'$'}{creatorsless.0.id}")), artwork)
+            fetch(
+                RESTService("https://example.com/a", headers = mapOf("X-Artwork" to "${'$'}{creatorsless.0.id}")),
+                artwork
+            )
         }
         assertEquals("creatorsless.0.id", error.path)
         assertEquals(1, requested.size)

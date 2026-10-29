@@ -3,20 +3,29 @@ package it.sapienza.appinterpreter.utils
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.optString
 import it.sapienza.appinterpreter.storage.AppStore
+import kotlin.time.Clock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
-import kotlin.time.Clock
 
 /**
  * The apps the user has made or opened, kept on the phone under their names so they can be reopened, pinned to the
  * home screen, or deleted. An app saved again under the same name replaces the earlier version. The bundled examples
  * aren't saved here: they have their own list.
  */
-class AppLibrary(private val store: AppStore, private val now: () -> Long = { Clock.System.now().toEpochMilliseconds() }) {
+class AppLibrary(
+    private val store: AppStore,
+    private val now: () -> Long = { Clock.System.now().toEpochMilliseconds() }
+) {
     /** [configurationId] is kept so an app reopened later finds its saved or bundled API keys again. */
-    data class SavedApp(val id: String, val name: String, val json: String, val savedAt: Long, val configurationId: String) {
+    data class SavedApp(
+        val id: String,
+        val name: String,
+        val json: String,
+        val savedAt: Long,
+        val configurationId: String
+    ) {
         /** The emoji the app chose for its icon, if any. */
         val icon: String? by lazy { iconOf(json) }
     }
@@ -63,10 +72,12 @@ class AppLibrary(private val store: AppStore, private val now: () -> Long = { Cl
         /** A stable id for an app name: the shortcut and the library entry share it. Names differing only in case match. */
         fun idOf(name: String): String = "app:" + name.trim().lowercase()
 
-        fun iconOf(json: String): String? =
-            runCatching { (JsonText.parse(json) as JsonObject).optString("icon") }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+        fun iconOf(json: String): String? = runCatching {
+            (JsonText.parse(json) as JsonObject).optString("icon")
+        }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
 
-        fun nameOf(json: String): String? =
-            runCatching { (JsonText.parse(json) as JsonObject).optString("name") }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+        fun nameOf(json: String): String? = runCatching {
+            (JsonText.parse(json) as JsonObject).optString("name")
+        }.getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
     }
 }

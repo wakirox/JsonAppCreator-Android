@@ -12,6 +12,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import it.sapienza.appinterpreter.ai.AskAiScreen
 import it.sapienza.appinterpreter.ui.AppTheme
+import java.io.File
+import java.io.FileOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -20,8 +22,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
-import java.io.File
-import java.io.FileOutputStream
 
 /**
  * Golden images of the "Ask your AI app" screen: a new app (empty, and with a request), changing the current app, the
@@ -39,10 +39,12 @@ class AskAiScreenshotTest {
     fun newAppEmpty() = assertScreenshot("ask_ai_new_app", request = "")
 
     @Test
-    fun newAppWithARequest() = assertScreenshot("ask_ai_new_app_request", request = "A list of my favourite books, with a screen for each")
+    fun newAppWithARequest() =
+        assertScreenshot("ask_ai_new_app_request", request = "A list of my favourite books, with a screen for each")
 
     @Test
-    fun changeTheCurrentApp() = assertScreenshot("ask_ai_change_current", request = "Add a screen with the opening hours", changeCurrent = true)
+    fun changeTheCurrentApp() =
+        assertScreenshot("ask_ai_change_current", request = "Add a screen with the opening hours", changeCurrent = true)
 
     @Test
     fun withoutACurrentApp() = assertScreenshot("ask_ai_no_current_app", request = "", canChangeCurrent = false)
@@ -54,10 +56,12 @@ class AskAiScreenshotTest {
     fun preview() = assertScreenshot(
         "ask_ai_preview",
         request = "",
-        preview = "# Appkin: context for AI assistants\n\nAppkin turns a **JSON configuration** into a native app.\n\n" +
-            "## Generation rules\n\n1. Use only the properties this document describes.\n2. Reference a view with `{ \"ref\": \"id\" }`.\n\n" +
-            "```json\n{\n  \"schemaVersion\": 3\n}\n```\n\n" +
-            "## Your task\n\nCreate an Appkin v3 configuration for this app: A list of my favourite books"
+        preview =
+            "# Appkin: context for AI assistants\n\nAppkin turns a **JSON configuration** into a native app.\n\n" +
+                "## Generation rules\n\n1. Use only the properties this document describes.\n" +
+                "2. Reference a view with `{ \"ref\": \"id\" }`.\n\n" +
+                "```json\n{\n  \"schemaVersion\": 3\n}\n```\n\n" +
+                "## Your task\n\nCreate an Appkin v3 configuration for this app: A list of my favourite books"
     )
 
     @Test
@@ -114,7 +118,15 @@ class AskAiScreenshotTest {
         val actualPixels = IntArray(actual.width * actual.height)
         expected.getPixels(expectedPixels, 0, expected.width, 0, 0, expected.width, expected.height)
         actual.getPixels(actualPixels, 0, actual.width, 0, 0, actual.width, actual.height)
-        val diffPixels = IntArray(actualPixels.size) { if (expectedPixels[it] != actualPixels[it]) DIFF_COLOR else actualPixels[it] }
+        val diffPixels = IntArray(actualPixels.size) {
+            if (expectedPixels[it] !=
+                actualPixels[it]
+            ) {
+                DIFF_COLOR
+            } else {
+                actualPixels[it]
+            }
+        }
         val changedPixels = expectedPixels.indices.count { expectedPixels[it] != actualPixels[it] }
 
         val outputDirectory = File("build/outputs/ask-ai-screenshots").apply { mkdirs() }
@@ -124,7 +136,10 @@ class AskAiScreenshotTest {
             diff.setPixels(diffPixels, 0, diff.width, 0, 0, diff.width, diff.height)
             writeBitmap(diff, File(outputDirectory, "$name.diff.png"))
         }
-        assertTrue("$name changed in $changedPixels pixels. Actual and diff images: ${outputDirectory.absolutePath}", changedPixels == 0)
+        assertTrue(
+            "$name changed in $changedPixels pixels. Actual and diff images: ${outputDirectory.absolutePath}",
+            changedPixels == 0
+        )
     }
 
     private fun writeBitmap(bitmap: Bitmap, file: File) {

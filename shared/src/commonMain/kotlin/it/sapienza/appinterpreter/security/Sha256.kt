@@ -20,7 +20,17 @@ object Sha256 {
         padded[input.size] = 0x80.toByte()
         for (i in 0 until 8) padded[padded.size - 1 - i] = (bitLength ushr (8 * i)).toByte()
 
-        val h = intArrayOf(0x6a09e667, -0x4498517b, 0x3c6ef372, -0x5ab00ac6, 0x510e527f, -0x64fa9774, 0x1f83d9ab, 0x5be0cd19)
+        val h =
+            intArrayOf(
+                0x6a09e667,
+                -0x4498517b,
+                0x3c6ef372,
+                -0x5ab00ac6,
+                0x510e527f,
+                -0x64fa9774,
+                0x1f83d9ab,
+                0x5be0cd19
+            )
         val w = IntArray(64)
         for (block in padded.indices step 64) {
             for (t in 0 until 16) {
@@ -33,14 +43,40 @@ object Sha256 {
                 val s1 = w[t - 2].rotateRight(17) xor w[t - 2].rotateRight(19) xor (w[t - 2] ushr 10)
                 w[t] = w[t - 16] + s0 + w[t - 7] + s1
             }
-            var a = h[0]; var b = h[1]; var c = h[2]; var d = h[3]
-            var e = h[4]; var f = h[5]; var g = h[6]; var hh = h[7]
+            var a = h[0]
+            var b = h[1]
+            var c = h[2]
+            var d = h[3]
+            var e = h[4]
+            var f = h[5]
+            var g = h[6]
+            var hh = h[7]
             for (t in 0 until 64) {
-                val t1 = hh + (e.rotateRight(6) xor e.rotateRight(11) xor e.rotateRight(25)) + ((e and f) xor (e.inv() and g)) + K[t] + w[t]
-                val t2 = (a.rotateRight(2) xor a.rotateRight(13) xor a.rotateRight(22)) + ((a and b) xor (a and c) xor (b and c))
-                hh = g; g = f; f = e; e = d + t1; d = c; c = b; b = a; a = t1 + t2
+                val t1 =
+                    hh + (e.rotateRight(6) xor e.rotateRight(11) xor e.rotateRight(25)) +
+                        ((e and f) xor (e.inv() and g)) +
+                        K[t] +
+                        w[t]
+                val t2 =
+                    (a.rotateRight(2) xor a.rotateRight(13) xor a.rotateRight(22)) +
+                        ((a and b) xor (a and c) xor (b and c))
+                hh = g
+                g = f
+                f = e
+                e = d + t1
+                d = c
+                c = b
+                b = a
+                a = t1 + t2
             }
-            h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e; h[5] += f; h[6] += g; h[7] += hh
+            h[0] += a
+            h[1] += b
+            h[2] += c
+            h[3] += d
+            h[4] += e
+            h[5] += f
+            h[6] += g
+            h[7] += hh
         }
         return ByteArray(32) { (h[it / 4] ushr (24 - 8 * (it % 4))).toByte() }
     }

@@ -21,7 +21,13 @@ import kotlinx.coroutines.withContext
 class TextPackShare(private val activity: Activity, private val shareTitle: String) {
     suspend fun share(pack: TextPackUseCase.Pack) {
         val name = PdfPrint.fileName(pack.title)
-        val file = File(File(activity.cacheDir, "shared/textpack").apply { deleteRecursively(); mkdirs() }, "$name.zip")
+        val file = File(
+            File(activity.cacheDir, "shared/textpack").apply {
+                deleteRecursively()
+                mkdirs()
+            },
+            "$name.zip"
+        )
         write(pack, name, PhotoStore(activity).reader, FileAttachments(activity)::read, file)
         activity.startActivity(shareIntent(file, name))
     }

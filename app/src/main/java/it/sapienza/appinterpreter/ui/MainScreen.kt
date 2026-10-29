@@ -9,15 +9,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -165,7 +165,9 @@ fun MainScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(stringResource(R.string.about_version, version), style = MaterialTheme.typography.bodyMedium)
-                    author?.let { Text(stringResource(R.string.about_author, it), style = MaterialTheme.typography.bodyMedium) }
+                    author?.let {
+                        Text(stringResource(R.string.about_author, it), style = MaterialTheme.typography.bodyMedium)
+                    }
                     changelog?.let {
                         Text(stringResource(R.string.about_whats_new), style = MaterialTheme.typography.titleSmall)
                         Text(it, style = MaterialTheme.typography.bodyMedium)
@@ -177,19 +179,18 @@ fun MainScreen(
                     )
                 }
             },
-            confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { aboutOpen = false }) { Text(stringResource(R.string.about_ok)) } }
+            confirmButton = {
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = {
+                    aboutOpen = false
+                }) { Text(stringResource(R.string.about_ok)) }
+            }
         )
     }
 }
 
 /** A ⋮ menu entry that closes the menu, then acts. The home page's menu uses it too. */
 @Composable
-fun ActionMenuItem(
-    text: String,
-    closeMenu: () -> Unit,
-    onClick: () -> Unit,
-    iconResource: Int? = null
-) {
+fun ActionMenuItem(text: String, closeMenu: () -> Unit, onClick: () -> Unit, iconResource: Int? = null) {
     DropdownMenuItem(
         text = { Text(text) },
         onClick = {

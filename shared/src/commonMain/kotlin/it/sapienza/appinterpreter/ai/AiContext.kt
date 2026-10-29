@@ -1,13 +1,13 @@
 package it.sapienza.appinterpreter.ai
 
+import it.sapienza.appinterpreter.editor.ConfigurationChecker
+import it.sapienza.appinterpreter.editor.EditorIssue
+import it.sapienza.appinterpreter.editor.prettyJson
 import it.sapienza.appinterpreter.json.JsonNode
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.sameValue
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
-import it.sapienza.appinterpreter.editor.ConfigurationChecker
-import it.sapienza.appinterpreter.editor.EditorIssue
-import it.sapienza.appinterpreter.editor.prettyJson
 
 /**
  * Everything an AI assistant needs to write an Appkin configuration, in one Markdown text: the rules from
@@ -38,57 +38,77 @@ object AiContext {
     ): String {
         val reference = SchemaReference(schemaJson)
         val rules = rules(guide).trim()
-        val full = document(FULL_INTRO, rules, reference.markdown().trim() + "\n" + examplesMarkdown(examples), currentApp, request)
+        val full =
+            document(
+                FULL_INTRO,
+                rules,
+                reference.markdown().trim() + "\n" + examplesMarkdown(examples),
+                currentApp,
+                request
+            )
         if (links == null) return full
         val anchors = GitHubAnchors.of(full)
-        val intro = "Appkin is an Android app that turns a JSON configuration into a native app. You write the configuration; " +
-            "the app validates it against the v3 schema and runs it. This is the short version of the contract: the rules, " +
-            "then every view, form field and event with its properties. The complete reference, with what each property " +
-            "means and three full examples, is at ${links.raw}. If you can open links, read it, or the linked part, for " +
-            "anything you're unsure of. Use only what they describe."
-        return document(intro, rules, outline(reference, anchors, links) + "\n" + exampleLinks(examples, anchors, links), currentApp, request)
+        val intro =
+            "Appkin is an Android app that turns a JSON configuration into a native app. You write the " +
+                "configuration; the app validates it against the v3 schema and runs it. This is the short version of " +
+                "the contract: the rules, then every view, form field and event with its properties. The complete " +
+                "reference, with what each property means and three full examples, is at ${links.raw}. If you can " +
+                "open links, read it, or the linked part, for anything you're unsure of. Use only what they describe."
+        return document(
+            intro,
+            rules,
+            outline(reference, anchors, links) + "\n" + exampleLinks(examples, anchors, links),
+            currentApp,
+            request
+        )
     }
 
-    private const val FULL_INTRO = "Appkin is an Android app that turns a JSON configuration into a native app. You write the " +
-        "configuration; the app validates it against the v3 schema and runs it. This document is the complete contract: " +
-        "use only what it describes."
+    private const val FULL_INTRO =
+        "Appkin is an Android app that turns a JSON configuration into a native app. You write the " +
+            "configuration; the app validates it against the v3 schema and runs it. This document is the complete " +
+            "contract: use only what it describes."
 
-    private fun document(intro: String, rules: String, reference: String, currentApp: String?, request: String?) = buildString {
-        appendLine("# Appkin: context for AI assistants")
-        appendLine()
-        appendLine(intro)
-        appendLine()
-        appendLine(rules)
-        appendLine()
-        append(reference)
-        if (currentApp != null) {
+    private fun document(intro: String, rules: String, reference: String, currentApp: String?, request: String?) =
+        buildString {
+            appendLine("# Appkin: context for AI assistants")
             appendLine()
-            appendLine("## The current configuration")
+            appendLine(intro)
             appendLine()
-            appendLine("Change this configuration; keep what the request doesn't mention.")
+            appendLine(rules)
             appendLine()
-            appendLine("```json")
-            appendLine(currentApp.trim())
-            appendLine("```")
+            append(reference)
+            if (currentApp != null) {
+                appendLine()
+                appendLine("## The current configuration")
+                appendLine()
+                appendLine("Change this configuration; keep what the request doesn't mention.")
+                appendLine()
+                appendLine("```json")
+                appendLine(currentApp.trim())
+                appendLine("```")
+            }
+            appendLine()
+            appendLine("## Your task")
+            appendLine()
+            val what =
+                request?.trim()?.takeIf { it.isNotEmpty() } ?: "<describe the app: its screens, data and actions>"
+            appendLine(
+                if (currentApp != null) {
+                    "Change the current configuration: $what"
+                } else {
+                    "Create an Appkin v3 configuration for this app: $what"
+                }
+            )
+            appendLine()
+            append(
+                "If you can create files, give me the complete configuration as a downloadable file named " +
+                    "${fileName(currentApp)}, containing only the JSON. If you can't, reply with only the " +
+                    "complete JSON, starting with { and ending with }: no comments or explanations. I will open your " +
+                    "file or share your answer in the Appkin app, which runs it; if it reports problems, I " +
+                    "will send them to you to fix."
+            )
+            appendLine()
         }
-        appendLine()
-        appendLine("## Your task")
-        appendLine()
-        val what = request?.trim()?.takeIf { it.isNotEmpty() } ?: "<describe the app: its screens, data and actions>"
-        appendLine(
-            if (currentApp != null) "Change the current configuration: $what"
-            else "Create an Appkin v3 configuration for this app: $what"
-        )
-        appendLine()
-        append(
-            "If you can create files, give me the complete configuration as a downloadable file named " +
-                "${fileName(currentApp)}, containing only the JSON. If you can't, reply with only the " +
-                "complete JSON, starting with { and ending with }: no comments or explanations. I will open your " +
-                "file or share your answer in the Appkin app, which runs it; if it reports problems, I " +
-                "will send them to you to fix."
-        )
-        appendLine()
-    }
 
     private fun examplesMarkdown(examples: List<Example>) = buildString {
         examples.forEachIndexed { index, example ->
@@ -115,10 +135,19 @@ object AiContext {
             appendLine()
             appendLine("### ${group.heading}")
             appendLine()
-            group.about?.let { appendLine(it); appendLine() }
+            group.about?.let {
+                appendLine(it)
+                appendLine()
+            }
             group.sections.forEach { section ->
                 val names = section.properties.joinToString(", ") { if (it.required) "**${it.name}**" else it.name }
-                val anchor = if (section.kind == SchemaReference.Kind.Root) anchors.of(group.heading) else anchors.of(section.heading, after = group.heading)
+                val anchor = if (section.kind ==
+                    SchemaReference.Kind.Root
+                ) {
+                    anchors.of(group.heading)
+                } else {
+                    anchors.of(section.heading, after = group.heading)
+                }
                 val name = if (section.kind == SchemaReference.Kind.Root) "Root" else section.heading
                 append("- $name: $names")
                 anchor?.let { append(" ([details](${links.page}#$it))") }
@@ -147,8 +176,9 @@ object AiContext {
     fun examples(checklist: String, signUpForm: String, restList: String): List<Example> = listOf(
         Example(
             "a checklist saved on the phone, with a detail screen",
-            "The list starts with its `initialItems`, saved once; `unique` adds the ones a later version brings. Ticking " +
-                "runs the `tick` update, and `sort` puts visited places last. Tapping an item shows the reusable `place` view.",
+            "The list starts with its `initialItems`, saved once; `unique` adds the ones a later version brings. " +
+                "Ticking runs the `tick` update, and `sort` puts visited places last. Tapping an item shows the " +
+                "reusable `place` view.",
             prettyJson(checklist)
         ),
         Example(
@@ -221,7 +251,9 @@ object AiContext {
                 while (start >= 0 && tries < 64) {
                     val node = runCatching { JsonText.parseAt(text, start) }.getOrNull() as? JsonObject
                     if (node != null && "schemaVersion" in node && "mainView" in node) {
-                        if (examples.none { JsonText.sameValue(it, node) } && JsonNode(node).path("name").asText() != GUIDE_SKELETON) {
+                        if (examples.none { JsonText.sameValue(it, node) } &&
+                            JsonNode(node).path("name").asText() != GUIDE_SKELETON
+                        ) {
                             return restorePlaceholders(written(node))
                         }
                         break
@@ -249,7 +281,11 @@ object AiContext {
             if (c == '\\' && i + 1 < text.length) {
                 val next = text[i + 1]
                 if (next == 'u' && i + 5 < text.length) {
-                    text.substring(i + 2, i + 6).toIntOrNull(16)?.let { append(it.toChar()); i += 6; continue }
+                    text.substring(i + 2, i + 6).toIntOrNull(16)?.let {
+                        append(it.toChar())
+                        i += 6
+                        continue
+                    }
                 }
                 append(
                     when (next) {

@@ -8,7 +8,10 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 
 // Possessive (*+, ++), so a very long string can't make the regex engine recurse until the stack overflows.
-private val JSON_TOKEN = Regex(""""(?:[^"\\\n]++|\\.)*+"?(\s*:)?|[{}\[\],:]|-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b|\btrue\b|\bfalse\b|\bnull\b""")
+private val JSON_TOKEN =
+    Regex(
+        """"(?:[^"\\\n]++|\\.)*+"?(\s*:)?|[{}\[\],:]|-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b|\btrue\b|\bfalse\b|\bnull\b"""
+    )
 
 /** The editor's syntax colours, the same whatever the wallpaper, so each kind of token is easy to tell apart. */
 data class JsonColors(

@@ -121,7 +121,9 @@ fun AskAiScreen(
             TopAppBar(
                 title = { Text("Ask your AI app") },
                 navigationIcon = {
-                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 }
             )
         },
@@ -141,7 +143,13 @@ fun AskAiScreen(
                     onValueChange = onRequestChange,
                     label = { Text(if (changeCurrent) "What to change" else "Describe your app") },
                     placeholder = {
-                        Text(if (changeCurrent) "Add a screen with the opening hours" else "A list of my favourite books, with a screen for each")
+                        Text(
+                            if (changeCurrent) {
+                                "Add a screen with the opening hours"
+                            } else {
+                                "A list of my favourite books, with a screen for each"
+                            }
+                        )
                     },
                     shape = RoundedCornerShape(16.dp),
                     // A height rather than minLines, which Robolectric can't lay out.
@@ -152,14 +160,24 @@ fun AskAiScreen(
             if (canChangeCurrent) ChangeCurrent(changeCurrent, onChangeCurrentChange)
             Instructions(withLinks, onWithLinksChange)
             HowItWorks()
-            Note(Icons.Filled.Info, "About ${NumberFormat.getIntegerInstance().format(tokens)} tokens: your AI app reads them before the chat starts.", textTag = "ai-token-estimate")
+            Note(
+                Icons.Filled.Info,
+                "About ${NumberFormat.getIntegerInstance().format(
+                    tokens
+                )} tokens: your AI app reads them before the chat starts.",
+                textTag = "ai-token-estimate"
+            )
             OutlinedButton(
                 shapes = ButtonDefaults.shapes(),
                 onClick = onPreview,
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 modifier = Modifier.testTag("ai-preview")
             ) {
-                Icon(painterResource(R.drawable.baseline_visibility_24), contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    painterResource(R.drawable.baseline_visibility_24),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(Modifier.width(8.dp))
                 Text("See what's sent")
             }
@@ -179,7 +197,11 @@ private fun SendBar(onShare: () -> Unit, onCopy: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
         ) {
             OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onCopy) { Text("Copy") }
-            Button(shapes = ButtonDefaults.shapes(), onClick = onShare, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+            Button(
+                shapes = ButtonDefaults.shapes(),
+                onClick = onShare,
+                contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+            ) {
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Share to AI app…")
@@ -202,19 +224,27 @@ private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCo
     val blocks = remember(prompt) {
         Markdown.parse(prompt).fold(mutableListOf<List<Markdown.Block>>()) { groups, block ->
             val last = groups.lastOrNull()
-            if (block is Markdown.Block.ListItem && last?.last() is Markdown.Block.ListItem) groups[groups.lastIndex] = last + block
-            else groups += listOf(block)
+            if (block is Markdown.Block.ListItem &&
+                last?.last() is Markdown.Block.ListItem
+            ) {
+                groups[groups.lastIndex] = last + block
+            } else {
+                groups += listOf(block)
+            }
             groups
         }
     }
-    val links = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline))
+    val links =
+        TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline))
     val codeBackground = MaterialTheme.colorScheme.surfaceContainerHighest
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("What's sent") },
                 navigationIcon = {
-                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onClose) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                    IconButton(shapes = IconButtonDefaults.shapes(), onClick = onClose) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
                 }
             )
         },
@@ -231,15 +261,28 @@ private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCo
                         Note(
                             Icons.Filled.Info,
                             "${NumberFormat.getIntegerInstance().format(prompt.length)} characters, " +
-                                "about ${NumberFormat.getIntegerInstance().format(tokens)} tokens. Your request and app are at the end."
+                                "about ${NumberFormat.getIntegerInstance().format(
+                                    tokens
+                                )} tokens. Your request and app are at the end."
                         )
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                        ) {
                             listOf(true to "Formatted", false to "As sent").forEachIndexed { index, (styled, label) ->
                                 ToggleButton(
                                     checked = formatted == styled,
                                     onCheckedChange = { formatted = styled },
-                                    shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                                    colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                                    shapes = if (index ==
+                                        0
+                                    ) {
+                                        ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                    } else {
+                                        ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                    },
+                                    colors = ToggleButtonDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                    ),
                                     modifier = Modifier
                                         .weight(1f)
                                         .testTag(if (styled) "ai-preview-formatted" else "ai-preview-raw")
@@ -256,7 +299,11 @@ private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCo
                     items(blocks) { group ->
                         val code = group.singleOrNull() as? Markdown.Block.Code
                         if (code != null) {
-                            Surface(color = codeBackground, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                            Surface(
+                                color = codeBackground,
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text(
                                     code.text,
                                     style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
@@ -264,12 +311,18 @@ private fun PromptPreview(prompt: String, tokens: Int, onShare: () -> Unit, onCo
                                 )
                             }
                         } else {
-                            Text(markdownText(group, links, codeBackground), style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                markdownText(group, links, codeBackground),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     }
                 } else {
                     items(paragraphs) { paragraph ->
-                        Text(paragraph, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                        Text(
+                            paragraph,
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+                        )
                     }
                 }
             }
@@ -341,14 +394,25 @@ private fun Instructions(withLinks: Boolean, onChange: (Boolean) -> Unit) {
     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Instructions", style = MaterialTheme.typography.titleSmall)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+            ) {
                 listOf(false to "Send all", true to "Short + links").forEachIndexed { index, (short, label) ->
                     ToggleButton(
                         checked = withLinks == short,
                         onCheckedChange = { onChange(short) },
-                        shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                        shapes = if (index ==
+                            0
+                        ) {
+                            ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        } else {
+                            ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        },
                         // The card is surfaceContainer, the default unchecked colour: a step up keeps both choices visible.
-                        colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                        colors = ToggleButtonDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        ),
                         modifier = Modifier
                             .weight(1f)
                             .testTag(if (short) "ai-instructions-links" else "ai-instructions-all")
@@ -379,7 +443,10 @@ private fun HowItWorks() {
             Text("How it works", style = MaterialTheme.typography.titleSmall)
             Step(1, "Share this to your AI app, such as ChatGPT, Claude or Gemini.")
             Step(2, "Chat there until you like the result.")
-            Step(3, "Bring it back: share or copy the answer here, or open the file it makes. Appkin checks it and opens it, ready to run.")
+            Step(
+                3,
+                "Bring it back: share or copy the answer here, or open the file it makes. Appkin checks it and opens it, ready to run."
+            )
             Note(Icons.Filled.Lock, "Appkin has no AI inside, and sends nothing anywhere else.")
         }
     }
@@ -392,7 +459,11 @@ private fun Step(number: Int, text: String) {
             Modifier.size(24.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Text("$number", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Text(
+                "$number",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         }
         Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
     }
@@ -402,7 +473,12 @@ private fun Step(number: Int, text: String) {
 @Composable
 private fun Note(icon: ImageVector, text: String, textTag: String? = null) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp)
+        )
         Text(
             text,
             style = MaterialTheme.typography.bodySmall,

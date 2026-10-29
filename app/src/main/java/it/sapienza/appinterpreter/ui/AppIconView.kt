@@ -32,9 +32,19 @@ fun AppIconView(name: String, icon: String?, size: Dp = 40.dp) {
             Text(emoji, fontSize = textSize, lineHeight = textSize)
         } else {
             Box(
-                Modifier.size(size * 0.62f).clip(RoundedCornerShape(size * 0.18f)).background(Color(AppIcon.tileColor(name))),
+                Modifier.size(
+                    size * 0.62f
+                ).clip(RoundedCornerShape(size * 0.18f)).background(Color(AppIcon.tileColor(name))),
                 contentAlignment = Alignment.Center
-            ) { Text(AppIcon.letter(name), color = Color.White, fontWeight = FontWeight.Bold, fontSize = textSize, lineHeight = textSize) }
+            ) {
+                Text(
+                    AppIcon.letter(name),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = textSize,
+                    lineHeight = textSize
+                )
+            }
         }
     }
 }

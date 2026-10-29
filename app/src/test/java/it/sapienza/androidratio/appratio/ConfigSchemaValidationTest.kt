@@ -5,12 +5,12 @@ import com.networknt.schema.InputFormat
 import com.networknt.schema.Schema
 import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.name
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 class ConfigSchemaValidationTest {
     private val schema: Schema by lazy {
@@ -122,15 +122,14 @@ class ConfigSchemaValidationTest {
         )
     }
 
-    private fun validationFailure(path: String, errors: List<Error>): String =
-        buildString {
-            append("Configuration does not match schema/v3.schema.json: ")
-            append(path)
-            errors.sortedBy { it.message }.forEach { error ->
-                append("\n - ")
-                append(error.message)
-            }
+    private fun validationFailure(path: String, errors: List<Error>): String = buildString {
+        append("Configuration does not match schema/v3.schema.json: ")
+        append(path)
+        errors.sortedBy { it.message }.forEach { error ->
+            append("\n - ")
+            append(error.message)
         }
+    }
 
     private companion object {
         const val REQUESTED_CONFIG_PROPERTY = "jsonApp.config"

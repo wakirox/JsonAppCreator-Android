@@ -34,7 +34,10 @@ class HiddenViewsTest {
     fun setUp() {
         original = preferences.getString(KEY, null)
         preferences.edit().putString(KEY, CONFIGURATION).commit()
-        scenario = ActivityScenario.launch(Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        scenario =
+            ActivityScenario.launch(
+                Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
     }
 
     @After
@@ -58,7 +61,12 @@ class HiddenViewsTest {
     fun hiddenViewsTakeNoSpace() {
         // Between each pair a hidden view sits, at the screen's top level or inside a layout; the gaps are the same
         // as between two views with nothing between them.
-        val gaps = listOf("First" to "Second", "Second" to "Third", "Third" to "Fourth", "Fourth" to "Fifth").map { (above, below) ->
+        val gaps = listOf(
+            "First" to "Second",
+            "Second" to "Third",
+            "Third" to "Fourth",
+            "Fourth" to "Fifth"
+        ).map { (above, below) ->
             top(below) - bottom(above)
         }
         assertEquals(gaps.toString(), 1, gaps.distinct().size)

@@ -19,20 +19,19 @@ import it.sapienza.appinterpreter.model.event.CopyText
 import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.Event
 import it.sapienza.appinterpreter.model.event.GoBack
-import it.sapienza.appinterpreter.model.event.OpenLink
 import it.sapienza.appinterpreter.model.event.ItemsExport
+import it.sapienza.appinterpreter.model.event.OpenLink
 import it.sapienza.appinterpreter.model.event.PdfItems
-import it.sapienza.appinterpreter.model.event.TextPackItems
-import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.event.SaveData
+import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.ShowView
+import it.sapienza.appinterpreter.model.event.TextPackItems
 import it.sapienza.appinterpreter.model.event.UpdateData
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
-import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
-import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.StoredData
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
@@ -40,14 +39,16 @@ import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
 import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
+import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.PdfPageUseCase
-import it.sapienza.appinterpreter.runtime.usecase.TextPackUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
+import it.sapienza.appinterpreter.runtime.usecase.TextPackUseCase
 import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import it.sapienza.appinterpreter.storage.Photos
+import it.sapienza.appinterpreter.utils.httpclient.HttpStatusException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -56,9 +57,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import it.sapienza.appinterpreter.utils.httpclient.HttpStatusException
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -88,7 +88,7 @@ class ScreenViewModel(
     loadScreen: LoadScreenUseCase,
     private val strings: RuntimeStrings,
     private val pdfPage: PdfPageUseCase = PdfPageUseCase(),
-    private val textPack: TextPackUseCase = TextPackUseCase(),
+    private val textPack: TextPackUseCase = TextPackUseCase()
 ) : ViewModel() {
 
     /** One-off things only the platform's screen can do. */
@@ -102,12 +102,16 @@ class ScreenViewModel(
 
         /** Close this screen, back to the one that opened it. */
         data object Close : Effect
+
         /** Hand [url] to the app for its [scheme]: https/http, geo, tel or mailto (see [OpenLinkUseCase]). */
         class OpenUrl(val url: String, val scheme: String) : Effect
+
         /** Open the share sheet on [text], with the kept [photos] (references) attached. */
         class Share(val text: String, val photos: List<String> = emptyList()) : Effect
+
         /** Make a PDF of [page] and open the share sheet on it (sending, saving or printing it). */
         class Pdf(val page: PdfPageUseCase.Page) : Effect
+
         /** Zip [pack] (a TextPack, named .zip so phones open it) and open the share sheet on it. */
         class TextPack(val pack: TextPackUseCase.Pack) : Effect
     }
@@ -192,13 +196,26 @@ class ScreenViewModel(
         val json = forms.submit(form, data) ?: return
         when (val event = resolve(form.action)?.event) {
             null -> Unit
+
             is SaveData -> if (store(event.thenDo) { saveItem(event, json, context = data) }) forms.reset(form, data)
+
             // A field the user emptied goes from the saved object, rather than keeping its old value. Only whole
             // fields of the object: a dotted mapping's emptied part stays.
             is UpdateData -> {
                 val cleared = form.formElements.map { it.mapping }.filter { '.' !in it && it !in json }.toSet()
-                store(event.thenDo) { updateItem(event, json, context = data, cleared = cleared.takeIf { event.mapping == null }.orEmpty()).also(::follow) }
+                store(event.thenDo) {
+                    updateItem(
+                        event,
+                        json,
+                        context = data,
+                        cleared = cleared.takeIf {
+                            event.mapping ==
+                                null
+                        }.orEmpty()
+                    ).also(::follow)
+                }
             }
+
             else -> perform(event, json)
         }
     }
@@ -210,28 +227,51 @@ class ScreenViewModel(
     private fun perform(event: Event, data: JsonObject?) {
         when (event) {
             is AlertMessage -> showAlert(event, data)
+
             // The view receives the part of the data the mapping selects, such as "meals.0".
             is ShowView -> openScreen(event, event.mapping?.let { data?.getObject(it) } ?: data)
+
             is RESTService -> request(event, data)
+
             is SaveData -> store(event.thenDo) { saveItem(event, data, context = data) }
+
             is UpdateData -> store(event.thenDo) { updateItem(event, data, context = data).also(::follow) }
+
             is DeleteData -> store(event.thenDo) { deleteItems(event, data).let { data } }
+
             is GoBack -> effectChannel.trySend(Effect.Close)
+
             is CopyText -> {
                 val copied = event.mapping?.let { data?.getObject(it) } ?: data
-                event.text.filledLines(copied).takeIf { it.isNotBlank() }?.let { effectChannel.trySend(Effect.Copy(it)) }
+                event.text.filledLines(copied).takeIf {
+                    it.isNotBlank()
+                }?.let { effectChannel.trySend(Effect.Copy(it)) }
             }
-            is CalendarEvent -> when (val result = createCalendarEvent(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
+
+            is CalendarEvent -> when (
+                val result = createCalendarEvent(
+                    event,
+                    event.mapping?.let { data?.getObject(it) } ?: data
+                )
+            ) {
                 is CreateCalendarEventUseCase.Result.Ready -> effectChannel.trySend(Effect.AddToCalendar(result.entry))
                 is CreateCalendarEventUseCase.Result.BadDate -> alerts.show(result.message)
             }
+
             is OpenLink -> when (val result = openLink(event, event.mapping?.let { data?.getObject(it) } ?: data)) {
                 is OpenLinkUseCase.Result.Ready -> effectChannel.trySend(Effect.OpenUrl(result.url, result.scheme))
                 is OpenLinkUseCase.Result.Missing -> alerts.show(strings.valueMissing(result.path))
                 is OpenLinkUseCase.Result.NotAllowed -> alerts.show(strings.linkNotAllowed(result.url))
             }
-            is PdfItems -> export(event, data) { items, shown -> Effect.Pdf(pdfPage(event, items, shown, app?.name.orEmpty())) }
-            is TextPackItems -> export(event, data) { items, shown -> Effect.TextPack(textPack(event, items, shown, app?.name.orEmpty())) }
+
+            is PdfItems -> export(event, data) { items, shown ->
+                Effect.Pdf(pdfPage(event, items, shown, app?.name.orEmpty()))
+            }
+
+            is TextPackItems -> export(event, data) { items, shown ->
+                Effect.TextPack(textPack(event, items, shown, app?.name.orEmpty()))
+            }
+
             is ShareText -> {
                 val shared = event.mapping?.let { data?.getObject(it) } ?: data
                 val photos = event.photos?.let { path ->
@@ -248,7 +288,11 @@ class ScreenViewModel(
     }
 
     /** Writes out the saved objects [event] picks, with [data] (the part its mapping selects); without any, its emptyText. */
-    private fun <E> export(event: E, data: JsonObject?, effect: (List<JsonObject>, JsonObject?) -> Effect) where E : Event, E : ItemsExport {
+    private fun <E> export(
+        event: E,
+        data: JsonObject?,
+        effect: (List<JsonObject>, JsonObject?) -> Effect
+    ) where E : Event, E : ItemsExport {
         val shown = event.mapping?.let { data?.getObject(it) } ?: data
         val items = loadListItems.stored(StoredData(event.collection, event.where, event.sort), shown)
         val empty = event.emptyText?.matchReplace(shown)?.takeIf { items.isEmpty() && it.isNotBlank() }
@@ -271,10 +315,6 @@ class ScreenViewModel(
     }
 
     /**
-     * Saves, changes or deletes data on the phone with [change], then runs [thenDo] with what it gives back (the saved
-     * object, or the data a delete had); false, after an alert says why, when it couldn't.
-     */
-    /**
      * [updated], a saved object just changed: when it is the one this screen shows (the same id), the screen shows its
      * new values, kept with the screen's arguments so they survive the process being stopped.
      */
@@ -287,6 +327,10 @@ class ScreenViewModel(
         if (saved.contains(EXTRA_SCREEN_PAYLOAD)) saved[EXTRA_SCREEN_PAYLOAD] = now.toString()
     }
 
+    /**
+     * Saves, changes or deletes data on the phone with [change], then runs [thenDo] with what it gives back (the saved
+     * object, or the data a delete had); false, after an alert says why, when it couldn't.
+     */
     private fun store(thenDo: Event?, change: () -> JsonObject?): Boolean {
         val result = try {
             change()
@@ -308,7 +352,9 @@ class ScreenViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                val message = (e as? MissingValueException)?.let { strings.valueMissing(it.path) } ?: e.message ?: "An error occurred"
+                val message =
+                    (e as? MissingValueException)?.let { strings.valueMissing(it.path) } ?: e.message
+                        ?: "An error occurred"
                 val onError = event.onError
                 if (onError == null) {
                     alerts.show(message)

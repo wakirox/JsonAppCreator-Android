@@ -56,7 +56,8 @@ class AppLibraryTest {
 
     @Test
     fun theCurrentAppKeepsItsIdentityAndExamplesAreNotSaved() {
-        val current = CurrentApp(MemoryAppStore(), library) { BundledConfiguration("v3_masterpieces", app("Masterpieces")) }
+        val current =
+            CurrentApp(MemoryAppStore(), library) { BundledConfiguration("v3_masterpieces", app("Masterpieces")) }
         assertEquals(app("Masterpieces"), current.json())
         assertEquals("bundled:v3_masterpieces", current.configurationId())
 
@@ -81,7 +82,8 @@ class AppLibraryTest {
 
     @Test
     fun anAppsEmojiIsItsIcon() {
-        val json = """{ "name": "Top Motorcycles", "icon": " 🏍️ ", "version": "1.0", "mainView": { "type": "text" } }"""
+        val json = """{ "name": "Top Motorcycles", "icon": " 🏍️ ", "version": "1.0", """ +
+            """"mainView": { "type": "text" } }"""
         assertEquals("🏍️", AppLibrary.iconOf(json))
         assertEquals("🏍️", library.save(json, "file:1")!!.icon)
         assertNull(AppLibrary.iconOf(app("Book club")))

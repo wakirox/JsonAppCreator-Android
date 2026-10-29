@@ -13,8 +13,10 @@ object Photos {
     fun isPhoto(reference: String): Boolean = reference.startsWith(SCHEME)
 
     /** The file name in a reference, or null when it isn't one (or would leave the photos folder). */
-    fun fileName(reference: String): String? =
-        reference.takeIf(::isPhoto)?.removePrefix(SCHEME)?.takeIf { it.isNotEmpty() && '/' !in it && '\\' !in it && it != ".." }
+    fun fileName(reference: String): String? = reference.takeIf(::isPhoto)?.removePrefix(SCHEME)?.takeIf {
+        it.isNotEmpty() && '/' !in it && '\\' !in it &&
+            it != ".."
+    }
 
     fun reference(fileName: String): String = SCHEME + fileName
 

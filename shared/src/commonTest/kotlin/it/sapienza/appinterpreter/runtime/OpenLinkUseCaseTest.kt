@@ -3,10 +3,10 @@ package it.sapienza.appinterpreter.runtime
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.model.event.OpenLink
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlinx.serialization.json.JsonObject
 
 /** Which addresses an open event hands to the phone. */
 class OpenLinkUseCaseTest {
@@ -33,7 +33,16 @@ class OpenLinkUseCaseTest {
 
     @Test
     fun otherAddressesDoNot() {
-        listOf("javascript:alert(1)", "intent://x#Intent;end", "file:///sdcard/a", "content://x/y", "https:", "localhost", "${'$'}{bad}", "${'$'}{empty}")
+        listOf(
+            "javascript:alert(1)",
+            "intent://x#Intent;end",
+            "file:///sdcard/a",
+            "content://x/y",
+            "https:",
+            "localhost",
+            "${'$'}{bad}",
+            "${'$'}{empty}"
+        )
             .forEach { assertIs<OpenLinkUseCase.Result.NotAllowed>(open(it), it) }
     }
 

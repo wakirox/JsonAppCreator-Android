@@ -11,7 +11,6 @@ import it.sapienza.appinterpreter.runtime.AppRepository
 import it.sapienza.appinterpreter.runtime.CurrentConfiguration
 import it.sapienza.appinterpreter.runtime.RuntimeStrings
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
-import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FindMissingApiKeysUseCase
@@ -19,6 +18,7 @@ import it.sapienza.appinterpreter.runtime.usecase.InitialFormValuesUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
+import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
@@ -78,7 +78,7 @@ val appModule = module {
             openLink = get(),
             findMissingApiKeys = get(),
             loadScreen = get(),
-            strings = get(),
+            strings = get()
         )
     }
 }

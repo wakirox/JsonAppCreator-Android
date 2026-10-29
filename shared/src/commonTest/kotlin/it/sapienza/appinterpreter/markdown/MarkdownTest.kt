@@ -42,8 +42,14 @@ class MarkdownTest {
     fun inlineBoldItalicsCodeAndLinks() {
         assertEquals(
             listOf(
-                Span("Visit "), Span("the Parliament", bold = true), Span(", "), Span("early", italic = true),
-                Span(", see "), Span("tickets", link = "https://example.com/t"), Span(" or "), Span("x_y", code = true)
+                Span("Visit "),
+                Span("the Parliament", bold = true),
+                Span(", "),
+                Span("early", italic = true),
+                Span(", see "),
+                Span("tickets", link = "https://example.com/t"),
+                Span(" or "),
+                Span("x_y", code = true)
             ),
             Markdown.inline("Visit **the Parliament**, *early*, see [tickets](https://example.com/t) or `x_y`")
         )

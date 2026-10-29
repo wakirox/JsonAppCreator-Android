@@ -9,12 +9,12 @@ import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
 import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 /** A form's photos reach a server as the images themselves, not as the phone's references. */
 class FetchPhotosTest {
@@ -35,7 +35,11 @@ class FetchPhotosTest {
         fetch(RESTService(url = "https://example.com/ideas", method = CallServiceMethod.post), body)
 
         val photosSent = sent!!.getValue("photos").jsonArray.map { it.jsonPrimitive.content }
-        assertEquals(listOf("data:image/jpeg;base64,AQID", "appkin-photo:gone.jpg"), photosSent, "a missing photo stays as it was")
+        assertEquals(
+            listOf("data:image/jpeg;base64,AQID", "appkin-photo:gone.jpg"),
+            photosSent,
+            "a missing photo stays as it was"
+        )
         assertEquals("Tile", sent!!.getValue("title").jsonPrimitive.content)
         assertEquals("appkin-photo is just text here", sent!!.getValue("note").jsonPrimitive.content)
     }

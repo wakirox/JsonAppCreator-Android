@@ -63,10 +63,9 @@ internal class EncryptedApiKeyStore(context: Context) : SecretStore {
         }
     }
 
-    private fun storageKey(configurationId: String, name: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest("$configurationId\u0000$name".toByteArray(Charsets.UTF_8))
-            .let { digest -> Base64.encodeToString(digest, Base64.NO_WRAP or Base64.URL_SAFE) }
+    private fun storageKey(configurationId: String, name: String): String = MessageDigest.getInstance("SHA-256")
+        .digest("$configurationId\u0000$name".toByteArray(Charsets.UTF_8))
+        .let { digest -> Base64.encodeToString(digest, Base64.NO_WRAP or Base64.URL_SAFE) }
 
     private companion object {
         const val ANDROID_KEY_STORE = "AndroidKeyStore"

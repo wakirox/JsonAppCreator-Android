@@ -33,5 +33,11 @@ class ModelApplication(
 
     fun viewBy(view: MView): MView? = if (view.isReference()) views.find { it.id == view.referenceId } else view
 
-    fun actionBy(action: Action): Action? = if (action.isReference()) actions.find { it.id == action.referenceId } else action
+    fun actionBy(action: Action): Action? = if (action.isReference()) {
+        actions.find {
+            it.id == action.referenceId
+        }
+    } else {
+        action
+    }
 }

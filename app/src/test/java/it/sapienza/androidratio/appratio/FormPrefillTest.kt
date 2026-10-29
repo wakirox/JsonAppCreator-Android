@@ -32,7 +32,10 @@ class FormPrefillTest {
     fun setUp() {
         original = preferences.getString(KEY, null)
         preferences.edit().putString(KEY, CONFIGURATION).commit()
-        scenario = ActivityScenario.launch(Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        scenario =
+            ActivityScenario.launch(
+                Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
     }
 
     @After

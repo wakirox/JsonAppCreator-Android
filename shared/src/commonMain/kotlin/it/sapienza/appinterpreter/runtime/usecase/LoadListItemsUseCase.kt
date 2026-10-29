@@ -31,7 +31,9 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
 
     /** The first page, ordered and filtered as [choice] says when the list is a stored one. */
     suspend fun firstPage(list: ListView, data: JsonObject?, choice: ListChoice = ListChoice()): Page {
-        list.stored?.let { stored -> return loadStored.load(stored, data, choice).let { Page(it.items, nextUrl = null, tags = it.tags) } }
+        list.stored?.let { stored ->
+            return loadStored.load(stored, data, choice).let { Page(it.items, nextUrl = null, tags = it.tags) }
+        }
         val request = list.initData ?: return Page(itemsIn(list, data ?: JsonObject(emptyMap())), nextUrl = null)
         return page(list, request, fetchJson.url(request, data), data)
     }
@@ -49,7 +51,8 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
     private fun itemsIn(list: ListView, source: JsonObject): List<JsonObject> {
         val array = list.mapping?.let { source.getArray(it) } ?: legacyArray(list) ?: return emptyList()
         return array.mapIndexed { index, item ->
-            item as? JsonObject ?: throw IllegalArgumentException("Value $item at $index cannot be converted to JSONObject")
+            item as? JsonObject
+                ?: throw IllegalArgumentException("Value $item at $index cannot be converted to JSONObject")
         }
     }
 
@@ -61,7 +64,9 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
         if (list.data == null) return null
         val mapping = list.mapping ?: return null
         return runCatching { JsonText.parse(mapping) as? JsonArray }.getOrNull()
-            ?: throw IllegalArgumentException("Value $mapping of type java.lang.String cannot be converted to JSONArray")
+            ?: throw IllegalArgumentException(
+                "Value $mapping of type java.lang.String cannot be converted to JSONArray"
+            )
     }
 
     /** What the user reads when loading fails with [message]. */
@@ -70,6 +75,7 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
             message.contains("failed to connect", ignoreCase = true) ||
             message.contains("timeout", ignoreCase = true) ->
             "Unable to load data. Check your connection and try again."
+
         else -> "Unable to load data. $message"
     }
 
@@ -80,7 +86,9 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
         /** The URL after [url], which gave [count] items in [response], or null when there are no more. */
         fun nextUrl(next: NextPage, url: String, response: JsonObject, count: Int): String? {
             if (count == 0) return null
-            next.urlFrom?.let { path -> return response.getValue(path)?.trim()?.takeIf { it.isNotEmpty() && it != url } }
+            next.urlFrom?.let { path ->
+                return response.getValue(path)?.trim()?.takeIf { it.isNotEmpty() && it != url }
+            }
             val parameter = next.parameter?.takeIf { it.isNotBlank() } ?: return null
             val step = next.step?.takeIf { it > 0 } ?: return null
             if (count < step) return null

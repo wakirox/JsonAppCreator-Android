@@ -44,7 +44,13 @@ class PdfPageUseCase {
             val attached = event.files?.let { Files.of(item.valueAt(it)) }.orEmpty()
             if (attached.isNotEmpty()) {
                 body.append("<ul class=\"files\">")
-                attached.forEach { file -> body.append("<li>📎 ${escape(file.name)}${file.size?.let { " · " + Files.sizeText(it) }.orEmpty()}</li>") }
+                attached.forEach { file ->
+                    body.append(
+                        "<li>📎 ${escape(file.name)}${file.size?.let {
+                            " · " + Files.sizeText(it)
+                        }.orEmpty()}</li>"
+                    )
+                }
                 body.append("</ul>\n")
             }
             body.append("</section>\n")
@@ -53,7 +59,6 @@ class PdfPageUseCase {
             "<style>$STYLE</style></head>\n<body><main>\n$body</main></body></html>\n"
         return Page(title, html, photos.distinct(), (event as? PdfItems)?.pageless == true)
     }
-
 
     /** [blocks] as HTML; list items in a row share one list, a deeper one indented. */
     private fun html(blocks: List<Markdown.Block>): String = buildString {
@@ -78,10 +83,16 @@ class PdfPageUseCase {
             closeList()
             when (block) {
                 // The page's own title is the h1: an object's headings start one level below it.
-                is Markdown.Block.Heading -> (block.level + 1).coerceAtMost(6).let { append("<h$it>${spans(block.spans)}</h$it>\n") }
+                is Markdown.Block.Heading -> (block.level + 1).coerceAtMost(6).let {
+                    append("<h$it>${spans(block.spans)}</h$it>\n")
+                }
+
                 is Markdown.Block.Paragraph -> append("<p>${spans(block.spans)}</p>\n")
+
                 is Markdown.Block.Quote -> append("<blockquote>${spans(block.spans)}</blockquote>\n")
+
                 is Markdown.Block.Code -> append("<pre>${escape(block.text)}</pre>\n")
+
                 is Markdown.Block.ListItem -> Unit
             }
         }

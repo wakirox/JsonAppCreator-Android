@@ -1,10 +1,10 @@
 package it.sapienza.appinterpreter.editor
 
 import it.sapienza.appinterpreter.json.JsonText
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class ImageLinksTest {
     private val app = """
@@ -44,10 +44,19 @@ class ImageLinksTest {
 
     @Test
     fun anImageThatDoesntLoadIsAProblemPlacedAtItsAddress() = runTest {
-        val statuses = mapOf("https://example.org/made-up.jpg" to 404, "https://example.org/park.jpg" to 200, "https://example.org/logo.png" to null)
+        val statuses = mapOf(
+            "https://example.org/made-up.jpg" to 404,
+            "https://example.org/park.jpg" to 200,
+            "https://example.org/logo.png" to null
+        )
         val problems = ImageLinks.problems(app) { statuses[it] }
 
-        assertEquals(listOf("$.mainView.stored.initialItems[0].photo", "$.mainView.itemView.views[1].url"), problems.map { it.path }.sortedDescending())
+        assertEquals(
+            listOf("$.mainView.stored.initialItems[0].photo", "$.mainView.itemView.views[1].url"),
+            problems.map {
+                it.path
+            }.sortedDescending()
+        )
         val madeUp = problems.first { "made-up" in it.message }
         assertTrue(madeUp.message.startsWith("This image doesn't load (error 404): https://example.org/made-up.jpg"))
         assertEquals(app.indexOf("\"photo\": \"https://example.org/made-up.jpg\""), madeUp.offset)

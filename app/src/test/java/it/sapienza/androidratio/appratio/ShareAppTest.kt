@@ -19,7 +19,8 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class ShareAppTest {
     private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val json = """{ "schemaVersion": 3, "name": "Movies", "version": "1", "mainView": { "type": "text", "text": "__TMDB_API_KEY__" } }"""
+    private val json = """{ "schemaVersion": 3, "name": "Movies", "version": "1", """ +
+        """"mainView": { "type": "text", "text": "__TMDB_API_KEY__" } }"""
 
     @Test
     fun sendsTheJsonAsANamedFile() {
@@ -35,6 +36,13 @@ class ShareAppTest {
 
         // Every share gets its own file. (One test only: FileProvider caches its roots across Robolectric's per-test
         // data folders.)
-        assertNotEquals(uri, IntentCompat.getParcelableExtra(ShareApp.intent(context, "Movies", json), Intent.EXTRA_STREAM, Uri::class.java))
+        assertNotEquals(
+            uri,
+            IntentCompat.getParcelableExtra(
+                ShareApp.intent(context, "Movies", json),
+                Intent.EXTRA_STREAM,
+                Uri::class.java
+            )
+        )
     }
 }

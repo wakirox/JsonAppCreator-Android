@@ -23,8 +23,14 @@ class AppModuleTest {
         // SharedPreferences file) are built in the module.
         appModule.verify(
             extraTypes = listOf(
-                Context::class, Application::class, SavedStateHandle::class, AlertsViewModel::class, ConfigurationKeys::class,
-                ConfigurationValidator::class, JsonHttpClient::class, AppStore::class
+                Context::class,
+                Application::class,
+                SavedStateHandle::class,
+                AlertsViewModel::class,
+                ConfigurationKeys::class,
+                ConfigurationValidator::class,
+                JsonHttpClient::class,
+                AppStore::class
             )
         )
     }

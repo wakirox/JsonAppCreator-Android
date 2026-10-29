@@ -9,6 +9,9 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.activity.MainActivity
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,9 +23,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 /** A calendar event opens the calendar app's new-event screen, filled in from the data. */
 @RunWith(RobolectricTestRunner::class)
@@ -40,7 +40,10 @@ class CalendarEventTest {
     fun setUp() {
         original = preferences.getString(KEY, null)
         preferences.edit().putString(KEY, CONFIGURATION).commit()
-        scenario = ActivityScenario.launch(Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        scenario =
+            ActivityScenario.launch(
+                Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
     }
 
     @After

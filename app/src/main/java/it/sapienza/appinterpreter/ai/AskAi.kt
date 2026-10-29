@@ -21,13 +21,20 @@ object AskAi {
     /** The example configurations exactly as the prompt shows them, to tell them apart from an AI's answer. */
     fun promptExamples(context: Context): List<String> {
         fun raw(id: Int) = context.resources.openRawResource(id).bufferedReader().use { it.readText() }
-        return AiContext.examples(raw(R.raw.v3_ai_checklist), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)).map { it.json }
+        return AiContext.examples(
+            raw(R.raw.v3_ai_checklist),
+            raw(R.raw.v3_race_signup),
+            raw(R.raw.v3_open_access_art)
+        ).map {
+            it.json
+        }
     }
 
     /** docs/AI_CONTEXT.md on GitHub at the commit this app was built from, which the short instructions link to. */
     val links = AiContext.Links(
         page = "https://github.com/wakirox/JsonAppCreator-Android/blob/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md",
-        raw = "https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"
+        raw = "https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/" +
+            "${BuildConfig.AI_DOCS_REF}/docs/AI_CONTEXT.md"
     )
 
     /** The instructions: everything, or with [withLinks] the short version that links to the rest. */
@@ -36,7 +43,11 @@ object AskAi {
         return AiContext.build(
             guide = asset(context, GUIDE_ASSET),
             schemaJson = asset(context, ConfigurationValidator.ASSET_PATH),
-            examples = AiContext.examples(raw(R.raw.v3_ai_checklist), raw(R.raw.v3_race_signup), raw(R.raw.v3_open_access_art)),
+            examples = AiContext.examples(
+                raw(R.raw.v3_ai_checklist),
+                raw(R.raw.v3_race_signup),
+                raw(R.raw.v3_open_access_art)
+            ),
             currentApp = currentApp,
             request = request,
             links = links.takeIf { withLinks }

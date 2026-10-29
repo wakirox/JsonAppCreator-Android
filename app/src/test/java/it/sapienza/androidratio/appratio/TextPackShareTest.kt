@@ -3,12 +3,12 @@ package it.sapienza.androidratio.appratio
 import it.sapienza.appinterpreter.runtime.usecase.TextPackUseCase
 import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.utils.TextPackShare
+import java.util.zip.ZipFile
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.util.zip.ZipFile
 
 /** A TextPack is a zip of one TextBundle folder: info.json, text.markdown and the photos it links in assets/. */
 class TextPackShareTest {
@@ -29,7 +29,15 @@ class TextPackShareTest {
         val photos = PhotoReader { reference -> if (reference == "appkin-photo:a.jpg") byteArrayOf(1, 2, 3) else null }
         val file = folder.newFile("Rainy open ideas.zip")
 
-        TextPackShare.write(pack, "Rainy open ideas", photos, { uri -> if (uri == "content://docs/plan") byteArrayOf(9) else null }, file)
+        TextPackShare.write(pack, "Rainy open ideas", photos, { uri ->
+            if (uri ==
+                "content://docs/plan"
+            ) {
+                byteArrayOf(9)
+            } else {
+                null
+            }
+        }, file)
 
         ZipFile(file).use { zip ->
             assertEquals(
@@ -46,7 +54,11 @@ class TextPackShareTest {
             assertEquals(pack.markdown, String(text("text.markdown")))
             assertEquals(TextPackUseCase.INFO, String(text("info.json")))
             assertEquals(listOf<Byte>(1, 2, 3), text("assets/dark-mode-1.jpg").toList())
-            assertEquals("an attached file goes in as it is", listOf<Byte>(9), text("assets/dark-mode-plan.pdf").toList())
+            assertEquals(
+                "an attached file goes in as it is",
+                listOf<Byte>(9),
+                text("assets/dark-mode-plan.pdf").toList()
+            )
         }
     }
 }

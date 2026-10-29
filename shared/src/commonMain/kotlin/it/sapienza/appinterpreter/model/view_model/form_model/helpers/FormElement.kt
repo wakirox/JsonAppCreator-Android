@@ -3,8 +3,8 @@ package it.sapienza.appinterpreter.model.view_model.form_model.helpers
 import it.sapienza.appinterpreter.model.TypedSerializer
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
-import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
 import it.sapienza.appinterpreter.model.view_model.form_model.FilesInput
+import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput

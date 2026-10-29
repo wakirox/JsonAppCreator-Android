@@ -56,8 +56,11 @@ class TextStylesAndTitlesTest {
     private fun shown(text: String): AnnotatedString =
         composeRule.onNodeWithText(text).fetchSemanticsNode().config[SemanticsProperties.Text].first()
 
-    private fun AnnotatedString.weightAt(index: Int) = spanStyles.lastOrNull { index in it.start until it.end }?.item?.fontWeight
-    private fun AnnotatedString.slantAt(index: Int) = spanStyles.lastOrNull { index in it.start until it.end }?.item?.fontStyle
+    private fun AnnotatedString.weightAt(index: Int) = spanStyles.lastOrNull {
+        index in it.start until it.end
+    }?.item?.fontWeight
+    private fun AnnotatedString.slantAt(index: Int) =
+        spanStyles.lastOrNull { index in it.start until it.end }?.item?.fontStyle
 
     @Test
     fun htmlIsShownWithoutItsTagsAndTheLabelHasItsOwnStyle() {

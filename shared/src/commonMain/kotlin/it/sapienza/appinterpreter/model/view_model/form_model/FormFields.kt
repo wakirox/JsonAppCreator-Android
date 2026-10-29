@@ -2,10 +2,10 @@ package it.sapienza.appinterpreter.model.view_model.form_model
 
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElementImpl
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
-import it.sapienza.appinterpreter.utils.FormDates
-import kotlinx.serialization.Serializable
 import it.sapienza.appinterpreter.storage.Files
 import it.sapienza.appinterpreter.storage.Photos
+import it.sapienza.appinterpreter.utils.FormDates
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -42,7 +42,10 @@ class DateInput(
 /** A choice among [options]; [selection] and what it submits are an option's value. */
 @Serializable
 class Selector(
-    val options: List<@Serializable(with = SelectorOptionSerializer::class) SelectorOption>,
+    val options: List<
+        @Serializable(with = SelectorOptionSerializer::class)
+        SelectorOption
+        >,
     val selection: String? = null,
     override val mandatory: Boolean? = null,
     override val title: String,

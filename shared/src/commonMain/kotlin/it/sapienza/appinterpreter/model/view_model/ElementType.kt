@@ -3,15 +3,25 @@ package it.sapienza.appinterpreter.model.view_model
 interface ElementType {
 
     enum class ViewElem {
-        button, form, image, list, text, layout
+        button,
+        form,
+        image,
+        list,
+        text,
+        layout
     }
 
     enum class FormElem {
-        checkbox, date, selector, text
+        checkbox,
+        date,
+        selector,
+        text
     }
 
     enum class EventType {
-        rest, alert, show, calendar
+        rest,
+        alert,
+        show,
+        calendar
     }
-
 }

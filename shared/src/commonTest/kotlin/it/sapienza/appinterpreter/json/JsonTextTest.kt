@@ -1,15 +1,15 @@
 package it.sapienza.appinterpreter.json
 
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class JsonTextTest {
 
@@ -23,7 +23,9 @@ class JsonTextTest {
 
     @Test
     fun readsValuesAndKeepsNumbersAsWritten() {
-        val value = JsonText.parse("""{ "a": 0.10, "b": [1, -2, 3e2], "c": "x\"é\n", "d": true, "e": null }""")!!.jsonObject
+        val value = JsonText.parse(
+            """{ "a": 0.10, "b": [1, -2, 3e2], "c": "x\"é\n", "d": true, "e": null }"""
+        )!!.jsonObject
         assertEquals("0.10", value["a"]!!.jsonPrimitive.content)
         assertEquals(listOf("1", "-2", "3e2"), value["b"]!!.jsonArray.map { it.jsonPrimitive.content })
         assertEquals("x\"é\n", value["c"]!!.jsonPrimitive.content)
@@ -54,7 +56,11 @@ class JsonTextTest {
         assertTrue(error("{\"a\": hello}").reason.startsWith("Unrecognized token 'hello'"))
         assertTrue(error("{\"a\": 01}").reason.contains("Leading zeroes"))
         assertTrue(error("[1,]").reason.contains("expected a valid value"))
-        assertTrue(assertFailsWith<JsonSyntaxException> { JsonText.parse("{\"a\": 1, \"a\": 2}", strictDuplicates = true) }.reason.contains("Duplicate"))
+        assertTrue(
+            assertFailsWith<JsonSyntaxException> {
+                JsonText.parse("{\"a\": 1, \"a\": 2}", strictDuplicates = true)
+            }.reason.contains("Duplicate")
+        )
     }
 
     @Test
@@ -81,7 +87,11 @@ class JsonTextTest {
     fun prettyPrintsLikeJacksonsDefaultPrinter() {
         assertEquals(
             "{\n  \"price\": 0.10,\n  \"big\": 12345678901234567890.5,\n  \"none\": { },\n  \"list\": [ ],\n  \"items\": [\n    1,\n    \"a/b\"\n  ]\n}",
-            JsonText.pretty(JsonText.parse("""{"price":0.10,"big":12345678901234567890.5,"none":{},"list":[],"items":[1,"a/b"]}""")!!)
+            JsonText.pretty(
+                JsonText.parse(
+                    """{"price":0.10,"big":12345678901234567890.5,"none":{},"list":[],"items":[1,"a/b"]}"""
+                )!!
+            )
         )
         assertEquals("\"tab\\t\\u0001\"", JsonText.pretty(JsonPrimitive("tab\t\u0001")))
     }
