@@ -45,6 +45,14 @@ class PdfPageUseCaseTest {
     }
 
     @Test
+    fun aPagelessPdfIsOnePageAsTallAsItsMain() {
+        assertFalse(PdfPageUseCase()(pdf, emptyList(), app, "App ideas").pageless, "A4 pages by default")
+        val page = PdfPageUseCase()(event("""{ "type": "pdf", "collection": "c", "text": "x", "pageless": true }"""), emptyList(), null, "A")
+        assertTrue(page.pageless)
+        assertTrue("<body><main>" in page.html && "</main></body>" in page.html, "the phone measures the main")
+    }
+
+    @Test
     fun savedTextCantAddHtml() {
         val page = PdfPageUseCase()(pdf, listOf(obj("""{ "title": "<script>x</script>", "description": "a & \"b\"" }""")), app, "App ideas")
         assertFalse("<script>" in page.html)

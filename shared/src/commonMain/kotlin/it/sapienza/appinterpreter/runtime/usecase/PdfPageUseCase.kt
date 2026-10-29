@@ -17,8 +17,11 @@ import kotlinx.serialization.json.contentOrNull
  * its img's src, for the phone to swap for the picture; a web address is loaded as it is.
  */
 class PdfPageUseCase {
-    /** The page to print: [title] names the file, [photos] are the kept photos the [html] refers to. */
-    class Page(val title: String, val html: String, val photos: List<String>)
+    /**
+     * The page to print: [title] names the file, [photos] are the kept photos the [html] refers to. A [pageless] one
+     * is one page as tall as its <main>, which is [CONTENT_WIDTH_MM] wide, plus [MARGIN_MM] above and below.
+     */
+    class Page(val title: String, val html: String, val photos: List<String>, val pageless: Boolean = false)
 
     operator fun invoke(event: PdfItems, items: List<JsonObject>, data: JsonObject?, fallbackTitle: String): Page {
         val title = event.title?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() } ?: fallbackTitle
@@ -39,8 +42,8 @@ class PdfPageUseCase {
             body.append("</section>\n")
         }
         val html = "<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\"><title>${escape(title)}</title>" +
-            "<style>$STYLE</style></head>\n<body>\n$body</body></html>\n"
-        return Page(title, html, photos.distinct())
+            "<style>$STYLE</style></head>\n<body><main>\n$body</main></body></html>\n"
+        return Page(title, html, photos.distinct(), event.pageless)
     }
 
     private fun photosAt(item: JsonObject, path: String): List<String> = when (val value = item.valueAt(path)) {
@@ -94,18 +97,29 @@ class PdfPageUseCase {
     companion object {
         private val LINK_SCHEMES = listOf("https://", "http://", "mailto:")
 
+        /** An A4 page's width less its side margins: the width the content is laid out at. */
+        const val CONTENT_WIDTH_MM = 182
+
+        /** The margin above and below the content, and on each side ([CONTENT_WIDTH_MM] leaves 14 mm). */
+        const val MARGIN_MM = 16
+
         fun escape(text: String): String =
             text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
-        /** A plain, readable page: A4 margins, one object never split across pages when it fits on one. */
+        /**
+         * A plain, readable page: A4 margins. An object may go on over a page, but its heading stays with what follows
+         * and no photo or paragraph is cut.
+         */
         private val STYLE = """
-            @page { margin: 16mm 14mm; }
+            @page { margin: ${MARGIN_MM}mm 14mm; }
+            main { width: ${CONTENT_WIDTH_MM}mm; }
             body { font-family: sans-serif; color: #1d1b20; font-size: 11pt; line-height: 1.45; }
             h1 { font-size: 20pt; margin: 0 0 6mm; }
-            h2, h3 { font-size: 14pt; margin: 0 0 1.5mm; }
+            h2, h3 { font-size: 14pt; margin: 0 0 1.5mm; break-after: avoid; }
             h4, h5, h6 { font-size: 12pt; margin: 0 0 1mm; }
             p, ul, ol, blockquote, pre { margin: 0 0 2mm; }
-            section { break-inside: avoid; padding: 0 0 4mm; margin: 0 0 4mm; border-bottom: 0.3mm solid #ddd; }
+            section { padding: 0 0 4mm; margin: 0 0 4mm; border-bottom: 0.3mm solid #ddd; }
+            p, li, img { break-inside: avoid; }
             section:last-child { border-bottom: none; }
             blockquote { border-left: 1mm solid #ccc; padding-left: 3mm; color: #555; }
             code, pre { font-family: monospace; background: #f3f3f3; }

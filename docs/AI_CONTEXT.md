@@ -496,6 +496,7 @@ Makes a PDF of saved objects, such as the ideas not done yet: a title, then each
 - `text` **(required)**: text (not empty). Each object's part, as Markdown with ${field} placeholders from the object, such as "## ${title}\n${description}"; a line whose placeholders all have no value is left out
 - `photos`: text. Path of each object's photos (a photos field's list) to show below its text
 - `emptyText`: text. What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders
+- `pageless`: `true` or `false`. true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing
 - `mapping`: text. Path of the part of the current data to use
 - `data`: an object with any data
 

@@ -161,6 +161,8 @@ class PdfItems(
     val text: String,
     val photos: String? = null,
     val emptyText: String? = null,
+    /** One page as tall as everything, as a phone shows it best, instead of A4 pages. */
+    val pageless: Boolean = false,
     override val mapping: String? = null,
     override val data: JsonObject? = null
 ) : Event()

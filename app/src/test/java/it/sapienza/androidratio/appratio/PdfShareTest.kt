@@ -3,6 +3,7 @@ package it.sapienza.androidratio.appratio
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.print.PrintAttributes
 import androidx.core.content.FileProvider
 import androidx.core.content.IntentCompat
 import it.sapienza.appinterpreter.utils.PdfPrint
@@ -36,6 +37,15 @@ class PdfShareTest {
         assertEquals("Rainy open ideas", PdfPrint.fileName("Rainy: open ideas"))
         assertEquals("a b c", PdfPrint.fileName(" a/b\\c? "))
         assertEquals("Appkin", PdfPrint.fileName(":?"))
+    }
+
+    @Test
+    fun aPagelessPageIsA4WideAndAsTallAsItsContentPlusMargins() {
+        // 960 CSS pixels are 10 inches (254 mm); with 2 × 16 mm margins and 4 mm of room, 290 mm.
+        val media = checkNotNull(PdfPrint.pageless(960f).mediaSize)
+        assertEquals(PrintAttributes.MediaSize.ISO_A4.widthMils, media.widthMils)
+        assertEquals(11417, media.heightMils)
+        assertEquals("a PDF page is at most 200 inches", 200_000, PdfPrint.pageless(1_000_000f).mediaSize?.heightMils)
     }
 
     @Test

@@ -164,7 +164,8 @@
                   "title": "${name}: open ideas",
                   "text": "## ${title}\n\n**${priority} priority**\n\nTags: ${tags}\n\n${description}\n\n[${link}](${link})",
                   "photos": "photos",
-                  "emptyText": "No open ideas for ${name}."
+                  "emptyText": "No open ideas for ${name}.",
+                  "pageless": true
                 }
               }
             }
