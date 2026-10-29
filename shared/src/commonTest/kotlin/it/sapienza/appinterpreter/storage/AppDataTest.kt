@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.Test
@@ -78,6 +79,43 @@ class AppDataTest {
         assertEquals(listOf("parliament", "bastion", "baths"), items.map { it.getValue("key") })
         assertEquals("true", items[1].getValue("visited"), "the user's tick stays")
         assertEquals(false, data.addFirst("app:trip", "places", listOf(place("parliament"), place("baths")), unique = "key"))
+    }
+
+    private fun spot(key: String, photo: String, tip: String? = null) = JsonObject(
+        listOfNotNull("key" to JsonPrimitive(key), "photo" to JsonPrimitive(photo), "visited" to JsonPrimitive(false), tip?.let { "tip" to JsonPrimitive(it) }).toMap()
+    )
+
+    @Test
+    fun aLaterVersionsFixesReachSavedItemsButTheUsersChangesStay() {
+        data.addFirst("app:trip", "places", listOf(spot("arc", "broken.jpg", tip = "Go early"), spot("park", "park.jpg")), unique = "key")
+        val (arc, park) = data.items("app:trip", "places")
+        data.update("app:trip", "places", arc.getValue("id")!!, JsonObject(mapOf("visited" to JsonPrimitive(true))))
+        data.update("app:trip", "places", park.getValue("id")!!, JsonObject(mapOf("photo" to JsonPrimitive("mine.jpg"))))
+
+        assertEquals(true, data.addFirst("app:trip", "places", listOf(spot("arc", "fixed.jpg"), spot("park", "park2.jpg", tip = "Boats")), unique = "key"))
+
+        val (newArc, newPark) = data.items("app:trip", "places")
+        assertEquals("fixed.jpg", newArc.getValue("photo"), "the fixed photo arrives")
+        assertEquals("true", newArc.getValue("visited"), "the tick stays")
+        assertEquals(null, newArc.getValue("tip"), "a tip the new version dropped goes")
+        assertEquals("mine.jpg", newPark.getValue("photo"), "the user's own photo stays")
+        assertEquals("Boats", newPark.getValue("tip"), "a new tip arrives")
+        assertEquals(arc.getValue("id"), newArc.getValue("id"))
+        assertEquals(false, data.addFirst("app:trip", "places", listOf(spot("arc", "fixed.jpg"), spot("park", "park2.jpg", tip = "Boats")), unique = "key"), "nothing new")
+    }
+
+    @Test
+    fun itemsSavedBeforeVersionsWereKeptTakeTheFixesAndKeepTheirTicks() {
+        data.addFirst("app:trip", "places", listOf(spot("arc", "broken.jpg")), unique = "key")
+        data.update("app:trip", "places", data.items("app:trip", "places").single().getValue("id")!!, JsonObject(mapOf("visited" to JsonPrimitive(true))))
+        // As an older Appkin left it: no record of the app's earlier version of each item.
+        store.edit(mapOf(JsonArray(listOf("app:trip", "places", "initialItemsSeeds").map(::JsonPrimitive)).toString() to null))
+
+        data.addFirst("app:trip", "places", listOf(spot("arc", "fixed.jpg")), unique = "key")
+
+        val arc = data.items("app:trip", "places").single()
+        assertEquals("fixed.jpg", arc.getValue("photo"))
+        assertEquals("true", arc.getValue("visited"))
     }
 
     @Test
