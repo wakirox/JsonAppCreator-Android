@@ -4,7 +4,7 @@
 #   tools/release.sh v2.0              # build, sign, check, tag and publish the GitHub Release (v2.0.1 for a patch)
 #   tools/release.sh v2.0 --dry-run    # build, sign and check only: nothing is tagged or published
 #
-# Only from a clean checkout of origin/master, on a commit CI passed. It builds the minified APK and the AAB for Google
+# Only from a clean checkout of a commit on master that CI passed (master may have moved on since). It builds the minified APK and the AAB for Google
 # Play, signed with the key in $APPKIN_KEYSTORE_PROPERTIES (storeFile, storePassword, keyAlias, keyPassword; never
 # printed), verifies the APK's signature, and writes both with SHA-256 checksums to dist/<tag>/. Then it pushes the tag
 # (CI's Release workflow tests it again) and creates the GitHub Release with the APK, as the Wakirox Bot.
@@ -24,11 +24,11 @@ repo=wakirox/JsonAppCreator-Android
 properties="${APPKIN_KEYSTORE_PROPERTIES:-$HOME/.android/keys/rainy-keystore.properties}"
 export PATH="$HOME/.local/bin:$PATH"
 
-# The exact commit that is on master and passed CI.
+# The checked-out commit, which must be on master (not necessarily its newest) and have passed CI there.
 git fetch -q origin master --tags
 [ -z "$(git status --porcelain)" ] || { echo "The checkout has changes: release from a clean one" >&2; exit 1; }
 commit=$(git rev-parse HEAD)
-[ "$commit" = "$(git rev-parse origin/master)" ] || { echo "HEAD isn't origin/master: check out origin/master first" >&2; exit 1; }
+git merge-base --is-ancestor "$commit" origin/master || { echo "$commit isn't on origin/master" >&2; exit 1; }
 git rev-parse -q --verify "refs/tags/$tag" > /dev/null && { echo "$tag already exists" >&2; exit 1; }
 ci=$(gh run list --repo "$repo" --workflow CI --commit "$commit" --json conclusion -q '[.[] | select(.conclusion == "success")] | length')
 [ "${ci:-0}" -gt 0 ] || { echo "CI hasn't passed on $commit yet" >&2; exit 1; }
