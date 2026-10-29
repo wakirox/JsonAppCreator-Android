@@ -7,11 +7,11 @@ import androidx.core.content.IntentCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.utils.ExternalApps
 import it.sapienza.appinterpreter.utils.PhotoStore
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -30,15 +30,21 @@ class ShareWithPhotosTest {
      */
     @Before
     fun forgetFileProviderFolders() {
-        FileProvider::class.java.getDeclaredField("sCache").apply { isAccessible = true }.let { (it.get(null) as MutableMap<*, *>).clear() }
+        FileProvider::class.java.getDeclaredField("sCache").apply {
+            isAccessible = true
+        }.let { (it.get(null) as MutableMap<*, *>).clear() }
     }
 
     private suspend fun photo(name: String): Uri {
-        checkNotNull(store.file("appkin-photo:$name")).apply { parentFile?.mkdirs(); writeText("jpeg") }
+        checkNotNull(store.file("appkin-photo:$name")).apply {
+            parentFile?.mkdirs()
+            writeText("jpeg")
+        }
         return checkNotNull(store.shareable("appkin-photo:$name"))
     }
 
-    private fun Intent.target(): Intent = checkNotNull(IntentCompat.getParcelableExtra(this, Intent.EXTRA_INTENT, Intent::class.java))
+    private fun Intent.target(): Intent =
+        checkNotNull(IntentCompat.getParcelableExtra(this, Intent.EXTRA_INTENT, Intent::class.java))
 
     @Test
     fun keptPhotosAreSharedAsACopyThroughTheAppsFileProvider() = runTest {

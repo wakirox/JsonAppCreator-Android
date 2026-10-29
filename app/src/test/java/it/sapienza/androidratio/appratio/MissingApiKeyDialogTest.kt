@@ -4,13 +4,13 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
-import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.activity.MainActivity
+import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

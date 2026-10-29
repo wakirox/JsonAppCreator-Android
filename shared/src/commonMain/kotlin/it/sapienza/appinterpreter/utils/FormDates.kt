@@ -1,12 +1,12 @@
 package it.sapienza.appinterpreter.utils
 
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Instant
 
 /** The dd/MM/yyyy dates of forms and calendar events, read strictly as SimpleDateFormat did (lenient = false). */
 object FormDates {
@@ -16,8 +16,10 @@ object FormDates {
     fun format(epochMillis: Long, zone: TimeZone = TimeZone.currentSystemDefault()): String =
         format(Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(zone).date)
 
-    fun format(date: LocalDate): String =
-        "${date.day.toString().padStart(2, '0')}/${date.month.number.toString().padStart(2, '0')}/${date.year.toString().padStart(4, '0')}"
+    fun format(date: LocalDate): String = "${date.day.toString().padStart(
+        2,
+        '0'
+    )}/${date.month.number.toString().padStart(2, '0')}/${date.year.toString().padStart(4, '0')}"
 
     const val TIME_PATTERN = "HH:mm"
 

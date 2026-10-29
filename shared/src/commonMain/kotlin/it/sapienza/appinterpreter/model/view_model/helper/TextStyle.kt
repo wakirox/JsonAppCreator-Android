@@ -4,5 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class TextStyle {
-    regular, italic, bold
+    regular,
+    italic,
+    bold
 }

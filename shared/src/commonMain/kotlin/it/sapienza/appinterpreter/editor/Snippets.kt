@@ -45,7 +45,11 @@ object Snippets {
             """.trimIndent()
         ),
         Snippet("Text field", """{ "type": "text", "mapping": "field", "title": "Field" }""", formField = true),
-        Snippet("Choice field", """{ "type": "selector", "mapping": "choice", "title": "Choice", "options": ["One", "Two"] }""", formField = true),
+        Snippet(
+            "Choice field",
+            """{ "type": "selector", "mapping": "choice", "title": "Choice", "options": ["One", "Two"] }""",
+            formField = true
+        ),
         Snippet("Time field", """{ "type": "time", "mapping": "time", "title": "Time" }""", formField = true),
         Snippet("Hidden value", """{ "type": "hidden", "mapping": "id", "value": "${'$'}{id}" }""", formField = true),
         Snippet("Row of views", """{ "type": "layout", "orientation": "horizontal", "views": [] }""")

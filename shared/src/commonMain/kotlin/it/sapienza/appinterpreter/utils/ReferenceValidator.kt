@@ -52,12 +52,7 @@ internal class ReferenceValidator {
         validateContainmentCycles()
     }
 
-    private fun visitView(
-        element: JsonElement,
-        path: String,
-        parentId: String?,
-        definitionRequired: Boolean = false
-    ) {
+    private fun visitView(element: JsonElement, path: String, parentId: String?, definitionRequired: Boolean = false) {
         val node = element as? JsonObject ?: fail(path, "view must be an object")
 
         if (node.containsKey("ref")) {
@@ -71,7 +66,10 @@ internal class ReferenceValidator {
         if (!node.containsKey("type")) {
             if (definitionRequired) fail(path, "top-level views must include a type")
             if (node.size != 1 || !node.containsKey("id")) {
-                fail(path, "view must be a definition with type or a reference with ref (legacy id-only references are also accepted)")
+                fail(
+                    path,
+                    "view must be a definition with type or a reference with ref (legacy id-only references are also accepted)"
+                )
             }
             val id = requiredIdentifier(node["id"], "$path.id", "view reference")
             addViewReference(id, "$path.id", parentId)
@@ -112,7 +110,10 @@ internal class ReferenceValidator {
         if (!isDefinition) {
             if (definitionRequired) fail(path, "top-level actions must include an event")
             if (node.size != 1 || !node.containsKey("id")) {
-                fail(path, "action must be a definition with an event or a reference with ref (legacy id-only references are also accepted)")
+                fail(
+                    path,
+                    "action must be a definition with an event or a reference with ref (legacy id-only references are also accepted)"
+                )
             }
             val id = requiredIdentifier(node["id"], "$path.id", "action reference")
             actionReferences += LocatedReference(id, "$path.id")
@@ -152,12 +153,7 @@ internal class ReferenceValidator {
         return text
     }
 
-    private fun registerDefinition(
-        definitions: MutableMap<String, String>,
-        id: String,
-        path: String,
-        kind: String
-    ) {
+    private fun registerDefinition(definitions: MutableMap<String, String>, id: String, path: String, kind: String) {
         definitions[id]?.let { firstPath ->
             fail("$path.id", "duplicate $kind id '$id' (first defined at $firstPath)")
         }
@@ -192,7 +188,5 @@ internal class ReferenceValidator {
         viewDefinitions.keys.forEach(::visit)
     }
 
-    private fun fail(path: String, detail: String): Nothing {
-        throw ConfigurationValidationException(path, detail)
-    }
+    private fun fail(path: String, detail: String): Nothing = throw ConfigurationValidationException(path, detail)
 }

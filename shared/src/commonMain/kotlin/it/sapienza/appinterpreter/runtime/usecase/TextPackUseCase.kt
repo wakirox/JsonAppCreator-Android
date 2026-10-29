@@ -3,8 +3,8 @@ package it.sapienza.appinterpreter.runtime.usecase
 import it.sapienza.appinterpreter.json.filledLines
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
-import it.sapienza.appinterpreter.model.event.ItemsExport
 import it.sapienza.appinterpreter.json.valueAt
+import it.sapienza.appinterpreter.model.event.ItemsExport
 import it.sapienza.appinterpreter.storage.Files
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.serialization.json.JsonObject
@@ -45,11 +45,17 @@ class TextPackUseCase {
                 assets += Asset(path, file.uri)
                 "📎 [${file.name}]($path)"
             }
-            (listOf(event.text.filledLines(item)) + pictures + attached.joinToString("\n").ifEmpty { null }).filterNotNull()
+            (
+                listOf(event.text.filledLines(item)) + pictures + attached.joinToString("\n").ifEmpty {
+                    null
+                }
+                ).filterNotNull()
                 .filter { it.isNotBlank() }.joinToString("\n\n")
         }
         val empty = event.emptyText?.matchReplace(data)?.takeIf { items.isEmpty() }
-        val body = listOfNotNull("# $title", empty) + parts.joinToString("\n\n---\n\n").takeIf { it.isNotEmpty() }.let(::listOfNotNull)
+        val body =
+            listOfNotNull("# $title", empty) +
+                parts.joinToString("\n\n---\n\n").takeIf { it.isNotEmpty() }.let(::listOfNotNull)
         return Pack(title, body.joinToString("\n\n") + "\n", assets)
     }
 
@@ -57,12 +63,18 @@ class TextPackUseCase {
         if (taken.none { it.path == path }) return path
         val dot = path.lastIndexOf('.').takeIf { it > path.lastIndexOf('/') } ?: path.length
         val (stem, extension) = path.substring(0, dot) to path.substring(dot)
-        return generateSequence(2) { it + 1 }.map { "$stem-$it$extension" }.first { candidate -> taken.none { it.path == candidate } }
+        return generateSequence(2) { it + 1 }.map { "$stem-$it$extension" }.first { candidate ->
+            taken.none {
+                it.path ==
+                    candidate
+            }
+        }
     }
 
     companion object {
         /** The bundle's info.json (TextBundle version 2, Markdown); transient: made to be handed on. */
-        const val INFO = """{"version":2,"type":"net.daringfireball.markdown","transient":true,"creatorIdentifier":"it.sapienza.androidratio.appratio"}"""
+        const val INFO = """{"version":2,"type":"net.daringfireball.markdown","transient":true,""" +
+            """"creatorIdentifier":"it.sapienza.androidratio.appratio"}"""
 
         /** [text] as a file name part: lower case letters and digits, joined by hyphens. */
         fun slug(text: String?): String =

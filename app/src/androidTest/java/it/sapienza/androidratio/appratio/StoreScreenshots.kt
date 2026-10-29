@@ -3,17 +3,8 @@ package it.sapienza.androidratio.appratio
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.SystemClock
 import android.graphics.BitmapFactory
-import it.sapienza.appinterpreter.storage.AppData
-import it.sapienza.appinterpreter.storage.Files
-import it.sapienza.appinterpreter.utils.AppLibrary
-import it.sapienza.appinterpreter.utils.PhotoStore
-import it.sapienza.appinterpreter.utils.SharedPreferencesStore
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -22,12 +13,21 @@ import androidx.test.uiautomator.Until
 import it.sapienza.appinterpreter.activity.EditorActivity
 import it.sapienza.appinterpreter.activity.HomeActivity
 import it.sapienza.appinterpreter.activity.MainActivity
+import it.sapienza.appinterpreter.storage.AppData
+import it.sapienza.appinterpreter.storage.Files
+import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.PhotoStore
+import it.sapienza.appinterpreter.utils.SharedPreferencesStore
+import java.io.File
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 /**
  * The raw captures for the Play Store screenshots: drives the real app through each screen and saves them under the
@@ -42,22 +42,32 @@ class StoreScreenshots {
 
     @Before
     fun setUp() {
-        assumeTrue("Only when screenshots.sh asks for it", InstrumentationRegistry.getArguments().getString("store") == "true")
+        assumeTrue(
+            "Only when screenshots.sh asks for it",
+            InstrumentationRegistry.getArguments().getString("store") == "true"
+        )
         out.mkdirs()
     }
 
     @Test
     fun capture() {
         // Your apps: one the user made with an AI app and one changed from an example. How it works closed.
-        val bookClub = instrumentation.context.assets.open("store/book_club.json").bufferedReader().use { it.readText() }
+        val bookClub = instrumentation.context.assets.open("store/book_club.json").bufferedReader().use {
+            it.readText()
+        }
+
         // Enough of the user's own apps that the examples (Movies credits TMDB) stay below the screen's edge.
-        fun asset(name: String) = instrumentation.context.assets.open("store/$name").bufferedReader().use { it.readText() }
+        fun asset(name: String) =
+            instrumentation.context.assets.open("store/$name").bufferedReader().use { it.readText() }
         DomainController.setJsonFile(asset("reading_list.json"), context)
         DomainController.setJsonFile(asset("packing_list.json"), context)
         DomainController.setJsonFile(read(R.raw.v3_ai_checklist), context)
         DomainController.setJsonFile(read(R.raw.v3_race_signup), context)
         DomainController.setJsonFile(bookClub, context)
-        context.getSharedPreferences("Home", Context.MODE_PRIVATE).edit().putBoolean("how_it_works_open", false).commit()
+        context.getSharedPreferences(
+            "Home",
+            Context.MODE_PRIVATE
+        ).edit().putBoolean("how_it_works_open", false).commit()
         start(HomeActivity::class.java)
         waitFor("Your apps")
         shoot("home")
@@ -98,7 +108,8 @@ class StoreScreenshots {
         hideKeyboard()
         device.findObject(By.text("10 km")).click()
         device.findObject(By.text("M")).click()
-        device.findObjects(By.checkable(true)).last().click() // the switch, after the chips; its label doesn't toggle it
+        // the switch, after the chips; its label doesn't toggle it
+        device.findObjects(By.checkable(true)).last().click()
         settle(800)
         shoot("form")
 
@@ -135,32 +146,69 @@ class StoreScreenshots {
         fun item(vararg fields: Pair<String, JsonElement>) = JsonObject(fields.toMap())
         fun text(value: String) = JsonPrimitive(value)
         fun list(vararg values: String) = JsonArray(values.map(::JsonPrimitive))
-        val rainy = data.add(app, "apps", item("name" to text("Rainy"), "description" to text("Rain alerts and forecasts, on the phone and the watch")))
+        val rainy = data.add(
+            app,
+            "apps",
+            item(
+                "name" to text("Rainy"),
+                "description" to text("Rain alerts and forecasts, on the phone and the watch")
+            )
+        )
         val rainyId = text(checkNotNull((rainy["id"] as? JsonPrimitive)?.content))
         data.add(
-            app, "ideas",
+            app,
+            "ideas",
             item(
-                "appId" to rainyId, "title" to text("Rain alerts on the watch"), "priority" to text("High"), "done" to JsonPrimitive(false),
+                "appId" to rainyId, "title" to text("Rain alerts on the watch"), "priority" to text("High"),
+                "done" to JsonPrimitive(false),
                 "description" to text("A tap on the wrist before it rains\nOnly when I'm outside"),
-                "tags" to list("watch", "alerts"), "photos" to list("appkin-photo:mockup-dark.jpg", "appkin-photo:mockup-amoled.jpg"),
-                "files" to JsonArray(listOf(Files.Attached("watch-face-spec.pdf", "application/pdf", 245_000, "content://store/spec").toJson())),
+                "tags" to list("watch", "alerts"),
+                "photos" to list("appkin-photo:mockup-dark.jpg", "appkin-photo:mockup-amoled.jpg"),
+                "files" to
+                    JsonArray(
+                        listOf(
+                            Files.Attached(
+                                "watch-face-spec.pdf",
+                                "application/pdf",
+                                245_000,
+                                "content://store/spec"
+                            ).toJson()
+                        )
+                    ),
                 "link" to text("https://wakirox.app")
             )
         )
         data.add(
-            app, "ideas",
+            app,
+            "ideas",
             item(
-                "appId" to rainyId, "title" to text("The widget is blank after a resize"), "priority" to text("Medium"), "done" to JsonPrimitive(false),
-                "bug" to text("Bug"), "tags" to list("widgets")
+                "appId" to rainyId,
+                "title" to text("The widget is blank after a resize"),
+                "priority" to text("Medium"),
+                "done" to JsonPrimitive(false),
+                "bug" to text("Bug"),
+                "tags" to list("widgets")
             )
         )
-        data.add(app, "ideas", item("appId" to rainyId, "title" to text("Dark mode"), "priority" to text("Low"), "done" to JsonPrimitive(true), "tags" to list("ui")))
+        data.add(
+            app,
+            "ideas",
+            item(
+                "appId" to rainyId,
+                "title" to text("Dark mode"),
+                "priority" to text("Low"),
+                "done" to JsonPrimitive(true),
+                "tags" to list("ui")
+            )
+        )
     }
 
     private fun read(resource: Int) = context.resources.openRawResource(resource).bufferedReader().use { it.readText() }
 
     private fun start(activity: Class<*>) {
-        context.startActivity(Intent(context, activity).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        context.startActivity(
+            Intent(context, activity).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        )
         device.waitForIdle()
     }
 

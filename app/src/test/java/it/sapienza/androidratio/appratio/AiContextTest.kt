@@ -1,18 +1,18 @@
 package it.sapienza.androidratio.appratio
 
-import it.sapienza.appinterpreter.validation.fromAssets
-import it.sapienza.appinterpreter.validation.fromSchema
 import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.ai.ShareLinks
 import it.sapienza.appinterpreter.editor.ConfigurationChecker
 import it.sapienza.appinterpreter.editor.EditorIssue
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
+import java.nio.file.Files
+import java.nio.file.Path
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.nio.file.Files
-import java.nio.file.Path
 
 /**
  * The AI context: complete, with valid examples, and kept in docs/AI_CONTEXT.md.
@@ -34,10 +34,17 @@ class AiContextTest {
 
     @Test
     fun theContextDescribesEveryViewFieldAndEvent() {
-        listOf("layout", "text", "button", "image", "list", "form", "selector", "date", "time", "checkbox", "hidden", "photos", "tags", "rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy", "check")
+        listOf(
+            "layout", "text", "button", "image", "list", "form", "selector", "date", "time", "checkbox", "hidden",
+            "photos", "tags", "rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back",
+            "copy", "check"
+        )
             .forEach { assertTrue("missing #### `$it`", context.contains("#### `$it`")) }
         assertTrue(context.contains("## Common mistakes"))
-        assertTrue("the keys of a sort", context.contains("#### Order of a stored list (`sort`)") && context.contains("- `by` **(required)**"))
+        assertTrue(
+            "the keys of a sort",
+            context.contains("#### Order of a stored list (`sort`)") && context.contains("- `by` **(required)**")
+        )
         assertTrue(context.contains("- `initialItems`"))
         assertTrue("repository-only sections are left out", !context.contains("./gradlew"))
     }
@@ -45,7 +52,9 @@ class AiContextTest {
     @Test
     fun everyExampleInTheContextIsValid() {
         val examples = context.substring(context.indexOf("## Example 1"))
-        val blocks = Regex("```json\\n(.*?)```", RegexOption.DOT_MATCHES_ALL).findAll(examples).map { it.groupValues[1] }.toList()
+        val blocks = Regex("```json\\n(.*?)```", RegexOption.DOT_MATCHES_ALL).findAll(examples).map {
+            it.groupValues[1]
+        }.toList()
         assertEquals(3, blocks.size)
         blocks.forEach { assertEquals(emptyList<EditorIssue>(), checker.check(it)) }
     }
@@ -86,19 +95,27 @@ class AiContextTest {
         val mapper = com.fasterxml.jackson.databind.ObjectMapper()
         fun escaped(json: String) = mapper.writeValueAsString(json).removeSurrounding("\"")
         val example = raw("v3_ai_checklist")
-        val first = "{ \"schemaVersion\": 3, \"name\": \"Books\", \"version\": \"1\", \"mainView\": { \"type\": \"text\" } }"
-        val last = "{ \"schemaVersion\": 3, \"name\": \"Books 2\", \"version\": \"1\", \"mainView\": { \"type\": \"text\", \"label\": \"{title}\" } }"
+        val first =
+            "{ \"schemaVersion\": 3, \"name\": \"Books\", \"version\": \"1\", \"mainView\": { \"type\": \"text\" } }"
+        val last = "{ \"schemaVersion\": 3, \"name\": \"Books 2\", \"version\": \"1\", " +
+            "\"mainView\": { \"type\": \"text\", \"label\": \"{title}\" } }"
         // Like Gemini's response: the chat (prompt with its example, then two answers) is a string inside a string.
-        val chat = "[[\"prompt\", \"${escaped(example)}\"], [\"answer\", \"${escaped(first)}\"], [\"answer\", \"${escaped(last)}\"]]"
+        val chat = "[[\"prompt\", \"${escaped(
+            example
+        )}\"], [\"answer\", \"${escaped(first)}\"], [\"answer\", \"${escaped(last)}\"]]"
         val page = ")]}'\n[[\"wrb.fr\",\"ujx1Bf\",\"${escaped(chat)}\"]]"
 
         val found = checkNotNull(AiContext.lastConfiguration(page, listOf(example)))
         assertTrue(found, found.contains("\"name\": \"Books 2\""))
         assertTrue("placeholders are restored", found.contains("${'$'}{title}"))
-        assertNull("the prompt's example alone isn't an answer", AiContext.lastConfiguration(escaped(example), listOf(example)))
+        assertNull(
+            "the prompt's example alone isn't an answer",
+            AiContext.lastConfiguration(escaped(example), listOf(example))
+        )
         // An AI's change to an example keeps its name, and is still the AI's answer.
         val changed = example.replaceFirst("\"version\": \"1.0.0\"", "\"version\": \"1.1.0\"")
-        val changedFound = checkNotNull(AiContext.lastConfiguration(escaped(example) + escaped(changed), listOf(example)))
+        val changedFound =
+            checkNotNull(AiContext.lastConfiguration(escaped(example) + escaped(changed), listOf(example)))
         assertTrue(changedFound.contains("\"version\": \"1.1.0\""))
     }
 
@@ -128,15 +145,24 @@ class AiContextTest {
 
     @Test
     fun theShortVersionLinksEveryPartToTheFullReference() {
-        val anchors = Regex("""\(\[details]\(https://example\.com/page#([a-z0-9_-]+)\)\)""").findAll(short).map { it.groupValues[1] }.toList()
+        val anchors = Regex("""\(\[details]\(https://example\.com/page#([a-z0-9_-]+)\)\)""").findAll(short).map {
+            it.groupValues[1]
+        }.toList()
         // The root, 8 views, 9 form fields, 13 events and 5 nested parts, each with its own anchor.
         assertEquals(36, anchors.size)
         assertEquals(anchors.size, anchors.toSet().size)
-        listOf("list", "text", "text-1", "save", "order-of-a-stored-list-sort", "root-object").forEach { assertTrue(it, it in anchors) }
+        listOf("list", "text", "text-1", "save", "order-of-a-stored-list-sort", "root-object").forEach {
+            assertTrue(
+                it,
+                it in anchors
+            )
+        }
         // Each anchor is a heading of the full context (GitHub's anchor for it).
         val headings = Regex("(?m)^#{2,4} (.+)$").findAll(context).map { it.groupValues[1] }.toList()
         assertTrue(headings.contains("Order of a stored list (`sort`)"))
-        assertTrue(short.contains("https://example.com/page#example-1-a-checklist-saved-on-the-phone-with-a-detail-screen"))
+        assertTrue(
+            short.contains("https://example.com/page#example-1-a-checklist-saved-on-the-phone-with-a-detail-screen")
+        )
         assertTrue(short.contains("https://example.com/raw"))
         assertTrue(Regex("(?m)^- `list`: id, .*\\*\\*itemView\\*\\*, .*stored, ").containsMatchIn(short))
     }
@@ -166,7 +192,13 @@ class AiContextTest {
 
     @Test
     fun aRequestAndTheCurrentAppEndTheContext() {
-        val withApp = AiContext.build("## Rules\n\nBe nice.\n", schema, emptyList(), currentApp = "{}", request = "Add a map")
+        val withApp = AiContext.build(
+            "## Rules\n\nBe nice.\n",
+            schema,
+            emptyList(),
+            currentApp = "{}",
+            request = "Add a map"
+        )
         assertTrue(withApp.contains("## The current configuration"))
         assertTrue(withApp.contains("Change the current configuration: Add a map"))
     }

@@ -3,12 +3,13 @@ package it.sapienza.androidratio.appratio
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.activity.MainActivity
+import java.util.Collections
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -22,7 +23,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.util.Collections
 
 /** A grid list from a request, which loads its next page when its end comes into view; an empty list's text. */
 @RunWith(RobolectricTestRunner::class)
@@ -63,7 +63,10 @@ class ListPagesAndGridTest {
 
     private fun open(q: String) {
         preferences.edit().putString(KEY, configuration(q)).commit()
-        scenario = ActivityScenario.launch(Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        scenario =
+            ActivityScenario.launch(
+                Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
     }
 
     @Test
@@ -83,7 +86,9 @@ class ListPagesAndGridTest {
     @Test
     fun anEmptyListSaysWhatItsTextSays() {
         open("nothing")
-        composeRule.waitUntil(10_000) { composeRule.onAllNodesWithText("Nothing found for nothing").fetchSemanticsNodes().isNotEmpty() }
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithText("Nothing found for nothing").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithText("No data available").assertDoesNotExist()
     }
 
@@ -96,7 +101,9 @@ class ListPagesAndGridTest {
             "views": [
               { "type": "text", "label": "Results" },
               { "type": "list", "mapping": "data", "orientation": "grid", "columns": 2, "emptyText": "Nothing found for ${'$'}{q}",
-                "initData": { "url": "${server.url("/works")}?q=${'$'}{q}&limit=4", "nextPage": { "parameter": "skip", "step": 4 } },
+                "initData": { "url": "${server.url(
+        "/works"
+    )}?q=${'$'}{q}&limit=4", "nextPage": { "parameter": "skip", "step": 4 } },
                 "itemView": { "type": "text", "mapping": "title" } }
             ]
           }

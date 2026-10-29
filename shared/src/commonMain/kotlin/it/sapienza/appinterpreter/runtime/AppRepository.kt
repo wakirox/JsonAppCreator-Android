@@ -14,7 +14,8 @@ fun interface CurrentConfiguration {
 /** The current JSON app, parsed once and shared by its screens. */
 class AppRepository(
     private val current: CurrentConfiguration,
-    private val parser: ValidatedConfigurationParser = ValidatedConfigurationParser(ConfigurationValidator.fromSchema(V3Schema.JSON))
+    private val parser: ValidatedConfigurationParser =
+        ValidatedConfigurationParser(ConfigurationValidator.fromSchema(V3Schema.JSON))
 ) {
     @Volatile
     private var parsed: Pair<String, ModelApplication>? = null

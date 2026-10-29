@@ -25,8 +25,10 @@ abstract class TextualView : MView() {
 @Serializable
 enum class TextFormat {
     plain,
+
     /** Simple HTML: <b>, <i>, <em>, <strong>, <u>, <br>, <p> and <a href>. */
     html,
+
     /** Markdown, as AI apps write it: headings, bold, italics, lists, quotes, code and links (see Markdown). */
     markdown
 }
@@ -52,7 +54,23 @@ class TextView(
 /** A button's icon, from the phone's standard set. */
 @Serializable
 enum class ButtonIcon {
-    add, check, close, copy, delete, edit, email, favorite, info, open, phone, place, refresh, search, settings, share, star
+    add,
+    check,
+    close,
+    copy,
+    delete,
+    edit,
+    email,
+    favorite,
+    info,
+    open,
+    phone,
+    place,
+    refresh,
+    search,
+    settings,
+    share,
+    star
 }
 
 /**

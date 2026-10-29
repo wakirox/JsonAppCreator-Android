@@ -1,39 +1,41 @@
 package it.sapienza.appinterpreter.activity
 
-import it.sapienza.appinterpreter.validation.fromAssets
-import it.sapienza.appinterpreter.validation.fromSchema
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import it.sapienza.androidratio.appratio.R
-import it.sapienza.appinterpreter.ai.AiContext
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import it.sapienza.androidratio.appratio.R
+import it.sapienza.appinterpreter.ai.AiContext
 import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.security.ConfigurationApiKeys
 import it.sapienza.appinterpreter.ui.ApiKeyEntryDialog
+import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.ReceivedApp
 import it.sapienza.appinterpreter.ui.ReceivedAppDialog
-import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.utils.AppLibrary
-import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
 import it.sapienza.appinterpreter.utils.SharedApps
+import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
+import it.sapienza.appinterpreter.validation.fromAssets
+import it.sapienza.appinterpreter.validation.fromSchema
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class ManageFileInActivity : AppCompatActivity() {
     private val alerts: AlertsViewModel by viewModels()
+
     /** A file that needs API keys, asked for before it opens. */
     private class NeedsKeys(val text: String, val names: Set<String>, val savedNames: Set<String>)
     private var needsKeys by mutableStateOf<NeedsKeys?>(null)
+
     /** A file that opened without problems, shown before it runs since it may come from someone else. */
     private var received by mutableStateOf<ReceivedApp?>(null)
     private val configurationParser by lazy(LazyThreadSafetyMode.NONE) {
@@ -50,8 +52,14 @@ class ManageFileInActivity : AppCompatActivity() {
                 received?.let { app ->
                     ReceivedAppDialog(
                         app = app,
-                        onOpen = { received = null; open(app.json) },
-                        onKeepBoth = { received = null; open(SharedApps.renamed(app.json, AppLibrary.of(this).freeName(app.name))) },
+                        onOpen = {
+                            received = null
+                            open(app.json)
+                        },
+                        onKeepBoth = {
+                            received = null
+                            open(SharedApps.renamed(app.json, AppLibrary.of(this).freeName(app.name)))
+                        },
                         onEdit = {
                             EditorActivity.openedFile(this, app.json)
                             finish()
@@ -103,9 +111,12 @@ class ManageFileInActivity : AppCompatActivity() {
             )
         } catch (e: Exception) {
             AlertUtils.showAlert(
-                this, """Configuration could not be loaded
+                this,
+                """Configuration could not be loaded
                     |
-                    |${e.message ?: "Unrecognized error"}""".trimMargin(), Runnable {
+                    |${e.message ?: "Unrecognized error"}
+                """.trimMargin(),
+                Runnable {
                     finish()
                 }
             )

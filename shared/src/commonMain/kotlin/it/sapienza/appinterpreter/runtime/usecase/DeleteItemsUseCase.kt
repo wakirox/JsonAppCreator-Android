@@ -16,7 +16,8 @@ class DeleteItemsUseCase(private val appData: AppData, private val repository: A
     operator fun invoke(event: DeleteData, data: JsonObject?): Int {
         val source = event.mapping?.let { data?.getObject(it) } ?: data
         val id = event.id.matchReplace(source)
-        val match = event.where?.let { StoredMatch(it, source)::matches } ?: { item: JsonObject -> item.getValue("id") == id }
+        val match =
+            event.where?.let { StoredMatch(it, source)::matches } ?: { item: JsonObject -> item.getValue("id") == id }
         return appData.delete(AppLibrary.idOf(repository.current().name), event.collection, match)
     }
 }

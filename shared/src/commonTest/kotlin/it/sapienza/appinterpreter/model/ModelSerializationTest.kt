@@ -24,6 +24,12 @@ import it.sapienza.appinterpreter.utils.FormDates
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.V3Schema
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -33,16 +39,13 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertIs
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class ModelSerializationTest {
     private val parser = ValidatedConfigurationParser(ConfigurationValidator.fromSchema(V3Schema.JSON))
-    private val withDefaults = Json(ModelJson) { encodeDefaults = true; explicitNulls = true }
+    private val withDefaults = Json(ModelJson) {
+        encodeDefaults = true
+        explicitNulls = true
+    }
 
     @Test
     fun everyBundledConfigurationParses() {
@@ -57,10 +60,18 @@ class ModelSerializationTest {
         Fixtures.configurations.forEach { (name, json) ->
             val app = AppParser(json).parseApplication2()
             val written = ModelJson.encodeToString(ModelApplication.serializer(), app)
-            val again = ModelJson.encodeToString(ModelApplication.serializer(), ModelJson.decodeFromString(ModelApplication.serializer(), written))
+            val again = ModelJson.encodeToString(
+                ModelApplication.serializer(),
+                ModelJson.decodeFromString(ModelApplication.serializer(), written)
+            )
             assertEquals(written, again, name)
             // Everything the file says is in the model: the model with its defaults written out contains the file.
-            assertContains(JsonText.parse(json)!!, withDefaults.encodeToJsonElement(ModelApplication.serializer(), app), name, "$")
+            assertContains(
+                JsonText.parse(json)!!,
+                withDefaults.encodeToJsonElement(ModelApplication.serializer(), app),
+                name,
+                "$"
+            )
         }
     }
 
@@ -91,7 +102,7 @@ class ModelSerializationTest {
             """
         ).parseApplication2()
         val views = (app.mainView as Layout).views
-        assertNull((app.mainView as Layout).orientation)
+        assertNull(app.mainView.orientation)
         assertEquals(18f, assertIs<TextView>(views[0]).textSize)
         assertEquals(TextStyle.regular, (views[0] as TextView).textStyle)
         assertTrue(assertIs<ButtonView>(views[1]).action!!.isReference())
@@ -103,7 +114,10 @@ class ModelSerializationTest {
         assertEquals(TextType.email, assertIs<TextInput>(fields[0]).textType)
         assertNull(assertIs<Selector>(fields[1]).defaultValue())
         // UTC midnight, shown as that instant's day where the phone is.
-        assertEquals(FormDates.format(JacksonDateSerializer.parse("2026-05-01")!!), assertIs<DateInput>(fields[2]).defaultValue())
+        assertEquals(
+            FormDates.format(JacksonDateSerializer.parse("2026-05-01")!!),
+            assertIs<DateInput>(fields[2]).defaultValue()
+        )
         assertTrue(assertIs<CheckBox>(fields[3]).isRequired)
         assertEquals(20, (app.viewBy("card") as TextView).size?.width)
         assertIs<ShowView>(app.actions.first { it.id == "go" }.event)
@@ -133,8 +147,14 @@ class ModelSerializationTest {
         assertEquals(may, JacksonDateSerializer.parse("2026-05-01"))
         assertEquals(may, JacksonDateSerializer.parse(may.toString()))
         assertEquals(may + 9 * 3_600_000 + 30 * 60_000, JacksonDateSerializer.parse("2026-05-01T09:30"))
-        assertEquals(may + 7 * 3_600_000 + 30 * 60_000 + 250, JacksonDateSerializer.parse("2026-05-01T09:30:00.250+02:00"))
-        assertEquals(LocalDate(2026, 3, 2).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(), JacksonDateSerializer.parse("2026-02-30"))
+        assertEquals(
+            may + 7 * 3_600_000 + 30 * 60_000 + 250,
+            JacksonDateSerializer.parse("2026-05-01T09:30:00.250+02:00")
+        )
+        assertEquals(
+            LocalDate(2026, 3, 2).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(),
+            JacksonDateSerializer.parse("2026-02-30")
+        )
         assertNull(JacksonDateSerializer.parse("1 May 2026"))
     }
 
@@ -146,7 +166,10 @@ class ModelSerializationTest {
         assertNull(FormDates.parseDate("2026-03-12"))
         assertNull(FormDates.parseDateTime("12/03/2026 24:00"))
         assertEquals("05/01/0026", FormDates.format(LocalDate(26, 1, 5)))
-        assertEquals("01/05/2026", FormDates.format(LocalDate(2026, 5, 1).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(), TimeZone.UTC))
+        assertEquals(
+            "01/05/2026",
+            FormDates.format(LocalDate(2026, 5, 1).atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds(), TimeZone.UTC)
+        )
     }
 
     /** Whether everything in [expected] is in [actual], numbers compared by value (20 is 20.0). */
@@ -156,16 +179,28 @@ class ModelSerializationTest {
                 val actualObject = assertIs<JsonObject>(actual, "$name $path")
                 expected.forEach { (key, value) -> assertContains(value, actualObject[key], name, "$path.$key") }
             }
+
             is JsonArray -> {
                 val actualArray = assertIs<JsonArray>(actual, "$name $path")
                 assertEquals(expected.size, actualArray.size, "$name $path")
-                expected.forEachIndexed { index, value -> assertContains(value, actualArray[index], name, "$path[$index]") }
+                expected.forEachIndexed { index, value ->
+                    assertContains(value, actualArray[index], name, "$path[$index]")
+                }
             }
+
             is JsonNull -> assertTrue(actual == null || actual is JsonNull, "$name $path")
+
             is JsonPrimitive -> {
                 val actualPrimitive = assertIs<JsonPrimitive>(actual, "$name $path")
-                if (expected.isString) assertEquals(expected, actualPrimitive, "$name $path")
-                else assertEquals(expected.content.toDoubleOrNull() ?: expected.content, actualPrimitive.content.toDoubleOrNull() ?: actualPrimitive.content, "$name $path")
+                if (expected.isString) {
+                    assertEquals(expected, actualPrimitive, "$name $path")
+                } else {
+                    assertEquals(
+                        expected.content.toDoubleOrNull() ?: expected.content,
+                        actualPrimitive.content.toDoubleOrNull() ?: actualPrimitive.content,
+                        "$name $path"
+                    )
+                }
             }
         }
     }

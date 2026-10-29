@@ -3,13 +3,13 @@ package it.sapienza.androidratio.appratio
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import it.sapienza.appinterpreter.utils.SharedApps
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.name
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 /**
  * The websites a shared app lists are found in common code. Here they're checked against the way the app found them
@@ -33,14 +33,22 @@ class SharedAppsParityTest {
 
     private fun referenceHost(text: String): String? {
         val value = text.trim()
-        if (!value.startsWith("https://", ignoreCase = true) && !value.startsWith("http://", ignoreCase = true)) return null
+        if (!value.startsWith("https://", ignoreCase = true) &&
+            !value.startsWith("http://", ignoreCase = true)
+        ) {
+            return null
+        }
         val authority = value.substringAfter("://").substringBefore('/').substringBefore('?').substringBefore('#')
         return runCatching { URI("https://$authority").host }.getOrNull()?.lowercase()?.takeIf { it.isNotEmpty() }
     }
 
     @Test
     fun everyBundledConfigurationListsTheSameWebsites() {
-        val configurations = listOf(Path.of("src", "main", "res", "raw"), Path.of("..", "samples"), Path.of("..", "examples"))
+        val configurations = listOf(
+            Path.of("src", "main", "res", "raw"),
+            Path.of("..", "samples"),
+            Path.of("..", "examples")
+        )
             .flatMap { directory -> Files.list(directory).use { it.toList() } }
             .filter { it.name.endsWith(".json") }
         assertTrue(configurations.size >= 10)
@@ -59,7 +67,11 @@ class SharedAppsParityTest {
             "https://-bad.com/", "https://a b.com/", "https://example.com./", "https://xn--bcher-kva.example/",
             "https://1.2.3.4:99", "https://ex%41mple.com/", "ftp://example.com", "see https://example.com"
         ).forEach { address ->
-            assertEquals(address, referenceHost(address), SharedApps.webAddresses("[${mapper.writeValueAsString(address)}]").singleOrNull())
+            assertEquals(
+                address,
+                referenceHost(address),
+                SharedApps.webAddresses("[${mapper.writeValueAsString(address)}]").singleOrNull()
+            )
         }
     }
 }

@@ -37,11 +37,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 
@@ -73,7 +73,7 @@ fun PhotoScreen(url: String?, onBack: () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     var size by remember { mutableStateOf(IntSize.Zero) }
-    val transform = rememberTransformableState { zoom, pan, _ ->
+    val transform = rememberTransformableState { _, zoom, pan, _ ->
         val (nextScale, nextOffset) = PhotoZoom.next(scale, offset, zoom, pan, size)
         scale = nextScale
         offset = nextOffset

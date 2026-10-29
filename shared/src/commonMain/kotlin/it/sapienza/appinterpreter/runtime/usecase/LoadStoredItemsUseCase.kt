@@ -1,7 +1,7 @@
 package it.sapienza.appinterpreter.runtime.usecase
 
-import it.sapienza.appinterpreter.model.view_model.StoredData
 import it.sapienza.appinterpreter.json.valueAt
+import it.sapienza.appinterpreter.model.view_model.StoredData
 import it.sapienza.appinterpreter.runtime.AppRepository
 import it.sapienza.appinterpreter.runtime.ListChoice
 import it.sapienza.appinterpreter.storage.AppData
@@ -31,9 +31,13 @@ class LoadStoredItemsUseCase(private val appData: AppData, private val repositor
         val matching = appData.items(currentAppId(), stored.collection).filter(match::matches)
         val tags = stored.filterBy?.let { field -> tagsIn(matching, field) }.orEmpty()
         val shown = choice.tag?.takeIf { stored.filterBy != null }
-            ?.let { tag -> matching.filter { item -> tagsOf(item, stored.filterBy!!).any { it.equals(tag, ignoreCase = true) } } }
+            ?.let { tag ->
+                matching.filter { item -> tagsOf(item, stored.filterBy!!).any { it.equals(tag, ignoreCase = true) } }
+            }
             ?: matching
-        val sort = stored.sortOptions?.getOrNull(choice.sortOption)?.sort ?: stored.sortOptions?.firstOrNull()?.sort ?: stored.sort
+        val sort =
+            stored.sortOptions?.getOrNull(choice.sortOption)?.sort ?: stored.sortOptions?.firstOrNull()?.sort
+                ?: stored.sort
         return Result(sorted(shown, sort), tags)
     }
 

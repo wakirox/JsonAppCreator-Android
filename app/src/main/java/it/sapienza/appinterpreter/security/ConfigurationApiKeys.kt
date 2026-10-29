@@ -23,9 +23,11 @@ object ConfigurationApiKeys {
 
     fun save(json: String, values: Map<String, String>) = keys.save(json, values)
 
-    fun saveForCurrentConfiguration(json: String, values: Map<String, String>) = keys.saveForCurrentConfiguration(json, values)
+    fun saveForCurrentConfiguration(json: String, values: Map<String, String>) =
+        keys.saveForCurrentConfiguration(json, values)
 
-    fun availableNamesForCurrentConfiguration(json: String): Set<String> = keys.availableNamesForCurrentConfiguration(json)
+    fun availableNamesForCurrentConfiguration(json: String): Set<String> =
+        keys.availableNamesForCurrentConfiguration(json)
 
     fun replaceForCurrentConfiguration(text: String): String {
         check(::keys.isInitialized) { "ConfigurationApiKeys has not been initialized" }

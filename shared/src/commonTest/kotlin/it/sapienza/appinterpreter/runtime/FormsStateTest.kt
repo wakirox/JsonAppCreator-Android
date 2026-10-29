@@ -5,11 +5,11 @@ import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.utils.AppParser
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.serialization.json.JsonObject
 
 class FormsStateTest {
     private val form = AppParser(

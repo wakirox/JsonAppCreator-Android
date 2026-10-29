@@ -11,8 +11,10 @@ class OpenLinkUseCase {
     sealed interface Result {
         /** Open [url]; its [scheme] (lower case) says what kind of app opens it. */
         class Ready(val url: String, val scheme: String) : Result
+
         /** The data has no value at [path], which the address needs. */
         class Missing(val path: String) : Result
+
         /** [url] isn't a web, map, phone or email address, so it isn't opened. */
         class NotAllowed(val url: String) : Result
     }

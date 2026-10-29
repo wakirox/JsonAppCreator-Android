@@ -20,24 +20,40 @@ import it.sapienza.appinterpreter.markdown.Markdown.Block
  * with a bullet or their number, quotes in italics, code in a monospaced font on [codeBackground], links opening in
  * the browser. Blocks are a blank line apart, list items one line.
  */
-internal fun markdownText(blocks: List<Block>, links: TextLinkStyles, codeBackground: Color): AnnotatedString = buildAnnotatedString {
-    blocks.forEachIndexed { index, block ->
-        if (index > 0) append(if (block is Block.ListItem && blocks[index - 1] is Block.ListItem) "\n" else "\n\n")
-        when (block) {
-            is Block.Heading -> withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = HEADING_SIZES.getOrElse(block.level - 1) { 1.em })) {
-                spans(block.spans, links, codeBackground)
+internal fun markdownText(blocks: List<Block>, links: TextLinkStyles, codeBackground: Color): AnnotatedString =
+    buildAnnotatedString {
+        blocks.forEachIndexed { index, block ->
+            if (index > 0) append(if (block is Block.ListItem && blocks[index - 1] is Block.ListItem) "\n" else "\n\n")
+            when (block) {
+                is Block.Heading -> withStyle(
+                    SpanStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = HEADING_SIZES.getOrElse(block.level - 1) {
+                            1.em
+                        }
+                    )
+                ) {
+                    spans(block.spans, links, codeBackground)
+                }
+
+                is Block.Paragraph -> spans(block.spans, links, codeBackground)
+
+                is Block.ListItem -> {
+                    append("    ".repeat(block.depth))
+                    append(block.number?.let { "$it.  " } ?: "•  ")
+                    spans(block.spans, links, codeBackground)
+                }
+
+                is Block.Quote -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                    spans(block.spans, links, codeBackground)
+                }
+
+                is Block.Code -> withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = codeBackground)) {
+                    append(block.text)
+                }
             }
-            is Block.Paragraph -> spans(block.spans, links, codeBackground)
-            is Block.ListItem -> {
-                append("    ".repeat(block.depth))
-                append(block.number?.let { "$it.  " } ?: "•  ")
-                spans(block.spans, links, codeBackground)
-            }
-            is Block.Quote -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { spans(block.spans, links, codeBackground) }
-            is Block.Code -> withStyle(SpanStyle(fontFamily = FontFamily.Monospace, background = codeBackground)) { append(block.text) }
         }
     }
-}
 
 /** Markdown [text] as styled text (see the other [markdownText]). */
 internal fun markdownText(text: String, links: TextLinkStyles, codeBackground: Color): AnnotatedString =

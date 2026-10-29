@@ -1,6 +1,10 @@
 package it.sapienza.appinterpreter.storage
 
 import it.sapienza.appinterpreter.json.getValue
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -9,10 +13,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
 
 class AppDataTest {
     private val store = MemoryAppStore()
@@ -60,7 +60,11 @@ class AppDataTest {
         assertEquals(false, data.addFirst("app:trip", "places", listOf(named("Baths"))))
 
         data.delete("app:trip", "places") { true }
-        assertEquals(false, data.addFirst("app:trip", "places", listOf(named("Baths"))), "not after the user emptied it")
+        assertEquals(
+            false,
+            data.addFirst("app:trip", "places", listOf(named("Baths"))),
+            "not after the user emptied it"
+        )
         assertEquals(emptyList(), data.items("app:trip", "places"))
         assertEquals(false, data.addFirst("app:trip", "other", emptyList()))
     }
@@ -74,25 +78,62 @@ class AppDataTest {
         val bastion = data.items("app:trip", "places").last().getValue("id")!!
         data.update("app:trip", "places", bastion, JsonObject(mapOf("visited" to JsonPrimitive(true))))
 
-        assertEquals(true, data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion"), place("baths")), unique = "key"))
+        assertEquals(
+            true,
+            data.addFirst(
+                "app:trip",
+                "places",
+                listOf(place("parliament"), place("bastion"), place("baths")),
+                unique = "key"
+            )
+        )
         val items = data.items("app:trip", "places")
         assertEquals(listOf("parliament", "bastion", "baths"), items.map { it.getValue("key") })
         assertEquals("true", items[1].getValue("visited"), "the user's tick stays")
-        assertEquals(false, data.addFirst("app:trip", "places", listOf(place("parliament"), place("baths")), unique = "key"))
+        assertEquals(
+            false,
+            data.addFirst("app:trip", "places", listOf(place("parliament"), place("baths")), unique = "key")
+        )
     }
 
     private fun spot(key: String, photo: String, tip: String? = null) = JsonObject(
-        listOfNotNull("key" to JsonPrimitive(key), "photo" to JsonPrimitive(photo), "visited" to JsonPrimitive(false), tip?.let { "tip" to JsonPrimitive(it) }).toMap()
+        listOfNotNull(
+            "key" to JsonPrimitive(key),
+            "photo" to JsonPrimitive(photo),
+            "visited" to JsonPrimitive(false),
+            tip?.let {
+                "tip" to
+                    JsonPrimitive(it)
+            }
+        ).toMap()
     )
 
     @Test
     fun aLaterVersionsFixesReachSavedItemsButTheUsersChangesStay() {
-        data.addFirst("app:trip", "places", listOf(spot("arc", "broken.jpg", tip = "Go early"), spot("park", "park.jpg")), unique = "key")
+        data.addFirst(
+            "app:trip",
+            "places",
+            listOf(spot("arc", "broken.jpg", tip = "Go early"), spot("park", "park.jpg")),
+            unique = "key"
+        )
         val (arc, park) = data.items("app:trip", "places")
         data.update("app:trip", "places", arc.getValue("id")!!, JsonObject(mapOf("visited" to JsonPrimitive(true))))
-        data.update("app:trip", "places", park.getValue("id")!!, JsonObject(mapOf("photo" to JsonPrimitive("mine.jpg"))))
+        data.update(
+            "app:trip",
+            "places",
+            park.getValue("id")!!,
+            JsonObject(mapOf("photo" to JsonPrimitive("mine.jpg")))
+        )
 
-        assertEquals(true, data.addFirst("app:trip", "places", listOf(spot("arc", "fixed.jpg"), spot("park", "park2.jpg", tip = "Boats")), unique = "key"))
+        assertEquals(
+            true,
+            data.addFirst(
+                "app:trip",
+                "places",
+                listOf(spot("arc", "fixed.jpg"), spot("park", "park2.jpg", tip = "Boats")),
+                unique = "key"
+            )
+        )
 
         val (newArc, newPark) = data.items("app:trip", "places")
         assertEquals("fixed.jpg", newArc.getValue("photo"), "the fixed photo arrives")
@@ -101,15 +142,31 @@ class AppDataTest {
         assertEquals("mine.jpg", newPark.getValue("photo"), "the user's own photo stays")
         assertEquals("Boats", newPark.getValue("tip"), "a new tip arrives")
         assertEquals(arc.getValue("id"), newArc.getValue("id"))
-        assertEquals(false, data.addFirst("app:trip", "places", listOf(spot("arc", "fixed.jpg"), spot("park", "park2.jpg", tip = "Boats")), unique = "key"), "nothing new")
+        assertEquals(
+            false,
+            data.addFirst(
+                "app:trip",
+                "places",
+                listOf(spot("arc", "fixed.jpg"), spot("park", "park2.jpg", tip = "Boats")),
+                unique = "key"
+            ),
+            "nothing new"
+        )
     }
 
     @Test
     fun itemsSavedBeforeVersionsWereKeptTakeTheFixesAndKeepTheirTicks() {
         data.addFirst("app:trip", "places", listOf(spot("arc", "broken.jpg")), unique = "key")
-        data.update("app:trip", "places", data.items("app:trip", "places").single().getValue("id")!!, JsonObject(mapOf("visited" to JsonPrimitive(true))))
+        data.update(
+            "app:trip",
+            "places",
+            data.items("app:trip", "places").single().getValue("id")!!,
+            JsonObject(mapOf("visited" to JsonPrimitive(true)))
+        )
         // As an older Appkin left it: no record of the app's earlier version of each item.
-        store.edit(mapOf(JsonArray(listOf("app:trip", "places", "initialItemsSeeds").map(::JsonPrimitive)).toString() to null))
+        store.edit(
+            mapOf(JsonArray(listOf("app:trip", "places", "initialItemsSeeds").map(::JsonPrimitive)).toString() to null)
+        )
 
         data.addFirst("app:trip", "places", listOf(spot("arc", "fixed.jpg")), unique = "key")
 
@@ -122,7 +179,10 @@ class AppDataTest {
     fun aDeletedInitialItemDoesntComeBack() {
         data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion")), unique = "key")
         data.delete("app:trip", "places") { it.getValue("key") == "bastion" }
-        assertEquals(false, data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion")), unique = "key"))
+        assertEquals(
+            false,
+            data.addFirst("app:trip", "places", listOf(place("parliament"), place("bastion")), unique = "key")
+        )
         assertEquals(listOf("parliament"), data.items("app:trip", "places").map { it.getValue("key") })
     }
 
@@ -168,11 +228,22 @@ class AppDataTest {
     fun anUpdateChangesValuesButNeverTheIdOrTime() {
         val first = data.add("app:ideas", "ideas", named("Dark mode"))
         data.add("app:ideas", "ideas", named("Widgets"))
-        val changes = JsonObject(mapOf("done" to JsonPrimitive(true), "id" to JsonPrimitive("other"), "createdAt" to JsonPrimitive(5)))
+        val changes = JsonObject(
+            mapOf(
+                "done" to JsonPrimitive(true),
+                "id" to JsonPrimitive("other"),
+                "createdAt" to JsonPrimitive(5)
+            )
+        )
 
         val updated = data.update("app:ideas", "ideas", "id1", changes)
 
-        assertEquals(listOf("id1", "1000", "Dark mode", "true"), listOf("id", "createdAt", "name", "done").map { updated?.getValue(it) })
+        assertEquals(
+            listOf("id1", "1000", "Dark mode", "true"),
+            listOf("id", "createdAt", "name", "done").map {
+                updated?.getValue(it)
+            }
+        )
         assertEquals("1000", updated?.getValue("updatedAt"), "a change records when it happened")
         assertEquals(null, data.items("app:ideas", "ideas")[1].getValue("updatedAt"), "an unchanged object has none")
         assertEquals(listOf("true", null), data.items("app:ideas", "ideas").map { it.getValue("done") })

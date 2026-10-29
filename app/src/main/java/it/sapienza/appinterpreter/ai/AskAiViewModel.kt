@@ -19,7 +19,7 @@ class AskAiViewModel(
     private val saved: SavedStateHandle,
     loadAppToChange: LoadAppToChangeUseCase,
     private val buildPrompt: BuildAiPromptUseCase,
-    private val instructions: AiInstructionsChoice,
+    private val instructions: AiInstructionsChoice
 ) : ViewModel() {
 
     sealed interface Effect {
@@ -36,7 +36,9 @@ class AskAiViewModel(
     var request by mutableStateOf(saved[KEY_REQUEST] ?: "")
         private set
 
-    var changeCurrent by mutableStateOf(saved[KEY_CHANGE_CURRENT] ?: (subject is AskAiSubject.EditorText && canChangeCurrent))
+    var changeCurrent by mutableStateOf(
+        saved[KEY_CHANGE_CURRENT] ?: (subject is AskAiSubject.EditorText && canChangeCurrent)
+    )
         private set
 
     /** Whether to send the short instructions, which link to the full reference, instead of all of them. */
@@ -49,7 +51,9 @@ class AskAiViewModel(
     /** About how many tokens the instructions take, rounded (see [TokenEstimate]). */
     val tokens: Int
         get() {
-            val base = baseTokens.getOrPut(changeCurrent to withLinks) { TokenEstimate.of(buildPrompt(app(), null, withLinks)) }
+            val base = baseTokens.getOrPut(changeCurrent to withLinks) {
+                TokenEstimate.of(buildPrompt(app(), null, withLinks))
+            }
             return TokenEstimate.rounded(base + TokenEstimate.of(request))
         }
 
@@ -110,7 +114,10 @@ class AskAiViewModel(
 
         private fun subject(saved: SavedStateHandle): AskAiSubject = when (saved.get<String>(EXTRA_SUBJECT)) {
             SUBJECT_CURRENT_APP -> AskAiSubject.CurrentApp
-            SUBJECT_EDITOR_TEXT -> saved.get<String>(EXTRA_TEXT_PATH)?.let(AskAiSubject::EditorText) ?: AskAiSubject.NewApp
+
+            SUBJECT_EDITOR_TEXT -> saved.get<String>(EXTRA_TEXT_PATH)?.let(AskAiSubject::EditorText)
+                ?: AskAiSubject.NewApp
+
             else -> AskAiSubject.NewApp
         }
     }

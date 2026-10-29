@@ -2,7 +2,7 @@ package it.sapienza.androidratio.appratio
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -11,6 +11,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.activity.MainActivity
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -24,9 +27,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowAlertDialog
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], qualifiers = "w448dp-h900dp-mdpi")
@@ -53,16 +53,14 @@ class ListNetworkFailureTest {
 
         server.start()
         server.dispatcher = object : Dispatcher() {
-            override fun dispatch(request: RecordedRequest): MockResponse {
-                return if (requestCount.incrementAndGet() == 1) {
-                    check(releaseFirstResponse.await(5, TimeUnit.SECONDS))
-                    MockResponse().setResponseCode(503)
-                } else {
-                    MockResponse()
-                        .setResponseCode(200)
-                        .setHeader("Content-Type", "application/json")
-                        .setBody("""{"results":[{"id":1,"title":"Recovered item"}]}""")
-                }
+            override fun dispatch(request: RecordedRequest): MockResponse = if (requestCount.incrementAndGet() == 1) {
+                check(releaseFirstResponse.await(5, TimeUnit.SECONDS))
+                MockResponse().setResponseCode(503)
+            } else {
+                MockResponse()
+                    .setResponseCode(200)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("""{"results":[{"id":1,"title":"Recovered item"}]}""")
             }
         }
 

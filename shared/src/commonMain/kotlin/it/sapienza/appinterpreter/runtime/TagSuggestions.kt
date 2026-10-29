@@ -11,9 +11,15 @@ object TagSuggestions {
      */
     fun matching(known: List<String>, current: List<String>, typed: String): List<String> {
         val query = typed.trim().trimStart('#').lowercase()
-        val unused = known.filter { tag -> current.none { it.equals(tag, ignoreCase = true) } }.sortedBy(String::lowercase)
+        val unused = known.filter { tag ->
+            current.none { it.equals(tag, ignoreCase = true) }
+        }.sortedBy(String::lowercase)
         if (query.isEmpty()) return unused.take(MAX)
         val (starting, rest) = unused.partition { it.lowercase().startsWith(query) }
-        return (starting + rest.filter { query in it.lowercase() }).filterNot { it.equals(query, ignoreCase = true) }.take(MAX)
+        return (
+            starting + rest.filter {
+                query in it.lowercase()
+            }
+            ).filterNot { it.equals(query, ignoreCase = true) }.take(MAX)
     }
 }

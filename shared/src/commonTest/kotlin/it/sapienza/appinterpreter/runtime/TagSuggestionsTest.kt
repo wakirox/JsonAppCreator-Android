@@ -8,7 +8,10 @@ class TagSuggestionsTest {
 
     @Test
     fun withNothingTypedEveryUnusedTagAlphabetically() {
-        assertEquals(listOf("alerts", "Notes app", "widgets"), TagSuggestions.matching(known, current = listOf("UI", "watch"), typed = ""))
+        assertEquals(
+            listOf("alerts", "Notes app", "widgets"),
+            TagSuggestions.matching(known, current = listOf("UI", "watch"), typed = "")
+        )
     }
 
     @Test

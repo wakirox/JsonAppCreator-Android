@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.appinterpreter.utils.PhotoStore
+import java.io.File
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -13,7 +14,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.File
 
 /**
  * Kept photos: a thumbnail of their own, a link to the original (or, without one, a copy), the best version for full
@@ -28,8 +28,10 @@ class PhotoStoreTest {
     private val copies = File(folder, "full").apply { mkdirs() }
     private val links = context.getSharedPreferences(PhotoStore.LINKS, Context.MODE_PRIVATE)
 
-    private fun thumbnail(name: String, modified: Long = System.currentTimeMillis()) =
-        File(folder, name).apply { writeText("thumb"); setLastModified(modified) }
+    private fun thumbnail(name: String, modified: Long = System.currentTimeMillis()) = File(folder, name).apply {
+        writeText("thumb")
+        setLastModified(modified)
+    }
 
     @Test
     fun aReferenceIsItsThumbnail() {

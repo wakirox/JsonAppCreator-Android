@@ -24,7 +24,13 @@ class FileAttachments(context: Context) {
         runCatching { resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
         var name: String? = null
         var size: Long? = null
-        resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+        resolver.query(
+            uri,
+            arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE),
+            null,
+            null,
+            null
+        )?.use { cursor ->
             if (cursor.moveToFirst()) {
                 name = cursor.getString(0)
                 size = if (cursor.isNull(1)) null else cursor.getLong(1)

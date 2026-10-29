@@ -7,16 +7,16 @@ import android.print.PrintAttributes
 import androidx.core.content.FileProvider
 import androidx.core.content.IntentCompat
 import it.sapienza.appinterpreter.utils.PdfPrint
+import java.io.File
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.File
 
 /** A PDF goes straight to the share sheet, as a file the picked app may read, named after its title. */
 @RunWith(RobolectricTestRunner::class)
@@ -29,7 +29,9 @@ class PdfShareTest {
     @Before
     @After
     fun forgetFileProviderFolders() {
-        FileProvider::class.java.getDeclaredField("sCache").apply { isAccessible = true }.let { (it.get(null) as MutableMap<*, *>).clear() }
+        FileProvider::class.java.getDeclaredField("sCache").apply {
+            isAccessible = true
+        }.let { (it.get(null) as MutableMap<*, *>).clear() }
     }
 
     @Test
@@ -51,7 +53,10 @@ class PdfShareTest {
     @Test
     fun theShareSheetGetsThePdfToRead() {
         val activity = Robolectric.buildActivity(Activity::class.java).setup().get()
-        val file = File(activity.cacheDir, "shared/pdf/Rainy open ideas.pdf").apply { parentFile?.mkdirs(); writeText("%PDF") }
+        val file = File(activity.cacheDir, "shared/pdf/Rainy open ideas.pdf").apply {
+            parentFile?.mkdirs()
+            writeText("%PDF")
+        }
 
         val chooser = PdfPrint(activity, "Share").shareIntent(file, "Rainy open ideas")
 

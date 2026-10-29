@@ -23,7 +23,9 @@ internal class IssueSections(private val reference: SchemaReference) {
     }
 
     private fun sectionAt(tree: JsonElement, path: String): SchemaReference.Section? {
-        val segments = SEGMENT.findAll(path.removePrefix("$")).map { it.groupValues[1].ifEmpty { it.groupValues[2] } }.toList()
+        val segments = SEGMENT.findAll(path.removePrefix("$")).map {
+            it.groupValues[1].ifEmpty { it.groupValues[2] }
+        }.toList()
         var node: JsonElement? = tree
         var key: String? = null
         var found: SchemaReference.Section? = null
@@ -43,9 +45,19 @@ internal class IssueSections(private val reference: SchemaReference) {
         val type = (node["type"] as? JsonPrimitive)?.takeIf { it.isString }?.content
         return when (key) {
             in VIEWS -> type?.let { reference.section(SchemaReference.Kind.View, it) }
+
             "formElements" -> type?.let { reference.section(SchemaReference.Kind.FormField, it) }
+
             in EVENTS -> type?.let { reference.section(SchemaReference.Kind.Event, it) }
-            in ACTIONS -> if ("ref" in node) null else reference.section(SchemaReference.Kind.Nested, "actionDefinition")
+
+            in ACTIONS -> if ("ref" in
+                node
+            ) {
+                null
+            } else {
+                reference.section(SchemaReference.Kind.Nested, "actionDefinition")
+            }
+
             else -> NESTED[key]?.let { reference.section(SchemaReference.Kind.Nested, it) }
         }
     }
@@ -56,6 +68,11 @@ internal class IssueSections(private val reference: SchemaReference) {
         val VIEWS = setOf("mainView", "views", "itemView", "view")
         val EVENTS = setOf("event", "thenDo", "thenDoOK", "thenDoKO", "onError")
         val ACTIONS = setOf("action", "actions", "swipeToStart", "swipeToEnd")
-        val NESTED = mapOf("initData" to "initialRestService", "stored" to "storedData", "sort" to "storedSort", "size" to "size")
+        val NESTED = mapOf(
+            "initData" to "initialRestService",
+            "stored" to "storedData",
+            "sort" to "storedSort",
+            "size" to "size"
+        )
     }
 }

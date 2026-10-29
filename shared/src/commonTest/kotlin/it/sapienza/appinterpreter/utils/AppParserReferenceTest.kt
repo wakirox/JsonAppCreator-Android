@@ -1,21 +1,23 @@
 package it.sapienza.appinterpreter.utils
 
 import it.sapienza.appinterpreter.model.Layout
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
-import kotlin.test.Test
 
 class AppParserReferenceTest {
     @Test
     fun acceptsSchemaVersionThreeAndLegacyConfigsWithoutIt() {
-        val current = AppParser(applicationJson(
-            """
+        val current = AppParser(
+            applicationJson(
+                """
             "schemaVersion": 3,
             "mainView": { "type": "text", "label": "Hello" }
             """
-        )).parseApplication2()
+            )
+        ).parseApplication2()
         val legacy = parse(""""mainView": { "type": "text", "label": "Hello" }""")
 
         assertEquals(3, current.schemaVersion)
@@ -226,13 +228,11 @@ class AppParserReferenceTest {
 
     private fun parse(body: String) = AppParser(applicationJson(body)).parseApplication2()
 
-    private fun invalid(body: String): ConfigurationValidationException {
-        return try {
-            parse(body)
-            throw AssertionError("Expected configuration validation to fail")
-        } catch (error: ConfigurationValidationException) {
-            error
-        }
+    private fun invalid(body: String): ConfigurationValidationException = try {
+        parse(body)
+        throw AssertionError("Expected configuration validation to fail")
+    } catch (error: ConfigurationValidationException) {
+        error
     }
 
     private fun applicationJson(body: String): String =

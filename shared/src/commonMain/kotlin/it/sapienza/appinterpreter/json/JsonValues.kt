@@ -42,20 +42,31 @@ fun JsonObject.optString(key: String): String = this[key]?.displayText().orEmpty
 /** How a value reads on screen: text without quotes, numbers as the app always showed them, objects as JSON. */
 fun JsonElement.displayText(): String = when (this) {
     is JsonNull -> "null"
-    is JsonPrimitive -> if (isString || content == "true" || content == "false") content else JsonNumbers.display(content)
+
+    is JsonPrimitive -> if (isString || content == "true" ||
+        content == "false"
+    ) {
+        content
+    } else {
+        JsonNumbers.display(content)
+    }
+
     else -> toString()
 }
 
 /** The value as a Kotlin string, boolean or null, for form fields; a list (a photos field's) as it is; others as text. */
 fun JsonElement.toFormValue(): Any? = when (this) {
     is JsonNull -> null
+
     is JsonArray -> this
+
     is JsonPrimitive -> when {
         isString -> content
         content == "true" -> true
         content == "false" -> false
         else -> displayText()
     }
+
     else -> toString()
 }
 
@@ -108,7 +119,8 @@ fun String.fillAddress(data: JsonObject?): String? {
 }
 
 /** The placeholders an address needs and [data] lacks, once its optional filters are left out. */
-fun String.missingAddressPlaceholders(data: JsonObject?): List<String> = withoutEmptyFilters(data).missingPlaceholders(data)
+fun String.missingAddressPlaceholders(data: JsonObject?): List<String> =
+    withoutEmptyFilters(data).missingPlaceholders(data)
 
 private val FILTER = Regex("^[^=]+=\\$\\{([^}]+)\\}$")
 
@@ -130,8 +142,11 @@ fun String.withoutEmptyFilters(data: JsonObject?): String {
  */
 fun JsonObject?.hasValueAt(path: String): Boolean = when (val value = this?.valueAt(path)) {
     null -> false
+
     is JsonArray -> value.isNotEmpty()
+
     is JsonObject -> value.isNotEmpty()
+
     is JsonPrimitive -> when {
         value.isString -> value.content.isNotBlank()
         value.content == "false" -> false

@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.model.event
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -25,6 +26,8 @@ object LenientIntSerializer : KSerializer<Int?> {
         } ?: throw SerializationException("Expected a whole number but found $content")
     }
 
+    // Writing a null is still marked experimental in kotlinx.serialization.
+    @OptIn(ExperimentalSerializationApi::class)
     override fun serialize(encoder: Encoder, value: Int?) {
         if (value == null) encoder.encodeNull() else encoder.encodeInt(value)
     }

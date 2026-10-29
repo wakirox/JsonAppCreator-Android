@@ -27,7 +27,10 @@ open class TypedSerializer<T : Any>(
 
     class Type<T : Any>(val name: String, val serializer: KSerializer<T>, val owns: (Any) -> Boolean)
 
-    @OptIn(kotlinx.serialization.InternalSerializationApi::class, kotlinx.serialization.ExperimentalSerializationApi::class)
+    @OptIn(
+        kotlinx.serialization.InternalSerializationApi::class,
+        kotlinx.serialization.ExperimentalSerializationApi::class
+    )
     override val descriptor: SerialDescriptor = buildSerialDescriptor(name, PolymorphicKind.OPEN)
 
     override fun deserialize(decoder: Decoder): T {

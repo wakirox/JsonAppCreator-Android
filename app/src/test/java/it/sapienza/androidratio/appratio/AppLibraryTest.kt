@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.utils.AppLibrary
-import it.sapienza.appinterpreter.utils.of
 import it.sapienza.appinterpreter.utils.DomainController
+import it.sapienza.appinterpreter.utils.of
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before

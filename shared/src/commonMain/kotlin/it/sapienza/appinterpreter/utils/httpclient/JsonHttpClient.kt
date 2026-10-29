@@ -87,7 +87,8 @@ class JsonHttpClient(
         val JSON = ContentType.parse("application/json; charset=utf-8")
 
         /** Headers a configuration can't set: Appkin names itself, and the request's size and host are its own. */
-        private val RESERVED_HEADERS = setOf("user-agent", "host", "content-length", "content-type", "transfer-encoding")
+        private val RESERVED_HEADERS =
+            setOf("user-agent", "host", "content-length", "content-type", "transfer-encoding")
 
         /** "Appkin/1.2 (Android; https://...)": the app, its version and platform, and where it comes from. */
         fun userAgent(versionName: String, platform: String) =

@@ -4,9 +4,14 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.android.kotlin.multiplatform.library")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 kotlin {
+    // A compiler warning fails the build, on every target (the app's too).
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
     android {
         namespace = "it.sapienza.appinterpreter.shared"
         compileSdk = 37
@@ -97,9 +102,12 @@ val generateTestFixtures by tasks.registering {
         file.parentFile.mkdirs()
         file.writeText(
             "package it.sapienza.appinterpreter\n\n" +
-                "/** Every bundled configuration (examples/, samples/ and the app's raw resources) by \"folder/name.json\". */\n" +
+                "/** Every bundled configuration (examples/, samples/ and the app's raw resources) " +
+                "by \"folder/name.json\". */\n" +
                 "object Fixtures {\n    val configurations: Map<String, String> = mapOf(\n" +
-                entries.joinToString(",\n") { (name, text) -> "        ${kotlinString(name)} to ${kotlinString(text)}" } +
+                entries.joinToString(",\n") { (name, text) ->
+                    "        ${kotlinString(name)} to ${kotlinString(text)}"
+                } +
                 "\n    )\n}\n"
         )
     }
@@ -107,3 +115,12 @@ val generateTestFixtures by tasks.registering {
 
 kotlin.sourceSets.commonMain { kotlin.srcDir(generateSchemaSource) }
 kotlin.sourceSets.commonTest { kotlin.srcDir(generateTestFixtures) }
+
+// Kotlin style: ktlint (its rules and .editorconfig); any finding fails the build.
+ktlint {
+    version.set("1.8.0")
+    ignoreFailures.set(false)
+    filter {
+        exclude { it.file.path.contains("/build/") }
+    }
+}

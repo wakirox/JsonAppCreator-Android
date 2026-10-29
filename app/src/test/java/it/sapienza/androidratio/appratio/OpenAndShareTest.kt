@@ -3,7 +3,7 @@ package it.sapienza.androidratio.appratio
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
@@ -36,7 +36,10 @@ class OpenAndShareTest {
     fun setUp() {
         original = preferences.getString(KEY, null)
         preferences.edit().putString(KEY, CONFIGURATION).commit()
-        scenario = ActivityScenario.launch(Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        scenario =
+            ActivityScenario.launch(
+                Intent(targetContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
     }
 
     @After
@@ -90,7 +93,10 @@ class OpenAndShareTest {
         val send = chooser.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)!!
         assertEquals(Intent.ACTION_SEND, send.action)
         assertEquals("text/plain", send.type)
-        assertEquals("South Wind, Clear Sky https://clevelandart.org/art/1930.189", send.getStringExtra(Intent.EXTRA_TEXT))
+        assertEquals(
+            "South Wind, Clear Sky https://clevelandart.org/art/1930.189",
+            send.getStringExtra(Intent.EXTRA_TEXT)
+        )
     }
 
     private companion object {

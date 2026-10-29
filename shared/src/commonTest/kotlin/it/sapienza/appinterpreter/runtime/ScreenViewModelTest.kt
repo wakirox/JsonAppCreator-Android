@@ -26,15 +26,6 @@ import it.sapienza.appinterpreter.security.MemorySecretStore
 import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.storage.MemoryAppStore
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -43,6 +34,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 /** A screen of a JSON app driven without any UI, as an iPhone app's SwiftUI view would drive it. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,18 +81,34 @@ class ScreenViewModelTest {
         val current = CurrentConfiguration { json }
         val keys = ConfigurationKeys(MemorySecretStore(), mapOf("test" to mapOf("KEY" to "k"))) { "bundled:test" }
         val fetch = FetchJsonUseCase(
-            JsonHttpClient(MockEngine {
-                if (it.url.encodedPath.endsWith("/gone")) respond("{}", HttpStatusCode.NotFound)
-                else respond("""{ "message": "Loaded from ${it.url.encodedPath}" }""")
-            }, "Appkin/test", keys::replaceForCurrentConfiguration)
+            JsonHttpClient(
+                MockEngine {
+                    if (it.url.encodedPath.endsWith("/gone")) {
+                        respond("{}", HttpStatusCode.NotFound)
+                    } else {
+                        respond("""{ "message": "Loaded from ${it.url.encodedPath}" }""")
+                    }
+                },
+                "Appkin/test",
+                keys::replaceForCurrentConfiguration
+            )
         )
         val repository = AppRepository(current)
         val appData = AppData(MemoryAppStore())
         return ScreenViewModel(
-            SavedStateHandle(), alerts, fetch, LoadListItemsUseCase(fetch, LoadStoredItemsUseCase(appData, repository)), InitialFormValuesUseCase(),
+            SavedStateHandle(), alerts, fetch,
+            LoadListItemsUseCase(
+                fetch,
+                LoadStoredItemsUseCase(appData, repository)
+            ),
+            InitialFormValuesUseCase(),
             SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
             UpdateItemUseCase(appData, repository), DeleteItemsUseCase(appData, repository), OpenLinkUseCase(),
-            FindMissingApiKeysUseCase(current, keys), LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
+            FindMissingApiKeysUseCase(
+                current,
+                keys
+            ),
+            LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )
     }
 
@@ -146,7 +162,7 @@ class ScreenViewModelTest {
         val screen = screen()
         val views = (screen.screen?.definition as Layout).views
 
-        screen.onAction(views[3].action, screen.screen?.data)
+        screen.onAction(views[3].action, screen.screen.data)
 
         val open = assertIs<ScreenViewModel.Effect.OpenUrl>(screen.effects.first())
         assertEquals("https://example.com/?q=Ana & co", open.url)
@@ -157,7 +173,7 @@ class ScreenViewModelTest {
     fun aShareEventOpensTheShareSheetOnItsText() = runTest {
         val screen = screen()
 
-        screen.onAction((screen.screen?.definition as Layout).views[4].action, screen.screen?.data)
+        screen.onAction((screen.screen?.definition as Layout).views[4].action, screen.screen.data)
 
         assertEquals("Ana says hi", assertIs<ScreenViewModel.Effect.Share>(screen.effects.first()).text)
     }
@@ -167,12 +183,15 @@ class ScreenViewModelTest {
         val screen = screen()
         val views = (screen.screen?.definition as Layout).views
 
-        screen.onAction(views[5].action, screen.screen?.data)
+        screen.onAction(views[5].action, screen.screen.data)
         assertEquals("This item has no phone", alerts.alert?.text)
         alerts.answer(ok = true)
 
-        screen.onAction(views[6].action, screen.screen?.data)
-        assertEquals("Appkin only opens web, map, phone and email addresses, not javascript:alert(1)", alerts.alert?.text)
+        screen.onAction(views[6].action, screen.screen.data)
+        assertEquals(
+            "Appkin only opens web, map, phone and email addresses, not javascript:alert(1)",
+            alerts.alert?.text
+        )
     }
 
     @Test
@@ -180,18 +199,21 @@ class ScreenViewModelTest {
         val screen = screen()
         val views = (screen.screen?.definition as Layout).views
 
-        screen.onAction(views[7].action, screen.screen?.data)
+        screen.onAction(views[7].action, screen.screen.data)
         assertEquals("About Ana", assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title)
 
-        screen.onAction(views[8].action, screen.screen?.data)
-        assertNull(assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title, "an empty title leaves the app's name")
+        screen.onAction(views[8].action, screen.screen.data)
+        assertNull(
+            assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first()).title,
+            "an empty title leaves the app's name"
+        )
     }
 
     @Test
     fun onErrorRunsInsteadOfTheAlertWithWhatWentWrong() = runTest {
         val screen = screen()
 
-        screen.onAction((screen.screen?.definition as Layout).views[9].action, screen.screen?.data)
+        screen.onAction((screen.screen?.definition as Layout).views[9].action, screen.screen.data)
 
         val alert = withContext(Dispatchers.Default) { withTimeout(10_000) { alerts.alertState.first { it != null } } }
         assertEquals("Ana couldn't delete it: Request failed with 404 (404)", alert?.text)
@@ -208,9 +230,16 @@ class ScreenViewModelTest {
                 FetchJsonUseCase(JsonHttpClient(MockEngine { respond("{}") }, "Appkin/test")),
                 LoadStoredItemsUseCase(appData, repository)
             ),
-            InitialFormValuesUseCase(), SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
+            InitialFormValuesUseCase(), SubmitFormUseCase(), CreateCalendarEventUseCase(),
+            SaveItemUseCase(
+                appData,
+                repository
+            ),
             UpdateItemUseCase(appData, repository), DeleteItemsUseCase(appData, repository),
-            OpenLinkUseCase(), FindMissingApiKeysUseCase({ json }, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
+            OpenLinkUseCase(),
+            FindMissingApiKeysUseCase({
+                json
+            }, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
             LoadScreenUseCase(repository, EnglishRuntimeStrings), EnglishRuntimeStrings
         )
         assertNull(failed.screen)

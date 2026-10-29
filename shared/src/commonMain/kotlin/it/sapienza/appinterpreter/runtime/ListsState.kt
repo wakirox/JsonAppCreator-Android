@@ -36,7 +36,8 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
     )
 
     class Entry internal constructor(internal val view: ListView, val data: JsonObject?) {
-        internal val contentFlow = MutableStateFlow(Content(emptyList(), waiting = view.initData != null, errorMessage = null))
+        internal val contentFlow =
+            MutableStateFlow(Content(emptyList(), waiting = view.initData != null, errorMessage = null))
         val content: StateFlow<Content> = contentFlow.asStateFlow()
         internal var job: Job? = null
         internal var nextUrl: String? = null
@@ -68,16 +69,19 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
     /** True once the screen shows a list that loads from a request, which [refresh] can load again. */
     val canRefresh: StateFlow<Boolean> = canRefreshFlow.asStateFlow()
 
-    fun get(view: ListView, data: JsonObject?): Entry =
-        lists.getOrPut(Key(view, data?.toString())) {
-            if (view.initData != null) canRefreshFlow.value = true
-            if (view.stored != null && watchingSaves == null) watchingSaves = scope.launch {
+    fun get(view: ListView, data: JsonObject?): Entry = lists.getOrPut(Key(view, data?.toString())) {
+        if (view.initData != null) canRefreshFlow.value = true
+        if (view.stored != null && watchingSaves == null) {
+            watchingSaves = scope.launch {
                 loadItems.storedChanges.collect { collection ->
-                    lists.values.filter { it.view.stored?.collection == collection }.forEach { load(it, keepItems = true) }
+                    lists.values.filter {
+                        it.view.stored?.collection == collection
+                    }.forEach { load(it, keepItems = true) }
                 }
             }
-            Entry(view, data).also { load(it) }
         }
+        Entry(view, data).also { load(it) }
+    }
 
     fun retry(list: Entry) = load(list)
 
@@ -107,7 +111,11 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
     fun loadMore(list: Entry) {
         val url = list.nextUrl ?: return
         val content = list.content.value
-        if (content.loadingMore || content.waiting || content.refreshing || list.pages >= LoadListItemsUseCase.MAX_PAGES) return
+        if (content.loadingMore || content.waiting || content.refreshing ||
+            list.pages >= LoadListItemsUseCase.MAX_PAGES
+        ) {
+            return
+        }
         list.contentFlow.update { it.copy(loadingMore = true, moreErrorMessage = null) }
         list.job = scope.launch {
             try {
@@ -121,7 +129,10 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
                 throw e
             } catch (e: Exception) {
                 list.contentFlow.update {
-                    it.copy(loadingMore = false, moreErrorMessage = loadItems.errorMessage(e.message ?: "An error occurred"))
+                    it.copy(
+                        loadingMore = false,
+                        moreErrorMessage = loadItems.errorMessage(e.message ?: "An error occurred")
+                    )
                 }
             }
         }
@@ -135,7 +146,12 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
             if (keepItems && it.errorMessage == null) {
                 it.copy(refreshing = true, moreErrorMessage = null)
             } else {
-                it.copy(errorMessage = null, waiting = list.view.initData != null, moreErrorMessage = null, loadingMore = false)
+                it.copy(
+                    errorMessage = null,
+                    waiting = list.view.initData != null,
+                    moreErrorMessage = null,
+                    loadingMore = false
+                )
             }
         }
         return scope.launch {
@@ -151,7 +167,11 @@ class ListsState(private val scope: CoroutineScope, private val loadItems: LoadL
             } catch (e: Exception) {
                 list.nextUrl = null
                 list.contentFlow.update {
-                    it.copy(items = emptyList(), errorMessage = loadItems.errorMessage(e.message ?: "An error occurred"), canLoadMore = false)
+                    it.copy(
+                        items = emptyList(),
+                        errorMessage = loadItems.errorMessage(e.message ?: "An error occurred"),
+                        canLoadMore = false
+                    )
                 }
             }
             list.contentFlow.update { it.copy(waiting = false, refreshing = false, loadingMore = false) }

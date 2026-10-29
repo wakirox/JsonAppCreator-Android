@@ -3,12 +3,12 @@ package it.sapienza.androidratio.appratio
 import it.sapienza.appinterpreter.validation.ConfigurationIssue
 import it.sapienza.appinterpreter.validation.ConfigurationIssueKind
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.name
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
 /**
  * The multiplatform validator (OptimumCode, kotlinx.serialization) against the one the app used before (networknt on
@@ -83,7 +83,12 @@ class ValidatorParityTest {
         // Every configuration: schema version, root fields, root shape.
         all.forEachIndexed { index, json ->
             case("schemaVersion 4 in #$index", json, "\"schemaVersion\": 3", "\"schemaVersion\": 4")
-            case("unknown root property in #$index", json, "\"schemaVersion\": 3", "\"schemaVersion\": 3, \"theme\": \"dark\"")
+            case(
+                "unknown root property in #$index",
+                json,
+                "\"schemaVersion\": 3",
+                "\"schemaVersion\": 3, \"theme\": \"dark\""
+            )
             case("root name missing in #$index", json, "\"name\":", "\"nome\":")
             case("mainView a string in #$index", json, "\"mainView\": {", "\"mainView\": \"home\", \"x\": {")
         }
@@ -93,24 +98,59 @@ class ValidatorParityTest {
         case("textStyle unknown", hello, "\"textStyle\": \"bold\"", "\"textStyle\": \"underline\"")
         case("name empty", hello, "\"name\": \"", "\"name\": \"\", \"was\": \"")
         case("layout without views", hello, "\"views\": [", "\"children\": [")
-        case("layout orientation unknown", hello, "\"type\": \"layout\"", "\"type\": \"layout\", \"orientation\": \"diagonal\"")
+        case(
+            "layout orientation unknown",
+            hello,
+            "\"type\": \"layout\"",
+            "\"type\": \"layout\", \"orientation\": \"diagonal\""
+        )
         case("mainView null", hello, "\"mainView\": {", "\"mainView\": null, \"x\": {")
         case("root an array", hello, hello, "[$hello]")
-        case("legacy reference with an extra property", masterpieces, "\"mainView\": {", "\"mainView\": { \"id\": \"x\", \"extra\": 1 }, \"y\": {")
-        case("reference mixed with a definition", hello, "\"type\": \"layout\"", "\"ref\": \"home\", \"type\": \"layout\"")
+        case(
+            "legacy reference with an extra property",
+            masterpieces,
+            "\"mainView\": {",
+            "\"mainView\": { \"id\": \"x\", \"extra\": 1 }, \"y\": {"
+        )
+        case(
+            "reference mixed with a definition",
+            hello,
+            "\"type\": \"layout\"",
+            "\"ref\": \"home\", \"type\": \"layout\""
+        )
         case("empty reference", hello, "\"mainView\": {", "\"mainView\": { \"ref\": \"\" }, \"y\": {")
         case("list without itemView", masterpieces, "\"itemView\"", "\"itemVue\"")
-        case("list orientation unknown", masterpieces, "\"type\": \"list\"", "\"type\": \"list\", \"orientation\": \"circle\"")
+        case(
+            "list orientation unknown",
+            masterpieces,
+            "\"type\": \"list\"",
+            "\"type\": \"list\", \"orientation\": \"circle\""
+        )
         case("text size negative", hello, "\"textSize\": 20", "\"textSize\": 20, \"size\": { \"width\": -1 }")
-        case("text size with depth", hello, "\"textSize\": 20", "\"textSize\": 20, \"size\": { \"depth\": 3, \"height\": 1.5 }")
+        case(
+            "text size with depth",
+            hello,
+            "\"textSize\": 20",
+            "\"textSize\": 20, \"size\": { \"depth\": 3, \"height\": 1.5 }"
+        )
         case("image url a number", hello, "\"views\": [", "\"views\": [ { \"type\": \"image\", \"url\": 42 },")
         case("data not an object", masterpieces, "\"type\": \"list\"", "\"type\": \"list\", \"data\": 5")
-        case("registry view without type", hello, "\"mainView\": {", "\"views\": [ { \"id\": \"loose\" } ], \"mainView\": {")
+        case(
+            "registry view without type",
+            hello,
+            "\"mainView\": {",
+            "\"views\": [ { \"id\": \"loose\" } ], \"mainView\": {"
+        )
         case("registry action without event", race, "\"actions\": [", "\"actions\": [ { \"id\": \"nothing\" },")
         case("action type unknown", race, "\"event\": {", "\"type\": \"swipe\", \"event\": {")
         case("event type unknown", race, "\"type\": \"alert\"", "\"type\": \"toast\"")
         case("alert property unknown", race, "\"type\": \"alert\"", "\"type\": \"alert\", \"colour\": \"red\"")
-        case("alert thenDoOK invalid", race, "\"type\": \"alert\"", "\"type\": \"alert\", \"thenDoOK\": { \"type\": \"show\" }")
+        case(
+            "alert thenDoOK invalid",
+            race,
+            "\"type\": \"alert\"",
+            "\"type\": \"alert\", \"thenDoOK\": { \"type\": \"show\" }"
+        )
         case("form element type unknown", race, "\"type\": \"checkbox\"", "\"type\": \"toggle\"")
         case("form element without mapping", race, "\"mapping\": \"name\"", "\"maping\": \"name\"")
         case("selector options not an array", race, "\"options\": [", "\"options\": \"S, M\", \"x\": [")
@@ -118,15 +158,30 @@ class ValidatorParityTest {
         case("form without formElements", race, "\"formElements\"", "\"fields\"")
         case("date min an object", race, "\"type\": \"date\"", "\"type\": \"date\", \"min\": { \"day\": 1 }")
         case("rest method patch", tmdb, "\"method\": \"get\"", "\"method\": \"patch\"")
-        case("rest header not text", tmdb, "\"method\": \"get\"", "\"method\": \"get\", \"headers\": { \"X-Count\": 3 }")
+        case(
+            "rest header not text",
+            tmdb,
+            "\"method\": \"get\"",
+            "\"method\": \"get\", \"headers\": { \"X-Count\": 3 }"
+        )
         case("rest without url", tmdb, "\"url\":", "\"address\":")
         case("rest thenDo a string", tmdb, "\"thenDo\": {", "\"thenDo\": \"next\", \"was\": {")
         case("show without view", masterpieces, "\"type\": \"show\"", "\"type\": \"show\", \"vue\": 1")
-        case("calendar duration 0", race, "\"type\": \"alert\"", "\"type\": \"calendar\", \"title\": \"Race\", \"date\": \"01/05/2026\", \"durationMinutes\": 0, \"was\": \"alert\"")
+        case(
+            "calendar duration 0",
+            race,
+            "\"type\": \"alert\"",
+            "\"type\": \"calendar\", \"title\": \"Race\", \"date\": \"01/05/2026\", \"durationMinutes\": 0, \"was\": \"alert\""
+        )
         case("calendar without date", race, "\"type\": \"alert\"", "\"type\": \"calendar\", \"title\": \"Race\"")
         case("button action a number", catalog, "\"type\": \"layout\"", "\"type\": \"layout\", \"action\": 7")
         case("debugMode a string", catalog, "\"name\":", "\"debugMode\": \"on\", \"name\":")
-        case("open access art list initData without url", openAccessArt, "\"initData\": {", "\"initData\": { \"link\": 1,")
+        case(
+            "open access art list initData without url",
+            openAccessArt,
+            "\"initData\": {",
+            "\"initData\": { \"link\": 1,"
+        )
         cases += "deep mistakes" to """
             {
               "schemaVersion": 3, "name": "One typo", "version": "1.0",

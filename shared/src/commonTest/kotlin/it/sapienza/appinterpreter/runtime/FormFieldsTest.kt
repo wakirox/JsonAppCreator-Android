@@ -10,10 +10,6 @@ import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.utils.FormDates
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
-import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -21,6 +17,10 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.serialization.json.JsonObject
 
 /** Selector options with labels, time fields and hidden fields. */
 class FormFieldsTest {
@@ -43,7 +43,9 @@ class FormFieldsTest {
         }
         """
     ).parseApplication2().mainView as FormView
-    private val data = JsonText.parse("""{ "id": 111654, "title": "South Wind, Clear Sky", "late": "9:5" }""") as JsonObject
+    private val data = JsonText.parse(
+        """{ "id": 111654, "title": "South Wind, Clear Sky", "late": "9:5" }"""
+    ) as JsonObject
 
     @Test
     fun optionsAreStringsOrLabelsWithValues() {
@@ -106,9 +108,14 @@ class FormFieldsTest {
     fun aTimeFieldTimesACalendarEvent() {
         val submitted = JsonText.parse("""{ "date": "20/10/2026", "time": "11:30" }""") as JsonObject
         val entry = assertIs<CreateCalendarEventUseCase.Result.Ready>(
-            CreateCalendarEventUseCase { TimeZone.UTC }(CalendarEvent(title = "Visit", date = "${'$'}{date}", time = "${'$'}{time}"), submitted)
+            CreateCalendarEventUseCase {
+                TimeZone.UTC
+            }(CalendarEvent(title = "Visit", date = "${'$'}{date}", time = "${'$'}{time}"), submitted)
         ).entry
         assertFalse(entry.allDay)
-        assertEquals(LocalDateTime(2026, 10, 20, 11, 30).toInstant(TimeZone.UTC).toEpochMilliseconds(), entry.beginMillis)
+        assertEquals(
+            LocalDateTime(2026, 10, 20, 11, 30).toInstant(TimeZone.UTC).toEpochMilliseconds(),
+            entry.beginMillis
+        )
     }
 }

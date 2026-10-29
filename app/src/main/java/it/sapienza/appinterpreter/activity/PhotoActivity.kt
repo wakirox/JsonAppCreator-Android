@@ -9,11 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import it.sapienza.appinterpreter.ui.AppTheme
 import it.sapienza.appinterpreter.ui.PhotoScreen
 
-fun createIntentPhotoActivity(context : Context, url : String) : Intent {
-    return Intent(context, PhotoActivity::class.java).apply {
-        putExtra("url",url)
+fun createIntentPhotoActivity(context: Context, url: String): Intent =
+    Intent(context, PhotoActivity::class.java).apply {
+        putExtra("url", url)
     }
-}
 
 class PhotoActivity : AppCompatActivity() {
 

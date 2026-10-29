@@ -42,7 +42,9 @@ class JsonNode(val element: JsonElement?) : Iterable<JsonNode> {
     }
 
     /** An object's properties in order. */
-    fun fields(): List<Pair<String, JsonNode>> = (element as? JsonObject)?.map { (key, value) -> key to JsonNode(value) }.orEmpty()
+    fun fields(): List<Pair<String, JsonNode>> = (element as? JsonObject)?.map { (key, value) ->
+        key to JsonNode(value)
+    }.orEmpty()
 
     override fun iterator(): Iterator<JsonNode> = when (element) {
         is JsonArray -> element.map(::JsonNode).iterator()
@@ -67,8 +69,11 @@ class JsonNode(val element: JsonElement?) : Iterable<JsonNode> {
  */
 fun JsonText.sameValue(a: JsonElement?, b: JsonElement?): Boolean = when {
     a is JsonObject && b is JsonObject -> a.keys == b.keys && a.all { (key, value) -> sameValue(value, b[key]) }
+
     a is JsonArray && b is JsonArray -> a.size == b.size && a.indices.all { sameValue(a[it], b[it]) }
+
     a is JsonNull || b is JsonNull -> a == b
+
     a is JsonPrimitive && b is JsonPrimitive -> when {
         a.isString || b.isString -> a == b
         a.content in BOOLEANS || b.content in BOOLEANS -> a.content == b.content
@@ -76,6 +81,7 @@ fun JsonText.sameValue(a: JsonElement?, b: JsonElement?): Boolean = when {
         JsonNumbers.isDecimal(a.content) -> a.content.toDouble() == b.content.toDouble()
         else -> JsonNumbers.exact(a.content) == JsonNumbers.exact(b.content)
     }
+
     else -> a == b
 }
 

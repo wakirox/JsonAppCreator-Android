@@ -2,15 +2,15 @@ package it.sapienza.appinterpreter.storage
 
 import it.sapienza.appinterpreter.json.JsonText
 import it.sapienza.appinterpreter.json.getValue
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 /**
  * What the JSON apps keep on the phone: for each app (by its library id, see AppLibrary.idOf), named collections of
@@ -19,7 +19,7 @@ import kotlin.uuid.Uuid
 class AppData(
     private val store: AppStore,
     private val now: () -> Long = { Clock.System.now().toEpochMilliseconds() },
-    private val newId: () -> String = ::randomId,
+    private val newId: () -> String = ::randomId
 ) {
     /** [collection] of the app [appId] changed. */
     data class Change(val appId: String, val collection: String)
@@ -28,10 +28,9 @@ class AppData(
     val changes: SharedFlow<Change> = changeFlow.asSharedFlow()
 
     /** The saved objects of [collection], oldest first; none when nothing was saved (or what was can't be read). */
-    fun items(appId: String, collection: String): List<JsonObject> =
-        store.get(key(appId, collection))?.let { value ->
-            runCatching { (JsonText.parse(value) as JsonArray).mapNotNull { it as? JsonObject } }.getOrNull()
-        }.orEmpty()
+    fun items(appId: String, collection: String): List<JsonObject> = store.get(key(appId, collection))?.let { value ->
+        runCatching { (JsonText.parse(value) as JsonArray).mapNotNull { it as? JsonObject } }.getOrNull()
+    }.orEmpty()
 
     /** Saves [item] at the end of [collection], with an "id" and "createdAt" (epoch milliseconds) unless it has them. */
     fun add(appId: String, collection: String, item: JsonObject): JsonObject {
@@ -69,7 +68,9 @@ class AppData(
                 else -> never || (value !in added && value !in present)
             }
         }
-        val incoming = unique?.let { field -> items.mapNotNull { item -> item.getValue(field)?.let { it to item } }.toMap() }.orEmpty()
+        val incoming = unique?.let { field ->
+            items.mapNotNull { item -> item.getValue(field)?.let { it to item } }.toMap()
+        }.orEmpty()
         val seeds = unique?.let { readObjects(seedsKey) }.orEmpty()
         val refreshed = saved.map { item ->
             val value = unique?.let { item.getValue(it) } ?: return@map item
@@ -96,8 +97,17 @@ class AppData(
      * true/false values count as the user's (ticks) and the rest as the app's.
      */
     private fun refreshed(item: JsonObject, seed: JsonObject?, latest: JsonObject): JsonObject {
-        fun usersOwn(field: String): Boolean =
-            if (seed != null) item[field] != seed[field] else (item[field] as? JsonPrimitive)?.let { !it.isString && it.content in BOOLEANS } == true
+        fun usersOwn(field: String): Boolean = if (seed !=
+            null
+        ) {
+            item[field] != seed[field]
+        } else {
+            (item[field] as? JsonPrimitive)?.let {
+                !it.isString &&
+                    it.content in BOOLEANS
+            } ==
+                true
+        }
         val result = LinkedHashMap(item)
         latest.forEach { (field, value) -> if (field !in FIXED && !usersOwn(field)) result[field] = value }
         seed?.keys?.filter { it !in latest && it !in FIXED && !usersOwn(it) }?.forEach(result::remove)
@@ -105,21 +115,32 @@ class AppData(
     }
 
     private fun readObjects(key: String): Map<String, JsonObject> = store.get(key)?.let { value ->
-        runCatching { (JsonText.parse(value) as JsonObject).mapNotNull { (k, v) -> (v as? JsonObject)?.let { k to it } }.toMap() }.getOrNull()
+        runCatching {
+            (JsonText.parse(value) as JsonObject).mapNotNull { (k, v) -> (v as? JsonObject)?.let { k to it } }.toMap()
+        }.getOrNull()
     }.orEmpty()
 
     private fun readTexts(key: String): Set<String> = store.get(key)?.let { value ->
-        runCatching { (JsonText.parse(value) as JsonArray).mapNotNull { (it as? JsonPrimitive)?.content }.toSet() }.getOrNull()
+        runCatching {
+            (JsonText.parse(value) as JsonArray).mapNotNull { (it as? JsonPrimitive)?.content }.toSet()
+        }.getOrNull()
     }.orEmpty()
 
     /**
      * Gives the object of [collection] whose "id" is [id] the values of [changes], without its [cleared] fields, and an
      * "updatedAt" of now (its "id" and "createdAt" stay as they are); null when there is no such object.
      */
-    fun update(appId: String, collection: String, id: String, changes: JsonObject, cleared: Set<String> = emptySet()): JsonObject? {
+    fun update(
+        appId: String,
+        collection: String,
+        id: String,
+        changes: JsonObject,
+        cleared: Set<String> = emptySet()
+    ): JsonObject? {
         val items = items(appId, collection)
         val index = items.indexOfFirst { it.idText() == id }.takeIf { it >= 0 } ?: return null
-        val updated = JsonObject(items[index] - (cleared - FIXED) + (changes - FIXED) + ("updatedAt" to JsonPrimitive(now())))
+        val updated =
+            JsonObject(items[index] - (cleared - FIXED) + (changes - FIXED) + ("updatedAt" to JsonPrimitive(now())))
         save(appId, collection, items.toMutableList().apply { set(index, updated) })
         return updated
     }

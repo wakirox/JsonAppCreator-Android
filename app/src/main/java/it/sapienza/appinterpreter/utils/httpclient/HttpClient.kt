@@ -23,7 +23,9 @@ object HttpClient {
         }
         .build()
 
-    private val quick: OkHttpClient by lazy { client.newBuilder().callTimeout(IMAGE_CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS).build() }
+    private val quick: OkHttpClient by lazy {
+        client.newBuilder().callTimeout(IMAGE_CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS).build()
+    }
 
     /**
      * The HTTP status an image address answers with, after redirects (a HEAD request, so nothing is downloaded); null

@@ -1,31 +1,38 @@
-import org.gradle.api.GradleException
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.testing.Test
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.Properties
+import org.gradle.api.GradleException
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.testing.Test
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
-fun environmentValue(name: String): String? =
-    System.getenv(name)?.takeUnless { it.isBlank() }
+fun environmentValue(name: String): String? = System.getenv(name)?.takeUnless { it.isBlank() }
 
 fun jsonString(value: String): String = buildString {
     append('"')
     value.forEach { character ->
         when (character) {
             '"' -> append("\\\"")
+
             '\\' -> append("\\\\")
+
             '\b' -> append("\\b")
+
             '\u000c' -> append("\\f")
+
             '\n' -> append("\\n")
+
             '\r' -> append("\\r")
+
             '\t' -> append("\\t")
+
             else -> if (character.code < 0x20) {
                 append("\\u%04x".format(character.code))
             } else {
@@ -342,5 +349,13 @@ kotlin {
         // Material 3 Expressive (shape-morphing buttons, LoadingIndicator, connected button groups) is still marked
         // experimental; the whole app uses it.
         optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
+        // A compiler warning fails the build, as lint's do.
+        allWarningsAsErrors = true
     }
+}
+
+// Kotlin style: ktlint (its rules and .editorconfig); any finding fails the build.
+ktlint {
+    version.set("1.8.0")
+    ignoreFailures.set(false)
 }

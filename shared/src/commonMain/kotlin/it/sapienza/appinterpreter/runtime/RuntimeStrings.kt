@@ -6,8 +6,10 @@ interface RuntimeStrings {
     fun configurationInvalid(detail: String): String
     val errorUnrecognized: String
     fun screenDataUnrestorable(detail: String): String
+
     /** A request or link needs the value at [path], which this item doesn't have. */
     fun valueMissing(path: String): String
+
     /** [url] isn't a web, map, phone or email address. */
     fun linkNotAllowed(url: String): String
 }

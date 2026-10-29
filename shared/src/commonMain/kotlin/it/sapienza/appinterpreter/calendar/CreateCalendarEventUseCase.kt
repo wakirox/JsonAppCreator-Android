@@ -15,6 +15,7 @@ class CreateCalendarEventUseCase(private val zone: () -> TimeZone = { TimeZone.c
 
     sealed interface Result {
         class Ready(val entry: CalendarEntry) : Result
+
         /** The date or time isn't dd/MM/yyyy and HH:mm. */
         class BadDate(val message: String) : Result
     }
@@ -29,7 +30,9 @@ class CreateCalendarEventUseCase(private val zone: () -> TimeZone = { TimeZone.c
         } else {
             FormDates.startOfDayMillis(date, TimeZone.UTC)
         } ?: return Result.BadDate(
-            "The event's date and time must be dd/MM/yyyy and HH:mm, but they are \"$date${time?.let { " $it" }.orEmpty()}\"."
+            "The event's date and time must be dd/MM/yyyy and HH:mm, but they are \"$date${time?.let {
+                " $it"
+            }.orEmpty()}\"."
         )
         val end = start + if (time != null) (event.durationMinutes ?: 60) * 60_000L else 24 * 3_600_000L
         return Result.Ready(

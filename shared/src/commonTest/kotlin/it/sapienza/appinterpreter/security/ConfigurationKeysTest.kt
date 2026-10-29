@@ -10,7 +10,8 @@ class ConfigurationKeysTest {
     private val json = """{ "url": "https://api.example.com?key=__SEARCH_KEY__&other=__OTHER_KEY__" }"""
     private var current = "bundled:v3_the_movie_db"
     private val secrets = MemorySecretStore()
-    private val keys = ConfigurationKeys(secrets, mapOf("v3_the_movie_db" to mapOf("SEARCH_KEY" to "built in"))) { current }
+    private val keys =
+        ConfigurationKeys(secrets, mapOf("v3_the_movie_db" to mapOf("SEARCH_KEY" to "built in"))) { current }
 
     @Test
     fun bundledAndTypedKeysFillTheUrlEncoded() {
@@ -35,7 +36,12 @@ class ConfigurationKeysTest {
 
     @Test
     fun decodesBuildValuesScopedByBundledConfiguration() {
-        val encoded = Base64.encode("""{"v3_the_movie_db":{"TMDB_API_KEY":"test-only-value"},"other":{"SERVICE_TOKEN":"second"}}""".encodeToByteArray())
+        val encoded = Base64.encode(
+            (
+                """{"v3_the_movie_db":{"TMDB_API_KEY":"test-only-value"},""" +
+                    """"other":{"SERVICE_TOKEN":"second"}}"""
+                ).encodeToByteArray()
+        )
         val values = ConfigurationKeys.decodeBundledValues(encoded)
         assertEquals("test-only-value", values["v3_the_movie_db"]?.get("TMDB_API_KEY"))
         assertEquals("second", values["other"]?.get("SERVICE_TOKEN"))

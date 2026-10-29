@@ -1,14 +1,17 @@
 package it.sapienza.androidratio.appratio
 
 import it.sapienza.appinterpreter.utils.AppParser
-import org.junit.Test as test
-import org.junit.Assert.*
 import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Test as test
 
-class TestTest() {
+class TestTest {
 
-    @test fun simple(){
-        val parser = AppParser("""{
+    @test fun simple() {
+        val parser =
+            AppParser(
+                """{
           "name": "My first app",
           "author": "Appkin",
           "version": "1.0",
@@ -16,7 +19,9 @@ class TestTest() {
             "type": "layout",
             "views": [{ "type": "text", "label": "Hello world!" }]
           }
-        }""".trimIndent())
+        }
+                """.trimIndent()
+            )
 
         val application = parser.parseApplication2()
         assertEquals("My first app", application.name)
@@ -24,7 +29,9 @@ class TestTest() {
     }
 
     @test fun parsesChainedRestAction() {
-        val parser = AppParser("""{
+        val parser =
+            AppParser(
+                """{
           "name": "REST app",
           "author": "Appkin",
           "version": "1.0",
@@ -41,7 +48,9 @@ class TestTest() {
               "thenDo": { "type": "show", "view": { "id": "result" } }
             }
           }]
-        }""".trimIndent())
+        }
+                """.trimIndent()
+            )
 
         val application = parser.parseApplication2()
         assertEquals(1, application.actions.size)
@@ -61,5 +70,4 @@ class TestTest() {
             assertNotNull("Failed to parse $name", AppParser(json).parseApplication2())
         }
     }
-
 }

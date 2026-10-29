@@ -12,6 +12,7 @@ class LoadScreenUseCase(private val repository: AppRepository, private val strin
 
     sealed interface Result {
         class Ready(val app: ModelApplication, val screen: ScreenRuntimeState) : Result
+
         /** Nothing to show: [message] says why. */
         class Failed(val message: String) : Result
     }
@@ -28,7 +29,10 @@ class LoadScreenUseCase(private val repository: AppRepository, private val strin
             app.viewBy(viewId) ?: return Result.Failed(strings.viewMissing(viewId))
         }
         val data = try {
-            payload?.let { JsonText.parse(it) as? JsonObject ?: throw IllegalArgumentException("The screen data is not a JSON object") }
+            payload?.let {
+                JsonText.parse(it) as? JsonObject
+                    ?: throw IllegalArgumentException("The screen data is not a JSON object")
+            }
         } catch (e: Exception) {
             return Result.Failed(strings.screenDataUnrestorable(e.message.orEmpty()))
         }

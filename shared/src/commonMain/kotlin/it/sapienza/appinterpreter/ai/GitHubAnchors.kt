@@ -8,7 +8,8 @@ internal class GitHubAnchors private constructor(private val headings: List<Pair
 
     /** The anchor of the first heading [text] (without its #s), after the heading [after] when given. */
     fun of(text: String, after: String? = null): String? {
-        val start = after?.let { name -> headings.indexOfFirst { it.first == name }.takeIf { it >= 0 } ?: return null } ?: -1
+        val start =
+            after?.let { name -> headings.indexOfFirst { it.first == name }.takeIf { it >= 0 } ?: return null } ?: -1
         return headings.drop(start + 1).firstOrNull { it.first == text }?.second
     }
 

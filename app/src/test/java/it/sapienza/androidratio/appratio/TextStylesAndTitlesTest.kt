@@ -3,7 +3,7 @@ package it.sapienza.androidratio.appratio
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.AnnotatedString
@@ -56,8 +56,11 @@ class TextStylesAndTitlesTest {
     private fun shown(text: String): AnnotatedString =
         composeRule.onNodeWithText(text).fetchSemanticsNode().config[SemanticsProperties.Text].first()
 
-    private fun AnnotatedString.weightAt(index: Int) = spanStyles.lastOrNull { index in it.start until it.end }?.item?.fontWeight
-    private fun AnnotatedString.slantAt(index: Int) = spanStyles.lastOrNull { index in it.start until it.end }?.item?.fontStyle
+    private fun AnnotatedString.weightAt(index: Int) = spanStyles.lastOrNull {
+        index in it.start until it.end
+    }?.item?.fontWeight
+    private fun AnnotatedString.slantAt(index: Int) =
+        spanStyles.lastOrNull { index in it.start until it.end }?.item?.fontStyle
 
     @Test
     fun htmlIsShownWithoutItsTagsAndTheLabelHasItsOwnStyle() {

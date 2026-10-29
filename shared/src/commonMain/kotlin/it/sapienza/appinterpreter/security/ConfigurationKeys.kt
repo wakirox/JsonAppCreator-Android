@@ -1,10 +1,10 @@
 package it.sapienza.appinterpreter.security
 
 import it.sapienza.appinterpreter.json.JsonText
+import kotlin.io.encoding.Base64
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlin.io.encoding.Base64
 
 /**
  * The API keys of configurations: those the user typed (in [secrets]) and those built into the app for its bundled
@@ -22,7 +22,8 @@ class ConfigurationKeys(
 
     fun save(json: String, values: Map<String, String>) = save(ApiKeyPlaceholders.configurationId(json), json, values)
 
-    fun saveForCurrentConfiguration(json: String, values: Map<String, String>) = save(currentConfigurationId(), json, values)
+    fun saveForCurrentConfiguration(json: String, values: Map<String, String>) =
+        save(currentConfigurationId(), json, values)
 
     fun availableNamesForCurrentConfiguration(json: String): Set<String> {
         val configurationId = currentConfigurationId()

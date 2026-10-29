@@ -11,12 +11,26 @@ internal class SchemaReference(schemaJson: String) {
     private val root: JsonNode = JsonNode.parse(schemaJson)
     private val defs: JsonNode = root.path("\$defs")
 
-    enum class Kind(val label: String?) { Root(null), View("View"), FormField("Form field"), Event("Event"), Nested(null) }
+    enum class Kind(val label: String?) {
+        Root(
+            null
+        ),
+        View("View"),
+        FormField("Form field"),
+        Event("Event"),
+        Nested(null)
+    }
 
     class Property(val name: String, val required: Boolean, val line: String)
 
     /** A view, form field or event by its [name] (its type), or a nested part by its schema definition. */
-    class Section(val kind: Kind, val name: String, val heading: String, val about: String?, val properties: List<Property>) {
+    class Section(
+        val kind: Kind,
+        val name: String,
+        val heading: String,
+        val about: String?,
+        val properties: List<Property>
+    ) {
         /** The heading on its own, outside the reference: "View `list`", "Order of a stored list (`sort`)". */
         val title: String get() = kind.label?.let { "$it $heading" } ?: heading
     }
@@ -25,11 +39,21 @@ internal class SchemaReference(schemaJson: String) {
 
     val groups: List<Group> = listOf(
         Group("Root object", null, listOf(section(Kind.Root, "root", "Root object", root))),
-        typed("Views", Kind.View, "viewDefinition", "Every view has a `type`. Where a view is expected, `{ \"ref\": \"id\" }` " +
-            "may reference a view defined in the root `views` instead."),
+        typed(
+            "Views",
+            Kind.View,
+            "viewDefinition",
+            "Every view has a `type`. Where a view is expected, `{ \"ref\": \"id\" }` " +
+                "may reference a view defined in the root `views` instead."
+        ),
         typed("Form fields", Kind.FormField, "formElement", "The items of a form's `formElements`."),
-        typed("Events", Kind.Event, "event", "What an action does: the `event` of an action definition. An event's `data`, " +
-            "like an action's, is the data it runs with instead of the current data (a form's submitted values still come first)."),
+        typed(
+            "Events",
+            Kind.Event,
+            "event",
+            "What an action does: the `event` of an action definition. An event's `data`, " +
+                "like an action's, is the data it runs with instead of the current data (a form's submitted values still come first)."
+        ),
         Group(
             "Actions and references",
             "Where an action is expected, write an action definition or `{ \"ref\": \"id\" }` referencing one in the root `actions`.",
@@ -44,12 +68,17 @@ internal class SchemaReference(schemaJson: String) {
     fun markdown(): String = buildString {
         appendLine("## Reference")
         appendLine()
-        appendLine("Generated from the v3 JSON Schema. Unknown properties are rejected. **Required** properties are marked.")
+        appendLine(
+            "Generated from the v3 JSON Schema. Unknown properties are rejected. **Required** properties are marked."
+        )
         appendLine()
         groups.forEach { group ->
             appendLine("### ${group.heading}")
             appendLine()
-            group.about?.let { appendLine(it); appendLine() }
+            group.about?.let {
+                appendLine(it)
+                appendLine()
+            }
             group.sections.forEach { section ->
                 if (section.kind != Kind.Root) {
                     appendLine("#### ${section.heading}")
@@ -62,7 +91,10 @@ internal class SchemaReference(schemaJson: String) {
 
     /** [section]'s description and property lines, then a blank line. */
     fun StringBuilder.write(section: Section) {
-        section.about?.let { appendLine(it); appendLine() }
+        section.about?.let {
+            appendLine(it)
+            appendLine()
+        }
         section.properties.forEach { appendLine(it.line) }
         appendLine()
     }
@@ -76,7 +108,13 @@ internal class SchemaReference(schemaJson: String) {
         }
     )
 
-    private fun section(kind: Kind, name: String, heading: String, node: JsonNode, skip: Set<String> = emptySet()): Section {
+    private fun section(
+        kind: Kind,
+        name: String,
+        heading: String,
+        node: JsonNode,
+        skip: Set<String> = emptySet()
+    ): Section {
         val schema = resolve(node)
         val required = schema.path("required").map { it.asText() }.toSet()
         val properties = schema.path("properties").fields().filter { (name, _) -> name !in skip }.map { (name, value) ->
@@ -117,7 +155,9 @@ internal class SchemaReference(schemaJson: String) {
         node.path("enum").takeIf { it.isArray }?.let { values ->
             return "one of " + values.filterNot { it.isNull }.joinToString(", ") { "`$it`" }
         }
-        val types = node.path("type").let { t -> if (t.isArray) t.map { it.asText() } else listOfNotNull(t.asText(null)) }
+        val types = node.path("type").let { t ->
+            if (t.isArray) t.map { it.asText() } else listOfNotNull(t.asText(null))
+        }
             .filter { it != "null" }
         if ("array" in types) return "an array; each item is " + describe(node.path("items"))
         val minimum = node.path("minimum").takeIf { it.isNumber }?.let { " (at least $it)" }.orEmpty()

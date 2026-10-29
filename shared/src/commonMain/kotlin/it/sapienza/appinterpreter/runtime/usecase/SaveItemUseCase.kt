@@ -20,13 +20,25 @@ class SaveItemUseCase(private val appData: AppData, private val repository: AppR
     operator fun invoke(event: SaveData, values: JsonObject?, context: JsonObject?): JsonObject {
         val item = event.mapping?.let { values?.getObject(it) } ?: values ?: JsonObject(emptyMap())
         val fields = event.fields.orEmpty().mapValues { (_, value) ->
-            if (value is JsonPrimitive && value.isString) JsonPrimitive(value.content.matchReplace(context).matchReplace(values)) else value
+            if (value is JsonPrimitive &&
+                value.isString
+            ) {
+                JsonPrimitive(value.content.matchReplace(context).matchReplace(values))
+            } else {
+                value
+            }
         }
         val appId = AppLibrary.idOf(repository.current().name)
         val saved = JsonObject(item + fields)
         val same = event.unique?.let { field -> saved.getValue(field)?.let { value -> field to value } }
-        val existing = same?.let { (field, value) -> appData.items(appId, event.collection).firstOrNull { it.getValue(field) == value } }
+        val existing = same?.let { (field, value) ->
+            appData.items(appId, event.collection).firstOrNull {
+                it.getValue(field) ==
+                    value
+            }
+        }
         val id = existing?.getValue("id")
-        return id?.let { appData.update(appId, event.collection, it, saved) } ?: appData.add(appId, event.collection, saved)
+        return id?.let { appData.update(appId, event.collection, it, saved) }
+            ?: appData.add(appId, event.collection, saved)
     }
 }

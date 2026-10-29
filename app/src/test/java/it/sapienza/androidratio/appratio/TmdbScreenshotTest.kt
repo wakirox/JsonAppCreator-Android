@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -14,18 +14,22 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
-import androidx.test.platform.app.InstrumentationRegistry
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.annotation.DelicateCoilApi
+import coil3.imageDecoderEnabled
 import it.sapienza.appinterpreter.activity.MainActivity
-import okio.Buffer
+import java.io.File
+import java.io.FileOutputStream
+import kotlin.math.abs
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import coil3.ImageLoader
-import coil3.SingletonImageLoader
-import coil3.imageDecoderEnabled
+import okio.Buffer
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -37,9 +41,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
-import java.io.File
-import java.io.FileOutputStream
-import kotlin.math.abs
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -60,6 +61,8 @@ class TmdbScreenshotTest {
     @get:Rule
     val composeRule = createEmptyComposeRule()
 
+    // The tests swap in their own image loader, which Coil marks as delicate.
+    @OptIn(DelicateCoilApi::class)
     @Before
     fun setUp() {
         // Robolectric has no ImageDecoder, which Coil uses on Android 10 and up: decode with BitmapFactory here.
@@ -309,20 +312,17 @@ class TmdbScreenshotTest {
         abs(android.graphics.Color.blue(expected) - android.graphics.Color.blue(actual))
     )
 
-    private fun outputDirectory(): File =
-        File("build/outputs/tmdb-screenshots").apply { mkdirs() }
+    private fun outputDirectory(): File = File("build/outputs/tmdb-screenshots").apply { mkdirs() }
 
     private fun outputFile(name: String): File = File(outputDirectory(), name)
 
-    private fun goldenDirectory(): File =
-        File("src/test/resources/goldens").apply { mkdirs() }
+    private fun goldenDirectory(): File = File("src/test/resources/goldens").apply { mkdirs() }
 
     private fun goldenFile(name: String): File = File(goldenDirectory(), name)
 
-    private fun readResource(path: String): ByteArray =
-        checkNotNull(javaClass.classLoader?.getResourceAsStream(path)) {
-            "Missing test resource: $path"
-        }.use { it.readBytes() }
+    private fun readResource(path: String): ByteArray = checkNotNull(javaClass.classLoader?.getResourceAsStream(path)) {
+        "Missing test resource: $path"
+    }.use { it.readBytes() }
 
     private fun writeBitmap(bitmap: Bitmap, file: File) {
         FileOutputStream(file).use { stream ->
@@ -330,10 +330,8 @@ class TmdbScreenshotTest {
         }
     }
 
-    private class TmdbDispatcher(
-        private val baseUrl: String,
-        private val readAsset: (String) -> ByteArray
-    ) : Dispatcher() {
+    private class TmdbDispatcher(private val baseUrl: String, private val readAsset: (String) -> ByteArray) :
+        Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
             val path = request.requestUrl?.encodedPath.orEmpty()
             return when {

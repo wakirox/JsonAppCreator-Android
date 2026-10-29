@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -49,21 +49,32 @@ fun ReceivedAppDialog(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    app.author?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.received_by, it, app.version) }
+                    app.author?.takeIf {
+                        it.isNotBlank()
+                    }?.let { stringResource(R.string.received_by, it, app.version) }
                         ?: stringResource(R.string.received_version, app.version),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    if (app.webAddresses.isEmpty()) stringResource(R.string.received_offline)
-                    else stringResource(R.string.received_web, app.webAddresses.joinToString(", ")),
+                    if (app.webAddresses.isEmpty()) {
+                        stringResource(R.string.received_offline)
+                    } else {
+                        stringResource(R.string.received_web, app.webAddresses.joinToString(", "))
+                    },
                     style = MaterialTheme.typography.bodyMedium
                 )
                 if (app.apiKeys.isNotEmpty()) {
-                    Text(stringResource(R.string.received_keys, app.apiKeys.joinToString(", ")), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        stringResource(R.string.received_keys, app.apiKeys.joinToString(", ")),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
                 if (sameName) {
-                    Text(stringResource(R.string.received_same_name, app.name), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        stringResource(R.string.received_same_name, app.name),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         },
@@ -73,9 +84,17 @@ fun ReceivedAppDialog(
                 Button(shapes = ButtonDefaults.shapes(), onClick = onOpen) {
                     Text(stringResource(if (sameName) R.string.received_replace else R.string.received_open))
                 }
-                if (sameName) OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onKeepBoth) { Text(stringResource(R.string.received_keep_both)) }
-                TextButton(shapes = ButtonDefaults.shapes(), onClick = onEdit) { Text(stringResource(R.string.received_edit)) }
-                TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text(stringResource(R.string.received_cancel)) }
+                if (sameName) {
+                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = onKeepBoth) {
+                        Text(stringResource(R.string.received_keep_both))
+                    }
+                }
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onEdit) {
+                    Text(stringResource(R.string.received_edit))
+                }
+                TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
+                    Text(stringResource(R.string.received_cancel))
+                }
             }
         }
     )

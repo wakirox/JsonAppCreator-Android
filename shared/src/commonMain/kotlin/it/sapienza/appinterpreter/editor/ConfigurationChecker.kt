@@ -59,12 +59,18 @@ class ConfigurationChecker(private val validator: ConfigurationValidator) {
         /** The JSON reader's messages (worded as Jackson's were), in plain words for the common mistakes. */
         fun syntaxMessage(original: String): String = when {
             "CTRL-CHAR, code 10" in original -> "A text value isn't closed: add a quote (\") before the end of the line"
+
             original.startsWith("Unexpected end-of-input") -> "The JSON ends too early: a } or ] is missing"
+
             "double-quote to start field name" in original ->
                 "A property name is missing its quotes, or there is an extra comma before }"
+
             "comma to separate" in original -> "A comma is missing between two items"
+
             "was expecting a colon" in original -> "A colon (:) is missing after the property name"
+
             original.startsWith("Unrecognized token") -> "Unknown word: text values need double quotes"
+
             else -> original.substringBefore('\n')
         }
 

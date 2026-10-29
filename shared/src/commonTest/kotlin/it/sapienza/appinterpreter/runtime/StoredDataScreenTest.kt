@@ -3,16 +3,13 @@ package it.sapienza.appinterpreter.runtime
 import androidx.lifecycle.SavedStateHandle
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
-import it.sapienza.appinterpreter.model.view_model.TextView
-import it.sapienza.appinterpreter.json.matchReplace
-import it.sapienza.appinterpreter.json.PlaceholderClock
-import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.Fixtures
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
 import it.sapienza.appinterpreter.calendar.CreateCalendarEventUseCase
 import it.sapienza.appinterpreter.json.JsonText
+import it.sapienza.appinterpreter.json.PlaceholderClock
 import it.sapienza.appinterpreter.json.getValue
+import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.event.AlertMessage
 import it.sapienza.appinterpreter.model.event.DeleteData
@@ -23,6 +20,9 @@ import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.model.view_model.TextView
+import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
@@ -38,9 +38,18 @@ import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
 import it.sapienza.appinterpreter.security.ConfigurationKeys
 import it.sapienza.appinterpreter.security.MemorySecretStore
 import it.sapienza.appinterpreter.storage.AppData
+import it.sapienza.appinterpreter.storage.Files
 import it.sapienza.appinterpreter.storage.MemoryAppStore
 import it.sapienza.appinterpreter.utils.AppLibrary
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -48,18 +57,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import it.sapienza.appinterpreter.storage.Files
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNull
+import kotlinx.serialization.json.JsonPrimitive
 
 /** The App ideas example driven without any UI: apps and their ideas saved on the phone, and the lists that show them. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -74,7 +74,12 @@ class StoredDataScreenTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun screen(appData: AppData, viewId: String? = null, payload: JsonObject? = null, app: String = json): ScreenViewModel {
+    private fun screen(
+        appData: AppData,
+        viewId: String? = null,
+        payload: JsonObject? = null,
+        app: String = json
+    ): ScreenViewModel {
         val current = CurrentConfiguration { app }
         val repository = AppRepository(current)
         val fetch = FetchJsonUseCase(JsonHttpClient(MockEngine { respond("{}") }, "Appkin/test"))
@@ -85,7 +90,12 @@ class StoredDataScreenTest {
             ).toMap()
         )
         return ScreenViewModel(
-            saved, alerts, fetch, LoadListItemsUseCase(fetch, LoadStoredItemsUseCase(appData, repository)), InitialFormValuesUseCase(),
+            saved, alerts, fetch,
+            LoadListItemsUseCase(
+                fetch,
+                LoadStoredItemsUseCase(appData, repository)
+            ),
+            InitialFormValuesUseCase(),
             SubmitFormUseCase(), CreateCalendarEventUseCase(), SaveItemUseCase(appData, repository),
             UpdateItemUseCase(appData, repository), DeleteItemsUseCase(appData, repository), OpenLinkUseCase(),
             FindMissingApiKeysUseCase(current, ConfigurationKeys(MemorySecretStore(), emptyMap()) { "x" }),
@@ -96,7 +106,8 @@ class StoredDataScreenTest {
     private val ScreenViewModel.views get() = (screen?.definition as Layout).views
     private fun ScreenViewModel.form() = assertIs<FormView>(views.first { it is FormView })
     private fun ScreenViewModel.list() = assertIs<ListView>(views.first { it is ListView })
-    private fun ScreenViewModel.shown(data: JsonObject?, field: String) = lists.get(list(), data).content.value.items.map { it.getValue(field) }
+    private fun ScreenViewModel.shown(data: JsonObject?, field: String) =
+        lists.get(list(), data).content.value.items.map { it.getValue(field) }
 
     private fun ScreenViewModel.add(field: String, value: String, data: JsonObject? = null) {
         forms.set(form(), data, field, value)
@@ -193,7 +204,10 @@ class StoredDataScreenTest {
         var ids = 0
         val screen = screen(AppData(store, newId = { "n${++ids}" }), app = app)
 
-        screen.onAction(screen.screen?.definition?.action, JsonText.parse("""{ "text": "Hi", "who": "Ana" }""") as JsonObject)
+        screen.onAction(
+            screen.screen?.definition?.action,
+            JsonText.parse("""{ "text": "Hi", "who": "Ana" }""") as JsonObject
+        )
 
         assertEquals("Saved Hi from Ana as n1", alerts.alert?.text)
     }
@@ -298,7 +312,9 @@ class StoredDataScreenTest {
 
         val screen = screen(appData, "app", rainy)
         val bugLine = screen.row().first { it.visibleIf == "bug" }
-        val shown = screen.items(rainy).map { Pair<String?, Boolean>(it.getValue("title"), ViewVisibility.holds(bugLine.visibleIf, it)) }.toMap()
+        val shown = screen.items(rainy).map {
+            Pair<String?, Boolean>(it.getValue("title"), ViewVisibility.holds(bugLine.visibleIf, it))
+        }.toMap()
         assertEquals<Map<String?, Boolean>>(mapOf("Crash on rotate" to true, "Dark mode" to false), shown)
 
         screen.onAction(screen.button("PDF").action, rainy)
@@ -334,7 +350,12 @@ class StoredDataScreenTest {
         addApps(appData, "Rainy", "Tasse")
         val (rainy, tasse) = screen(appData).items(null)
         val newRainy = screen(appData, "new_idea", rainy)
-        newRainy.forms.set(newRainy.form(), rainy, "tags", JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui"))))
+        newRainy.forms.set(
+            newRainy.form(),
+            rainy,
+            "tags",
+            JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui")))
+        )
         newRainy.add("title", "Complication", rainy)
 
         val newTasse = screen(appData, "new_idea", tasse)
@@ -422,7 +443,11 @@ class StoredDataScreenTest {
             }
         """
         val appData = AppData(store, newId = { "p1" })
-        val place = appData.add(AppLibrary.idOf("Trip"), "places", JsonText.parse("""{ "name": "Bastion", "visited": false }""") as JsonObject)
+        val place = appData.add(
+            AppLibrary.idOf("Trip"),
+            "places",
+            JsonText.parse("""{ "name": "Bastion", "visited": false }""") as JsonObject
+        )
         val detail = screen(appData, viewId = "place", payload = place, app = app)
         val check = (detail.screen?.definition as Layout).views.filterIsInstance<CheckView>().single()
 
@@ -438,7 +463,11 @@ class StoredDataScreenTest {
     fun anUpdateOfAnotherObjectLeavesTheScreensDataAlone() {
         val appData = AppData(store)
         val shown = JsonText.parse("""{ "id": "a", "name": "Rainy" }""") as JsonObject
-        val other = appData.add(AppLibrary.idOf("App ideas"), "apps", JsonText.parse("""{ "name": "Tasse" }""") as JsonObject)
+        val other = appData.add(
+            AppLibrary.idOf("App ideas"),
+            "apps",
+            JsonText.parse("""{ "name": "Tasse" }""") as JsonObject
+        )
         val screen = screen(appData, viewId = "new_app", payload = shown)
         screen.onEvent(UpdateData("apps", fields = JsonObject(mapOf("name" to JsonPrimitive("Tasse 2")))), other)
         assertEquals("Rainy", screen.data.value?.getValue("name"))
@@ -455,7 +484,11 @@ class StoredDataScreenTest {
             }
         """
         val appData = AppData(store, newId = { "t1" })
-        appData.add(AppLibrary.idOf("Tasks"), "tasks", JsonText.parse("""{ "title": "Buy milk", "done": false }""") as JsonObject)
+        appData.add(
+            AppLibrary.idOf("Tasks"),
+            "tasks",
+            JsonText.parse("""{ "title": "Buy milk", "done": false }""") as JsonObject
+        )
         val screen = screen(appData, app = app)
         val list = assertIs<ListView>(screen.screen?.definition)
         val check = assertIs<CheckView>(list.itemView)
@@ -500,8 +533,16 @@ class StoredDataScreenTest {
         val list = assertIs<ListView>(screen.screen?.definition)
         fun names(on: ScreenViewModel) = on.lists.get(list, null).content.value.items.map { it.getValue("name") }
 
-        screen.onCheck(assertIs<CheckView>(list.itemView), screen.lists.get(list, null).content.value.items.first(), checked = true)
-        assertEquals(listOf("Bastion", "Baths", "Parliament"), names(screen), "visited (true) after not visited (false)")
+        screen.onCheck(
+            assertIs<CheckView>(list.itemView),
+            screen.lists.get(list, null).content.value.items.first(),
+            checked = true
+        )
+        assertEquals(
+            listOf("Bastion", "Baths", "Parliament"),
+            names(screen),
+            "visited (true) after not visited (false)"
+        )
 
         val again = screen(AppData(store), app = checklist)
         assertEquals(listOf("Bastion", "Baths", "Parliament"), names(again), "the initial items aren't saved again")
@@ -515,7 +556,10 @@ class StoredDataScreenTest {
         assertEquals(3, first.lists.get(assertIs<ListView>(first.screen?.definition), null).content.value.items.size)
         appData.delete(AppLibrary.idOf("Trip"), "places") { true }
         val again = screen(AppData(store), app = checklist)
-        assertEquals(emptyList(), again.lists.get(assertIs<ListView>(again.screen?.definition), null).content.value.items)
+        assertEquals(
+            emptyList(),
+            again.lists.get(assertIs<ListView>(again.screen?.definition), null).content.value.items
+        )
     }
 
     @Test
@@ -525,14 +569,20 @@ class StoredDataScreenTest {
               "schemaVersion": 3, "name": "Trip", "version": "1.0",
               "mainView": { "type": "list",
                 "stored": { "collection": "places", "unique": "key",
-                  "initialItems": [${places.joinToString { """{ "key": "$it", "name": "$it", "visited": false }""" }}] },
+                  "initialItems": [${places.joinToString {
+            """{ "key": "$it", "name": "$it", "visited": false }"""
+        }}] },
                 "itemView": { "type": "check", "mapping": "visited", "title": "${'$'}{name}",
                   "action": { "id": "tick", "event": { "type": "update", "collection": "places" } } } }
             }
         """
         val first = screen(AppData(store), app = version("Parliament", "Bastion"))
         val list = assertIs<ListView>(first.screen?.definition)
-        first.onCheck(assertIs<CheckView>(list.itemView), first.lists.get(list, null).content.value.items.first(), checked = true)
+        first.onCheck(
+            assertIs<CheckView>(list.itemView),
+            first.lists.get(list, null).content.value.items.first(),
+            checked = true
+        )
 
         val second = screen(AppData(store), app = version("Parliament", "Bastion", "Baths"))
         val items = second.lists.get(assertIs<ListView>(second.screen?.definition), null).content.value.items
@@ -544,10 +594,19 @@ class StoredDataScreenTest {
     fun anEventsOwnDataIsWhatItSaves() {
         val appData = AppData(store)
         val home = screen(appData)
-        val save = SaveData("apps", thenDo = SaveData("apps", data = JsonText.parse("""{ "name": "Tasse" }""") as JsonObject),
-            data = JsonText.parse("""{ "name": "Rainy" }""") as JsonObject)
+        val save =
+            SaveData(
+                "apps",
+                thenDo = SaveData("apps", data = JsonText.parse("""{ "name": "Tasse" }""") as JsonObject),
+                data = JsonText.parse("""{ "name": "Rainy" }""") as JsonObject
+            )
         home.onEvent(save, JsonText.parse("""{ "name": "ignored" }""") as JsonObject)
-        assertEquals(listOf("Rainy", "Tasse"), appData.items(AppLibrary.idOf("App ideas"), "apps").map { it.getValue("name") })
+        assertEquals(
+            listOf("Rainy", "Tasse"),
+            appData.items(AppLibrary.idOf("App ideas"), "apps").map {
+                it.getValue("name")
+            }
+        )
     }
 
     @Test
@@ -582,7 +641,11 @@ class StoredDataScreenTest {
         assertEquals(listOf("Tile", "Dark mode", "Sync", "Widgets"), screen.shown(ideas.rainy, "title"))
         assertEquals(listOf("High", "Medium", "Medium", "Low"), screen.shown(ideas.rainy, "priority"))
         assertEquals("A tile for today's rain", screen.items(ideas.rainy)[0].getValue("description"))
-        assertEquals("Medium", ideas.rainyNew.forms.values(ideas.rainyNew.form(), ideas.rainy)["priority"], "the form starts again at Medium")
+        assertEquals(
+            "Medium",
+            ideas.rainyNew.forms.values(ideas.rainyNew.form(), ideas.rainy)["priority"],
+            "the form starts again at Medium"
+        )
     }
 
     @Test
@@ -634,21 +697,30 @@ class StoredDataScreenTest {
 
         assertEquals("Now Hello", alerts.alert?.text)
         val note = appData.items(AppLibrary.idOf("Notes"), "notes").single()
-        assertEquals(listOf("n1", "Hello", "true"), listOf(note.getValue("id"), note.getValue("text"), note.getValue("edited")))
+        assertEquals(
+            listOf("n1", "Hello", "true"),
+            listOf(note.getValue("id"), note.getValue("text"), note.getValue("edited"))
+        )
         assertEquals("Hello", screen.forms.values(form, saved)["text"])
     }
 
     @Test
     fun changingAnItemThatIsGoneSaysSo() {
         val home = screen(AppData(store))
-        home.onEvent(UpdateData("apps", fields = null), JsonText.parse("""{ "id": "gone", "name": "Old" }""") as JsonObject)
+        home.onEvent(
+            UpdateData("apps", fields = null),
+            JsonText.parse("""{ "id": "gone", "name": "Old" }""") as JsonObject
+        )
         assertEquals("Nothing to change: this item is no longer saved", alerts.alert?.text)
     }
 
     @Test
     fun deletingWhatIsNotSavedIsNoMistake() {
         val home = screen(AppData(store))
-        home.onEvent(DeleteData("apps", thenDo = AlertMessage(value = "Done")), JsonText.parse("""{ "id": "gone" }""") as JsonObject)
+        home.onEvent(
+            DeleteData("apps", thenDo = AlertMessage(value = "Done")),
+            JsonText.parse("""{ "id": "gone" }""") as JsonObject
+        )
         assertEquals("Done", alerts.alert?.text)
     }
 
@@ -672,8 +744,16 @@ class StoredDataScreenTest {
         edit.onSubmit(form, open.payload)
 
         assertIs<ScreenViewModel.Effect.Close>(edit.effects.first())
-        val saved = AppData(store).items(AppLibrary.idOf("App ideas"), "ideas").first { it.getValue("id") == darkMode.getValue("id") }
-        assertEquals(listOf("Dark theme", "High", ideas.rainy.getValue("id")), listOf("title", "priority", "appId").map { saved.getValue(it) })
+        val saved = AppData(store).items(AppLibrary.idOf("App ideas"), "ideas").first {
+            it.getValue("id") ==
+                darkMode.getValue("id")
+        }
+        assertEquals(
+            listOf("Dark theme", "High", ideas.rainy.getValue("id")),
+            listOf("title", "priority", "appId").map {
+                saved.getValue(it)
+            }
+        )
     }
 
     @Test
@@ -697,7 +777,9 @@ class StoredDataScreenTest {
         assertEquals(share, assertIs<Layout>(screen.row()[0]).views.last(), "the share button ends the title row")
         ideas.rainyNew.forms.set(ideas.rainyNew.form(), ideas.rainy, "description", "A tile for today's rain")
         ideas.rainyNew.forms.set(
-            ideas.rainyNew.form(), ideas.rainy, "photos",
+            ideas.rainyNew.form(),
+            ideas.rainy,
+            "photos",
             JsonArray(listOf(JsonPrimitive("appkin-photo:a.jpg"), JsonPrimitive("appkin-photo:b.jpg")))
         )
         ideas.rainyNew.add("title", "Tile", ideas.rainy)
@@ -760,7 +842,10 @@ class StoredDataScreenTest {
         ideas.rainyNew.add("title", "Tile", ideas.rainy)
         val tile = screen.items(ideas.rainy).first { it.getValue("title") == "Tile" }
         assertEquals(photos, tile["photos"])
-        assertNull(ideas.rainyNew.forms.values(ideas.rainyNew.form(), ideas.rainy)["photos"], "the new-idea form starts without photos again")
+        assertNull(
+            ideas.rainyNew.forms.values(ideas.rainyNew.form(), ideas.rainy)["photos"],
+            "the new-idea form starts without photos again"
+        )
 
         screen.onAction(screen.list().action, tile)
         val open = assertIs<ScreenViewModel.Effect.OpenScreen>(screen.effects.first())
@@ -828,9 +913,13 @@ class StoredDataScreenTest {
     fun theTagsFieldStartsFromAListOrFromTextWithCommas() {
         val field = TagsInput(title = "Tags", mapping = "tags")
         val values = InitialFormValuesUseCase()
-        fun start(json: String) = values(FormView(formElements = listOf(field)), JsonText.parse(json) as JsonObject)["tags"]
+        fun start(json: String) =
+            values(FormView(formElements = listOf(field)), JsonText.parse(json) as JsonObject)["tags"]
         assertEquals(JsonArray(listOf(JsonPrimitive("a"), JsonPrimitive("b"))), start("""{ "tags": ["a", "b"] }"""))
-        assertEquals(JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui"))), start("""{ "tags": "watch, ui ," }"""))
+        assertEquals(
+            JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui"))),
+            start("""{ "tags": "watch, ui ," }""")
+        )
         assertNull(start("""{ "title": "x" }"""))
         assertFalse(TagsInput(mandatory = true, title = "Tags", mapping = "tags").isSet(JsonArray(emptyList())))
     }

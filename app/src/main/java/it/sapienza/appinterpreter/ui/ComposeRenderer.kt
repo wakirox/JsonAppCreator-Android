@@ -2,52 +2,45 @@
 
 package it.sapienza.appinterpreter.ui
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.JsonArray
-import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.InputChipDefaults
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
-import it.sapienza.appinterpreter.utils.FileAttachments
-import it.sapienza.appinterpreter.storage.Files
-import it.sapienza.appinterpreter.model.view_model.form_model.FilesInput
-import it.sapienza.appinterpreter.model.view_model.FilesView
-import it.sapienza.appinterpreter.runtime.TagSuggestions
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.FilterChip
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.unit.Dp
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.PickVisualMediaRequest
+import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.ToggleButton
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -63,115 +56,105 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
-import it.sapienza.appinterpreter.storage.Photos
-import it.sapienza.appinterpreter.json.valueAt
-import it.sapienza.appinterpreter.utils.PhotoStore
-import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
-import it.sapienza.appinterpreter.runtime.ListsState
-import it.sapienza.appinterpreter.runtime.ScreenViewModel
-import it.sapienza.appinterpreter.runtime.ViewVisibility
-import it.sapienza.appinterpreter.runtime.text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import java.util.Date
-import android.text.format.DateFormat
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.text.fromHtml
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import it.sapienza.appinterpreter.activity.createIntentPhotoActivity
+import it.sapienza.appinterpreter.extensions.toDate
+import it.sapienza.appinterpreter.form.extensions.stringValue
 import it.sapienza.appinterpreter.json.fillAddress
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.json.optString
-import it.sapienza.appinterpreter.extensions.toDate
-import it.sapienza.appinterpreter.form.extensions.stringValue
+import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.model.Layout
 import it.sapienza.appinterpreter.model.LayoutOrientation
 import it.sapienza.appinterpreter.model.action.Action
@@ -179,29 +162,46 @@ import it.sapienza.appinterpreter.model.action.ActionType
 import it.sapienza.appinterpreter.model.view_model.ButtonIcon
 import it.sapienza.appinterpreter.model.view_model.ButtonView
 import it.sapienza.appinterpreter.model.view_model.CheckView
+import it.sapienza.appinterpreter.model.view_model.FilesView
 import it.sapienza.appinterpreter.model.view_model.FormView
-import it.sapienza.appinterpreter.model.view_model.ImageView
 import it.sapienza.appinterpreter.model.view_model.ImageScale
+import it.sapienza.appinterpreter.model.view_model.ImageView
 import it.sapienza.appinterpreter.model.view_model.ListView
-import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.TextFormat
+import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
+import it.sapienza.appinterpreter.model.view_model.form_model.FilesInput
 import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
-import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
-import it.sapienza.appinterpreter.utils.FormDates
+import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.form_model.TextInput
+import it.sapienza.appinterpreter.model.view_model.form_model.TimeInput
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.model.view_model.helper.TextStyle
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import kotlinx.serialization.json.JsonObject
+import it.sapienza.appinterpreter.runtime.ListsState
+import it.sapienza.appinterpreter.runtime.ScreenViewModel
+import it.sapienza.appinterpreter.runtime.TagSuggestions
+import it.sapienza.appinterpreter.runtime.ViewVisibility
+import it.sapienza.appinterpreter.runtime.text
+import it.sapienza.appinterpreter.storage.Files
+import it.sapienza.appinterpreter.storage.Photos
+import it.sapienza.appinterpreter.utils.FileAttachments
+import it.sapienza.appinterpreter.utils.FormDates
+import it.sapienza.appinterpreter.utils.PhotoStore
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.Date
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 private const val HORIZONTAL_LAZY_THRESHOLD = 8
 
@@ -237,11 +237,20 @@ fun RendererScreen(model: MView, data: JsonObject? = model.data, loading: Boolea
     // Lists loaded from a request load again when the screen is pulled down.
     Box(
         Modifier.fillMaxSize().testTag("renderer-screen")
-            .pullToRefresh(isRefreshing = refreshing, state = pull, enabled = canRefresh, onRefresh = screen.lists::refresh)
+            .pullToRefresh(
+                isRefreshing = refreshing,
+                state = pull,
+                enabled = canRefresh,
+                onRefresh = screen.lists::refresh
+            )
     ) {
         RenderRoot(model, data)
         if (canRefresh) {
-            PullToRefreshDefaults.Indicator(state = pull, isRefreshing = refreshing, modifier = Modifier.align(Alignment.TopCenter))
+            PullToRefreshDefaults.Indicator(
+                state = pull,
+                isRefreshing = refreshing,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
         if (loading) {
             Card(
@@ -291,6 +300,7 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
                 }
             }
         }
+
         resolved is ListView && resolved.orientation != LayoutOrientation.horizontal -> {
             val entry = screen.lists.get(resolved, data)
             val content by entry.content.collectAsState()
@@ -302,6 +312,7 @@ private fun RenderRoot(model: MView, screenData: JsonObject?) {
                 verticalListItems(resolved, entry, content)
             }
         }
+
         else -> {
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(PAGE_PADDING),
@@ -344,15 +355,31 @@ private fun RenderFiles(view: FilesView, data: JsonObject?, modifier: Modifier) 
 }
 
 @Composable
-private fun FileChips(files: List<Files.Attached>, modifier: Modifier = Modifier, onRemove: ((Files.Attached) -> Unit)? = null) {
+private fun FileChips(
+    files: List<Files.Attached>,
+    modifier: Modifier = Modifier,
+    onRemove: ((Files.Attached) -> Unit)? = null
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    FlowRow(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
         files.forEach { file ->
             InputChip(
                 selected = false,
                 onClick = { scope.launch { FileAttachments.open(context, file) } },
-                label = { Text("📎 " + file.name + file.size?.let { " · " + Files.sizeText(it) }.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                label = {
+                    Text(
+                        "📎 " + file.name + file.size?.let {
+                            " · " + Files.sizeText(it)
+                        }.orEmpty(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 trailingIcon = onRemove?.let { remove ->
                     {
                         Icon(
@@ -369,12 +396,7 @@ private fun FileChips(files: List<Files.Attached>, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun RenderLayout(
-    layout: Layout,
-    data: JsonObject?,
-    modifier: Modifier,
-    allowImagePreview: Boolean
-) {
+private fun RenderLayout(layout: Layout, data: JsonObject?, modifier: Modifier, allowImagePreview: Boolean) {
     val screen = LocalScreen.current
     val resolvedChildren = screen.shownViews(layout.views, data)
     if (layout.orientation == LayoutOrientation.horizontal) {
@@ -391,7 +413,9 @@ private fun RenderLayout(
         }
     } else {
         Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(LocalViewSpacing.current)) {
-            resolvedChildren.forEach { child -> RenderNode(child, data, Modifier.columnChild(child), allowImagePreview) }
+            resolvedChildren.forEach { child ->
+                RenderNode(child, data, Modifier.columnChild(child), allowImagePreview)
+            }
         }
     }
 }
@@ -414,11 +438,14 @@ private fun Modifier.rowChild(row: RowScope, model: MView): Modifier {
 
 private fun MView.explicitWidth(): Int? = when (this) {
     is TextualView -> size?.width
+
     is ImageView -> size?.width
+
     is Layout -> when (orientation) {
         LayoutOrientation.horizontal -> views.mapNotNull { it.explicitWidth() }.takeIf { it.size == views.size }?.sum()
         else -> views.mapNotNull { it.explicitWidth() }.maxOrNull()
     }
+
     else -> null
 }
 
@@ -439,7 +466,9 @@ private fun RenderText(
         TextStyle.italic -> typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
         else -> typography.bodyLarge
     }.let { base -> view.textSize?.let { base.copy(fontSize = it.sp) } ?: base }
-        .let { base -> if (label.isNotEmpty()) base.copy(color = colors.onSurfaceVariant) else base.copy(color = colors.onSurface) }
+        .let { base ->
+            if (label.isNotEmpty()) base.copy(color = colors.onSurfaceVariant) else base.copy(color = colors.onSurface)
+        }
     val links = linkStyles()
     val body = bodyText(view, text, links, colors.surfaceContainerHighest)
     val display = buildAnnotatedString {
@@ -499,21 +528,38 @@ private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier
     val screen = LocalScreen.current
     val action = screen.resolve(view.action)
     val onClick = { if (action?.type != ActionType.longclick) screen.onAction(view.action, data) }
-    val longClick = if (action?.type == ActionType.longclick) Modifier.combinedClickable(
-        onClick = {},
-        onLongClick = { screen.onAction(view.action, data) }
-    ) else Modifier
+    val longClick = if (action?.type == ActionType.longclick) {
+        Modifier.combinedClickable(
+            onClick = {},
+            onLongClick = { screen.onAction(view.action, data) }
+        )
+    } else {
+        Modifier
+    }
     val icon = view.icon
     if (icon != null && view.isIconOnly()) {
         val description = view.label?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() } ?: icon.spokenName()
-        FilledTonalIconButton(shapes = IconButtonDefaults.shapes(), onClick = onClick, modifier = modifier.then(longClick)) { Icon(icon.vector(), contentDescription = description) }
+        FilledTonalIconButton(
+            shapes = IconButtonDefaults.shapes(),
+            onClick = onClick,
+            modifier = modifier.then(longClick)
+        ) {
+            Icon(icon.vector(), contentDescription = description)
+        }
         return
     }
     // A button on its own is tonal: a form's submit button is the screen's one filled button.
-    FilledTonalButton(shapes = ButtonDefaults.shapes(), 
+    FilledTonalButton(
+        shapes = ButtonDefaults.shapes(),
         onClick = onClick,
         modifier = modifier.fillMaxWidth().then(longClick),
-        contentPadding = if (icon != null) ButtonDefaults.ButtonWithIconContentPadding else ButtonDefaults.ContentPadding
+        contentPadding = if (icon !=
+            null
+        ) {
+            ButtonDefaults.ButtonWithIconContentPadding
+        } else {
+            ButtonDefaults.ContentPadding
+        }
     ) {
         if (icon != null) {
             Icon(icon.vector(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
@@ -589,7 +635,9 @@ private fun RenderImage(
     val url = (mapped ?: view.url)?.fillAddress(data)?.takeIf { it.isNotBlank() }
     val openPreview: (() -> Unit)? = if (allowImagePreview) {
         { url?.let { context.startActivity(createIntentPhotoActivity(context, it)) } }
-    } else null
+    } else {
+        null
+    }
     val heightModifier = if (fillParentHeight) {
         Modifier.fillMaxHeight()
     } else {
@@ -614,13 +662,20 @@ private fun RenderImage(
             onState = { state = it },
             // The tag marks a loaded image, which tests wait for.
             modifier = Modifier.matchParentSize().then(
-                if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-${data?.optString("id").orEmpty()}")
-                else Modifier
+                if (state is AsyncImagePainter.State.Success) {
+                    Modifier.testTag("image-${data?.optString("id").orEmpty()}")
+                } else {
+                    Modifier
+                }
             )
         )
         when (state) {
             is AsyncImagePainter.State.Success -> {}
-            is AsyncImagePainter.State.Error -> ImagePlaceholder(Modifier.matchParentSize()) { Text("Image unavailable") }
+
+            is AsyncImagePainter.State.Error -> ImagePlaceholder(Modifier.matchParentSize()) {
+                Text("Image unavailable")
+            }
+
             else -> ImagePlaceholder(Modifier.matchParentSize()) { LoadingIndicator(Modifier.size(32.dp)) }
         }
     }
@@ -642,10 +697,15 @@ private fun ImageStrip(urls: List<String>, side: Dp, modifier: Modifier, allowIm
                     onState = { state = it },
                     // The tag marks a loaded image, which tests wait for.
                     modifier = Modifier.matchParentSize()
-                        .then(if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-$url") else Modifier)
                         .then(
-                            if (allowImagePreview) Modifier.clickable { openFullSize(context, scope, url) }
-                            else Modifier
+                            if (state is AsyncImagePainter.State.Success) Modifier.testTag("image-$url") else Modifier
+                        )
+                        .then(
+                            if (allowImagePreview) {
+                                Modifier.clickable { openFullSize(context, scope, url) }
+                            } else {
+                                Modifier
+                            }
                         )
                 )
                 // A photo that can't be read (its file gone or damaged) shows as such, not as an empty gap.
@@ -666,7 +726,13 @@ private fun openFullSize(context: Context, scope: CoroutineScope, url: String) {
 /** Where an image that couldn't be loaded would be: a tile with a broken-image icon. */
 @Composable
 private fun BrokenImage(modifier: Modifier) {
-    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant).semantics { contentDescription = "Image unavailable" }, contentAlignment = Alignment.Center) {
+    Box(
+        modifier.background(MaterialTheme.colorScheme.surfaceVariant).semantics {
+            contentDescription =
+                "Image unavailable"
+        },
+        contentAlignment = Alignment.Center
+    ) {
         Icon(MaterialIcons.BrokenImage, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -688,12 +754,15 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
         if (view.hasControls() && !state.waiting && state.errorMessage == null) StoredListControls(view, entry, state)
         when {
             state.waiting -> LoadingIndicator(Modifier.align(Alignment.CenterHorizontally))
+
             state.errorMessage != null -> ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
+
             state.items.isEmpty() -> EmptyList(view, entry)
+
             view.orientation == LayoutOrientation.horizontal &&
                 (state.items.size > HORIZONTAL_LAZY_THRESHOLD || state.canLoadMore) -> LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 val cardWidth = (view.itemView.explicitWidth()?.plus(28) ?: 300).dp
                 itemsIndexed(
@@ -703,9 +772,12 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     ListCard(view, item, Modifier.width(cardWidth))
                 }
                 if (state.canLoadMore || state.moreErrorMessage != null) {
-                    item(key = "list-more") { Box(Modifier.width(cardWidth)) { MoreItems(entry, state, automatic = true) } }
+                    item(key = "list-more") {
+                        Box(Modifier.width(cardWidth)) { MoreItems(entry, state, automatic = true) }
+                    }
                 }
             }
+
             // Every card as tall as the tallest, so a title on two lines doesn't make one card stick out.
             view.orientation == LayoutOrientation.horizontal -> Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).height(IntrinsicSize.Max),
@@ -716,9 +788,11 @@ private fun RenderList(view: ListView, data: JsonObject?, modifier: Modifier) {
                     ListCard(view, item, Modifier.width(cardWidth).fillMaxHeight())
                 }
             }
+
             view.columnCount > 1 -> state.items.chunked(view.columnCount).forEachIndexed { index, row ->
                 GridRow(view, row, index * view.columnCount)
             }
+
             else -> state.items.forEachIndexed { index, item ->
                 SwipeableListCard(
                     view = view,
@@ -746,19 +820,23 @@ private fun LazyListScope.verticalListItems(view: ListView, entry: ListsState.En
                 LoadingIndicator()
             }
         }
+
         state.errorMessage != null -> item(key = "list-error-${System.identityHashCode(view)}") {
             val screen = LocalScreen.current
             ListLoadError(state.errorMessage.orEmpty()) { screen.lists.retry(entry) }
         }
+
         state.items.isEmpty() -> item(key = "list-empty-${System.identityHashCode(view)}") {
             EmptyList(view, entry)
         }
+
         view.columnCount > 1 -> itemsIndexed(
             items = state.items.chunked(view.columnCount),
             key = { index, row -> listItemKey(view, index * view.columnCount, row.first()) }
         ) { index, row ->
             GridRow(view, row, index * view.columnCount)
         }
+
         else -> itemsIndexed(
             items = state.items,
             key = { index, item -> listItemKey(view, index, item) }
@@ -801,12 +879,18 @@ private fun MoreItems(entry: ListsState.Entry, state: ListsState.Content, automa
     val screen = LocalScreen.current
     Box(Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("list-more"), contentAlignment = Alignment.Center) {
         when {
-            state.moreErrorMessage != null -> ListLoadError(state.moreErrorMessage.orEmpty()) { screen.lists.loadMore(entry) }
+            state.moreErrorMessage != null -> ListLoadError(state.moreErrorMessage.orEmpty()) {
+                screen.lists.loadMore(entry)
+            }
+
             state.loadingMore || automatic -> {
                 if (automatic) LaunchedEffect(entry, state.items.size) { screen.lists.loadMore(entry) }
                 LoadingIndicator(Modifier.size(32.dp))
             }
-            else -> OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { screen.lists.loadMore(entry) }) { Text("Show more") }
+
+            else -> OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = {
+                screen.lists.loadMore(entry)
+            }) { Text("Show more") }
         }
     }
 }
@@ -843,7 +927,16 @@ private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifi
     LaunchedEffect(state) {
         snapshotFlow { state.settledValue }.collect { value ->
             if (value == SwipeToDismissBoxValue.Settled) return@collect
-            screen.onAction(if (value == SwipeToDismissBoxValue.StartToEnd) view.swipeToEnd else view.swipeToStart, currentItem)
+            screen.onAction(
+                if (value ==
+                    SwipeToDismissBoxValue.StartToEnd
+                ) {
+                    view.swipeToEnd
+                } else {
+                    view.swipeToStart
+                },
+                currentItem
+            )
             state.reset()
         }
     }
@@ -862,7 +955,14 @@ private fun SwipeableListCard(view: ListView, item: JsonObject, modifier: Modifi
                 contentAlignment = if (towardsEnd) Alignment.CenterStart else Alignment.CenterEnd
             ) {
                 Icon(
-                    (if (towardsEnd) view.swipeToEndIcon ?: ButtonIcon.check else view.swipeToStartIcon ?: ButtonIcon.delete).vector(),
+                    (
+                        if (towardsEnd) {
+                            view.swipeToEndIcon ?: ButtonIcon.check
+                        } else {
+                            view.swipeToStartIcon
+                                ?: ButtonIcon.delete
+                        }
+                        ).vector(),
                     contentDescription = null,
                     tint = if (towardsEnd) colors.onPrimaryContainer else colors.onErrorContainer
                 )
@@ -891,11 +991,7 @@ private fun ListCard(view: ListView, item: JsonObject, modifier: Modifier) {
 }
 
 @Composable
-private fun ListCardContent(
-    itemView: MView,
-    item: JsonObject,
-    allowImagePreview: Boolean
-) {
+private fun ListCardContent(itemView: MView, item: JsonObject, allowImagePreview: Boolean) {
     val screen = LocalScreen.current
     val resolvedItem = screen.resolve(itemView)
     val resolvedLayout = resolvedItem as? Layout
@@ -923,6 +1019,7 @@ private fun ListCardContent(
                         allowImagePreview = false,
                         edgeToEdge = true
                     )
+
                     // A button among a card's texts is drawn as text, as it always was (ButtonView was a TextView),
                     // unless it is only an icon.
                     child is TextualView && !child.isIconOnly() -> RenderText(
@@ -931,6 +1028,7 @@ private fun ListCardContent(
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
                     )
+
                     else -> Box(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                         RenderNode(child, item, Modifier.fillMaxWidth(), allowImagePreview = false)
                     }
@@ -974,6 +1072,7 @@ private fun ListCardContent(
                             data = item,
                             modifier = Modifier.fillMaxWidth()
                         )
+
                         else -> Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             RenderNode(child, item, Modifier.fillMaxWidth(), allowImagePreview = false)
                         }
@@ -1041,13 +1140,28 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
             val onChange: (Any?) -> Unit = { screen.forms.set(view, data, item.mapping, it) }
             when (item) {
                 is CheckBox -> BooleanField(item, values[item.mapping] == true, onChange)
+
                 is TextInput -> TextField(item, values[item.mapping] as? String, onChange)
+
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
+
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
+
                 is PhotosInput -> PhotosField(item, values[item.mapping] as? JsonArray, onChange)
+
                 is FilesInput -> FilesField(item, values[item.mapping] as? JsonArray, onChange)
-                is TagsInput -> TagsField(item, values[item.mapping] as? JsonArray, remember(view, item) { screen.knownTags(view, item) }, onChange)
+
+                is TagsInput -> TagsField(
+                    item,
+                    values[item.mapping] as? JsonArray,
+                    remember(view, item) {
+                        screen.knownTags(view, item)
+                    },
+                    onChange
+                )
+
                 is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
+
                 // A hidden field only sends its value.
                 is HiddenInput -> Unit
             }
@@ -1094,7 +1208,13 @@ internal fun keyboardOptionsFor(textType: TextType?): KeyboardOptions {
         TextType.url -> KeyboardType.Uri
         else -> KeyboardType.Text
     }
-    val capitalization = if (keyboardType == KeyboardType.Text) KeyboardCapitalization.Sentences else KeyboardCapitalization.None
+    val capitalization = if (keyboardType ==
+        KeyboardType.Text
+    ) {
+        KeyboardCapitalization.Sentences
+    } else {
+        KeyboardCapitalization.None
+    }
     return KeyboardOptions(capitalization = capitalization, keyboardType = keyboardType)
 }
 
@@ -1105,10 +1225,20 @@ private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit)
         onValueChange = { onChange(it.ifEmpty { null }) },
         label = { Text(item.title) },
         placeholder = { item.placeholder?.let { Text(it) } },
-        supportingText = if (item.description == null) null else {{ Text(item.description!!) }},
+        supportingText = if (item.description == null) {
+            null
+        } else {
+            { Text(item.description!!) }
+        },
         keyboardOptions = keyboardOptionsFor(item.textType),
         // A multiline field grows with its text up to a few lines, then scrolls.
-        visualTransformation = if (item.textType == TextType.password) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (item.textType ==
+            TextType.password
+        ) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
         singleLine = item.multiline != true,
         maxLines = if (item.multiline == true) MULTILINE_MAX_LINES else 1,
         modifier = Modifier.fillMaxWidth()
@@ -1121,7 +1251,9 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
     var picking by remember { mutableStateOf(false) }
     Column {
         FieldTitle(item.title)
-        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
+        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = {
+            picking = true
+        }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose date") }
         Description(item.description)
     }
     if (!picking) return
@@ -1142,7 +1274,11 @@ private fun DateField(item: DateInput, value: String?, onChange: (Any?) -> Unit)
                 picking = false
             }) { Text(stringResource(android.R.string.ok)) }
         },
-        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } }
+        dismissButton = {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = {
+                picking = false
+            }) { Text(stringResource(android.R.string.cancel)) }
+        }
     ) { DatePicker(state) }
 }
 
@@ -1152,7 +1288,9 @@ private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit)
     var picking by remember { mutableStateOf(false) }
     Column {
         FieldTitle(item.title)
-        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { picking = true }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
+        OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = {
+            picking = true
+        }, modifier = Modifier.fillMaxWidth()) { Text(value ?: "Choose time") }
         Description(item.description)
     }
     if (!picking) return
@@ -1170,17 +1308,25 @@ private fun TimeField(item: TimeInput, value: String?, onChange: (Any?) -> Unit)
                 picking = false
             }) { Text(stringResource(android.R.string.ok)) }
         },
-        dismissButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { picking = false }) { Text(stringResource(android.R.string.cancel)) } },
+        dismissButton = {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = {
+                picking = false
+            }) { Text(stringResource(android.R.string.cancel)) }
+        },
         text = { TimePicker(state) }
     )
 }
 
 /** The picker counts days in UTC; the form's dates are local midnights. */
-private fun utcDay(date: Date): Long =
-    date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+private fun utcDay(date: Date): Long = date.toInstant().atZone(
+    ZoneId.systemDefault()
+).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
-private fun localDay(utcMillis: Long): Date =
-    Date.from(Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant())
+private fun localDay(utcMillis: Long): Date = Date.from(
+    Instant.ofEpochMilli(
+        utcMillis
+    ).atZone(ZoneOffset.UTC).toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
+)
 
 @Composable
 private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) -> Unit) {
@@ -1189,7 +1335,8 @@ private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) ->
         // Material 3 Expressive: a few short options are one connected button group across the width; more, or long
         // ones, are separate toggle buttons that wrap onto further lines.
         val options = item.options
-        val connected = options.size in 2..CONNECTED_OPTIONS && options.all { it.label.length <= CONNECTED_LABEL_LENGTH }
+        val connected =
+            options.size in 2..CONNECTED_OPTIONS && options.all { it.label.length <= CONNECTED_LABEL_LENGTH }
         val choice = @Composable { index: Int, modifier: Modifier ->
             val option = options[index]
             val checked = selected == option.value
@@ -1209,11 +1356,17 @@ private fun SelectorField(item: Selector, selected: String?, onChange: (Any?) ->
             ) { Text(option.label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         if (connected) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+            ) {
                 options.indices.forEach { choice(it, Modifier.weight(1f)) }
             }
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 options.indices.forEach { choice(it, Modifier) }
             }
         }
@@ -1234,7 +1387,9 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
     var failed by remember { mutableStateOf(false) }
     val keep: (List<Uri>) -> Unit = { uris ->
         scope.launch {
-            val added = uris.take(item.limit - current.size).mapNotNull { uri -> runCatching { store.add(uri) }.getOrNull() }
+            val added = uris.take(item.limit - current.size).mapNotNull { uri ->
+                runCatching { store.add(uri) }.getOrNull()
+            }
             failed = added.size < uris.size.coerceAtMost(item.limit - current.size)
             if (added.isNotEmpty()) onChange(JsonArray((current + added).map(::JsonPrimitive)))
         }
@@ -1242,12 +1397,18 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
     val pickMany = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(maxItems = item.limit.coerceAtLeast(2))
     ) { keep(it) }
-    val pickOne = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { keep(listOf(it)) } }
+    val pickOne =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            uri?.let { keep(listOf(it)) }
+        }
     val imagesOnly = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FieldTitle(item.title)
         if (current.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 current.forEach { reference ->
                     var loaded by remember(reference) { mutableStateOf(false) }
                     Box(Modifier.size(PHOTO_THUMB_SIZE)) {
@@ -1266,10 +1427,22 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
                         )
                         if (broken) BrokenImage(Modifier.matchParentSize().clip(RoundedCornerShape(12.dp)))
                         FilledTonalIconButton(
-                            onClick = { onChange(JsonArray((current - reference).map(::JsonPrimitive)).takeIf { it.isNotEmpty() }) },
+                            onClick = {
+                                onChange(
+                                    JsonArray((current - reference).map(::JsonPrimitive)).takeIf {
+                                        it.isNotEmpty()
+                                    }
+                                )
+                            },
                             shapes = IconButtonDefaults.shapes(),
                             modifier = Modifier.align(Alignment.TopEnd).padding(2.dp).size(28.dp)
-                        ) { Icon(Icons.Filled.Close, contentDescription = "Remove photo", modifier = Modifier.size(16.dp)) }
+                        ) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = "Remove photo",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -1281,11 +1454,21 @@ private fun PhotosField(item: PhotosInput, photos: JsonArray?, onChange: (Any?) 
             enabled = room > 0,
             contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
-            Icon(MaterialIcons.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Icon(
+                MaterialIcons.AddPhotoAlternate,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
             Spacer(Modifier.width(ButtonDefaults.IconSpacing))
             Text(if (current.isEmpty()) "Add photos" else "Add more")
         }
-        if (failed) Text("A photo couldn't be added.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        if (failed) {
+            Text(
+                "A photo couldn't be added.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
         Description(item.description)
     }
 }
@@ -1325,7 +1508,10 @@ private fun TagsField(item: TagsInput, tags: JsonArray?, known: List<String>, on
         )
         // Tags used elsewhere in the same collection: one tap adds one, spelt as before.
         if (suggestions.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("tag-suggestions")) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.testTag("tag-suggestions")
+            ) {
                 suggestions.forEach { tag ->
                     SuggestionChip(onClick = { addTag(tag) }, label = { Text("+ #$tag") })
                 }
@@ -1375,7 +1561,9 @@ private fun FilesField(item: FilesInput, value: JsonArray?, onChange: (Any?) -> 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FieldTitle(item.title)
         if (current.isNotEmpty()) {
-            FileChips(current) { removed -> onChange(JsonArray((current - removed).map { it.toJson() }).takeIf { it.isNotEmpty() }) }
+            FileChips(current) { removed ->
+                onChange(JsonArray((current - removed).map { it.toJson() }).takeIf { it.isNotEmpty() })
+            }
         }
         FilledTonalButton(
             onClick = { pick.launch(arrayOf("*/*")) },
@@ -1395,7 +1583,8 @@ private fun FilesField(item: FilesInput, value: JsonArray?, onChange: (Any?) -> 
 private const val MULTILINE_MAX_LINES = 8
 
 /** Whether a stored list offers orders or a tag filter above its items. */
-private fun ListView.hasControls(): Boolean = stored?.let { !it.sortOptions.isNullOrEmpty() || it.filterBy != null } == true
+private fun ListView.hasControls(): Boolean =
+    stored?.let { !it.sortOptions.isNullOrEmpty() || it.filterBy != null } == true
 
 /**
  * Above a stored list: its orders as one connected button group (Material 3 Expressive), and its tags as filter chips
@@ -1408,7 +1597,10 @@ private fun StoredListControls(view: ListView, entry: ListsState.Entry, state: L
     val options = view.stored?.sortOptions.orEmpty()
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (options.size > 1) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+            ) {
                 options.forEachIndexed { index, option ->
                     val checked = choice.sortOption == index
                     ToggleButton(
@@ -1459,20 +1651,30 @@ private fun FieldTitle(title: String) {
 
 @Composable
 private fun Description(description: String?) {
-    description?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    description?.let {
+        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
 private fun Modifier.action(actionRef: Action?, data: JsonObject?, fallback: (() -> Unit)? = null): Modifier {
     val screen = LocalScreen.current
     val action = screen.resolve(actionRef)
-    return if (action != null || fallback != null) combinedClickable(
-        onClick = {
-            when {
-                action != null && action.type != ActionType.longclick -> screen.onAction(actionRef, data)
-                action == null -> fallback?.invoke()
+    return if (action != null || fallback != null) {
+        combinedClickable(
+            onClick = {
+                when {
+                    action != null && action.type != ActionType.longclick -> screen.onAction(actionRef, data)
+                    action == null -> fallback?.invoke()
+                }
+            },
+            onLongClick = if (action?.type == ActionType.longclick) {
+                { screen.onAction(actionRef, data) }
+            } else {
+                null
             }
-        },
-        onLongClick = if (action?.type == ActionType.longclick) {{ screen.onAction(actionRef, data) }} else null
-    ) else this
+        )
+    } else {
+        this
+    }
 }

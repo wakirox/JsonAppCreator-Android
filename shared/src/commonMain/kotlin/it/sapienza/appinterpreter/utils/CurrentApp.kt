@@ -19,9 +19,15 @@ class CurrentApp(
 ) {
     fun json(): String = store.get(JSON_KEY) ?: defaultConfiguration().json
 
-    fun configurationId(): String =
-        store.get(CONFIGURATION_ID_KEY)
-            ?: if (store.contains(JSON_KEY)) ApiKeyPlaceholders.configurationId(json()) else defaultConfiguration().configurationId
+    fun configurationId(): String = store.get(CONFIGURATION_ID_KEY)
+        ?: if (store.contains(
+                JSON_KEY
+            )
+        ) {
+            ApiKeyPlaceholders.configurationId(json())
+        } else {
+            defaultConfiguration().configurationId
+        }
 
     /**
      * Makes [json] the current app and saves it in Your apps on the home page. [configurationId] keeps an app's

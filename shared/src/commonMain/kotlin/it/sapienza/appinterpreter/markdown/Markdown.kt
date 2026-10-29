@@ -21,9 +21,11 @@ object Markdown {
         /** A heading of [level] 1 (#) to 6 (######). */
         data class Heading(val level: Int, val spans: List<Span>) : Block
         data class Paragraph(val spans: List<Span>) : Block
+
         /** A list item, [depth] 0 at the margin; [number] for a numbered one, else a bullet. */
         data class ListItem(val spans: List<Span>, val number: Int?, val depth: Int) : Block
         data class Quote(val spans: List<Span>) : Block
+
         /** Fenced code, as written, with its [language] if the fence names one. */
         data class Code(val text: String, val language: String?) : Block
     }
@@ -57,21 +59,32 @@ object Markdown {
                     while (index < lines.size && !lines[index].trimStart().startsWith(marker)) code += lines[index++]
                     blocks += Block.Code(code.joinToString("\n"), fence.groupValues[2].trim().ifEmpty { null })
                 }
+
                 line.isBlank() -> flush()
+
                 HEADING.matchEntire(line) != null -> {
                     flush()
                     val heading = HEADING.matchEntire(line)!!
-                    blocks += Block.Heading(heading.groupValues[1].length, inline(heading.groupValues[2].trimEnd('#', ' ')))
+                    blocks +=
+                        Block.Heading(heading.groupValues[1].length, inline(heading.groupValues[2].trimEnd('#', ' ')))
                 }
+
                 LIST_ITEM.matchEntire(line) != null -> {
                     flush()
                     val match = LIST_ITEM.matchEntire(line)!!
-                    item = Triple(mutableListOf(match.groupValues[4]), match.groupValues[3].toIntOrNull(), match.groupValues[1].length / 2)
+                    item =
+                        Triple(
+                            mutableListOf(match.groupValues[4]),
+                            match.groupValues[3].toIntOrNull(),
+                            match.groupValues[1].length / 2
+                        )
                 }
+
                 line.startsWith(">") -> {
                     if (quote.isEmpty()) flush()
                     quote += line.removePrefix(">").removePrefix(" ")
                 }
+
                 else -> when {
                     item != null -> item!!.first += line.trim()
                     quote.isNotEmpty() -> quote += line.trim()
@@ -118,6 +131,7 @@ object Markdown {
                     i += 2
                     continue
                 }
+
                 c == '`' -> {
                     val end = text.indexOf('`', i + 1)
                     if (end > i) {
@@ -127,26 +141,39 @@ object Markdown {
                         continue
                     }
                 }
+
                 c == '[' -> {
                     val link = LINK.matchAt(text, i)
                     if (link != null) {
                         flush()
                         inline(link.groupValues[1]).forEach {
-                            spans += it.copy(bold = it.bold || bold, italic = it.italic || italic, link = link.groupValues[2])
+                            spans +=
+                                it.copy(
+                                    bold = it.bold || bold,
+                                    italic = it.italic || italic,
+                                    link = link.groupValues[2]
+                                )
                         }
                         i += link.value.length
                         continue
                     }
                 }
-                (rest.startsWith("**") || rest.startsWith("__")) && (bold || closes(text, i + 2, rest.substring(0, 2))) &&
+
+                (
+                    rest.startsWith(
+                        "**"
+                    ) || rest.startsWith("__")
+                    ) && (bold || closes(text, i + 2, rest.substring(0, 2))) &&
                     (rest.startsWith("**") || boundaryBefore(text, i)) -> {
                     flush()
                     bold = !bold
                     i += 2
                     continue
                 }
-                (c == '*' || c == '_') && (italic || closes(text, i + 1, c.toString())) && (c == '*' || boundaryBefore(text, i)) &&
-                    (italic || i + 1 < text.length && !text[i + 1].isWhitespace()) -> {
+
+                (c == '*' || c == '_') && (italic || closes(text, i + 1, c.toString())) &&
+                    (c == '*' || boundaryBefore(text, i)) &&
+                    (italic || (i + 1 < text.length && !text[i + 1].isWhitespace())) -> {
                     flush()
                     italic = !italic
                     i += 1
@@ -174,7 +201,11 @@ object Markdown {
         URL.findAll(span.text).forEach { match ->
             val url = match.value.trimEnd { it in TRAILING_PUNCTUATION }
             val end = match.range.first + url.length
-            if (match.range.first > position) parts += span.copy(text = span.text.substring(position, match.range.first))
+            if (match.range.first >
+                position
+            ) {
+                parts += span.copy(text = span.text.substring(position, match.range.first))
+            }
             parts += span.copy(text = url, link = url)
             position = end
         }
