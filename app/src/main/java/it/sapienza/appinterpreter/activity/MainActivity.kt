@@ -21,6 +21,7 @@ import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.ai.AskAi
 import it.sapienza.appinterpreter.calendar.AndroidCalendarWriter
 import it.sapienza.appinterpreter.utils.ExternalApps
+import it.sapienza.appinterpreter.utils.PdfPrint
 import it.sapienza.appinterpreter.utils.PhotoStore
 import it.sapienza.appinterpreter.alerts.AlertHost
 import it.sapienza.appinterpreter.alerts.AlertUtils
@@ -158,6 +159,8 @@ class MainActivity : ComponentActivity() {
         })
     }
 
+    private val pdfPrint by lazy { PdfPrint(this, getString(R.string.share_title)) }
+
     private suspend fun handle(effect: ScreenViewModel.Effect) = when (effect) {
         is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload, effect.title)
         is ScreenViewModel.Effect.AddToCalendar ->
@@ -172,6 +175,7 @@ class MainActivity : ComponentActivity() {
             val photos = effect.photos.mapNotNull { store.shareable(it) }
             startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title), photos))
         }
+        is ScreenViewModel.Effect.Pdf -> pdfPrint.share(effect.page)
         ScreenViewModel.Effect.Close -> finish()
         // Android 13 and up (the app's minimum) shows its own "Copied" confirmation.
         is ScreenViewModel.Effect.Copy ->

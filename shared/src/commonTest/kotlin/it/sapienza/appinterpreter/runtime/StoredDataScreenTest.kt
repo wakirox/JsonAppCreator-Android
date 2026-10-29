@@ -221,7 +221,13 @@ class StoredDataScreenTest {
     }
 
     /** The app screen's button that opens the new-idea screen. */
-    private fun ScreenViewModel.newIdeaButton() = assertIs<ButtonView>(views.first { it is ButtonView && it.title == "New idea" })
+    private fun ScreenViewModel.newIdeaButton() = button("New idea")
+
+    /** The screen's button titled [title], in a row or not. */
+    private fun ScreenViewModel.button(title: String): ButtonView {
+        fun all(view: MView): List<MView> = listOf(view) + ((view as? Layout)?.views.orEmpty().flatMap(::all))
+        return assertIs<ButtonView>(views.flatMap(::all).first { it is ButtonView && it.title == title })
+    }
 
     /** The views of [list]'s items: the item view's own (the title row first), in order. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
@@ -233,6 +239,88 @@ class StoredDataScreenTest {
     }
 
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
+
+    @Test
+    fun aNewIdeaStartsEmptyNotWithTheAppsDescriptionAndStillBelongsToTheApp() {
+        val appData = AppData(store)
+        val newApp = screen(appData, "new_app")
+        newApp.forms.set(newApp.form(), null, "description", "Rain alerts on the wrist")
+        newApp.add("name", "Rainy")
+        val rainy = screen(appData).items(null).single()
+
+        val newIdea = screen(appData, "new_idea", rainy)
+        val values = newIdea.forms.values(newIdea.form(), rainy)
+        assertNull(values["description"], "the app's description isn't the idea's")
+        assertNull(values["title"])
+        assertEquals("Medium", values["priority"], "defaults still apply")
+        newIdea.add("title", "Dark mode", rainy)
+
+        val idea = screen(appData, "app", rainy).items(rainy).single()
+        assertNull(idea.getValue("description"))
+        assertEquals(rainy.getValue("id"), idea.getValue("appId"))
+    }
+
+    @Test
+    fun editingAnIdeaStartsFromItsOwnValues() {
+        val ideas = ideas()
+        val idea = ideas.rainyScreen.items(ideas.rainy).first()
+        val edit = screen(AppData(store), "idea", idea)
+        assertEquals(idea.getValue("title"), edit.forms.values(edit.form(), idea)["title"])
+    }
+
+    @Test
+    fun thePdfButtonPrintsTheAppsOpenIdeasByPriority() = runTest {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        screen.onAction(screen.list().swipeToEnd, screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" })
+        val pdf = screen.button("PDF")
+
+        screen.onAction(pdf.action, ideas.rainy)
+
+        val page = assertIs<ScreenViewModel.Effect.Pdf>(screen.effects.first()).page
+        assertEquals("Rainy: open ideas", page.title)
+        assertTrue("<h3>Dark mode</h3>" in page.html)
+        assertFalse("Widgets" in page.html, "done ideas are left out")
+        assertFalse("Export to PDF" in page.html, "another app's ideas are left out")
+    }
+
+    @Test
+    fun anIdeaCanBeABugAndBackAndThePdfSaysWhichIs() = runTest {
+        val appData = AppData(store)
+        addApps(appData, "Rainy")
+        val rainy = screen(appData).items(null).single()
+        val newIdea = screen(appData, "new_idea", rainy)
+        assertEquals("", newIdea.forms.values(newIdea.form(), rainy)["bug"], "an idea unless the user says bug")
+        newIdea.forms.set(newIdea.form(), rainy, "bug", "Bug")
+        newIdea.add("title", "Crash on rotate", rainy)
+        newIdea.add("title", "Dark mode", rainy)
+
+        val screen = screen(appData, "app", rainy)
+        val bugLine = screen.row().first { it.visibleIf == "bug" }
+        val shown = screen.items(rainy).map { Pair<String?, Boolean>(it.getValue("title"), ViewVisibility.holds(bugLine.visibleIf, it)) }.toMap()
+        assertEquals<Map<String?, Boolean>>(mapOf("Crash on rotate" to true, "Dark mode" to false), shown)
+
+        screen.onAction(screen.button("PDF").action, rainy)
+        val html = assertIs<ScreenViewModel.Effect.Pdf>(screen.effects.first()).page.html
+        assertEquals(1, Regex("🐞 Bug").findAll(html).count(), "only the bug says so")
+
+        val bug = screen.items(rainy).first { it.getValue("title") == "Crash on rotate" }
+        val edit = screen(appData, "idea", bug)
+        assertEquals("Bug", edit.forms.values(edit.form(), bug)["bug"])
+        edit.forms.set(edit.form(), bug, "bug", "")
+        edit.onSubmit(edit.form(), bug)
+        assertFalse(screen.items(rainy).any { ViewVisibility.holds(bugLine.visibleIf, it) }, "back to an idea")
+    }
+
+    @Test
+    fun aPdfWithNoOpenIdeasSaysSoInstead() {
+        val appData = AppData(store)
+        addApps(appData, "Rainy")
+        val rainy = screen(appData).items(null).single()
+        val screen = screen(appData, "app", rainy)
+        screen.onAction(screen.button("PDF").action, rainy)
+        assertEquals("No open ideas for Rainy.", alerts.alert?.text)
+    }
 
     @Test
     fun aNewIdeaIsNotDoneAndSwipingRightMarksItDone() {

@@ -532,7 +532,9 @@ collection kept on the phone. Each app has its own collections, and they stay wh
 app is closed or opened again from Your apps. Every object gets an `id` and a `createdAt`
 (epoch milliseconds). `fields` adds values; their `${...}` placeholders are filled from
 the data the form showed (the screen's, or its list row's), then from the submitted values.
-`thenDo` runs with the saved object. A form saved this way starts empty again. With
+`thenDo` runs with the saved object. A form saved this way starts empty: a "New idea"
+form opened on an app doesn't take the app's `name` or `description`; only its `hidden`
+fields are filled in from the screen's data. It starts empty again after each save. With
 `"unique": "key"`, an object already saved with the same `key` is replaced (keeping its
 `id`) instead of added again, so a "Favourite" button can be tapped twice safely.
 

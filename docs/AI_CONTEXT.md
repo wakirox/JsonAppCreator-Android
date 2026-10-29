@@ -51,6 +51,9 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 9. Prefer a small working configuration over speculative or undocumented fields.
 10. Before answering, check the JSON syntax and that every reference resolves to exactly
     one definition.
+11. Open every image address before you use it, and keep only those that show the
+    picture. Never build one from a name (a place's, a file's). If you can't open web
+    pages, leave images out and say so in your note.
 
 ## Data-flow checklist
 
@@ -171,8 +174,8 @@ components, or undocumented style properties.
   (`&type=${type}`) is left out when the value is empty.
 - Never invent or guess an address (images, `rest` URLs, web pages) or its parts (folders,
   file names, IDs, sizes): it almost never loads, or shows the wrong thing. Use addresses
-  the user gives, fields of a REST response, or ones you are certain of; otherwise leave
-  them out.
+  the user gives, fields of a REST response, or ones you opened and saw work; otherwise
+  leave them out.
 - For a request that can fail in a way the user should understand, add `onError` (its
   data has `error.message`).
 - For a button that opens a page, a map, the dialer or email, use an `open` event.
@@ -439,7 +442,7 @@ Opens the phone's share sheet on a text, for the user to send to any app.
 
 #### `save`
 
-Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.
+Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty, not filled in from the screen's data (only its hidden fields take that, such as an app's id), and empty again after each save.
 
 - `collection` **(required)**: text (not empty). The collection to add to, such as "ideas"; each app has its own
 - `fields`: an object. Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { "appId": "${id}" }
@@ -483,6 +486,21 @@ Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone co
 
 - `text` **(required)**: text (not empty). What is copied; may use ${field} placeholders, and a line whose placeholders all have no value is left out, such as "${title}\n${description}"
 - `mapping`: text. Path of the part of the current data the text is filled in from
+- `data`: an object with any data
+
+#### `pdf`
+
+Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The share sheet opens on the PDF, to send, save or print it.
+
+- `collection` **(required)**: text (not empty). The collection whose objects it shows
+- `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { "appId": "${id}", "done": false }
+- `sort`: a sort, `{ "by": "field" }` (see Order of a stored list), or a list of sorts. The order, as a stored list's sort
+- `title`: text. The heading at the top and the file's name; may use ${field} placeholders from the current data. The app's name by default
+- `text` **(required)**: text (not empty). Each object's part, as Markdown with ${field} placeholders from the object, such as "## ${title}\n${description}"; a line whose placeholders all have no value is left out
+- `photos`: text. Path of each object's photos (a photos field's list) to show below its text
+- `emptyText`: text. What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders
+- `pageless`: `true` or `false`. true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing
+- `mapping`: text. Path of the part of the current data to use
 - `data`: an object with any data
 
 ### Actions and references
@@ -559,7 +577,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
         {
           "key": "parliament",
           "name": "Parliament",
-          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Hungarian_Parliament_Building.jpg?width=800",
           "description": "The Gothic Revival seat of the National Assembly, on the Danube.",
           "tickets": "https://www.parlament.hu/web/visitor-centre",
           "order": 1,
@@ -568,7 +585,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
         {
           "key": "bastion",
           "name": "Fisherman's Bastion",
-          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Hal%C3%A1szb%C3%A1stya.jpg?width=800",
           "description": "Neo-Gothic terraces with the best view over Pest.",
           "order": 2,
           "visited": false
@@ -576,7 +592,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
         {
           "key": "matthias",
           "name": "Matthias Church",
-          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Matthias_Church_Budapest.jpg?width=800",
           "description": "Coloured roof tiles in the heart of the Castle District.",
           "tickets": "https://www.matyas-templom.hu/",
           "order": 3,
@@ -587,13 +602,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
     "itemView": {
       "type": "layout",
       "views": [
-        {
-          "type": "image",
-          "url": "${photo}",
-          "size": {
-            "height": 200
-          }
-        },
         {
           "type": "check",
           "mapping": "visited",
@@ -620,13 +628,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
       "id": "place",
       "type": "layout",
       "views": [
-        {
-          "type": "image",
-          "url": "${photo}",
-          "size": {
-            "height": 260
-          }
-        },
         {
           "type": "text",
           "label": "${name}",

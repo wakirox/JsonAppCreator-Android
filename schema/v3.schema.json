@@ -579,7 +579,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy", "pdf"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -591,7 +591,8 @@
         { "if": { "properties": { "type": { "const": "update" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/updateEvent" } },
         { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } },
         { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } },
-        { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } }
+        { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } },
+        { "if": { "properties": { "type": { "const": "pdf" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/pdfEvent" } }
       ]
     },
     "restEvent": {
@@ -704,6 +705,35 @@
       },
       "additionalProperties": false
     },
+    "pdfEvent": {
+      "type": "object",
+      "description": "Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The share sheet opens on the PDF, to send, save or print it.",
+      "required": ["type", "collection", "text"],
+      "properties": {
+        "type": { "const": "pdf" },
+        "collection": { "description": "The collection whose objects it shows", "$ref": "#/$defs/nonEmptyString" },
+        "where": {
+          "description": "Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { \"appId\": \"${id}\", \"done\": false }",
+          "type": ["object", "null"]
+        },
+        "sort": {
+          "description": "The order, as a stored list's sort",
+          "oneOf": [
+            { "$ref": "#/$defs/storedSort" },
+            { "type": "array", "items": { "$ref": "#/$defs/storedSort" }, "minItems": 1 },
+            { "type": "null" }
+          ]
+        },
+        "title": { "description": "The heading at the top and the file's name; may use ${field} placeholders from the current data. The app's name by default", "$ref": "#/$defs/nullableString" },
+        "text": { "description": "Each object's part, as Markdown with ${field} placeholders from the object, such as \"## ${title}\\n${description}\"; a line whose placeholders all have no value is left out", "$ref": "#/$defs/nonEmptyString" },
+        "photos": { "description": "Path of each object's photos (a photos field's list) to show below its text", "$ref": "#/$defs/nullableString" },
+        "emptyText": { "description": "What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "pageless": { "description": "true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing", "type": ["boolean", "null"] },
+        "mapping": { "description": "Path of the part of the current data to use", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
     "backEvent": {
       "type": "object",
       "description": "Closes the current screen and goes back to the one that opened it, as the phone's Back does; such as after saving an edit.",
@@ -765,7 +795,7 @@
     },
     "saveEvent": {
       "type": "object",
-      "description": "Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.",
+      "description": "Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty, not filled in from the screen's data (only its hidden fields take that, such as an app's id), and empty again after each save.",
       "required": ["type", "collection"],
       "properties": {
         "type": { "const": "save" },

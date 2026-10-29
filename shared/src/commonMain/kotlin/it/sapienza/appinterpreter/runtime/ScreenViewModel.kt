@@ -20,6 +20,7 @@ import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.Event
 import it.sapienza.appinterpreter.model.event.GoBack
 import it.sapienza.appinterpreter.model.event.OpenLink
+import it.sapienza.appinterpreter.model.event.PdfItems
 import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.event.SaveData
@@ -27,6 +28,7 @@ import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.event.UpdateData
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
+import it.sapienza.appinterpreter.model.view_model.StoredData
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.FetchJsonUseCase
@@ -36,6 +38,7 @@ import it.sapienza.appinterpreter.runtime.usecase.LoadListItemsUseCase
 import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
 import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
+import it.sapienza.appinterpreter.runtime.usecase.PdfPageUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
@@ -68,7 +71,7 @@ class ScreenViewModel(
     private val saved: SavedStateHandle,
     val alerts: AlertsViewModel,
     private val fetchJson: FetchJsonUseCase,
-    loadListItems: LoadListItemsUseCase,
+    private val loadListItems: LoadListItemsUseCase,
     initialFormValues: InitialFormValuesUseCase,
     submitForm: SubmitFormUseCase,
     private val createCalendarEvent: CreateCalendarEventUseCase,
@@ -79,6 +82,7 @@ class ScreenViewModel(
     findMissingApiKeys: FindMissingApiKeysUseCase,
     loadScreen: LoadScreenUseCase,
     private val strings: RuntimeStrings,
+    private val pdfPage: PdfPageUseCase = PdfPageUseCase(),
 ) : ViewModel() {
 
     /** One-off things only the platform's screen can do. */
@@ -96,6 +100,8 @@ class ScreenViewModel(
         class OpenUrl(val url: String, val scheme: String) : Effect
         /** Open the share sheet on [text], with the kept [photos] (references) attached. */
         class Share(val text: String, val photos: List<String> = emptyList()) : Effect
+        /** Make a PDF of [page] and open the share sheet on it (sending, saving or printing it). */
+        class Pdf(val page: PdfPageUseCase.Page) : Effect
     }
 
     private val effectChannel = Channel<Effect>(Channel.BUFFERED)
@@ -121,7 +127,7 @@ class ScreenViewModel(
      */
     val data: StateFlow<JsonObject?> = shownData.asStateFlow()
 
-    val forms = FormsState(saved, initialFormValues, submitForm)
+    val forms = FormsState(saved, initialFormValues, submitForm) { form -> resolve(form.action)?.event is SaveData }
     val lists = ListsState(viewModelScope, loadListItems)
 
     private val missing = MutableStateFlow(screen?.let { findMissingApiKeys() })
@@ -197,6 +203,12 @@ class ScreenViewModel(
                 is OpenLinkUseCase.Result.Ready -> effectChannel.trySend(Effect.OpenUrl(result.url, result.scheme))
                 is OpenLinkUseCase.Result.Missing -> alerts.show(strings.valueMissing(result.path))
                 is OpenLinkUseCase.Result.NotAllowed -> alerts.show(strings.linkNotAllowed(result.url))
+            }
+            is PdfItems -> {
+                val shown = event.mapping?.let { data?.getObject(it) } ?: data
+                val items = loadListItems.stored(StoredData(event.collection, event.where, event.sort), shown)
+                val empty = event.emptyText?.matchReplace(shown)?.takeIf { items.isEmpty() && it.isNotBlank() }
+                if (empty != null) alerts.show(empty) else effectChannel.trySend(Effect.Pdf(pdfPage(event, items, shown, app?.name.orEmpty())))
             }
             is ShareText -> {
                 val shared = event.mapping?.let { data?.getObject(it) } ?: data
