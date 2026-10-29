@@ -100,6 +100,8 @@ final class ShellFlowTests: XCTestCase {
         UIPasteboard.general.string = try String(contentsOfFile: file, encoding: .utf8)
         menu("Paste answer from your AI app")
         XCTAssertTrue(app.navigationBars["From your AI app"].waitForExistence(timeout: 10))
+        sleep(20)
+        shot("shell-debug")
         XCTAssertTrue(text("5 problems").waitForExistence(timeout: 40))
         XCTAssertTrue(app.buttons["Send problems to your AI app…"].exists)
         shot("shell-editor-problems")
@@ -112,9 +114,9 @@ final class ShellFlowTests: XCTestCase {
         try XCTSkipUnless(FileManager.default.fileExists(atPath: file))
         app.launchArguments = ["-openFile", file]
         app.launch()
-        _ = app.navigationBars["Opened file"].waitForExistence(timeout: 10)
-        shot("shell-opened-file")
-        XCTAssertTrue(app.navigationBars["Opened file"].exists)
+        // A file that is a valid app says what it is first; "Look at it in the editor" opens it as an opened file.
+        app.buttons["Look at it in the editor"].tap()
+        XCTAssertTrue(app.navigationBars["Opened file"].waitForExistence(timeout: 10))
         XCTAssertTrue(contains("Opened from a file").exists)
         shot("shell-opened-file")
     }
