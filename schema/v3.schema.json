@@ -349,7 +349,7 @@
           "items": { "type": "object" }
         },
         "unique": {
-          "description": "A field of initialItems that tells them apart, such as \"key\": each time the list opens, the initial items whose value there was never added are saved (a later version's new places); the ones already saved stay as the user left them, and deleted ones don't come back",
+          "description": "A field of initialItems that tells them apart, such as \"key\": each time the list opens, the initial items whose value there was never added are saved (a later version's new places); saved ones take a later version's values (a fixed photo, a new tip) wherever the user didn't change them, so ticks and edits stay, and deleted ones don't come back",
           "$ref": "#/$defs/nullableString"
         }
       },

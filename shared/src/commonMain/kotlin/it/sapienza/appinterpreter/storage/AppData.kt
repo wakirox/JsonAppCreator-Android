@@ -50,14 +50,16 @@ class AppData(
 
     /**
      * Saves [items] in [collection], each as [add] would, unless something was ever saved there (even if it was all
-     * deleted since); says whether it saved any. With [unique], a field that tells them apart, it also adds the items
-     * whose value there it never added before and isn't saved: those a later version of the app brings. An item the
-     * user deleted doesn't come back, and saved ones stay as they are.
+     * deleted since); says whether it saved anything. With [unique], a field that tells them apart, it also adds the
+     * items whose value there it never added before and isn't saved: those a later version of the app brings. An item
+     * the user deleted doesn't come back. A saved one takes a later version's values (a fixed photo, a new tip) for
+     * every field the user left as the app first gave it; what the user changed (a tick, an edit) stays.
      */
     fun addFirst(appId: String, collection: String, items: List<JsonObject>, unique: String? = null): Boolean {
         val key = key(appId, collection)
         val never = !store.contains(key)
         val addedKey = key(appId, collection, ADDED)
+        val seedsKey = key(appId, collection, SEEDS)
         val added = unique?.let { readTexts(addedKey) }.orEmpty()
         val saved = items(appId, collection)
         val present = unique?.let { field -> saved.mapNotNull { it.getValue(field) }.toSet() }.orEmpty()
@@ -67,18 +69,44 @@ class AppData(
                 else -> never || (value !in added && value !in present)
             }
         }
+        val incoming = unique?.let { field -> items.mapNotNull { item -> item.getValue(field)?.let { it to item } }.toMap() }.orEmpty()
+        val seeds = unique?.let { readObjects(seedsKey) }.orEmpty()
+        val refreshed = saved.map { item ->
+            val value = unique?.let { item.getValue(it) } ?: return@map item
+            incoming[value]?.let { latest -> refreshed(item, seeds[value], latest) } ?: item
+        }
+        val changed = refreshed != saved
         val changes = buildMap {
-            if (fresh.isNotEmpty()) put(key, JsonArray(saved + fresh.map(::stamped)).toString())
+            if (fresh.isNotEmpty() || changed) put(key, JsonArray(refreshed + fresh.map(::stamped)).toString())
             unique?.let { field ->
                 val values = added + items.mapNotNull { it.getValue(field) }
                 if (values != added) put(addedKey, JsonArray(values.map(::JsonPrimitive)).toString())
+                if (incoming != seeds) put(seedsKey, JsonObject(incoming).toString())
             }
         }
         if (changes.isEmpty()) return false
         store.edit(changes)
-        if (fresh.isNotEmpty()) changeFlow.tryEmit(Change(appId, collection))
-        return fresh.isNotEmpty()
+        if (fresh.isNotEmpty() || changed) changeFlow.tryEmit(Change(appId, collection))
+        return fresh.isNotEmpty() || changed
     }
+
+    /**
+     * [item], saved from [seed] (the app's earlier version of it), with [latest]'s values for the fields the user
+     * didn't change, and without the ones the latest version dropped. Without a seed (saved before seeds were kept),
+     * true/false values count as the user's (ticks) and the rest as the app's.
+     */
+    private fun refreshed(item: JsonObject, seed: JsonObject?, latest: JsonObject): JsonObject {
+        fun usersOwn(field: String): Boolean =
+            if (seed != null) item[field] != seed[field] else (item[field] as? JsonPrimitive)?.let { !it.isString && it.content in BOOLEANS } == true
+        val result = LinkedHashMap(item)
+        latest.forEach { (field, value) -> if (field !in FIXED && !usersOwn(field)) result[field] = value }
+        seed?.keys?.filter { it !in latest && it !in FIXED && !usersOwn(it) }?.forEach(result::remove)
+        return JsonObject(result)
+    }
+
+    private fun readObjects(key: String): Map<String, JsonObject> = store.get(key)?.let { value ->
+        runCatching { (JsonText.parse(value) as JsonObject).mapNotNull { (k, v) -> (v as? JsonObject)?.let { k to it } }.toMap() }.getOrNull()
+    }.orEmpty()
 
     private fun readTexts(key: String): Set<String> = store.get(key)?.let { value ->
         runCatching { (JsonText.parse(value) as JsonArray).mapNotNull { (it as? JsonPrimitive)?.content }.toSet() }.getOrNull()
@@ -119,6 +147,11 @@ class AppData(
 
         /** Beside a collection: the unique values of the initial items already added to it, so none comes back. */
         const val ADDED = "initialItemsAdded"
+
+        /** Beside a collection: the initial items as the app last gave them, by unique value, to tell the user's changes. */
+        const val SEEDS = "initialItemsSeeds"
+
+        val BOOLEANS = setOf("true", "false")
 
         fun JsonObject.idText(): String? = (this["id"] as? JsonPrimitive)?.content
 

@@ -534,7 +534,7 @@ The objects a save event put in a collection, oldest first; it shows them again 
 - `sortOptions`: an array; each item is an object. Orders the user can choose, as a row of buttons above the list (the first until they choose); they replace sort. Keep titles short, such as Status, Priority, Newest
 - `filterBy`: text. A field of tags (a tags field's list, or text with commas): the list offers a chip per tag in use, after All, to show only items with that tag
 - `initialItems`: an array; each item is an object. Objects saved in the collection the first time the list opens, when nothing was ever saved there: a checklist to tick off (places to visit, things to pack), whose items update and delete then change like any saved object. Give each a key field and set unique so a later version's new items are added too
-- `unique`: text. A field of initialItems that tells them apart, such as "key": each time the list opens, the initial items whose value there was never added are saved (a later version's new places); the ones already saved stay as the user left them, and deleted ones don't come back
+- `unique`: text. A field of initialItems that tells them apart, such as "key": each time the list opens, the initial items whose value there was never added are saved (a later version's new places); saved ones take a later version's values (a fixed photo, a new tip) wherever the user didn't change them, so ticks and edits stay, and deleted ones don't come back
 
 #### Order of a stored list (`sort`)
 
