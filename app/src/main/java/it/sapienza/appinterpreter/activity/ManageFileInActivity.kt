@@ -88,7 +88,7 @@ class ManageFileInActivity : AppCompatActivity() {
         try {
             val text = intent?.data?.let(contentResolver::openInputStream)?.use {
                 BufferedReader(InputStreamReader(it)).readText()
-            } ?: throw IllegalArgumentException("Unable to read the selected file")
+            } ?: throw IllegalArgumentException(getString(R.string.file_unreadable))
 
             val app = try {
                 configurationParser.parse(text)
@@ -112,10 +112,7 @@ class ManageFileInActivity : AppCompatActivity() {
         } catch (e: Exception) {
             AlertUtils.showAlert(
                 this,
-                """Configuration could not be loaded
-                    |
-                    |${e.message ?: "Unrecognized error"}
-                """.trimMargin(),
+                getString(R.string.file_load_failed, e.message ?: getString(R.string.error_unrecognized)),
                 Runnable {
                     finish()
                 }

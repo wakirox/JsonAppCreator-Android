@@ -28,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
@@ -67,8 +68,8 @@ class EditorActivity : AppCompatActivity() {
         pendingSave = null
         uri ?: return@registerForActivityResult
         runCatching { contentResolver.openOutputStream(uri)?.bufferedWriter()?.use { it.write(text) } }
-            .onSuccess { Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show() }
-            .onFailure { Toast.makeText(this, "Couldn't save the file", Toast.LENGTH_SHORT).show() }
+            .onSuccess { Toast.makeText(this, R.string.editor_saved, Toast.LENGTH_SHORT).show() }
+            .onFailure { Toast.makeText(this, R.string.editor_save_failed, Toast.LENGTH_SHORT).show() }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,10 +116,10 @@ class EditorActivity : AppCompatActivity() {
                 val received = fromChat ?: fromAiApp
                 EditorScreen(
                     title = when {
-                        received != null && fromFile -> "Opened file"
-                        received != null -> "From your AI app"
-                        newApp -> "New app"
-                        else -> "Edit this app"
+                        received != null && fromFile -> stringResource(R.string.editor_title_opened_file)
+                        received != null -> stringResource(R.string.editor_title_from_ai)
+                        newApp -> stringResource(R.string.menu_new_app)
+                        else -> stringResource(R.string.menu_edit_app)
                     },
                     initialText = when {
                         received != null -> prettyJson(received)
@@ -133,9 +134,9 @@ class EditorActivity : AppCompatActivity() {
                     fromAiApp = received != null && !fromFile,
                     unsavedSource = when {
                         received == null -> null
-                        fromFile -> "Opened from a file"
-                        chatLink != null -> "From your shared ${ShareLinks.service(chatLink)} chat"
-                        else -> "Shared from your AI app"
+                        fromFile -> stringResource(R.string.editor_source_file)
+                        chatLink != null -> stringResource(R.string.editor_source_chat, ShareLinks.service(chatLink))
+                        else -> stringResource(R.string.editor_source_ai)
                     },
                     check = { text -> withContext(Dispatchers.Default) { checker.check(text) } },
                     imageStatus = HttpClient::imageStatus,
@@ -211,21 +212,15 @@ private fun NothingToOpenDialog(shared: String, onDismiss: () -> Unit) {
     val link = shared.trim().let { it.startsWith("http") && !it.contains(' ') }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("No app to open") },
+        title = { Text(stringResource(R.string.editor_nothing_title)) },
         text = {
-            Text(
-                (
-                    if (link) {
-                        "That's a link to the chat, not the AI's answer. "
-                    } else {
-                        "What you shared has no JSON app in it. "
-                    }
-                    ) +
-                    "In your AI app, share or copy the answer that contains the JSON. If you copied it, open the " +
-                    "editor and use ⋮ → Paste answer from your AI app."
-            )
+            Text(stringResource(if (link) R.string.editor_nothing_link else R.string.editor_nothing_no_json))
         },
-        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text("OK") } }
+        confirmButton = {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
+                Text(stringResource(R.string.about_ok))
+            }
+        }
     )
 }
 
@@ -239,10 +234,12 @@ private fun ReadingChat(link: String, onBack: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LoadingIndicator()
-        Text("Reading your shared ${ShareLinks.service(link)} chat…", style = MaterialTheme.typography.titleMedium)
         Text(
-            "Appkin opens the public page of the link, as a browser would, and takes the last app the AI " +
-                "wrote in it. There is no AI in this app.",
+            stringResource(R.string.editor_reading_chat, ShareLinks.service(link)),
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            stringResource(R.string.editor_reading_chat_text),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
@@ -254,14 +251,14 @@ private fun ReadingChat(link: String, onBack: () -> Unit) {
 private fun ChatNotReadDialog(service: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("No app found in the chat") },
+        title = { Text(stringResource(R.string.editor_chat_failed_title)) },
         text = {
-            Text(
-                "Appkin couldn't read an app from that $service chat: the page may have changed, be " +
-                    "private, or have no JSON app in the AI's answers. In $service, copy the AI's answer (or open " +
-                    "the file it made), then use Paste answer from your AI app."
-            )
+            Text(stringResource(R.string.editor_chat_failed_text, service))
         },
-        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) { Text("OK") } }
+        confirmButton = {
+            TextButton(shapes = ButtonDefaults.shapes(), onClick = onDismiss) {
+                Text(stringResource(R.string.about_ok))
+            }
+        }
     )
 }
