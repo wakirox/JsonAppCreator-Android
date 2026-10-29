@@ -234,7 +234,7 @@ Every view has a `type`. Where a view is expected, `{ "ref": "id" }` may referen
 - `title`: text. The text, when no mapping value is shown
 - `label`: text. First line of the text view, shown above the text
 - `labelStyle`: one of `"regular"`, `"italic"`, `"bold"`. The label's own style, so a bold heading needn't make its text bold; without it the label looks like the text
-- `format`: one of `"plain"`, `"html"`, `"markdown"`. plain (default); html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions; or markdown: headings (#), **bold**, *italics*, lists (- or 1.), quotes (>), `code` and [links](https://...), such as a description you write
+- `format`: one of `"plain"`, `"html"`, `"markdown"`. plain (default); html: simple HTML in the text (`<b>`, `<i>`, `<em>`, `<strong>`, `<u>`, `<br>`, `<p>`, `<a href>`), such as a museum's descriptions; or markdown: headings (`#`), `**bold**`, `*italics*`, lists (`-` or `1.`), quotes (`>`), `` `code` `` and `[links](https://...)`, such as a description you write
 - `showWhenEmpty`: `true` or `false`. Show the label even when the mapping or title has nothing to show. By default such a text view isn't drawn at all
 
 #### `button`

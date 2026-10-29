@@ -163,7 +163,7 @@
           "enum": ["regular", "italic", "bold", null]
         },
         "format": {
-          "description": "plain (default); html: simple HTML in the text (<b>, <i>, <em>, <strong>, <u>, <br>, <p>, <a href>), such as a museum's descriptions; or markdown: headings (#), **bold**, *italics*, lists (- or 1.), quotes (>), `code` and [links](https://...), such as a description you write",
+          "description": "plain (default); html: simple HTML in the text (`<b>`, `<i>`, `<em>`, `<strong>`, `<u>`, `<br>`, `<p>`, `<a href>`), such as a museum's descriptions; or markdown: headings (`#`), `**bold**`, `*italics*`, lists (`-` or `1.`), quotes (`>`), `` `code` `` and `[links](https://...)`, such as a description you write",
           "type": ["string", "null"],
           "enum": ["plain", "html", "markdown", null],
           "default": "plain"
