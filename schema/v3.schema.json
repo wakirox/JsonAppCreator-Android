@@ -103,7 +103,7 @@
       "description": "A view, chosen by its type: only that type's rules apply, so a mistake is reported once.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["layout", "text", "button", "image", "list", "form", "check"] } },
+      "properties": { "type": { "enum": ["layout", "text", "button", "image", "list", "form", "check", "files"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "layout" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/layoutView" } },
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textView" } },
@@ -111,7 +111,8 @@
         { "if": { "properties": { "type": { "const": "image" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/imageView" } },
         { "if": { "properties": { "type": { "const": "list" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/listView" } },
         { "if": { "properties": { "type": { "const": "form" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/formView" } },
-        { "if": { "properties": { "type": { "const": "check" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkView" } }
+        { "if": { "properties": { "type": { "const": "check" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/checkView" } },
+        { "if": { "properties": { "type": { "const": "files" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/filesView" } }
       ]
     },
     "layoutView": {
@@ -188,6 +189,20 @@
         "data": { "$ref": "#/$defs/data" },
         "visibleIf": { "$ref": "#/$defs/visibleIf" },
         "title": { "description": "The text beside the box; may use ${field} placeholders", "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "filesView": {
+      "type": "object",
+      "description": "The files attached with a files field: a chip each, with its name and size; a tap opens the file in an app on the phone that reads it.",
+      "required": ["type", "mapping"],
+      "properties": {
+        "type": { "const": "files" },
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "action": { "$ref": "#/$defs/action" },
+        "mapping": { "description": "The files field's list, such as \"files\"", "$ref": "#/$defs/nonEmptyString" },
+        "data": { "$ref": "#/$defs/data" },
+        "visibleIf": { "$ref": "#/$defs/visibleIf" }
       },
       "additionalProperties": false
     },
@@ -379,7 +394,7 @@
       "description": "A form field, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden", "photos", "tags"] } },
+      "properties": { "type": { "enum": ["text", "selector", "date", "time", "checkbox", "hidden", "photos", "files", "tags"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textInput" } },
         { "if": { "properties": { "type": { "const": "selector" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/selectorInput" } },
@@ -388,6 +403,7 @@
         { "if": { "properties": { "type": { "const": "time" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/timeInput" } },
         { "if": { "properties": { "type": { "const": "hidden" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/hiddenInput" } },
         { "if": { "properties": { "type": { "const": "photos" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/photosInput" } },
+        { "if": { "properties": { "type": { "const": "files" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/filesInput" } },
         { "if": { "properties": { "type": { "const": "tags" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/tagsInput" } }
       ]
     },
@@ -504,6 +520,20 @@
         "description": { "$ref": "#/$defs/nullableString" },
         "mandatory": { "description": "At least one photo is needed", "type": ["boolean", "null"], "default": false },
         "max": { "description": "How many photos it takes; 10 by default", "type": ["integer", "null"], "minimum": 1, "maximum": 50 }
+      },
+      "additionalProperties": false
+    },
+    "filesInput": {
+      "type": "object",
+      "description": "Files of any kind picked on the phone (a PDF, a document, a recording), linked rather than copied, so they open later. It submits a list of the files (name, type, size and link); a files view shows them.",
+      "required": ["type", "mapping", "title"],
+      "properties": {
+        "type": { "const": "files" },
+        "mapping": { "description": "Where the list of files goes, such as \"files\"", "$ref": "#/$defs/nonEmptyString" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "mandatory": { "description": "At least one file is needed", "type": ["boolean", "null"], "default": false },
+        "max": { "description": "How many files it takes; 10 by default", "type": ["integer", "null"], "minimum": 1, "maximum": 50 }
       },
       "additionalProperties": false
     },
@@ -728,6 +758,7 @@
         "title": { "description": "The heading at the top and the file's name; may use ${field} placeholders from the current data. The app's name by default", "$ref": "#/$defs/nullableString" },
         "text": { "description": "Each object's part, as Markdown with ${field} placeholders from the object, such as \"## ${title}\\n${description}\"; a line whose placeholders all have no value is left out", "$ref": "#/$defs/nonEmptyString" },
         "photos": { "description": "Path of each object's photos (a photos field's list) to show below its text", "$ref": "#/$defs/nullableString" },
+        "files": { "description": "Path of each object's attached files (a files field's list), listed by name below it", "$ref": "#/$defs/nullableString" },
         "emptyText": { "description": "What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
         "pageless": { "description": "true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing", "type": ["boolean", "null"] },
         "mapping": { "description": "Path of the part of the current data to use", "$ref": "#/$defs/nullableString" },
@@ -786,6 +817,10 @@
         },
         "photos": {
           "description": "Path of each object's photos (a photos field's list): kept ones go in the pack as files, linked below its text",
+          "$ref": "#/$defs/nullableString"
+        },
+        "files": {
+          "description": "Path of each object's attached files (a files field's list): they go in the pack, linked below its text",
           "$ref": "#/$defs/nullableString"
         },
         "emptyText": {

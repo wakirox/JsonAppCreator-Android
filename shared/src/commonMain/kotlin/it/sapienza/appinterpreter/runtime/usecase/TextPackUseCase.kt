@@ -4,17 +4,24 @@ import it.sapienza.appinterpreter.json.filledLines
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.model.event.ItemsExport
+import it.sapienza.appinterpreter.json.valueAt
+import it.sapienza.appinterpreter.storage.Files
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.serialization.json.JsonObject
 
 /**
  * What a TextPack (textbundle.org: a zipped TextBundle) of saved objects holds: Markdown with the title, then each
- * object's text and its photos, linked as assets/… files named after the object; the phone writes the zip. A photo
- * that is a web address stays one.
+ * object's text, its photos and its attached files, linked as assets/… files named after the object; the phone writes
+ * the zip. A photo that is a web address stays one.
  */
 class TextPackUseCase {
-    /** A file of the pack: [path] inside the bundle ("assets/dark-mode-1.jpg") and the kept photo it holds. */
-    class Asset(val path: String, val reference: String)
+    /**
+     * A file of the pack: [path] inside the bundle ("assets/dark-mode-1.jpg") and what it holds, a kept photo's
+     * reference or an attached file's link.
+     */
+    class Asset(val path: String, val reference: String) {
+        val isPhoto: Boolean get() = Photos.isPhoto(reference)
+    }
 
     /** [title] names the pack; [markdown] is its text.markdown, [assets] its files. */
     class Pack(val title: String, val markdown: String, val assets: List<Asset>)
@@ -33,7 +40,13 @@ class TextPackUseCase {
                     "![]($photo)"
                 }
             }
-            (listOf(event.text.filledLines(item)) + pictures).filter { it.isNotBlank() }.joinToString("\n\n")
+            val attached = event.files?.let { Files.of(item.valueAt(it)) }.orEmpty().map { file ->
+                val path = unique("assets/$name-${Files.safeName(file.name)}", assets)
+                assets += Asset(path, file.uri)
+                "📎 [${file.name}]($path)"
+            }
+            (listOf(event.text.filledLines(item)) + pictures + attached.joinToString("\n").ifEmpty { null }).filterNotNull()
+                .filter { it.isNotBlank() }.joinToString("\n\n")
         }
         val empty = event.emptyText?.matchReplace(data)?.takeIf { items.isEmpty() }
         val body = listOfNotNull("# $title", empty) + parts.joinToString("\n\n---\n\n").takeIf { it.isNotEmpty() }.let(::listOfNotNull)
@@ -42,8 +55,9 @@ class TextPackUseCase {
 
     private fun unique(path: String, taken: List<Asset>): String {
         if (taken.none { it.path == path }) return path
-        val stem = path.removeSuffix(".jpg")
-        return generateSequence(2) { it + 1 }.map { "$stem-$it.jpg" }.first { candidate -> taken.none { it.path == candidate } }
+        val dot = path.lastIndexOf('.').takeIf { it > path.lastIndexOf('/') } ?: path.length
+        val (stem, extension) = path.substring(0, dot) to path.substring(dot)
+        return generateSequence(2) { it + 1 }.map { "$stem-$it$extension" }.first { candidate -> taken.none { it.path == candidate } }
     }
 
     companion object {

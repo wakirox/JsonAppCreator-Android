@@ -165,7 +165,8 @@
                   "text": "## ${title}\n\n🐞 ${bug}\n\n**${priority} priority**\n\nTags: ${tags}\n\n${description}\n\n[${link}](${link})",
                   "photos": "photos",
                   "emptyText": "No open ideas for ${name}.",
-                  "pageless": true
+                  "pageless": true,
+                  "files": "files"
                 }
               }
             },
@@ -199,7 +200,8 @@
                   "title": "${name}: open ideas",
                   "text": "## ${title}\n\n🐞 ${bug}\n\n**${priority} priority**\n\nTags: ${tags}\n\n${description}\n\n[${link}](${link})",
                   "photos": "photos",
-                  "emptyText": "No open ideas for ${name}."
+                  "emptyText": "No open ideas for ${name}.",
+                  "files": "files"
                 }
               }
             }
@@ -319,6 +321,11 @@
                   "height": 64
                 },
                 "visibleIf": "photos"
+              },
+              {
+                "type": "files",
+                "mapping": "files",
+                "visibleIf": "files"
               },
               {
                 "type": "text",
@@ -458,6 +465,12 @@
               "type": "photos",
               "mapping": "photos",
               "title": "Photos"
+            },
+            {
+              "type": "files",
+              "mapping": "files",
+              "title": "Files",
+              "description": "A mockup, a spec, a recording: kept as a link, opens later"
             }
           ],
           "action": {
@@ -542,6 +555,12 @@
               "type": "photos",
               "mapping": "photos",
               "title": "Photos"
+            },
+            {
+              "type": "files",
+              "mapping": "files",
+              "title": "Files",
+              "description": "A mockup, a spec, a recording: kept as a link, opens later"
             },
             {
               "type": "checkbox",

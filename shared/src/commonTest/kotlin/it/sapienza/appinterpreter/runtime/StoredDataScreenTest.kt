@@ -55,6 +55,7 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
+import it.sapienza.appinterpreter.storage.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -365,6 +366,22 @@ class StoredDataScreenTest {
         assertEquals("https://wakirox.app", saved.getValue("link"), "the rest stays")
         assertEquals(idea.getValue("appId"), saved.getValue("appId"), "fields the form doesn't show stay")
         assertEquals(idea.getValue("id"), saved.getValue("id"))
+    }
+
+    @Test
+    fun anIdeasFilesAreSavedAndTheEditScreenStartsWithThem() {
+        val appData = AppData(store)
+        addApps(appData, "Rainy")
+        val rainy = screen(appData).items(null).single()
+        val newIdea = screen(appData, "new_idea", rainy)
+        val files = JsonArray(listOf(Files.Attached("plan.pdf", "application/pdf", 10, "content://docs/plan").toJson()))
+        newIdea.forms.set(newIdea.form(), rainy, "files", files)
+        newIdea.add("title", "Dark mode", rainy)
+
+        val idea = screen(appData, "app", rainy).items(rainy).single()
+        assertEquals(listOf("plan.pdf"), Files.of(idea["files"]).map { it.name })
+        val edit = screen(appData, "idea", idea)
+        assertEquals(files, edit.forms.values(edit.form(), idea)["files"])
     }
 
     @Test

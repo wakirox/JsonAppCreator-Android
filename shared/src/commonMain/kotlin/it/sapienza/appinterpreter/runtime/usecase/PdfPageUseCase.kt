@@ -6,6 +6,7 @@ import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.markdown.Markdown
 import it.sapienza.appinterpreter.model.event.ItemsExport
 import it.sapienza.appinterpreter.model.event.PdfItems
+import it.sapienza.appinterpreter.storage.Files
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -39,6 +40,12 @@ class PdfPageUseCase {
                 pictures.forEach { body.append("<img src=\"${escape(it)}\">") }
                 body.append("</div>\n")
                 photos += pictures.filter(Photos::isPhoto)
+            }
+            val attached = event.files?.let { Files.of(item.valueAt(it)) }.orEmpty()
+            if (attached.isNotEmpty()) {
+                body.append("<ul class=\"files\">")
+                attached.forEach { file -> body.append("<li>📎 ${escape(file.name)}${file.size?.let { " · " + Files.sizeText(it) }.orEmpty()}</li>") }
+                body.append("</ul>\n")
             }
             body.append("</section>\n")
         }
@@ -131,6 +138,7 @@ class PdfPageUseCase {
             .photos { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2mm; margin-top: 2mm; }
             .photos img { max-height: 110mm; max-width: 100%; object-fit: contain; border-radius: 1.5mm; }
             .empty { color: #666; }
+            .files { list-style: none; padding: 0; margin: 2mm 0 0; color: #444; }
         """.trimIndent().replace("\n", " ")
     }
 }
