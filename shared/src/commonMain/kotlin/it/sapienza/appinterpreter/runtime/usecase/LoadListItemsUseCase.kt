@@ -6,6 +6,7 @@ import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.model.event.NextPage
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.view_model.ListView
+import it.sapienza.appinterpreter.model.view_model.StoredData
 import it.sapienza.appinterpreter.runtime.ListChoice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.JsonArray
@@ -22,6 +23,9 @@ class LoadListItemsUseCase(private val fetchJson: FetchJsonUseCase, private val 
      * for a stored list with a filter, the tags its items use.
      */
     class Page(val items: List<JsonObject>, val nextUrl: String?, val tags: List<String> = emptyList())
+
+    /** The saved objects [stored] picks, in its order, for an event that uses them all (a PDF of them, say). */
+    fun stored(stored: StoredData, data: JsonObject?): List<JsonObject> = loadStored(stored, data)
 
     suspend operator fun invoke(list: ListView, data: JsonObject?): List<JsonObject> = firstPage(list, data).items
 

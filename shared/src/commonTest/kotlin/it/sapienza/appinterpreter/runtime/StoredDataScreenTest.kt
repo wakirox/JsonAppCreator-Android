@@ -221,7 +221,13 @@ class StoredDataScreenTest {
     }
 
     /** The app screen's button that opens the new-idea screen. */
-    private fun ScreenViewModel.newIdeaButton() = assertIs<ButtonView>(views.first { it is ButtonView && it.title == "New idea" })
+    private fun ScreenViewModel.newIdeaButton() = button("New idea")
+
+    /** The screen's button titled [title], in a row or not. */
+    private fun ScreenViewModel.button(title: String): ButtonView {
+        fun all(view: MView): List<MView> = listOf(view) + ((view as? Layout)?.views.orEmpty().flatMap(::all))
+        return assertIs<ButtonView>(views.flatMap(::all).first { it is ButtonView && it.title == title })
+    }
 
     /** The views of [list]'s items: the item view's own (the title row first), in order. */
     private fun ScreenViewModel.row() = assertIs<Layout>(list().itemView).views
@@ -260,6 +266,32 @@ class StoredDataScreenTest {
         val idea = ideas.rainyScreen.items(ideas.rainy).first()
         val edit = screen(AppData(store), "idea", idea)
         assertEquals(idea.getValue("title"), edit.forms.values(edit.form(), idea)["title"])
+    }
+
+    @Test
+    fun thePdfButtonPrintsTheAppsOpenIdeasByPriority() = runTest {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        screen.onAction(screen.list().swipeToEnd, screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" })
+        val pdf = screen.button("PDF")
+
+        screen.onAction(pdf.action, ideas.rainy)
+
+        val page = assertIs<ScreenViewModel.Effect.Pdf>(screen.effects.first()).page
+        assertEquals("Rainy: open ideas", page.title)
+        assertTrue("<h3>Dark mode</h3>" in page.html)
+        assertFalse("Widgets" in page.html, "done ideas are left out")
+        assertFalse("Export to PDF" in page.html, "another app's ideas are left out")
+    }
+
+    @Test
+    fun aPdfWithNoOpenIdeasSaysSoInstead() {
+        val appData = AppData(store)
+        addApps(appData, "Rainy")
+        val rainy = screen(appData).items(null).single()
+        val screen = screen(appData, "app", rainy)
+        screen.onAction(screen.button("PDF").action, rainy)
+        assertEquals("No open ideas for Rainy.", alerts.alert?.text)
     }
 
     @Test

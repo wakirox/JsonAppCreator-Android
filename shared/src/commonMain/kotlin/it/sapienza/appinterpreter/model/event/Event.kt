@@ -1,6 +1,8 @@
 package it.sapienza.appinterpreter.model.event
 
 import it.sapienza.appinterpreter.model.TypedSerializer
+import it.sapienza.appinterpreter.model.view_model.StoredSort
+import it.sapienza.appinterpreter.model.view_model.StoredSortsSerializer
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -145,6 +147,24 @@ class CopyText(
     override val data: JsonObject? = null
 ) : Event()
 
+/**
+ * Makes a PDF of the saved objects of [collection] that match [where], in [sort]'s order: [title] at the top, filled
+ * from the current data, then [text] for each object as Markdown, with its [photos] below it. The phone's print
+ * screen opens on it, to save it as a PDF or print it. Without objects, [emptyText] is shown instead.
+ */
+@Serializable
+class PdfItems(
+    val collection: String,
+    val where: JsonObject? = null,
+    @Serializable(with = StoredSortsSerializer::class) val sort: List<StoredSort>? = null,
+    val title: String? = null,
+    val text: String,
+    val photos: String? = null,
+    val emptyText: String? = null,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event()
+
 /** Closes the current screen and goes back to the one that opened it, as the phone's Back does. */
 @Serializable
 class GoBack(
@@ -174,7 +194,8 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("update", UpdateData.serializer()) { it is UpdateData },
         TypedSerializer.Type("delete", DeleteData.serializer()) { it is DeleteData },
         TypedSerializer.Type("back", GoBack.serializer()) { it is GoBack },
-        TypedSerializer.Type("copy", CopyText.serializer()) { it is CopyText }
+        TypedSerializer.Type("copy", CopyText.serializer()) { it is CopyText },
+        TypedSerializer.Type("pdf", PdfItems.serializer()) { it is PdfItems }
     )
 )
 
