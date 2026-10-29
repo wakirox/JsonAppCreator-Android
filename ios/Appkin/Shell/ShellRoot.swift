@@ -18,7 +18,6 @@ struct ShellRoot: View {
                     }
                 }
         }
-        .environmentObject(shell)
         .onOpenURL { shell.receive(file: $0) }
         .sheet(item: $shell.keyRequest) { request in
             KeyEntryView(request: request)
@@ -36,6 +35,7 @@ struct ShellRoot: View {
             Text(notice.message)
         }
         .task { launchHooks() }
+        .environmentObject(shell)
     }
 
     /// Launch arguments that open something straight away, for tests and screenshots.

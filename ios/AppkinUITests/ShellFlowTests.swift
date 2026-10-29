@@ -74,8 +74,9 @@ final class ShellFlowTests: XCTestCase {
         XCTAssertTrue(contains("Copied").waitForExistence(timeout: 5))
         shot("shell-ask-ai")
         app.buttons["See what's sent"].tap()
-        XCTAssertTrue(app.navigationBars["What's sent"].waitForExistence(timeout: 10))
+        sleep(3)
         shot("shell-ask-preview")
+        XCTAssertTrue(contains("characters, about").waitForExistence(timeout: 10))
         app.buttons["Done"].tap()
 
         // Paste an AI answer: it opens in the editor with no problems, and Open keeps it in Your apps.
