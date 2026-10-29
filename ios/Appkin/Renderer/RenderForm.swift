@@ -99,7 +99,7 @@ private struct FormField: View {
     var body: some View {
         switch element {
         case let item as TextInput: TextFormField(item: item)
-        case let item as Selector: SelectorField(item: item)
+        case let item as AppkinShared.Selector: SelectorField(item: item)
         case let item as CheckBox: CheckBoxField(item: item)
         case let item as DateInput: DateField(item: item)
         case let item as TimeInput: TimeField(item: item)
@@ -171,7 +171,7 @@ private struct TextFormField: View {
 
 private struct SelectorField: View {
     @EnvironmentObject private var model: FormModel
-    let item: Selector
+    let item: AppkinShared.Selector
 
     var body: some View {
         let options = item.options

@@ -24,6 +24,8 @@ struct RenderButton: View {
                     Group {
                         if let symbol { Label(title, systemImage: symbol) } else { Text(title) }
                     }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
