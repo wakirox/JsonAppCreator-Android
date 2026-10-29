@@ -34,14 +34,14 @@ jobs:
         env:
           REQUESTED_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
-          if [[ ! "$REQUESTED_TAG" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-            echo '::error::Release tags must use the vMAJOR.MINOR.PATCH format.'
+          if [[ ! "$REQUESTED_TAG" =~ ^v([0-9]+)\.([0-9]+)(\.([0-9]+))?$ ]]; then
+            echo '::error::Release tags must use the vMAJOR.MINOR or vMAJOR.MINOR.PATCH format.'
             exit 1
           fi
 
           major=$((10#${BASH_REMATCH[1]}))
           minor=$((10#${BASH_REMATCH[2]}))
-          patch=$((10#${BASH_REMATCH[3]}))
+          patch=$((10#${BASH_REMATCH[4]:-0}))
 
           if (( minor > 999 || patch > 999 )); then
             echo '::error::Release minor and patch components must be between 0 and 999.'
