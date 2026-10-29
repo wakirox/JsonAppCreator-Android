@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -347,7 +349,12 @@ private fun IssueBar(
     onSendToAi: (List<EditorIssue>) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    Surface(color = colors.surfaceContainer) {
+    // Problems turn the bar red (the theme's error colours, light or dark), so they can't be missed.
+    val problems = !issues.isNullOrEmpty()
+    Surface(
+        color = if (problems) colors.errorContainer else colors.surfaceContainer,
+        contentColor = if (problems) colors.onErrorContainer else colors.onSurface
+    ) {
         Column {
             Row(
                 Modifier.fillMaxWidth().clickable(enabled = !issues.isNullOrEmpty(), onClick = onToggle)
@@ -367,6 +374,7 @@ private fun IssueBar(
                         Text(
                             problemsLabel(issues.size) + if (open) "" else ": " + issues.first().message,
                             style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -374,7 +382,12 @@ private fun IssueBar(
                 }
             }
             if (open && !issues.isNullOrEmpty()) {
-                TextButton(shapes = ButtonDefaults.shapes(), onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
+                Button(
+                    shapes = ButtonDefaults.shapes(),
+                    onClick = { onSendToAi(issues) },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = colors.onError),
+                    modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                ) {
                     Text("Send problems to your AI app…")
                 }
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {
@@ -384,7 +397,7 @@ private fun IssueBar(
                             Text(
                                 listOfNotNull(line?.let { "Line $it" }, issue.path.takeIf { it != "$" }).joinToString(" · "),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = colors.onSurfaceVariant
+                                color = LocalContentColor.current.copy(alpha = 0.75f)
                             )
                             Text(issue.message, style = MaterialTheme.typography.bodyMedium)
                         }
