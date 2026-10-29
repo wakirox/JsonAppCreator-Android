@@ -102,8 +102,8 @@ class PdfPageUseCase {
             @page { margin: 16mm 14mm; }
             body { font-family: sans-serif; color: #1d1b20; font-size: 11pt; line-height: 1.45; }
             h1 { font-size: 20pt; margin: 0 0 6mm; }
-            h2 { font-size: 14pt; margin: 0 0 1mm; }
-            h3, h4, h5, h6 { font-size: 12pt; margin: 0 0 1mm; }
+            h2, h3 { font-size: 14pt; margin: 0 0 1.5mm; }
+            h4, h5, h6 { font-size: 12pt; margin: 0 0 1mm; }
             p, ul, ol, blockquote, pre { margin: 0 0 2mm; }
             section { break-inside: avoid; padding: 0 0 4mm; margin: 0 0 4mm; border-bottom: 0.3mm solid #ddd; }
             section:last-child { border-bottom: none; }
