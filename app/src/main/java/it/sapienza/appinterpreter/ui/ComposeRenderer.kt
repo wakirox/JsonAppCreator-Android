@@ -149,6 +149,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -1040,22 +1041,31 @@ private fun BooleanField(item: CheckBox, checked: Boolean, onChange: (Any?) -> U
     }
 }
 
-@Composable
-private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit) {
-    val keyboardType = when (item.textType) {
+/**
+ * The keyboard for a text field of [textType]. Plain text starts its sentences with a capital, as people write;
+ * addresses, numbers and passwords don't.
+ */
+internal fun keyboardOptionsFor(textType: TextType?): KeyboardOptions {
+    val keyboardType = when (textType) {
         TextType.numeric -> KeyboardType.Number
         TextType.email -> KeyboardType.Email
         TextType.password -> KeyboardType.Password
         TextType.url -> KeyboardType.Uri
         else -> KeyboardType.Text
     }
+    val capitalization = if (keyboardType == KeyboardType.Text) KeyboardCapitalization.Sentences else KeyboardCapitalization.None
+    return KeyboardOptions(capitalization = capitalization, keyboardType = keyboardType)
+}
+
+@Composable
+private fun TextField(item: TextInput, value: String?, onChange: (Any?) -> Unit) {
     OutlinedTextField(
         value = value.orEmpty(),
         onValueChange = { onChange(it.ifEmpty { null }) },
         label = { Text(item.title) },
         placeholder = { item.placeholder?.let { Text(it) } },
         supportingText = if (item.description == null) null else {{ Text(item.description!!) }},
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        keyboardOptions = keyboardOptionsFor(item.textType),
         // A multiline field grows with its text up to a few lines, then scrolls.
         visualTransformation = if (item.textType == TextType.password) PasswordVisualTransformation() else VisualTransformation.None,
         singleLine = item.multiline != true,
