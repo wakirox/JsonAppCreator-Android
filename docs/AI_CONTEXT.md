@@ -485,6 +485,20 @@ Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone co
 - `mapping`: text. Path of the part of the current data the text is filled in from
 - `data`: an object with any data
 
+#### `pdf`
+
+Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The phone's print screen opens on it, to save it as a PDF, share or print it.
+
+- `collection` **(required)**: text (not empty). The collection whose objects it shows
+- `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { "appId": "${id}", "done": false }
+- `sort`: a sort, `{ "by": "field" }` (see Order of a stored list), or a list of sorts. The order, as a stored list's sort
+- `title`: text. The heading at the top and the file's name; may use ${field} placeholders from the current data. The app's name by default
+- `text` **(required)**: text (not empty). Each object's part, as Markdown with ${field} placeholders from the object, such as "## ${title}\n${description}"; a line whose placeholders all have no value is left out
+- `photos`: text. Path of each object's photos (a photos field's list) to show below its text
+- `emptyText`: text. What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders
+- `mapping`: text. Path of the part of the current data to use
+- `data`: an object with any data
+
 ### Actions and references
 
 Where an action is expected, write an action definition or `{ "ref": "id" }` referencing one in the root `actions`.

@@ -579,7 +579,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy", "pdf"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -591,7 +591,8 @@
         { "if": { "properties": { "type": { "const": "update" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/updateEvent" } },
         { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } },
         { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } },
-        { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } }
+        { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } },
+        { "if": { "properties": { "type": { "const": "pdf" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/pdfEvent" } }
       ]
     },
     "restEvent": {
@@ -700,6 +701,34 @@
         "type": { "const": "copy" },
         "text": { "description": "What is copied; may use ${field} placeholders, and a line whose placeholders all have no value is left out, such as \"${title}\\n${description}\"", "$ref": "#/$defs/nonEmptyString" },
         "mapping": { "description": "Path of the part of the current data the text is filled in from", "$ref": "#/$defs/nullableString" },
+        "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "pdfEvent": {
+      "type": "object",
+      "description": "Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The phone's print screen opens on it, to save it as a PDF, share or print it.",
+      "required": ["type", "collection", "text"],
+      "properties": {
+        "type": { "const": "pdf" },
+        "collection": { "description": "The collection whose objects it shows", "$ref": "#/$defs/nonEmptyString" },
+        "where": {
+          "description": "Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { \"appId\": \"${id}\", \"done\": false }",
+          "type": ["object", "null"]
+        },
+        "sort": {
+          "description": "The order, as a stored list's sort",
+          "oneOf": [
+            { "$ref": "#/$defs/storedSort" },
+            { "type": "array", "items": { "$ref": "#/$defs/storedSort" }, "minItems": 1 },
+            { "type": "null" }
+          ]
+        },
+        "title": { "description": "The heading at the top and the file's name; may use ${field} placeholders from the current data. The app's name by default", "$ref": "#/$defs/nullableString" },
+        "text": { "description": "Each object's part, as Markdown with ${field} placeholders from the object, such as \"## ${title}\\n${description}\"; a line whose placeholders all have no value is left out", "$ref": "#/$defs/nonEmptyString" },
+        "photos": { "description": "Path of each object's photos (a photos field's list) to show below its text", "$ref": "#/$defs/nullableString" },
+        "emptyText": { "description": "What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "mapping": { "description": "Path of the part of the current data to use", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
       "additionalProperties": false
