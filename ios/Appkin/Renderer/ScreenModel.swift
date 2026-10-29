@@ -83,8 +83,15 @@ final class ScreenModel: ObservableObject {
             if let url = effect.url.flatMap(Self.systemURL) { UIApplication.shared.open(url) }
         case "copy":
             UIPasteboard.general.string = effect.text
+        case "share":
+            Exporter.share(text: effect.text ?? "", photos: effect.photos)
+        case "calendar":
+            if let entry = effect.calendar { Exporter.addToCalendar(entry) }
+        case "pdf":
+            if let page = effect.page { Task { await Exporter.sharePDF(page) } }
+        case "textPack":
+            if let pack = effect.pack { Exporter.shareTextPack(pack) }
         default:
-            // Share, calendar, PDF and TextPack come in a later phase.
             break
         }
     }

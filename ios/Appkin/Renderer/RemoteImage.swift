@@ -18,6 +18,12 @@ final class ImageLoader: @unchecked Sendable {
 
     func image(at url: URL) async throws -> UIImage {
         if let cached = cache.object(forKey: url as NSURL) { return cached }
+        if url.scheme == "appkin-photo" {
+            // A kept photo: its thumbnail, from the app's own storage.
+            guard let image = PhotoStore.image(url.absoluteString, full: false) else { throw URLError(.fileDoesNotExist) }
+            cache.setObject(image, forKey: url as NSURL)
+            return image
+        }
         let (data, response) = try await session.data(from: url)
         if let status = (response as? HTTPURLResponse)?.statusCode, !(200..<300).contains(status) {
             throw URLError(.badServerResponse)

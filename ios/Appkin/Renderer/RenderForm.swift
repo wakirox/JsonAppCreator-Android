@@ -48,6 +48,16 @@ final class FormModel: ObservableObject {
         values = RenderKit.shared.currentValues(form: state)
     }
 
+    func setPhotos(_ mapping: String, _ photos: [String]) {
+        RenderKit.shared.setPhotos(screen: screen, form: form, data: data, mapping: mapping, photos: photos)
+        values = RenderKit.shared.currentValues(form: state)
+    }
+
+    func setFiles(_ mapping: String, _ files: [Files.Attached]) {
+        RenderKit.shared.setFiles(screen: screen, form: form, data: data, mapping: mapping, files: files)
+        values = RenderKit.shared.currentValues(form: state)
+    }
+
     func submit() { RenderKit.shared.submit(screen: screen, form: form, data: data) }
 }
 
@@ -104,6 +114,8 @@ private struct FormField: View {
         case let item as DateInput: DateField(item: item)
         case let item as TimeInput: TimeField(item: item)
         case let item as TagsInput: TagsField(item: item)
+        case let item as PhotosInput: PhotosFormField(item: item)
+        case let item as FilesInput: FilesFormField(item: item)
         case is HiddenInput: EmptyView()
         default: FieldBox(title: element.title, description: element.description_) {
             Label("Not yet on iOS", systemImage: "hourglass").foregroundStyle(.secondary)
@@ -113,7 +125,7 @@ private struct FormField: View {
 }
 
 /// A field's title above its control, and its description below.
-private struct FieldBox<Content: View>: View {
+struct FieldBox<Content: View>: View {
     let title: String
     let description: String?
     var boxed = true

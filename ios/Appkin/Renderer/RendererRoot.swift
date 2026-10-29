@@ -9,7 +9,7 @@ struct RendererRoot: View {
 
     init(json: String) {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-        engine = IosEngine(json: json, versionName: version, platform: "iOS \(UIDevice.current.systemVersion)")
+        engine = IosEngine(json: json, versionName: version, platform: "iOS \(UIDevice.current.systemVersion)", photoData: { PhotoStore.data($0) })
         ImageLoader.userAgent = engine.userAgent
     }
 

@@ -24,19 +24,32 @@ import it.sapienza.appinterpreter.security.ApiKeyPlaceholders
 import it.sapienza.appinterpreter.security.ConfigurationKeys
 import it.sapienza.appinterpreter.security.MemorySecretStore
 import it.sapienza.appinterpreter.storage.AppData
+import it.sapienza.appinterpreter.storage.PhotoReader
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
 import it.sapienza.appinterpreter.validation.ConfigurationValidator
 import it.sapienza.appinterpreter.validation.V3Schema
 import it.sapienza.appinterpreter.validation.ValidatedConfigurationParser
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.cancel
+import platform.Foundation.NSData
+import platform.posix.memcpy
 
 /**
  * What Android's Koin module builds, for the iPhone app: the shared engine's use cases on iOS implementations, running
  * the JSON app [json] ([versionName] and [platform] name the app in its requests' User-Agent, [userAgent]).
  */
-class IosEngine(private val json: String, versionName: String, platform: String) {
+class IosEngine(
+    private val json: String,
+    versionName: String,
+    platform: String,
+    /** The JPEG bytes of a kept photo by its "appkin-photo:" reference (null: none), for requests that send photos. */
+    photoData: (String) -> NSData?
+) {
     val userAgent: String = JsonHttpClient.userAgent(versionName, platform)
 
+    private val photos = PhotoReader { reference -> photoData(reference)?.toByteArray() }
     private val strings = EnglishRuntimeStrings
     private val current = CurrentConfiguration { json }
     private val repository = AppRepository(current, ValidatedConfigurationParser(validator))
@@ -66,8 +79,8 @@ class IosEngine(private val json: String, versionName: String, platform: String)
         return ScreenViewModel(
             saved = SavedStateHandle(arguments),
             alerts = alerts,
-            fetchJson = FetchJsonUseCase(httpClient),
-            loadListItems = LoadListItemsUseCase(FetchJsonUseCase(httpClient), loadStored),
+            fetchJson = FetchJsonUseCase(httpClient, photos),
+            loadListItems = LoadListItemsUseCase(FetchJsonUseCase(httpClient, photos), loadStored),
             initialFormValues = InitialFormValuesUseCase(),
             submitForm = SubmitFormUseCase(),
             createCalendarEvent = CreateCalendarEventUseCase(),
@@ -88,4 +101,9 @@ class IosEngine(private val json: String, versionName: String, platform: String)
         // The schema is read once: building its validator is the slow part of starting an app.
         val validator: ConfigurationValidator by lazy { ConfigurationValidator.fromSchema(V3Schema.JSON) }
     }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun NSData.toByteArray(): ByteArray = ByteArray(length.toInt()).also { bytes ->
+    if (bytes.isNotEmpty()) bytes.usePinned { memcpy(it.addressOf(0), this.bytes, length) }
 }
