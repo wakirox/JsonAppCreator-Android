@@ -549,17 +549,12 @@ private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier
         return
     }
     // A button on its own is tonal: a form's submit button is the screen's one filled button.
+    val padding = if (icon != null) ButtonDefaults.ButtonWithIconContentPadding else ButtonDefaults.ContentPadding
     FilledTonalButton(
         shapes = ButtonDefaults.shapes(),
         onClick = onClick,
         modifier = modifier.fillMaxWidth().then(longClick),
-        contentPadding = if (icon !=
-            null
-        ) {
-            ButtonDefaults.ButtonWithIconContentPadding
-        } else {
-            ButtonDefaults.ContentPadding
-        }
+        contentPadding = compactSides(padding)
     ) {
         if (icon != null) {
             Icon(icon.vector(), contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
@@ -568,6 +563,17 @@ private fun RenderButton(view: ButtonView, data: JsonObject?, modifier: Modifier
         Text(view.text(data))
     }
 }
+
+/**
+ * Buttons fill their width and centre their content, so the side padding only matters when space is tight: three
+ * buttons sharing a row ("New idea", "PDF", "Export") kept "New idea" on one line on a 360 dp phone only with 8 dp sides.
+ */
+private fun compactSides(padding: PaddingValues) = PaddingValues(
+    start = 8.dp,
+    end = 8.dp,
+    top = padding.calculateTopPadding(),
+    bottom = padding.calculateBottomPadding()
+)
 
 /** A button that shows only its icon: it keeps its own size, and the row it is in is centred on it. */
 private fun MView.isIconOnly(): Boolean = this is ButtonView && icon != null && title.isNullOrBlank() && mapping == null
