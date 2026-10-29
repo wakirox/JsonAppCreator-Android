@@ -5,6 +5,7 @@ import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.model.view_model.FormView
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
+import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElementImpl
 import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
@@ -18,12 +19,17 @@ import kotlinx.serialization.json.JsonObject
 /**
  * A form's starting values: the screen's data where it fits each field, else the field's default. A checkbox takes
  * true or false; a selector one of its options' values; a time HH:mm; a date is shown and submitted as written, even
- * if not dd/MM/yyyy. A hidden field takes its value, with placeholders filled in from the data.
+ * if not dd/MM/yyyy. A hidden field takes its value, with placeholders filled in from the data. A form that adds a new
+ * object ([addsNew]) shows only its defaults: a "New idea" screen opened on an app mustn't start with the app's own
+ * description. Its hidden fields still take the screen's data, such as the app's id.
  */
 class InitialFormValuesUseCase {
-    operator fun invoke(form: FormView, data: JsonObject?): Map<String, Any?> = form.formElements.associate { item ->
+    operator fun invoke(form: FormView, data: JsonObject?, addsNew: Boolean = false): Map<String, Any?> =
+        form.formElements.associate { item -> item.mapping to startingValue(item, data.takeUnless { addsNew && item !is HiddenInput }) }
+
+    private fun startingValue(item: FormElementImpl, data: JsonObject?): Any? {
         val given = data?.getValue(item.mapping)?.takeUnless { it == "null" }
-        item.mapping to when (item) {
+        return when (item) {
             is CheckBox -> given?.toBooleanStrictOrNull() ?: item.defaultValue()
             is Selector -> given?.takeIf { it in item.values } ?: item.defaultValue()
             is TimeInput -> given?.takeIf { FormDates.parseTime(it) != null } ?: item.defaultValue()

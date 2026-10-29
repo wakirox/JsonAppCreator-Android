@@ -765,7 +765,7 @@
     },
     "saveEvent": {
       "type": "object",
-      "description": "Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.",
+      "description": "Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty, not filled in from the screen's data (only its hidden fields take that, such as an app's id), and empty again after each save.",
       "required": ["type", "collection"],
       "properties": {
         "type": { "const": "save" },

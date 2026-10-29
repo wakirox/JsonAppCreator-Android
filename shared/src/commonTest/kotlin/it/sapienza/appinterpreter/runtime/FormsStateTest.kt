@@ -40,6 +40,16 @@ class FormsStateTest {
     }
 
     @Test
+    fun aFormThatAddsANewObjectStartsEmptyAndResetsEmpty() {
+        val forms = FormsState(saved, addsNew = { true })
+        assertNull(forms.values(form, data)["runner.name"])
+
+        forms.set(form, data, "runner.name", "Giulia")
+        forms.reset(form, data)
+        assertNull(forms.values(form, data)["runner.name"])
+    }
+
+    @Test
     fun aRecreatedScreenGetsTheTypedValuesBack() {
         FormsState(saved).set(form, data, "runner.name", "Giulia")
         FormsState(saved).set(form, data, "rules", true)

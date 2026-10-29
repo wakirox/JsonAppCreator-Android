@@ -235,6 +235,34 @@ class StoredDataScreenTest {
     private fun ScreenViewModel.items(data: JsonObject?) = lists.get(list(), data).content.value.items
 
     @Test
+    fun aNewIdeaStartsEmptyNotWithTheAppsDescriptionAndStillBelongsToTheApp() {
+        val appData = AppData(store)
+        val newApp = screen(appData, "new_app")
+        newApp.forms.set(newApp.form(), null, "description", "Rain alerts on the wrist")
+        newApp.add("name", "Rainy")
+        val rainy = screen(appData).items(null).single()
+
+        val newIdea = screen(appData, "new_idea", rainy)
+        val values = newIdea.forms.values(newIdea.form(), rainy)
+        assertNull(values["description"], "the app's description isn't the idea's")
+        assertNull(values["title"])
+        assertEquals("Medium", values["priority"], "defaults still apply")
+        newIdea.add("title", "Dark mode", rainy)
+
+        val idea = screen(appData, "app", rainy).items(rainy).single()
+        assertNull(idea.getValue("description"))
+        assertEquals(rainy.getValue("id"), idea.getValue("appId"))
+    }
+
+    @Test
+    fun editingAnIdeaStartsFromItsOwnValues() {
+        val ideas = ideas()
+        val idea = ideas.rainyScreen.items(ideas.rainy).first()
+        val edit = screen(AppData(store), "idea", idea)
+        assertEquals(idea.getValue("title"), edit.forms.values(edit.form(), idea)["title"])
+    }
+
+    @Test
     fun aNewIdeaIsNotDoneAndSwipingRightMarksItDone() {
         val ideas = ideas()
         val (rainy, screen) = ideas.rainy to ideas.rainyScreen
