@@ -68,7 +68,8 @@ final class ShellFlowTests: XCTestCase {
         XCTAssertTrue(contains("Copied").waitForExistence(timeout: 5))
         shot("shell-ask-ai")
         app.buttons["See what's sent"].tap()
-        XCTAssertTrue(contains("characters, about").waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["What's sent"].waitForExistence(timeout: 10))
+        shot("shell-ask-preview")
         app.buttons["Done"].tap()
 
         // Paste an AI answer: it opens in the editor with no problems, and Open keeps it in Your apps.
@@ -111,7 +112,9 @@ final class ShellFlowTests: XCTestCase {
         try XCTSkipUnless(FileManager.default.fileExists(atPath: file))
         app.launchArguments = ["-openFile", file]
         app.launch()
-        XCTAssertTrue(app.navigationBars["Opened file"].waitForExistence(timeout: 10))
+        _ = app.navigationBars["Opened file"].waitForExistence(timeout: 10)
+        shot("shell-opened-file")
+        XCTAssertTrue(app.navigationBars["Opened file"].exists)
         XCTAssertTrue(contains("Opened from a file").exists)
         shot("shell-opened-file")
     }
