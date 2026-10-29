@@ -79,6 +79,14 @@ class FormFieldsTest {
     }
 
     @Test
+    fun aFormThatAddsANewObjectKeepsOnlyItsHiddenFieldsFromTheData() {
+        val values = FormsState(SavedStateHandle(), addsNew = { true }).values(form, data)
+        assertEquals("11:00", values["time"], "defaults still apply")
+        assertEquals("111654", values["artwork.id"])
+        assertEquals("South Wind, Clear Sky", values["title"])
+    }
+
+    @Test
     fun hiddenFieldsAreSentWithTheForm() {
         val forms = FormsState(SavedStateHandle())
         assertNull(forms.submit(form, data))

@@ -121,7 +121,7 @@ class ScreenViewModel(
      */
     val data: StateFlow<JsonObject?> = shownData.asStateFlow()
 
-    val forms = FormsState(saved, initialFormValues, submitForm)
+    val forms = FormsState(saved, initialFormValues, submitForm) { form -> resolve(form.action)?.event is SaveData }
     val lists = ListsState(viewModelScope, loadListItems)
 
     private val missing = MutableStateFlow(screen?.let { findMissingApiKeys() })

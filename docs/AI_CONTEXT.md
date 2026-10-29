@@ -439,7 +439,7 @@ Opens the phone's share sheet on a text, for the user to send to any app.
 
 #### `save`
 
-Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty again.
+Saves the current data (a form's submitted values) on the phone as a new object of a collection; a list with stored shows the collection. Each object gets an id and createdAt (epoch milliseconds). A form saved this way starts empty, not filled in from the screen's data (only its hidden fields take that, such as an app's id), and empty again after each save.
 
 - `collection` **(required)**: text (not empty). The collection to add to, such as "ideas"; each app has its own
 - `fields`: an object. Values to add to the object; text may use ${field} placeholders from the data the form showed (the screen's, or a list row's), then from the submitted values, such as { "appId": "${id}" }
