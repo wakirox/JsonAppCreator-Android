@@ -149,8 +149,8 @@ class CopyText(
 
 /**
  * Makes a PDF of the saved objects of [collection] that match [where], in [sort]'s order: [title] at the top, filled
- * from the current data, then [text] for each object as Markdown, with its [photos] below it. The phone's print
- * screen opens on it, to save it as a PDF or print it. Without objects, [emptyText] is shown instead.
+ * from the current data, then [text] for each object as Markdown, with its [photos] below it. The share sheet opens
+ * on the PDF, to send, save or print it. Without objects, [emptyText] is shown instead.
  */
 @Serializable
 class PdfItems(
@@ -161,6 +161,8 @@ class PdfItems(
     val text: String,
     val photos: String? = null,
     val emptyText: String? = null,
+    /** One page as tall as everything, as a phone shows it best, instead of A4 pages. */
+    val pageless: Boolean = false,
     override val mapping: String? = null,
     override val data: JsonObject? = null
 ) : Event()

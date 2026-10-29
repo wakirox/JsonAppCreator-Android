@@ -707,7 +707,7 @@
     },
     "pdfEvent": {
       "type": "object",
-      "description": "Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The phone's print screen opens on it, to save it as a PDF, share or print it.",
+      "description": "Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The share sheet opens on the PDF, to send, save or print it.",
       "required": ["type", "collection", "text"],
       "properties": {
         "type": { "const": "pdf" },
@@ -728,6 +728,7 @@
         "text": { "description": "Each object's part, as Markdown with ${field} placeholders from the object, such as \"## ${title}\\n${description}\"; a line whose placeholders all have no value is left out", "$ref": "#/$defs/nonEmptyString" },
         "photos": { "description": "Path of each object's photos (a photos field's list) to show below its text", "$ref": "#/$defs/nullableString" },
         "emptyText": { "description": "What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders", "$ref": "#/$defs/nullableString" },
+        "pageless": { "description": "true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing", "type": ["boolean", "null"] },
         "mapping": { "description": "Path of the part of the current data to use", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
       },
