@@ -88,6 +88,8 @@ fun EditorScreen(
     /** Where the text came from when it isn't saved anywhere yet ("Shared from your AI app"), or null. */
     unsavedSource: String?,
     check: suspend (String) -> List<EditorIssue>,
+    /** The HTTP status of a web image the text shows (null: no answer), to say which don't load. */
+    imageStatus: suspend (String) -> Int?,
     suggestions: SchemaSuggestions,
     onRun: (String) -> Unit,
     onSaveAs: (String) -> Unit,
@@ -108,11 +110,16 @@ fun EditorScreen(
     val scroll = rememberScrollState()
     val focus = remember { FocusRequester() }
 
-    // The live check, once typing pauses.
+    // Each image address is asked once while the screen is open, however often the text changes.
+    val imageStatuses = remember { mutableMapOf<String, Int?>() }
+    // The live check, once typing pauses; when the configuration is right, whether its web images load.
     LaunchedEffect(value.text) {
         issues = null
         delay(CHECK_DELAY_MS)
-        issues = check(value.text)
+        val found = check(value.text)
+        issues = found.ifEmpty {
+            ImageLinks.problems(value.text) { url -> if (url in imageStatuses) imageStatuses[url] else imageStatus(url).also { imageStatuses[url] = it } }
+        }
     }
     // Suggestions and the keyboard type, from one reading of the text at the cursor.
     val assist = remember(value.text, value.selection) {

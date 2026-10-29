@@ -1,5 +1,6 @@
 package it.sapienza.appinterpreter.activity
 
+import it.sapienza.appinterpreter.utils.httpclient.HttpClient
 import it.sapienza.appinterpreter.validation.fromAssets
 import it.sapienza.appinterpreter.validation.fromSchema
 import android.content.Context
@@ -125,6 +126,7 @@ class EditorActivity : AppCompatActivity() {
                         else -> "Shared from your AI app"
                     },
                     check = { text -> withContext(Dispatchers.Default) { checker.check(text) } },
+                    imageStatus = HttpClient::imageStatus,
                     suggestions = suggestions,
                     onRun = { text ->
                         // Unchanged content keeps its identity, and so its saved or bundled API keys.
