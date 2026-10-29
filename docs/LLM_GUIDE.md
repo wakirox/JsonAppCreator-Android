@@ -53,6 +53,9 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 9. Prefer a small working configuration over speculative or undocumented fields.
 10. Before answering, check the JSON syntax and that every reference resolves to exactly
     one definition.
+11. Open every image address before you use it, and keep only those that show the
+    picture. Never build one from a name (a place's, a file's). If you can't open web
+    pages, leave images out and say so in your note.
 
 ## Data-flow checklist
 
@@ -173,8 +176,8 @@ components, or undocumented style properties.
   (`&type=${type}`) is left out when the value is empty.
 - Never invent or guess an address (images, `rest` URLs, web pages) or its parts (folders,
   file names, IDs, sizes): it almost never loads, or shows the wrong thing. Use addresses
-  the user gives, fields of a REST response, or ones you are certain of; otherwise leave
-  them out.
+  the user gives, fields of a REST response, or ones you opened and saw work; otherwise
+  leave them out.
 - For a request that can fail in a way the user should understand, add `onError` (its
   data has `error.message`).
 - For a button that opens a page, a map, the dialer or email, use an `open` event.
