@@ -1,6 +1,7 @@
 package it.sapienza.appinterpreter.ios
 
 import it.sapienza.appinterpreter.alerts.AlertsViewModel
+import it.sapienza.appinterpreter.calendar.CalendarEntry
 import it.sapienza.appinterpreter.json.fillAddress
 import it.sapienza.appinterpreter.json.getValue
 import it.sapienza.appinterpreter.json.matchReplace
@@ -17,6 +18,8 @@ import it.sapienza.appinterpreter.model.view_model.ImageView
 import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.TextualView
+import it.sapienza.appinterpreter.model.view_model.form_model.FilesInput
+import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.FormsState
 import it.sapienza.appinterpreter.runtime.ListChoice
@@ -24,6 +27,9 @@ import it.sapienza.appinterpreter.runtime.ListsState
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
 import it.sapienza.appinterpreter.runtime.ViewVisibility
 import it.sapienza.appinterpreter.runtime.text
+import it.sapienza.appinterpreter.runtime.usecase.PdfPageUseCase
+import it.sapienza.appinterpreter.runtime.usecase.TextPackUseCase
+import it.sapienza.appinterpreter.storage.Files
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.JsonArray
@@ -40,7 +46,12 @@ class ScreenEffect(
     val title: String? = null,
     val text: String? = null,
     val url: String? = null,
-    val scheme: String? = null
+    val scheme: String? = null,
+    /** The kept photos a share event sends along with its text. */
+    val photos: List<String> = emptyList(),
+    val calendar: CalendarEntry? = null,
+    val page: PdfPageUseCase.Page? = null,
+    val pack: TextPackUseCase.Pack? = null
 )
 
 /** The alert a screen shows. */
@@ -75,6 +86,12 @@ class FormValues(private val values: Map<String, Any?>) {
 
     fun tags(mapping: String): List<String> =
         (values[mapping] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
+
+    /** The photo references a photos field holds. */
+    fun photos(mapping: String): List<String> = tags(mapping)
+
+    /** The files a files field holds. */
+    fun files(mapping: String): List<Files.Attached> = Files.of(values[mapping] as? JsonArray)
 }
 
 /** What the SwiftUI renderer needs from the model, in types Swift reads without ceremony. */
@@ -228,13 +245,13 @@ object RenderKit {
 
             is ScreenViewModel.Effect.Copy -> ScreenEffect("copy", text = effect.text)
 
-            is ScreenViewModel.Effect.Share -> ScreenEffect("share", text = effect.text)
+            is ScreenViewModel.Effect.Share -> ScreenEffect("share", text = effect.text, photos = effect.photos)
 
-            is ScreenViewModel.Effect.AddToCalendar -> ScreenEffect("calendar")
+            is ScreenViewModel.Effect.AddToCalendar -> ScreenEffect("calendar", calendar = effect.entry)
 
-            is ScreenViewModel.Effect.Pdf -> ScreenEffect("pdf")
+            is ScreenViewModel.Effect.Pdf -> ScreenEffect("pdf", page = effect.page)
 
-            is ScreenViewModel.Effect.TextPack -> ScreenEffect("textPack")
+            is ScreenViewModel.Effect.TextPack -> ScreenEffect("textPack", pack = effect.pack)
         }
     }
 
@@ -265,6 +282,22 @@ object RenderKit {
     /** No tags is no value. */
     fun setTags(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, tags: List<String>) =
         screen.forms.set(form, data.value, mapping, JsonArray(tags.map(::JsonPrimitive)).takeIf { it.isNotEmpty() })
+
+    /** No photos is no value. */
+    fun setPhotos(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, photos: List<String>) =
+        setTags(screen, form, data, mapping, photos)
+
+    /** No files is no value. */
+    fun setFiles(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, files: List<Files.Attached>) =
+        screen.forms.set(form, data.value, mapping, JsonArray(files.map { it.toJson() }).takeIf { it.isNotEmpty() })
+
+    /** The files a files view shows with [data]. */
+    fun files(view: FilesView, data: ItemData): List<Files.Attached> = Files.of(data.value?.valueAt(view.mapping))
+
+    /** How many photos or files [field] takes. */
+    fun photoLimit(field: PhotosInput): Int = field.limit
+
+    fun fileLimit(field: FilesInput): Int = field.limit
 
     fun submit(screen: ScreenViewModel, form: FormView, data: ItemData) = screen.onSubmit(form, data.value)
 

@@ -10,22 +10,16 @@ struct RenderImage: View {
     var edgeToEdge = false
     /// Height from the parent instead of the view's size.
     var fillHeight = false
+    @State private var viewing: PhotoSelection?
 
     var body: some View {
         let height = RenderKit.shared.imageHeight(view: view)
         if let urls = RenderKit.shared.imageUrls(view: view, data: data) {
             // A mapping to a list (a photos field's) shows every picture in it, in a row.
             let side = CGFloat(height >= 0 ? height : 96)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(urls, id: \.self) { address in
-                        RemoteImage(url: imageURL(address))
-                            .frame(width: side, height: side)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-            }
+            PhotoStrip(references: urls, side: side)
         } else {
+            let photo = RenderKit.shared.imageUrl(view: view, data: data).flatMap { PhotoStore.isPhoto($0) ? $0 : nil }
             let picture = Group {
                 if let address = RenderKit.shared.imageUrl(view: view, data: data) {
                     RemoteImage(url: imageURL(address), fit: view.scale?.name == "fit")
@@ -41,7 +35,8 @@ struct RenderImage: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: fillHeight ? nil : CGFloat(height >= 0 ? height : 220))
                 .clipShape(RoundedRectangle(cornerRadius: edgeToEdge ? 0 : 16))
-                .actionable(view.action, data)
+                .actionable(view.action, data, fallback: photo.map { reference in { viewing = PhotoSelection(references: [reference], index: 0) } })
+                .photoViewer($viewing)
         }
     }
 }

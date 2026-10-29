@@ -97,8 +97,9 @@ struct RenderNode: View {
                 if let form = resolved as? FormView { RenderForm(view: form, data: data) }
             case "check":
                 if let check = resolved as? CheckView { RenderCheck(view: check, data: data) }
+            case "files":
+                if let files = resolved as? FilesView { RenderFiles(view: files, data: data) }
             default:
-                // Files come in a later phase.
                 NotYetOnIOS(kind: RenderKit.shared.kind(view: resolved))
             }
         }
@@ -168,7 +169,7 @@ struct Actionable: ViewModifier {
 }
 
 extension View {
-    func actionable(_ action: Action?, _ data: ItemData) -> some View {
-        modifier(Actionable(action: action, data: data))
+    func actionable(_ action: Action?, _ data: ItemData, fallback: (() -> Void)? = nil) -> some View {
+        modifier(Actionable(action: action, data: data, fallback: fallback))
     }
 }

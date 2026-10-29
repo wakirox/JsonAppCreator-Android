@@ -30,6 +30,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: Appkin
+        # Add to Calendar: the system's event editor saves what the user confirms; the app only prepares the event.
+        INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription: Appkin adds the events you choose to your calendar.
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGNING_ALLOWED: NO
         FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
