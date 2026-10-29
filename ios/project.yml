@@ -13,6 +13,34 @@ targets:
       - path: ../app/src/main/res/raw
         includes: ["*.json"]
         buildPhase: resources
+      # The guide for AI apps, which the instructions in Ask your AI app are built from.
+      - path: ../docs/LLM_GUIDE.md
+        buildPhase: resources
+    info:
+      path: Appkin/Info.plist
+      properties:
+        CFBundleDisplayName: Appkin
+        UILaunchScreen: {}
+        # Appkin opens .json files from Files and "Open in": its own .appkin.json files, and any JSON file.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Appkin file
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - app.wakirox.appkin.json
+          - CFBundleTypeName: JSON file
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.json
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: app.wakirox.appkin.json
+            UTTypeDescription: Appkin file
+            UTTypeConformsTo:
+              - public.json
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - appkin.json
     preBuildScripts:
       # The shared Kotlin engine, built for the SDK and architecture being built and placed where the app links it.
       - name: Build the shared engine

@@ -1,0 +1,61 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "terms.body": {
+      "comment": "Terms of use, as on the other platform minus platform names.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appkin shows apps described in JSON files that you make, open or are sent. Appkin has no gallery of apps: apps travel only as files, between people who choose to share them.\n\nYou are responsible for the apps you open and share and for what they load and show. Use only text, pictures and data you have the right to use, and follow the terms of the services an app connects to, such as an API's.\n\nApps made with an AI app can contain mistakes: check what they show before relying on it.\n\nThe examples use public-domain works from Wikimedia Commons, and data and images from TMDB under its terms; Appkin is not endorsed by TMDB.\n\nAppkin is free, has no ads and collects no data. It is open source under the MIT licence and provided as it is, without warranty.\n\nTo report an app, its content or a problem, write to info@wakirox.app."
+          }
+        }
+      }
+    },
+    "%lld problems": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld problem"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld problems"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld problems to fix first": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld problem to fix first"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld problems to fix first"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
