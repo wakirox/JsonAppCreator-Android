@@ -4,6 +4,7 @@ import SwiftUI
 /// A button: its text, an icon, or both; a tonal button across its space, or a round one for an icon alone.
 struct RenderButton: View {
     @EnvironmentObject private var model: ScreenModel
+    @Environment(\.buttonsInRow) private var inRow
     let view: ButtonView
     let data: ItemData
 
@@ -25,11 +26,12 @@ struct RenderButton: View {
                         if let symbol { Label(title, systemImage: symbol) } else { Text(title) }
                     }
                     .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    .font(inRow ? .subheadline : nil)
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.large)
+                // Buttons sharing a row are all one smaller size, so their titles fit without shrinking one alone.
+                .controlSize(inRow ? .regular : .large)
             }
         }
         .task {
@@ -65,5 +67,17 @@ func symbolName(_ icon: String) -> String {
     case "share": "square.and.arrow.up"
     case "star": "star"
     default: "questionmark.circle"
+    }
+}
+
+/// Whether views are side by side in a row, where buttons take a smaller size.
+private struct ButtonsInRowKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var buttonsInRow: Bool {
+        get { self[ButtonsInRowKey.self] }
+        set { self[ButtonsInRowKey.self] = newValue }
     }
 }

@@ -131,6 +131,7 @@ struct RenderLayout: View {
                     RenderNode(view: child, parentData: data).modifier(ChildFrame(view: child))
                 }
             }
+            .environment(\.buttonsInRow, true)
         } else {
             VStack(alignment: .leading, spacing: spacing) {
                 ForEach(Array(children.enumerated()), id: \.offset) { _, child in
