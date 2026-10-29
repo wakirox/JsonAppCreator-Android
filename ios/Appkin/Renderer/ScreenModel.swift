@@ -106,18 +106,32 @@ final class ListModel: ObservableObject {
     let entry: ListsState.Entry
     private let lists: ListsState
     @Published private(set) var content: ListsState.Content
-    nonisolated(unsafe) private var watcher: Watching?
+    @Published private(set) var choice: ListChoice
+    nonisolated(unsafe) private var watchers: [Watching] = []
+    nonisolated(unsafe) private let screen: ScreenViewModel
 
     init(screen: ScreenViewModel, view: ListView, data: ItemData) {
         lists = screen.lists
+        self.screen = screen
         entry = RenderKit.shared.list(screen: screen, view: view, data: data)
         content = RenderKit.shared.currentContent(entry: entry)
-        watcher = Watch.shared.flow(flow: RenderKit.shared.content(entry: entry)) { [weak self] value in
-            if let content = value as? ListsState.Content { self?.content = content }
-        }
+        choice = RenderKit.shared.currentChoice(entry: entry)
+        watchers = [
+            Watch.shared.flow(flow: RenderKit.shared.content(entry: entry)) { [weak self] value in
+                if let content = value as? ListsState.Content { self?.content = content }
+            },
+            Watch.shared.flow(flow: RenderKit.shared.choice(entry: entry)) { [weak self] value in
+                if let choice = value as? ListChoice { self?.choice = choice }
+            }
+        ]
     }
 
-    deinit { watcher?.cancel() }
+    deinit { watchers.forEach { $0.cancel() } }
+
+    /// The user picked an order (by position) or a tag (none: all) above the list.
+    func choose(sortOption: Int, tag: String?) {
+        RenderKit.shared.choose(screen: screen, entry: entry, sortOption: Int32(sortOption), tag: tag)
+    }
 
     func retry() { lists.retry(list: entry) }
     func loadMore() { lists.loadMore(list: entry) }

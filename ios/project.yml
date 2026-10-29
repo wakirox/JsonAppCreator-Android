@@ -36,3 +36,26 @@ targets:
         OTHER_LDFLAGS: "$(inherited) -framework AppkinShared"
         # Gradle reads and writes the repository outside the sandbox of script phases.
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+  AppkinUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: AppkinUITests
+    dependencies:
+      - target: Appkin
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
+        SWIFT_VERSION: "6.0"
+schemes:
+  Appkin:
+    build:
+      targets:
+        Appkin: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - AppkinUITests

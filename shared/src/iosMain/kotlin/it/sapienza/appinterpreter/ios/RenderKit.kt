@@ -18,6 +18,8 @@ import it.sapienza.appinterpreter.model.view_model.ListView
 import it.sapienza.appinterpreter.model.view_model.TextView
 import it.sapienza.appinterpreter.model.view_model.TextualView
 import it.sapienza.appinterpreter.model.view_model.helper.MView
+import it.sapienza.appinterpreter.runtime.FormsState
+import it.sapienza.appinterpreter.runtime.ListChoice
 import it.sapienza.appinterpreter.runtime.ListsState
 import it.sapienza.appinterpreter.runtime.ScreenViewModel
 import it.sapienza.appinterpreter.runtime.ViewVisibility
@@ -64,6 +66,16 @@ class MarkdownPart(
     val runs: List<MarkdownRun>,
     val code: String
 )
+
+/** A form's values as Swift reads them: text, true/false and tags by mapping. */
+class FormValues(private val values: Map<String, Any?>) {
+    fun text(mapping: String): String? = values[mapping] as? String
+
+    fun flag(mapping: String): Boolean = values[mapping] == true
+
+    fun tags(mapping: String): List<String> =
+        (values[mapping] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
+}
 
 /** What the SwiftUI renderer needs from the model, in types Swift reads without ceremony. */
 object RenderKit {
@@ -230,4 +242,58 @@ object RenderKit {
     fun alert(alerts: AlertsViewModel): Flow<AlertInfo?> = alerts.alertState.map { alert ->
         alert?.let { AlertInfo(it.text, hasCancel = it.onCancel != null) }
     }
+
+    /** True when a stored list offers orders or a tag filter above its items. */
+    fun hasControls(view: ListView): Boolean =
+        view.stored?.let { !it.sortOptions.isNullOrEmpty() || it.filterBy != null } == true
+
+    /** The state of [form] showing [data]. */
+    fun form(screen: ScreenViewModel, form: FormView, data: ItemData): FormsState.Form =
+        screen.forms.state(form, data.value)
+
+    fun values(form: FormsState.Form): Flow<FormValues> = form.values.map(::FormValues)
+
+    fun currentValues(form: FormsState.Form): FormValues = FormValues(form.values.value)
+
+    /** An empty text is no value, as on Android. */
+    fun setText(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, text: String) =
+        screen.forms.set(form, data.value, mapping, text.ifEmpty { null })
+
+    fun setFlag(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, flag: Boolean) =
+        screen.forms.set(form, data.value, mapping, flag)
+
+    /** No tags is no value. */
+    fun setTags(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, tags: List<String>) =
+        screen.forms.set(form, data.value, mapping, JsonArray(tags.map(::JsonPrimitive)).takeIf { it.isNotEmpty() })
+
+    fun submit(screen: ScreenViewModel, form: FormView, data: ItemData) = screen.onSubmit(form, data.value)
+
+    /** The data's true/false value a tick box shows. */
+    fun isChecked(view: CheckView, data: ItemData): Boolean = data.value?.getValue(view.mapping) == "true"
+
+    fun checkTitle(view: CheckView, data: ItemData): String = view.title?.matchReplace(data.value).orEmpty()
+
+    fun onCheck(screen: ScreenViewModel, view: CheckView, data: ItemData, checked: Boolean) =
+        screen.onCheck(view, data.value, checked)
+
+    /** The sort options a stored list offers, by title. */
+    fun sortTitles(view: ListView): List<String> = view.stored?.sortOptions.orEmpty().map { it.title }
+
+    fun filtersByTag(view: ListView): Boolean = view.stored?.filterBy != null
+
+    fun choice(entry: ListsState.Entry): Flow<ListChoice> = entry.choice
+
+    fun currentChoice(entry: ListsState.Entry): ListChoice = entry.choice.value
+
+    fun choose(screen: ScreenViewModel, entry: ListsState.Entry, sortOption: Int, tag: String?) =
+        screen.lists.choose(entry, ListChoice(sortOption, tag))
+
+    fun swipeToStart(view: ListView): Action? = view.swipeToStart
+
+    fun swipeToEnd(view: ListView): Action? = view.swipeToEnd
+
+    /** The icon names of a list's swipe actions: a bin and a tick unless the list says otherwise. */
+    fun swipeToStartIcon(view: ListView): String = view.swipeToStartIcon?.name ?: "delete"
+
+    fun swipeToEndIcon(view: ListView): String = view.swipeToEndIcon?.name ?: "check"
 }
