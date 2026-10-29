@@ -81,6 +81,6 @@ struct ZipWriter {
 
 private extension Data {
     mutating func append<T: FixedWidthInteger>(le value: T) {
-        withUnsafeBytes(of: value.littleEndian) { append(contentsOf: $0) }
+        Swift.withUnsafeBytes(of: value.littleEndian) { append(contentsOf: $0) }
     }
 }

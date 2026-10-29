@@ -123,11 +123,11 @@ enum Exporter {
     }
 }
 
-private final class CalendarDone: NSObject, EKEventEditViewDelegate {
+private final class CalendarDone: NSObject, EKEventEditViewDelegate, @unchecked Sendable {
     static let shared = CalendarDone()
 
     func eventEditViewController(_ controller: EKEventEditViewController, didCompleteWith action: EKEventEditViewAction) {
-        controller.dismiss(animated: true)
+        MainActor.assumeIsolated { controller.dismiss(animated: true) }
     }
 }
 

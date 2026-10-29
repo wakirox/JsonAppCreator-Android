@@ -288,8 +288,13 @@ object RenderKit {
         setTags(screen, form, data, mapping, photos)
 
     /** No files is no value. */
-    fun setFiles(screen: ScreenViewModel, form: FormView, data: ItemData, mapping: String, files: List<Files.Attached>) =
-        screen.forms.set(form, data.value, mapping, JsonArray(files.map { it.toJson() }).takeIf { it.isNotEmpty() })
+    fun setFiles(
+        screen: ScreenViewModel,
+        form: FormView,
+        data: ItemData,
+        mapping: String,
+        files: List<Files.Attached>
+    ) = screen.forms.set(form, data.value, mapping, JsonArray(files.map { it.toJson() }).takeIf { it.isNotEmpty() })
 
     /** The files a files view shows with [data]. */
     fun files(view: FilesView, data: ItemData): List<Files.Attached> = Files.of(data.value?.valueAt(view.mapping))
