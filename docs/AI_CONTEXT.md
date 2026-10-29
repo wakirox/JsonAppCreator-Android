@@ -51,6 +51,9 @@ The optional root fields are `author`, `icon`, `changelog`, `debugMode`, `views`
 9. Prefer a small working configuration over speculative or undocumented fields.
 10. Before answering, check the JSON syntax and that every reference resolves to exactly
     one definition.
+11. Open every image address before you use it, and keep only those that show the
+    picture. Never build one from a name (a place's, a file's). If you can't open web
+    pages, leave images out and say so in your note.
 
 ## Data-flow checklist
 
@@ -171,8 +174,8 @@ components, or undocumented style properties.
   (`&type=${type}`) is left out when the value is empty.
 - Never invent or guess an address (images, `rest` URLs, web pages) or its parts (folders,
   file names, IDs, sizes): it almost never loads, or shows the wrong thing. Use addresses
-  the user gives, fields of a REST response, or ones you are certain of; otherwise leave
-  them out.
+  the user gives, fields of a REST response, or ones you opened and saw work; otherwise
+  leave them out.
 - For a request that can fail in a way the user should understand, add `onError` (its
   data has `error.message`).
 - For a button that opens a page, a map, the dialer or email, use an `open` event.
@@ -574,7 +577,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
         {
           "key": "parliament",
           "name": "Parliament",
-          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Hungarian_Parliament_Building.jpg?width=800",
           "description": "The Gothic Revival seat of the National Assembly, on the Danube.",
           "tickets": "https://www.parlament.hu/web/visitor-centre",
           "order": 1,
@@ -583,7 +585,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
         {
           "key": "bastion",
           "name": "Fisherman's Bastion",
-          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Hal%C3%A1szb%C3%A1stya.jpg?width=800",
           "description": "Neo-Gothic terraces with the best view over Pest.",
           "order": 2,
           "visited": false
@@ -591,7 +592,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
         {
           "key": "matthias",
           "name": "Matthias Church",
-          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Matthias_Church_Budapest.jpg?width=800",
           "description": "Coloured roof tiles in the heart of the Castle District.",
           "tickets": "https://www.matyas-templom.hu/",
           "order": 3,
@@ -602,13 +602,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
     "itemView": {
       "type": "layout",
       "views": [
-        {
-          "type": "image",
-          "url": "${photo}",
-          "size": {
-            "height": 200
-          }
-        },
         {
           "type": "check",
           "mapping": "visited",
@@ -635,13 +628,6 @@ The list starts with its `initialItems`, saved once; `unique` adds the ones a la
       "id": "place",
       "type": "layout",
       "views": [
-        {
-          "type": "image",
-          "url": "${photo}",
-          "size": {
-            "height": 260
-          }
-        },
         {
           "type": "text",
           "label": "${name}",
