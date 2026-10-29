@@ -18,13 +18,14 @@ is signed and published there by `tools/release.sh`, from the same commit CI tes
 
 ```sh
 git fetch origin
-git switch --detach origin/master
-tools/release.sh v2.0 --dry-run     # build, sign and check; nothing published
-tools/release.sh v2.0               # the same, then tag and publish
+git switch --detach <commit on master>   # usually origin/master
+tools/release.sh v2.0 --dry-run          # build, sign and check; nothing published
+tools/release.sh v2.0                    # the same, then tag and publish
 ```
 
-The script refuses when the checkout has changes, when `HEAD` isn't `origin/master`, when
-the tag exists, or when CI hasn't passed on that commit. It reads the signing values from
+The checked-out commit is released. The script refuses when the checkout has changes, when
+the commit isn't on `master`, when the tag exists, or when CI hasn't passed on that commit.
+Master may have moved on: merging never has to wait for a release. It reads the signing values from
 `$APPKIN_KEYSTORE_PROPERTIES` (by default `~/.android/keys/rainy-keystore.properties`:
 `storeFile`, `storePassword`, `keyAlias`, `keyPassword`) and hands them to Gradle through
 the environment only; they are never printed. API keys for the bundled examples come from
