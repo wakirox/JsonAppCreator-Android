@@ -75,7 +75,7 @@ class ShellKit(private val secrets: SecretStore) {
 
     fun canParse(json: String): Boolean = runCatching { JsonText.parse(json) }.isSuccess
 
-    fun newAppTemplate(): String = Snippets.newApp.replaceFirst("\"My app\"", "\"${library.freeName("My app")}\"")
+    fun templateForNewApp(): String = Snippets.newApp.replaceFirst("\"My app\"", "\"${library.freeName("My app")}\"")
 
     /** [json] read as an app that can open now, or null when it has problems (the editor shows them). */
     fun received(json: String): ReceivedInfo? {

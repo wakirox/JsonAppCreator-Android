@@ -144,7 +144,7 @@ final class Shell: ObservableObject {
     // MARK: Editor and AI
 
     func newApp() {
-        path.append(.editor(EditorSeed(title: String(localized: "New app"), text: kit.newAppTemplate())))
+        path.append(.editor(EditorSeed(title: String(localized: "New app"), text: kit.templateForNewApp())))
     }
 
     func edit(_ session: AppSession) {
