@@ -24,6 +24,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
@@ -193,7 +194,7 @@ class AppIdeasScreenshotTest {
         assertEquals(2, composeRule.onAllNodesWithContentDescription("Remove photo").fetchSemanticsNodes().size)
 
         composeRule.onAllNodesWithContentDescription("Remove photo")[0].performClick()
-        composeRule.onNodeWithText("Save changes").performClick()
+        composeRule.onNodeWithText("Save changes").performScrollTo().performClick()
 
         composeRule.waitUntil(WAIT_TIMEOUT_MS) {
             AppData(SharedPreferencesStore(context, DATA_PREFERENCES)).items(AppLibrary.idOf("App ideas"), "ideas")

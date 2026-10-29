@@ -285,6 +285,34 @@ class StoredDataScreenTest {
     }
 
     @Test
+    fun anIdeaCanBeABugAndBackAndThePdfSaysWhichIs() = runTest {
+        val appData = AppData(store)
+        addApps(appData, "Rainy")
+        val rainy = screen(appData).items(null).single()
+        val newIdea = screen(appData, "new_idea", rainy)
+        assertEquals("", newIdea.forms.values(newIdea.form(), rainy)["bug"], "an idea unless the user says bug")
+        newIdea.forms.set(newIdea.form(), rainy, "bug", "Bug")
+        newIdea.add("title", "Crash on rotate", rainy)
+        newIdea.add("title", "Dark mode", rainy)
+
+        val screen = screen(appData, "app", rainy)
+        val bugLine = screen.row().first { it.visibleIf == "bug" }
+        val shown = screen.items(rainy).map { Pair<String?, Boolean>(it.getValue("title"), ViewVisibility.holds(bugLine.visibleIf, it)) }.toMap()
+        assertEquals<Map<String?, Boolean>>(mapOf("Crash on rotate" to true, "Dark mode" to false), shown)
+
+        screen.onAction(screen.button("PDF").action, rainy)
+        val html = assertIs<ScreenViewModel.Effect.Pdf>(screen.effects.first()).page.html
+        assertEquals(1, Regex("🐞 Bug").findAll(html).count(), "only the bug says so")
+
+        val bug = screen.items(rainy).first { it.getValue("title") == "Crash on rotate" }
+        val edit = screen(appData, "idea", bug)
+        assertEquals("Bug", edit.forms.values(edit.form(), bug)["bug"])
+        edit.forms.set(edit.form(), bug, "bug", "")
+        edit.onSubmit(edit.form(), bug)
+        assertFalse(screen.items(rainy).any { ViewVisibility.holds(bugLine.visibleIf, it) }, "back to an idea")
+    }
+
+    @Test
     fun aPdfWithNoOpenIdeasSaysSoInstead() {
         val appData = AppData(store)
         addApps(appData, "Rainy")
