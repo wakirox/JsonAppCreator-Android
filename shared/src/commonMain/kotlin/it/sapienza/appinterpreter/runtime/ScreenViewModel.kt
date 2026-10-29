@@ -172,7 +172,12 @@ class ScreenViewModel(
         when (val event = resolve(form.action)?.event) {
             null -> Unit
             is SaveData -> if (store(event.thenDo) { saveItem(event, json, context = data) }) forms.reset(form, data)
-            is UpdateData -> store(event.thenDo) { updateItem(event, json, context = data).also(::follow) }
+            // A field the user emptied goes from the saved object, rather than keeping its old value. Only whole
+            // fields of the object: a dotted mapping's emptied part stays.
+            is UpdateData -> {
+                val cleared = form.formElements.map { it.mapping }.filter { '.' !in it && it !in json }.toSet()
+                store(event.thenDo) { updateItem(event, json, context = data, cleared = cleared.takeIf { event.mapping == null }.orEmpty()).also(::follow) }
+            }
             else -> perform(event, json)
         }
     }

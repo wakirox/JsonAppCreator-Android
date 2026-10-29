@@ -85,13 +85,13 @@ class AppData(
     }.orEmpty()
 
     /**
-     * Gives the object of [collection] whose "id" is [id] the values of [changes] and an "updatedAt" of now (its "id"
-     * and "createdAt" stay as they are); null when there is no such object.
+     * Gives the object of [collection] whose "id" is [id] the values of [changes], without its [cleared] fields, and an
+     * "updatedAt" of now (its "id" and "createdAt" stay as they are); null when there is no such object.
      */
-    fun update(appId: String, collection: String, id: String, changes: JsonObject): JsonObject? {
+    fun update(appId: String, collection: String, id: String, changes: JsonObject, cleared: Set<String> = emptySet()): JsonObject? {
         val items = items(appId, collection)
         val index = items.indexOfFirst { it.idText() == id }.takeIf { it >= 0 } ?: return null
-        val updated = JsonObject(items[index] + (changes - FIXED) + ("updatedAt" to JsonPrimitive(now())))
+        val updated = JsonObject(items[index] - (cleared - FIXED) + (changes - FIXED) + ("updatedAt" to JsonPrimitive(now())))
         save(appId, collection, items.toMutableList().apply { set(index, updated) })
         return updated
     }
