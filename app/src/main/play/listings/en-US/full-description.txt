@@ -11,11 +11,13 @@ Every app you open or make is kept under Your apps. Put any of them on your phon
 WHAT YOUR APPS CAN DO
 • Screens with text, buttons and pictures
 • Lists, typed in or loaded from the web, with a page for each item
-• Forms with text, numbers, dates, choices and switches
-• Moving between screens, alerts, and adding events to your calendar
+• Notes, checklists and collections saved on your phone, with photos, tags, sorting and swipe to tick off
+• Forms with text, numbers, dates, choices, tags and photos from your gallery
+• Share what you saved as a PDF, or as Markdown with its photos for your notes app
+• Moving between screens, alerts, maps, links, and adding events to your calendar
 
 START FROM AN EXAMPLE
-Try a gallery of famous paintings, a race sign-up form, a Pokédex or a movie catalogue, and change any of them to make it yours.
+Try Masterpieces, a gallery of famous public-domain paintings; App ideas, a notebook for your own ideas with photos, tags and a PDF; or Movies, a film catalogue. Change any of them to make it yours.
 
 FOR THE CURIOUS
 Every app is one plain JSON file. A built-in editor shows it with colours, suggestions and a live check, and the format guide on GitHub explains every part.

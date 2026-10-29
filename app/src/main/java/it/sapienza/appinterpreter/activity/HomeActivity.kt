@@ -1,6 +1,8 @@
 package it.sapienza.appinterpreter.activity
 
 import android.content.Context
+import android.content.ActivityNotFoundException
+import android.os.Build
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateUtils
@@ -115,6 +117,7 @@ class HomeActivity : AppCompatActivity() {
                 var deleting by remember { mutableStateOf<AppLibrary.SavedApp?>(null) }
                 var menuExpanded by remember { mutableStateOf(false) }
                 var aboutOpen by remember { mutableStateOf(false) }
+                var termsOpen by remember { mutableStateOf(false) }
                 var explained by remember { mutableStateOf(preferences().getBoolean(EXPLAINED_KEY, true)) }
 
                 Scaffold(topBar = {
@@ -233,6 +236,14 @@ class HomeActivity : AppCompatActivity() {
                                 Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME))
                                 Text(stringResource(R.string.home_about_text))
                                 Text(stringResource(R.string.about_contact))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { reportProblem() }) {
+                                        Text(stringResource(R.string.about_report))
+                                    }
+                                    OutlinedButton(shapes = ButtonDefaults.shapes(), onClick = { termsOpen = true }) {
+                                        Text(stringResource(R.string.about_terms))
+                                    }
+                                }
                                 Text(stringResource(R.string.about_credits), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
                                 Text(stringResource(R.string.about_credits_commons))
                                 // TMDB's terms: their logo, less prominent than ours, beside this notice.
@@ -250,6 +261,18 @@ class HomeActivity : AppCompatActivity() {
                                 startActivity(Intent(Intent.ACTION_VIEW, GITHUB.toUri()))
                             }) { Text(stringResource(R.string.home_about_github)) }
                         }
+                    )
+                }
+                if (termsOpen) {
+                    AlertDialog(
+                        onDismissRequest = { termsOpen = false },
+                        title = { Text(stringResource(R.string.about_terms)) },
+                        text = {
+                            Column(Modifier.verticalScroll(rememberScrollState())) {
+                                Text(stringResource(R.string.terms_of_use))
+                            }
+                        },
+                        confirmButton = { TextButton(shapes = ButtonDefaults.shapes(), onClick = { termsOpen = false }) { Text(stringResource(R.string.about_ok)) } }
                     )
                 }
                 deleting?.let { app ->
@@ -284,6 +307,17 @@ class HomeActivity : AppCompatActivity() {
         else EditorActivity.aiAnswer(this, answer)
     }
 
+    /** An email to the contact address, with Appkin's version and the phone's Android version filled in. */
+    private fun reportProblem() {
+        val subject = getString(R.string.report_subject, BuildConfig.VERSION_NAME, Build.VERSION.RELEASE)
+        val mail = Intent(Intent.ACTION_SENDTO, "mailto:$CONTACT".toUri()).putExtra(Intent.EXTRA_SUBJECT, subject)
+        try {
+            startActivity(mail)
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.report_no_email, CONTACT), Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun openFormatGuide() = startActivity(Intent(Intent.ACTION_VIEW, FORMAT_GUIDE.toUri()))
 
     private fun openCurrentApp() = startActivity(Intent(this, MainActivity::class.java))
@@ -293,6 +327,7 @@ class HomeActivity : AppCompatActivity() {
     companion object {
         private const val EXPLAINED_KEY = "how_it_works_open"
         private const val GITHUB = "https://github.com/wakirox/JsonAppCreator-Android"
+        private const val CONTACT = "info@wakirox.app"
         /** The format reference written for people; docs/LLM_GUIDE.md is the one for AI apps. */
         private const val FORMAT_GUIDE = "$GITHUB/blob/master/docs/CONFIGURATION_V3.md"
 
