@@ -6,6 +6,7 @@ const CAPTIONS = {
     ai: { kicker: "With your AI app", headline: "Describe it here, your AI app makes it" },
     gallery: { kicker: "Appkin", headline: "Make your own little apps, like this gallery" },
     detail: { kicker: "Every item", headline: "Tap one to see it up close" },
+    ideas: { kicker: "Saved on your phone", headline: "Notes with photos, tags and files" },
     form: { kicker: "Forms", headline: "Sign-ups that check every field" },
     shortcut: { kicker: "On your home screen", headline: "Each app gets its own icon" },
     editor: { kicker: "For the curious", headline: "Every app is one file you can change" },

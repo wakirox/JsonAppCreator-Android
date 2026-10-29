@@ -1,7 +1,7 @@
 Ask the AI app you already use for an app, and Appkin runs it on your phone: a reading list, a recipe collection, a sign-up form for your club, a gallery of your favourite paintings. No coding, no account, nothing to install.
 
 MAKE IT WITH YOUR AI APP
-Describe the app you want. Appkin hands complete instructions to ChatGPT, Gemini, Grok, Claude or any AI app you use, so it knows exactly what to write. Bring the result back by opening the file it makes, sharing or pasting its answer, or sharing a link to the chat. Appkin checks it and opens it straight away. If something's wrong, one tap sends the problems back to your AI app for a fix.
+Describe the app you want. Appkin hands complete instructions to ChatGPT, Gemini, Grok, Claude or any AI app you use, so it knows exactly what to write. Bring the result back by opening the file it makes, sharing or pasting its answer, or sharing a link to the chat. Appkin checks it, pictures included, and opens it straight away. If something's wrong, such as an image that doesn't load, one tap sends the problems back to your AI app for a fix.
 
 Appkin has no AI inside: your chats stay in the AI app you chose.
 
@@ -12,12 +12,12 @@ WHAT YOUR APPS CAN DO
 • Screens with text, buttons and pictures
 • Lists, typed in or loaded from the web, with a page for each item
 • Notes, checklists and collections saved on your phone, with photos, tags, sorting and swipe to tick off
-• Forms with text, numbers, dates, choices, tags and photos from your gallery
-• Share what you saved as a PDF, or as Markdown with its photos for your notes app
+• Forms with text, numbers, dates, choices, tags, photos from your gallery and attached files that open later
+• Share what you saved as a PDF, or as Markdown with its photos and files in a zip for your notes app
 • Moving between screens, alerts, maps, links, and adding events to your calendar
 
 START FROM AN EXAMPLE
-Try Masterpieces, a gallery of famous public-domain paintings; App ideas, a notebook for your own ideas with photos, tags and a PDF; or Movies, a film catalogue. Change any of them to make it yours.
+Try Masterpieces, a gallery of famous public-domain paintings; App ideas, a notebook for your app ideas and bugs with photos, tags, files and a PDF; or Movies, a film catalogue. Change any of them to make it yours.
 
 FOR THE CURIOUS
 Every app is one plain JSON file. A built-in editor shows it with colours, suggestions and a live check, and the format guide on GitHub explains every part.

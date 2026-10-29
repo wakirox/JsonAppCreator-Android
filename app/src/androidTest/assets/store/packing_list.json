@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 3,
+  "name": "Packing list",
+  "icon": "🧳",
+  "author": "Appkin",
+  "version": "1.0.0",
+  "mainView": {
+    "type": "list",
+    "stored": {
+      "collection": "things",
+      "unique": "key",
+      "sort": [{ "by": "packed" }],
+      "initialItems": [
+        { "key": "passport", "name": "Passport", "packed": false },
+        { "key": "charger", "name": "Phone charger", "packed": false },
+        { "key": "umbrella", "name": "Umbrella", "packed": false }
+      ]
+    },
+    "itemView": { "type": "check", "mapping": "packed", "title": "${name}", "action": { "ref": "pack" } }
+  },
+  "actions": [{ "id": "pack", "event": { "type": "update", "collection": "things" } }]
+}
