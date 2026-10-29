@@ -69,6 +69,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -1010,8 +1011,15 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        Button(shapes = ButtonDefaults.shapes(), onClick = { screen.onSubmit(view, data) }, modifier = Modifier.align(Alignment.End)) {
-            Text(view.buttonTitle ?: "Submit")
+        // Sending is the form's main action: a medium button across the form, easy to reach and to hit.
+        val height = ButtonDefaults.MediumContainerHeight
+        Button(
+            shapes = ButtonDefaults.shapesFor(height),
+            onClick = { screen.onSubmit(view, data) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = height),
+            contentPadding = ButtonDefaults.contentPaddingFor(height)
+        ) {
+            Text(view.buttonTitle ?: "Submit", style = ButtonDefaults.textStyleFor(height))
         }
     }
 }
