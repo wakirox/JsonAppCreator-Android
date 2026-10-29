@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import it.sapienza.androidratio.appratio.R
 import it.sapienza.appinterpreter.activity.MainActivity
 
 /** Home-screen shortcuts that open Appkin straight into one saved app: pinned launcher shortcuts. */
@@ -46,7 +47,7 @@ class HomeShortcuts(private val context: Context) : HomeScreenShortcuts {
 
     /** A deleted app's pinned shortcut stays on the home screen, greyed out, and says so when tapped. */
     override fun disable(id: String) =
-        ShortcutManagerCompat.disableShortcuts(context, listOf(id), "This app was deleted in Appkin")
+        ShortcutManagerCompat.disableShortcuts(context, listOf(id), context.getString(R.string.shortcut_deleted))
 
     companion object {
         const val EXTRA_APP_ID = "app_id"

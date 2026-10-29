@@ -70,7 +70,7 @@ object AskAi {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        val chooser = Intent.createChooser(send, "Share to your AI app")
+        val chooser = Intent.createChooser(send, context.getString(R.string.ask_ai_share_chooser))
         // Not to Appkin itself, which receives AI answers through the same share sheet.
         chooser.putExtra(
             Intent.EXTRA_EXCLUDE_COMPONENTS,
