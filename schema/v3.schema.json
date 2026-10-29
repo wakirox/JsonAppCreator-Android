@@ -579,7 +579,7 @@
       "description": "An event, chosen by its type.",
       "type": "object",
       "required": ["type"],
-      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy", "pdf"] } },
+      "properties": { "type": { "enum": ["rest", "show", "alert", "calendar", "open", "share", "save", "update", "delete", "back", "copy", "pdf", "textpack"] } },
       "allOf": [
         { "if": { "properties": { "type": { "const": "rest" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/restEvent" } },
         { "if": { "properties": { "type": { "const": "show" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/showEvent" } },
@@ -592,7 +592,8 @@
         { "if": { "properties": { "type": { "const": "delete" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/deleteEvent" } },
         { "if": { "properties": { "type": { "const": "back" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/backEvent" } },
         { "if": { "properties": { "type": { "const": "copy" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/copyEvent" } },
-        { "if": { "properties": { "type": { "const": "pdf" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/pdfEvent" } }
+        { "if": { "properties": { "type": { "const": "pdf" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/pdfEvent" } },
+        { "if": { "properties": { "type": { "const": "textpack" } }, "required": ["type"] }, "then": { "$ref": "#/$defs/textpackEvent" } }
       ]
     },
     "restEvent": {
@@ -731,6 +732,73 @@
         "pageless": { "description": "true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing", "type": ["boolean", "null"] },
         "mapping": { "description": "Path of the part of the current data to use", "$ref": "#/$defs/nullableString" },
         "data": { "$ref": "#/$defs/data" }
+      },
+      "additionalProperties": false
+    },
+    "textpackEvent": {
+      "type": "object",
+      "description": "Makes a TextPack of saved objects: one Markdown text (a title, then each object's text) with their photos as files beside it, zipped (textbundle.org), for notes apps and Markdown editors. The share sheet opens on it.",
+      "required": [
+        "type",
+        "collection",
+        "text"
+      ],
+      "properties": {
+        "type": {
+          "const": "textpack"
+        },
+        "collection": {
+          "description": "The collection whose objects it shows",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "where": {
+          "description": "Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { \"appId\": \"${id}\", \"done\": false }",
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "sort": {
+          "description": "The order, as a stored list's sort",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/storedSort"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/storedSort"
+              },
+              "minItems": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "description": "The heading at the top and the pack's name; may use ${field} placeholders from the current data. The app's name by default",
+          "$ref": "#/$defs/nullableString"
+        },
+        "text": {
+          "description": "Each object's part, as Markdown with ${field} placeholders from the object, such as \"## ${title}\\n${description}\"; a line whose placeholders all have no value is left out",
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "photos": {
+          "description": "Path of each object's photos (a photos field's list): kept ones go in the pack as files, linked below its text",
+          "$ref": "#/$defs/nullableString"
+        },
+        "emptyText": {
+          "description": "What an alert says when no object matches, instead of an empty pack; may use ${field} placeholders",
+          "$ref": "#/$defs/nullableString"
+        },
+        "mapping": {
+          "description": "Path of the part of the current data to use",
+          "$ref": "#/$defs/nullableString"
+        },
+        "data": {
+          "$ref": "#/$defs/data"
+        }
       },
       "additionalProperties": false
     },

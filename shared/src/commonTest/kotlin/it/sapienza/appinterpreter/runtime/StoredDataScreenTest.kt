@@ -313,6 +313,21 @@ class StoredDataScreenTest {
     }
 
     @Test
+    fun theExportButtonPacksTheAppsOpenIdeas() = runTest {
+        val ideas = ideas()
+        val screen = ideas.rainyScreen
+        screen.onAction(screen.list().swipeToEnd, screen.items(ideas.rainy).first { it.getValue("title") == "Widgets" })
+
+        screen.onAction(screen.button("Export").action, ideas.rainy)
+
+        val pack = assertIs<ScreenViewModel.Effect.TextPack>(screen.effects.first()).pack
+        assertEquals("Rainy: open ideas", pack.title)
+        assertTrue(pack.markdown.startsWith("# Rainy: open ideas\n\n## Dark mode"))
+        assertFalse("Widgets" in pack.markdown, "done ideas are left out")
+        assertFalse("🐞" in pack.markdown, "an idea isn't marked as a bug")
+    }
+
+    @Test
     fun anIdeasTagsFieldKnowsTheTagsOfEveryIdea() {
         val appData = AppData(store)
         addApps(appData, "Rainy", "Tasse")

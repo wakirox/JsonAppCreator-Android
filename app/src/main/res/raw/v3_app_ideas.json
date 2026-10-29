@@ -168,6 +168,40 @@
                   "pageless": true
                 }
               }
+            },
+            {
+              "type": "button",
+              "title": "Export",
+              "icon": "share",
+              "action": {
+                "id": "textpack_ideas",
+                "event": {
+                  "type": "textpack",
+                  "collection": "ideas",
+                  "where": {
+                    "appId": "${id}",
+                    "done": false
+                  },
+                  "sort": [
+                    {
+                      "by": "priority",
+                      "order": [
+                        "High",
+                        "Medium",
+                        "Low"
+                      ]
+                    },
+                    {
+                      "by": "createdAt",
+                      "descending": true
+                    }
+                  ],
+                  "title": "${name}: open ideas",
+                  "text": "## ${title}\n\n🐞 ${bug}\n\n**${priority} priority**\n\nTags: ${tags}\n\n${description}\n\n[${link}](${link})",
+                  "photos": "photos",
+                  "emptyText": "No open ideas for ${name}."
+                }
+              }
             }
           ]
         },

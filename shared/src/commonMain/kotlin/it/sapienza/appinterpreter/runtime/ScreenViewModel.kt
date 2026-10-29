@@ -20,7 +20,9 @@ import it.sapienza.appinterpreter.model.event.DeleteData
 import it.sapienza.appinterpreter.model.event.Event
 import it.sapienza.appinterpreter.model.event.GoBack
 import it.sapienza.appinterpreter.model.event.OpenLink
+import it.sapienza.appinterpreter.model.event.ItemsExport
 import it.sapienza.appinterpreter.model.event.PdfItems
+import it.sapienza.appinterpreter.model.event.TextPackItems
 import it.sapienza.appinterpreter.model.event.ShareText
 import it.sapienza.appinterpreter.model.event.RESTService
 import it.sapienza.appinterpreter.model.event.SaveData
@@ -41,6 +43,7 @@ import it.sapienza.appinterpreter.runtime.usecase.LoadScreenUseCase
 import it.sapienza.appinterpreter.runtime.usecase.MissingValueException
 import it.sapienza.appinterpreter.runtime.usecase.OpenLinkUseCase
 import it.sapienza.appinterpreter.runtime.usecase.PdfPageUseCase
+import it.sapienza.appinterpreter.runtime.usecase.TextPackUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SaveItemUseCase
 import it.sapienza.appinterpreter.runtime.usecase.SubmitFormUseCase
 import it.sapienza.appinterpreter.runtime.usecase.UpdateItemUseCase
@@ -85,6 +88,7 @@ class ScreenViewModel(
     loadScreen: LoadScreenUseCase,
     private val strings: RuntimeStrings,
     private val pdfPage: PdfPageUseCase = PdfPageUseCase(),
+    private val textPack: TextPackUseCase = TextPackUseCase(),
 ) : ViewModel() {
 
     /** One-off things only the platform's screen can do. */
@@ -104,6 +108,8 @@ class ScreenViewModel(
         class Share(val text: String, val photos: List<String> = emptyList()) : Effect
         /** Make a PDF of [page] and open the share sheet on it (sending, saving or printing it). */
         class Pdf(val page: PdfPageUseCase.Page) : Effect
+        /** Zip [pack] as a .textpack and open the share sheet on it. */
+        class TextPack(val pack: TextPackUseCase.Pack) : Effect
     }
 
     private val effectChannel = Channel<Effect>(Channel.BUFFERED)
@@ -224,12 +230,8 @@ class ScreenViewModel(
                 is OpenLinkUseCase.Result.Missing -> alerts.show(strings.valueMissing(result.path))
                 is OpenLinkUseCase.Result.NotAllowed -> alerts.show(strings.linkNotAllowed(result.url))
             }
-            is PdfItems -> {
-                val shown = event.mapping?.let { data?.getObject(it) } ?: data
-                val items = loadListItems.stored(StoredData(event.collection, event.where, event.sort), shown)
-                val empty = event.emptyText?.matchReplace(shown)?.takeIf { items.isEmpty() && it.isNotBlank() }
-                if (empty != null) alerts.show(empty) else effectChannel.trySend(Effect.Pdf(pdfPage(event, items, shown, app?.name.orEmpty())))
-            }
+            is PdfItems -> export(event, data) { items, shown -> Effect.Pdf(pdfPage(event, items, shown, app?.name.orEmpty())) }
+            is TextPackItems -> export(event, data) { items, shown -> Effect.TextPack(textPack(event, items, shown, app?.name.orEmpty())) }
             is ShareText -> {
                 val shared = event.mapping?.let { data?.getObject(it) } ?: data
                 val photos = event.photos?.let { path ->
@@ -243,6 +245,14 @@ class ScreenViewModel(
                 if (text.isNotBlank() || photos.isNotEmpty()) effectChannel.trySend(Effect.Share(text, photos))
             }
         }
+    }
+
+    /** Writes out the saved objects [event] picks, with [data] (the part its mapping selects); without any, its emptyText. */
+    private fun <E> export(event: E, data: JsonObject?, effect: (List<JsonObject>, JsonObject?) -> Effect) where E : Event, E : ItemsExport {
+        val shown = event.mapping?.let { data?.getObject(it) } ?: data
+        val items = loadListItems.stored(StoredData(event.collection, event.where, event.sort), shown)
+        val empty = event.emptyText?.matchReplace(shown)?.takeIf { items.isEmpty() && it.isNotBlank() }
+        if (empty != null) alerts.show(empty) else effectChannel.trySend(effect(items, shown))
     }
 
     private fun showAlert(event: AlertMessage, data: JsonObject?) {

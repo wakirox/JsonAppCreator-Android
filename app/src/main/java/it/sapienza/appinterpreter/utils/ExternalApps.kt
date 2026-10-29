@@ -5,8 +5,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import it.sapienza.appinterpreter.activity.EditorActivity
+import java.io.File
 
 /** The intents of a JSON app's open and share events: other apps on the phone do the rest. */
 object ExternalApps {
@@ -41,5 +43,19 @@ object ExternalApps {
         return Intent.createChooser(send, title)
             .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, EditorActivity::class.java)))
             .apply { clip?.let { clipData = it; addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) } }
+    }
+
+    /** The share sheet on [file] (in the shared cache) as [mimeType], named [name], readable by the app picked. */
+    fun shareFile(context: Context, file: File, mimeType: String, name: String, title: String): Intent {
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+        val send = Intent(Intent.ACTION_SEND).setType(mimeType)
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .putExtra(Intent.EXTRA_TITLE, name)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        send.clipData = ClipData.newRawUri(name, uri)
+        return Intent.createChooser(send, title)
+            .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(context, EditorActivity::class.java)))
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .apply { clipData = send.clipData }
     }
 }
