@@ -19,6 +19,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
+import it.sapienza.appinterpreter.runtime.TagSuggestions
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.clickable
@@ -1005,7 +1007,7 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
                 is PhotosInput -> PhotosField(item, values[item.mapping] as? JsonArray, onChange)
-                is TagsInput -> TagsField(item, values[item.mapping] as? JsonArray, onChange)
+                is TagsInput -> TagsField(item, values[item.mapping] as? JsonArray, remember(view, item) { screen.knownTags(view, item) }, onChange)
                 is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
                 // A hidden field only sends its value.
                 is HiddenInput -> Unit
@@ -1253,16 +1255,18 @@ private val PHOTO_THUMB_SIZE = 88.dp
 
 /** Tags typed one at a time (Enter or + adds one, ignoring a repeat), shown as chips that can be removed. */
 @Composable
-private fun TagsField(item: TagsInput, tags: JsonArray?, onChange: (Any?) -> Unit) {
+private fun TagsField(item: TagsInput, tags: JsonArray?, known: List<String>, onChange: (Any?) -> Unit) {
     val current = tags?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.orEmpty()
     var typed by rememberSaveable(item.mapping) { mutableStateOf("") }
-    val add = {
-        val tag = typed.trim().trimStart('#')
+    val addTag = { text: String ->
+        val tag = text.trim().trimStart('#')
         if (tag.isNotEmpty() && current.none { it.equals(tag, ignoreCase = true) }) {
             onChange(JsonArray((current + tag).map(::JsonPrimitive)))
         }
         typed = ""
     }
+    val add = { addTag(typed) }
+    val suggestions = TagSuggestions.matching(known, current, typed)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
             value = typed,
@@ -1280,6 +1284,14 @@ private fun TagsField(item: TagsInput, tags: JsonArray?, onChange: (Any?) -> Uni
             },
             modifier = Modifier.fillMaxWidth()
         )
+        // Tags used elsewhere in the same collection: one tap adds one, spelt as before.
+        if (suggestions.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("tag-suggestions")) {
+                suggestions.forEach { tag ->
+                    SuggestionChip(onClick = { addTag(tag) }, label = { Text("+ #$tag") })
+                }
+            }
+        }
         if (current.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 current.forEach { tag ->

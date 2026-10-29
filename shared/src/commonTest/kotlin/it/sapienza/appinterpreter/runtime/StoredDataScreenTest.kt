@@ -313,6 +313,24 @@ class StoredDataScreenTest {
     }
 
     @Test
+    fun anIdeasTagsFieldKnowsTheTagsOfEveryIdea() {
+        val appData = AppData(store)
+        addApps(appData, "Rainy", "Tasse")
+        val (rainy, tasse) = screen(appData).items(null)
+        val newRainy = screen(appData, "new_idea", rainy)
+        newRainy.forms.set(newRainy.form(), rainy, "tags", JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui"))))
+        newRainy.add("title", "Complication", rainy)
+
+        val newTasse = screen(appData, "new_idea", tasse)
+        val tags = newTasse.form().formElements.first { it.mapping == "tags" } as TagsInput
+        assertEquals(listOf("ui", "watch"), newTasse.knownTags(newTasse.form(), tags), "another app's ideas count too")
+        val edit = screen(appData, "idea", screen(appData, "app", rainy).items(rainy).first())
+        assertEquals(listOf("ui", "watch"), edit.knownTags(edit.form(), tags))
+        val newApp = screen(appData, "new_app")
+        assertEquals(emptyList(), newApp.knownTags(newApp.form(), tags), "the apps collection has no tags")
+    }
+
+    @Test
     fun aFieldEmptiedOnTheEditScreenIsGoneFromTheSavedIdea() {
         val appData = AppData(store)
         addApps(appData, "Rainy")

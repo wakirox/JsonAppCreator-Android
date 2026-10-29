@@ -28,6 +28,8 @@ import it.sapienza.appinterpreter.model.event.ShowView
 import it.sapienza.appinterpreter.model.event.UpdateData
 import it.sapienza.appinterpreter.model.view_model.CheckView
 import it.sapienza.appinterpreter.model.view_model.FormView
+import it.sapienza.appinterpreter.runtime.usecase.LoadStoredItemsUseCase
+import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
 import it.sapienza.appinterpreter.model.view_model.StoredData
 import it.sapienza.appinterpreter.model.view_model.helper.MView
 import it.sapienza.appinterpreter.runtime.usecase.DeleteItemsUseCase
@@ -156,6 +158,19 @@ class ScreenViewModel(
     fun onAction(action: Action?, data: JsonObject?) {
         val resolved = resolve(action) ?: return
         resolved.event?.let { onEvent(it, resolved.data ?: data) }
+    }
+
+    /**
+     * The tags already used in the collection [form] saves to or changes, at [field]'s mapping, for the field to
+     * suggest; none when the form doesn't save on the phone.
+     */
+    fun knownTags(form: FormView, field: TagsInput): List<String> {
+        val collection = when (val event = resolve(form.action)?.event) {
+            is SaveData -> event.collection
+            is UpdateData -> event.collection
+            else -> return emptyList()
+        }
+        return LoadStoredItemsUseCase.tagsIn(loadListItems.stored(StoredData(collection), null), field.mapping)
     }
 
     /** [view] was ticked ([checked]) or unticked: its action runs with the data where its value says so. */
