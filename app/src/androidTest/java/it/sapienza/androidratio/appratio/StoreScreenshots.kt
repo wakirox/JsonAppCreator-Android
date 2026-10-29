@@ -4,6 +4,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.graphics.BitmapFactory
+import it.sapienza.appinterpreter.storage.AppData
+import it.sapienza.appinterpreter.storage.Files
+import it.sapienza.appinterpreter.utils.AppLibrary
+import it.sapienza.appinterpreter.utils.PhotoStore
+import it.sapienza.appinterpreter.utils.SharedPreferencesStore
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -40,6 +50,11 @@ class StoreScreenshots {
     fun capture() {
         // Your apps: one the user made with an AI app and one changed from an example. How it works closed.
         val bookClub = instrumentation.context.assets.open("store/book_club.json").bufferedReader().use { it.readText() }
+        // Enough of the user's own apps that the examples (Movies credits TMDB) stay below the screen's edge.
+        fun asset(name: String) = instrumentation.context.assets.open("store/$name").bufferedReader().use { it.readText() }
+        DomainController.setJsonFile(asset("reading_list.json"), context)
+        DomainController.setJsonFile(asset("packing_list.json"), context)
+        DomainController.setJsonFile(read(R.raw.v3_ai_checklist), context)
         DomainController.setJsonFile(read(R.raw.v3_race_signup), context)
         DomainController.setJsonFile(bookClub, context)
         context.getSharedPreferences("Home", Context.MODE_PRIVATE).edit().putBoolean("how_it_works_open", false).commit()
@@ -55,14 +70,24 @@ class StoreScreenshots {
 
         DomainController.setJsonFile(R.raw.v3_masterpieces, context)
         start(MainActivity::class.java)
-        waitFor("The Great Wave off Kanagawa")
-        settle(4000) // the paintings load from the web
+        waitFor("Mona Lisa")
+        settle(5000) // the paintings load from the web
         shoot("gallery")
 
-        device.findObject(By.text("Paris Street; Rainy Day")).click()
-        waitFor("Art Institute of Chicago")
+        device.findObject(By.text("Mona Lisa")).click()
+        waitFor("Where to see it")
         settle(3000)
         shoot("detail")
+
+        // App ideas, as someone keeping notes on their own app: a bug, priorities, tags, mockups and a file.
+        seedIdeas()
+        DomainController.setJsonFile(R.raw.v3_app_ideas, context)
+        start(MainActivity::class.java)
+        waitFor("Rainy")
+        device.findObject(By.text("Rainy")).click()
+        waitFor("Rain alerts on the watch")
+        settle(2000)
+        shoot("ideas")
 
         DomainController.setJsonFile(R.raw.v3_race_signup, context)
         start(MainActivity::class.java)
@@ -94,6 +119,42 @@ class StoreScreenshots {
         waitFor("Edit this app")
         settle(1500)
         shoot("editor")
+    }
+
+    /** Saves the App ideas example's data: one app with three ideas, its two mockups kept as the app keeps photos. */
+    private fun seedIdeas() {
+        val photos = PhotoStore(context)
+        listOf("mockup-dark", "mockup-amoled").forEach { name ->
+            val bitmap = instrumentation.context.assets.open("store/$name.png").use(BitmapFactory::decodeStream)
+            checkNotNull(photos.file("appkin-photo:$name.jpg")).apply { parentFile?.mkdirs() }.outputStream().use {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it)
+            }
+        }
+        val data = AppData(SharedPreferencesStore(context, "AppData"))
+        val app = AppLibrary.idOf("App ideas")
+        fun item(vararg fields: Pair<String, JsonElement>) = JsonObject(fields.toMap())
+        fun text(value: String) = JsonPrimitive(value)
+        fun list(vararg values: String) = JsonArray(values.map(::JsonPrimitive))
+        val rainy = data.add(app, "apps", item("name" to text("Rainy"), "description" to text("Rain alerts and forecasts, on the phone and the watch")))
+        val rainyId = text(checkNotNull((rainy["id"] as? JsonPrimitive)?.content))
+        data.add(
+            app, "ideas",
+            item(
+                "appId" to rainyId, "title" to text("Rain alerts on the watch"), "priority" to text("High"), "done" to JsonPrimitive(false),
+                "description" to text("A tap on the wrist before it rains\nOnly when I'm outside"),
+                "tags" to list("watch", "alerts"), "photos" to list("appkin-photo:mockup-dark.jpg", "appkin-photo:mockup-amoled.jpg"),
+                "files" to JsonArray(listOf(Files.Attached("watch-face-spec.pdf", "application/pdf", 245_000, "content://store/spec").toJson())),
+                "link" to text("https://wakirox.app")
+            )
+        )
+        data.add(
+            app, "ideas",
+            item(
+                "appId" to rainyId, "title" to text("The widget is blank after a resize"), "priority" to text("Medium"), "done" to JsonPrimitive(false),
+                "bug" to text("Bug"), "tags" to list("widgets")
+            )
+        )
+        data.add(app, "ideas", item("appId" to rainyId, "title" to text("Dark mode"), "priority" to text("Low"), "done" to JsonPrimitive(true), "tags" to list("ui")))
     }
 
     private fun read(resource: Int) = context.resources.openRawResource(resource).bufferedReader().use { it.readText() }

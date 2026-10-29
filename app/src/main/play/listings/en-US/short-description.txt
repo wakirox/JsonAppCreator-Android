@@ -1,1 +1,1 @@
-Make your own little apps with the AI app you already use, and run them at once.
+Turn a JSON file into ready screens, written by the AI app you already use.
