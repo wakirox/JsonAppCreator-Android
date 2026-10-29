@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -87,7 +89,11 @@ fun EditorScreen(
     initialText: String,
     /** Where the text came from when it isn't saved anywhere yet ("Shared from your AI app"), or null. */
     unsavedSource: String?,
+    /** The text is an AI app's answer (shared, pasted or a chat link): problems are offered back to it first. */
+    fromAiApp: Boolean,
     check: suspend (String) -> List<EditorIssue>,
+    /** The HTTP status of a web image the text shows (null: no answer), to say which don't load. */
+    imageStatus: suspend (String) -> Int?,
     suggestions: SchemaSuggestions,
     onRun: (String) -> Unit,
     onSaveAs: (String) -> Unit,
@@ -108,11 +114,16 @@ fun EditorScreen(
     val scroll = rememberScrollState()
     val focus = remember { FocusRequester() }
 
-    // The live check, once typing pauses.
+    // Each image address is asked once while the screen is open, however often the text changes.
+    val imageStatuses = remember { mutableMapOf<String, Int?>() }
+    // The live check, once typing pauses; when the configuration is right, whether its web images load.
     LaunchedEffect(value.text) {
         issues = null
         delay(CHECK_DELAY_MS)
-        issues = check(value.text)
+        val found = check(value.text)
+        issues = found.ifEmpty {
+            ImageLinks.problems(value.text) { url -> if (url in imageStatuses) imageStatuses[url] else imageStatus(url).also { imageStatuses[url] = it } }
+        }
     }
     // Suggestions and the keyboard type, from one reading of the text at the cursor.
     val assist = remember(value.text, value.selection) {
@@ -212,8 +223,8 @@ fun EditorScreen(
             if (unsavedSource != null) {
                 Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
                     Text(
-                        "$unsavedSource, not saved yet. ▶ runs it; problems can go back to your AI app " +
-                            "from the bar below.",
+                        "$unsavedSource, not saved yet. ▶ runs it" +
+                            if (fromAiApp) "; problems can go back to your AI app from the bar below." else ".",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
@@ -256,6 +267,7 @@ fun EditorScreen(
                 text = value.text,
                 onToggle = { issuesOpen = !issuesOpen },
                 onIssue = { issue -> issue.offset?.let(::jumpTo) },
+                fromAiApp = fromAiApp,
                 onSendToAi = { found -> AskAi.shareToAiApp(context, AskAi.fixRequest(context, value.text, found)) }
             )
         }
@@ -337,10 +349,17 @@ private fun IssueBar(
     text: String,
     onToggle: () -> Unit,
     onIssue: (EditorIssue) -> Unit,
+    /** An AI app's answer gets a red button to send the problems back; one's own JSON, a quieter link. */
+    fromAiApp: Boolean,
     onSendToAi: (List<EditorIssue>) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    Surface(color = colors.surfaceContainer) {
+    // Problems turn the bar red (the theme's error colours, light or dark), so they can't be missed.
+    val problems = !issues.isNullOrEmpty()
+    Surface(
+        color = if (problems) colors.errorContainer else colors.surfaceContainer,
+        contentColor = if (problems) colors.onErrorContainer else colors.onSurface
+    ) {
         Column {
             Row(
                 Modifier.fillMaxWidth().clickable(enabled = !issues.isNullOrEmpty(), onClick = onToggle)
@@ -360,6 +379,7 @@ private fun IssueBar(
                         Text(
                             problemsLabel(issues.size) + if (open) "" else ": " + issues.first().message,
                             style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -367,8 +387,19 @@ private fun IssueBar(
                 }
             }
             if (open && !issues.isNullOrEmpty()) {
-                TextButton(shapes = ButtonDefaults.shapes(), onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
-                    Text("Send problems to your AI app…")
+                if (fromAiApp) {
+                    Button(
+                        shapes = ButtonDefaults.shapes(),
+                        onClick = { onSendToAi(issues) },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = colors.onError),
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                    ) {
+                        Text("Send problems to your AI app…")
+                    }
+                } else {
+                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
+                        Text("Ask an AI app to fix them…")
+                    }
                 }
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {
                     items(issues) { issue ->
@@ -377,7 +408,7 @@ private fun IssueBar(
                             Text(
                                 listOfNotNull(line?.let { "Line $it" }, issue.path.takeIf { it != "$" }).joinToString(" · "),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = colors.onSurfaceVariant
+                                color = LocalContentColor.current.copy(alpha = 0.75f)
                             )
                             Text(issue.message, style = MaterialTheme.typography.bodyMedium)
                         }
