@@ -815,7 +815,7 @@
     },
     "updateEvent": {
       "type": "object",
-      "description": "Changes a saved object: the current data (a form's submitted values, or a ticked check's item) and fields replace its values. Its id and createdAt never change.",
+      "description": "Changes a saved object: the current data (a form's submitted values, or a ticked check's item) and fields replace its values; a form's field left empty is removed from it. Its id and createdAt never change.",
       "required": ["type", "collection"],
       "properties": {
         "type": { "const": "update" },

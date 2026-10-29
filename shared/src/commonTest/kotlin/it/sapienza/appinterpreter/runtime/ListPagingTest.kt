@@ -14,6 +14,13 @@ import it.sapienza.appinterpreter.storage.AppData
 import it.sapienza.appinterpreter.storage.MemoryAppStore
 import it.sapienza.appinterpreter.utils.AppParser
 import it.sapienza.appinterpreter.utils.httpclient.JsonHttpClient
+import kotlin.concurrent.Volatile
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -22,11 +29,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /** Lists that load more pages as they're scrolled, and load again when pulled. */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,9 +36,13 @@ class ListPagingTest {
     private val requested = mutableListOf<String>()
     private var failNext = false
 
+    /** While set, requests wait for it before answering, so a test can look at a list while it loads. */
+    @Volatile private var hold: CompletableDeferred<Unit>? = null
+
     /** 7 works in all, served [limit] at a time from [skip]. */
     private val engine = MockEngine { request ->
         requested += request.url.toString()
+        hold?.await()
         if (failNext) {
             failNext = false
             return@MockEngine respond("{}", HttpStatusCode.ServiceUnavailable)
@@ -116,9 +122,13 @@ class ListPagingTest {
         assertEquals(6, settled(entry).items.size)
         assertTrue(lists.canRefresh.value)
 
+        // The first page is held back until the list has been seen loading again with its items.
+        val firstPage = CompletableDeferred<Unit>().also { hold = it }
         lists.refresh()
         assertTrue(lists.refreshing.value)
         assertEquals(6, entry.content.value.items.size, "the items stay while the list loads again")
+        hold = null
+        firstPage.complete(Unit)
         withContext(Dispatchers.Default) { withTimeout(10_000) { lists.refreshing.first { !it } } }
 
         assertEquals(3, entry.content.value.items.size, "back to the first page")

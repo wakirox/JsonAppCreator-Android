@@ -328,6 +328,46 @@ class StoredDataScreenTest {
     }
 
     @Test
+    fun anIdeasTagsFieldKnowsTheTagsOfEveryIdea() {
+        val appData = AppData(store)
+        addApps(appData, "Rainy", "Tasse")
+        val (rainy, tasse) = screen(appData).items(null)
+        val newRainy = screen(appData, "new_idea", rainy)
+        newRainy.forms.set(newRainy.form(), rainy, "tags", JsonArray(listOf(JsonPrimitive("watch"), JsonPrimitive("ui"))))
+        newRainy.add("title", "Complication", rainy)
+
+        val newTasse = screen(appData, "new_idea", tasse)
+        val tags = newTasse.form().formElements.first { it.mapping == "tags" } as TagsInput
+        assertEquals(listOf("ui", "watch"), newTasse.knownTags(newTasse.form(), tags), "another app's ideas count too")
+        val edit = screen(appData, "idea", screen(appData, "app", rainy).items(rainy).first())
+        assertEquals(listOf("ui", "watch"), edit.knownTags(edit.form(), tags))
+        val newApp = screen(appData, "new_app")
+        assertEquals(emptyList(), newApp.knownTags(newApp.form(), tags), "the apps collection has no tags")
+    }
+
+    @Test
+    fun aFieldEmptiedOnTheEditScreenIsGoneFromTheSavedIdea() {
+        val appData = AppData(store)
+        addApps(appData, "Rainy")
+        val rainy = screen(appData).items(null).single()
+        val newIdea = screen(appData, "new_idea", rainy)
+        newIdea.forms.set(newIdea.form(), rainy, "description", "For night owls")
+        newIdea.forms.set(newIdea.form(), rainy, "link", "https://wakirox.app")
+        newIdea.add("title", "Dark mode", rainy)
+        val idea = screen(appData, "app", rainy).items(rainy).single()
+
+        val edit = screen(appData, "idea", idea)
+        edit.forms.set(edit.form(), idea, "description", null)
+        edit.onSubmit(edit.form(), idea)
+
+        val saved = screen(appData, "app", rainy).items(rainy).single()
+        assertNull(saved.getValue("description"), "emptied, so gone")
+        assertEquals("https://wakirox.app", saved.getValue("link"), "the rest stays")
+        assertEquals(idea.getValue("appId"), saved.getValue("appId"), "fields the form doesn't show stay")
+        assertEquals(idea.getValue("id"), saved.getValue("id"))
+    }
+
+    @Test
     fun aPdfWithNoOpenIdeasSaysSoInstead() {
         val appData = AppData(store)
         addApps(appData, "Rainy")
