@@ -39,9 +39,9 @@
     <string name="how_hide">Hide</string>
     <string name="how_step_file_title">Every app is one file</string>
     <string name="how_step_file_text">A JSON file is plain text that describes an app: its screens, the words and pictures on them, lists, forms and buttons, and what happens when you tap something.</string>
-    <string name="how_step_run_title">Appkin brings it to life</string>
-    <string name="how_step_run_text">Open a file and it runs straight away as a real app on your phone. Nothing to install, build or sign up for.</string>
-    <string name="how_step_get_title">Get apps your way</string>
+    <string name="how_step_run_title">Appkin shows it</string>
+    <string name="how_step_run_text">Open a file and Appkin draws its screens at once, with its own built-in parts: nothing in the file runs as code. Nothing to install, build or sign up for.</string>
+    <string name="how_step_get_title">Get files your way</string>
     <string name="how_step_get_text">Try an example below, open a file someone sent you, write one in the built-in editor, or ask the AI app you already use (ChatGPT, Gemini, Claude…) to make one for you.</string>
     <string name="how_step_keep_title">Keep the ones you like</string>
     <string name="how_step_keep_text">Every app you open is kept under Your apps. Put any of them on your phone\'s home screen with its own icon: tapping it opens that app directly.</string>

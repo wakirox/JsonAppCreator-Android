@@ -118,7 +118,8 @@ class HomeActivity : AppCompatActivity() {
                 var menuExpanded by remember { mutableStateOf(false) }
                 var aboutOpen by remember { mutableStateOf(false) }
                 var termsOpen by remember { mutableStateOf(false) }
-                var explained by remember { mutableStateOf(preferences().getBoolean(EXPLAINED_KEY, true)) }
+                // Closed until opened: the user's apps and the examples come first.
+                var explained by remember { mutableStateOf(preferences().getBoolean(EXPLAINED_KEY, false)) }
 
                 Scaffold(topBar = {
                     TopAppBar(
