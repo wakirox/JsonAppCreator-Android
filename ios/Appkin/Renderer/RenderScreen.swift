@@ -93,8 +93,12 @@ struct RenderNode: View {
                 if let image = resolved as? ImageView { RenderImage(view: image, data: data) }
             case "list":
                 if let list = resolved as? ListView { RenderList(view: list, data: data, screen: model.vm) }
+            case "form":
+                if let form = resolved as? FormView { RenderForm(view: form, data: data) }
+            case "check":
+                if let check = resolved as? CheckView { RenderCheck(view: check, data: data) }
             default:
-                // Forms, ticks and files come in a later phase.
+                // Files come in a later phase.
                 NotYetOnIOS(kind: RenderKit.shared.kind(view: resolved))
             }
         }

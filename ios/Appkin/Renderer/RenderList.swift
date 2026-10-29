@@ -22,6 +22,9 @@ struct RenderList: View {
         let content = list.content
         let items = RenderKit.shared.items(content: content)
         VStack(alignment: .leading, spacing: 10) {
+            if RenderKit.shared.hasControls(view: view), !content.waiting, content.errorMessage == nil {
+                StoredListControls(view: view, list: list, content: content)
+            }
             if content.waiting {
                 ProgressView().frame(maxWidth: .infinity)
             } else if let message = content.errorMessage {
@@ -107,13 +110,33 @@ struct RenderList: View {
         let items = RenderKit.shared.items(content: content)
         return VStack(spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                ListCardContent(itemView: view.itemView, item: item, preview: view.action == nil)
-                    .actionable(view.action, item)
+                swipeable(item) {
+                    ListCardContent(itemView: view.itemView, item: item, preview: view.action == nil)
+                        .actionable(view.action, item)
+                }
                 if index < items.count - 1 { Divider().padding(.leading, 14) }
             }
         }
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    /// A row that swipes when the list has swipe actions.
+    @ViewBuilder
+    private func swipeable<Row: View>(_ item: ItemData, @ViewBuilder row: () -> Row) -> some View {
+        let start = RenderKit.shared.swipeToStart(view: view)
+        let end = RenderKit.shared.swipeToEnd(view: view)
+        if start == nil, end == nil {
+            row()
+        } else {
+            SwipeRow(
+                startIcon: start == nil ? nil : RenderKit.shared.swipeToStartIcon(view: view),
+                endIcon: end == nil ? nil : RenderKit.shared.swipeToEndIcon(view: view),
+                onStart: { RenderKit.shared.onAction(screen: screen.vm, action: start, data: item) },
+                onEnd: { RenderKit.shared.onAction(screen: screen.vm, action: end, data: item) },
+                content: row
+            )
+        }
     }
 
     private func card(_ item: ItemData) -> some View {
@@ -122,6 +145,46 @@ struct RenderList: View {
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .actionable(view.action, item)
+    }
+}
+
+/// Above a stored list: its orders as one segmented control, and its tags as filter chips after "All", to show only
+/// the items with that tag.
+private struct StoredListControls: View {
+    let view: ListView
+    @ObservedObject var list: ListModel
+    let content: ListsState.Content
+
+    var body: some View {
+        let titles = RenderKit.shared.sortTitles(view: view)
+        let choice = list.choice
+        let tags = (content.tags + [choice.tag].compactMap { $0 }).reduce(into: [String]()) { result, tag in
+            if !result.contains(where: { $0.caseInsensitiveCompare(tag) == .orderedSame }) { result.append(tag) }
+        }
+        VStack(alignment: .leading, spacing: 10) {
+            if titles.count > 1 {
+                Picker("Sort", selection: Binding(
+                    get: { Int(choice.sortOption) },
+                    set: { list.choose(sortOption: $0, tag: choice.tag) }
+                )) {
+                    ForEach(Array(titles.enumerated()), id: \.offset) { index, title in Text(title).tag(index) }
+                }
+                .pickerStyle(.segmented)
+            }
+            if RenderKit.shared.filtersByTag(view: view), !tags.isEmpty {
+                FlowLayout {
+                    Button { list.choose(sortOption: Int(choice.sortOption), tag: nil) } label: {
+                        Chip(text: "All", selected: choice.tag == nil)
+                    }
+                    ForEach(tags, id: \.self) { tag in
+                        Button { list.choose(sortOption: Int(choice.sortOption), tag: tag) } label: {
+                            Chip(text: "#\(tag)", selected: choice.tag?.caseInsensitiveCompare(tag) == .orderedSame)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
 
