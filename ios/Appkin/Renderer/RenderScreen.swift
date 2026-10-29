@@ -12,7 +12,7 @@ struct RenderScreen: View {
     var body: some View {
         if let definition = model.vm.screen?.definition {
             let resolved = model.vm.resolve(view: definition)
-            let data = model.data ?? resolved.data
+            let data = model.data
             ScrollView {
                 if RenderKit.shared.isVerticalLayout(view: resolved), let layout = resolved as? AppkinShared.Layout {
                     let children = RenderKit.shared.shown(screen: model.vm, views: layout.views, data: data)
@@ -76,11 +76,11 @@ struct ChildFrame: ViewModifier {
 struct RenderNode: View {
     @EnvironmentObject private var model: ScreenModel
     let view: MView
-    let parentData: JSONObject?
+    let parentData: ItemData
 
     var body: some View {
         let resolved = model.vm.resolve(view: view)
-        let data = resolved.data ?? parentData
+        let data = RenderKit.shared.dataFor(view: resolved, parent: parentData)
         if RenderKit.shared.isShown(screen: model.vm, model: view, parentData: parentData) {
             switch RenderKit.shared.kind(view: resolved) {
             case "layout":
@@ -114,7 +114,7 @@ private struct NotYetOnIOS: View {
 struct RenderLayout: View {
     @EnvironmentObject private var model: ScreenModel
     let layout: AppkinShared.Layout
-    let data: JSONObject?
+    let data: ItemData
     var spacing = viewSpacing
 
     var body: some View {
@@ -142,17 +142,17 @@ struct RenderLayout: View {
 struct Actionable: ViewModifier {
     @EnvironmentObject private var model: ScreenModel
     let action: Action?
-    let data: JSONObject?
+    let data: ItemData
     var fallback: (() -> Void)?
 
     func body(content: Content) -> some View {
         let resolved = model.vm.resolve(action: action)
         if resolved != nil || fallback != nil {
             if resolved?.type.name == "longclick" {
-                content.contentShape(Rectangle()).onLongPressGesture { model.vm.onAction(action: action, data: data) }
+                content.contentShape(Rectangle()).onLongPressGesture { RenderKit.shared.onAction(screen: model.vm, action: action, data: data) }
             } else {
                 content.contentShape(Rectangle()).onTapGesture {
-                    if resolved != nil { model.vm.onAction(action: action, data: data) } else { fallback?() }
+                    if resolved != nil { RenderKit.shared.onAction(screen: model.vm, action: action, data: data) } else { fallback?() }
                 }
                 .accessibilityAddTraits(.isButton)
             }
@@ -163,7 +163,7 @@ struct Actionable: ViewModifier {
 }
 
 extension View {
-    func actionable(_ action: Action?, _ data: JSONObject?) -> some View {
+    func actionable(_ action: Action?, _ data: ItemData) -> some View {
         modifier(Actionable(action: action, data: data))
     }
 }

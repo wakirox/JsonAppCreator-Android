@@ -5,7 +5,7 @@ import SwiftUI
 struct RenderText: View {
     @EnvironmentObject private var model: ScreenModel
     let view: TextualView
-    let data: JSONObject?
+    let data: ItemData
     var padding = EdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0)
     /// A card's text fills its width and wraps; it is not held to the width the view asks for.
     var compact = false

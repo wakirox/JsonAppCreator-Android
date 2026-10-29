@@ -1,7 +1,6 @@
 import AppkinShared
 import SwiftUI
 
-typealias JSONObject = Kotlinx_serialization_jsonJsonObject
 
 /// One screen of the stack: the view named `viewId` (none: the app's main view) shown with a payload and a title.
 struct ScreenRoute: Hashable {
@@ -20,13 +19,13 @@ final class Navigator: ObservableObject {
 /// A screen's state for SwiftUI: it watches the shared `ScreenViewModel`'s flows and carries out its effects.
 @MainActor
 final class ScreenModel: ObservableObject {
-    let vm: ScreenViewModel
-    private let engine: IosEngine
+    nonisolated(unsafe) let vm: ScreenViewModel
+    nonisolated(unsafe) private let engine: IosEngine
     private let alerts: AlertsViewModel
     private let navigator: Navigator
     private let route: ScreenRoute
 
-    @Published private(set) var data: JSONObject?
+    @Published private(set) var data: ItemData
     @Published private(set) var loading = false
     @Published private(set) var alert: AlertInfo?
     @Published private(set) var canRefresh = false
@@ -40,9 +39,9 @@ final class ScreenModel: ObservableObject {
         let alerts = AlertsViewModel()
         self.alerts = alerts
         vm = engine.screen(viewId: route.viewId, payload: route.payload, title: route.title, alerts: alerts)
-        data = vm.data.value as? JSONObject
+        data = RenderKit.shared.currentData(screen: vm)
         watchers = [
-            Watch.shared.flow(flow: vm.data) { [weak self] value in self?.data = value as? JSONObject },
+            Watch.shared.flow(flow: RenderKit.shared.data(screen: vm)) { [weak self] value in if let value = value as? ItemData { self?.data = value } },
             Watch.shared.flow(flow: vm.loading) { [weak self] value in self?.loading = (value as? NSNumber)?.boolValue ?? false },
             Watch.shared.flow(flow: vm.lists.canRefresh) { [weak self] value in self?.canRefresh = (value as? NSNumber)?.boolValue ?? false },
             Watch.shared.flow(flow: RenderKit.shared.alert(alerts: alerts)) { [weak self] value in self?.alert = value as? AlertInfo },
@@ -64,12 +63,19 @@ final class ScreenModel: ObservableObject {
         alerts.answer(ok: ok)
     }
 
+    private var tapped = false
+    /// True once, for the debug launch argument `-tapFirstItem`.
+    func tapOnce(_ view: ListView) -> Bool {
+        defer { tapped = true }
+        return !tapped
+    }
+
     func refresh() { vm.lists.refresh() }
 
     private func handle(_ effect: ScreenEffect) {
         switch effect.kind {
         case "openScreen":
-            navigator.path.append(ScreenRoute(viewId: effect.view?.id, payload: effect.payload?.description, title: effect.title))
+            navigator.path.append(ScreenRoute(viewId: effect.view?.id, payload: effect.payload, title: effect.title))
         case "close":
             // Only the screen on top goes back.
             if navigator.path.last?.id == route.id { navigator.path.removeLast() }
@@ -97,17 +103,17 @@ final class ScreenModel: ObservableObject {
 /// The entries of one list: its content, as the shared `ListsState` loads it.
 @MainActor
 final class ListModel: ObservableObject {
-    let entry: ListsStateEntry
+    let entry: ListsState.Entry
     private let lists: ListsState
-    @Published private(set) var content: ListsStateContent
+    @Published private(set) var content: ListsState.Content
     nonisolated(unsafe) private var watcher: Watching?
 
-    init(screen: ScreenViewModel, view: ListView, data: JSONObject?) {
+    init(screen: ScreenViewModel, view: ListView, data: ItemData) {
         lists = screen.lists
-        entry = screen.lists.get(view: view, data: data)
-        content = entry.content.value as! ListsStateContent
-        watcher = Watch.shared.flow(flow: entry.content) { [weak self] value in
-            if let content = value as? ListsStateContent { self?.content = content }
+        entry = RenderKit.shared.list(screen: screen, view: view, data: data)
+        content = RenderKit.shared.currentContent(entry: entry)
+        watcher = Watch.shared.flow(flow: RenderKit.shared.content(entry: entry)) { [weak self] value in
+            if let content = value as? ListsState.Content { self?.content = content }
         }
     }
 

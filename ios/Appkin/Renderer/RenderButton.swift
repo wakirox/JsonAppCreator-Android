@@ -5,13 +5,13 @@ import SwiftUI
 struct RenderButton: View {
     @EnvironmentObject private var model: ScreenModel
     let view: ButtonView
-    let data: JSONObject?
+    let data: ItemData
 
     var body: some View {
         let title = RenderKit.shared.text(view: view, data: data)
         let symbol = RenderKit.shared.iconName(view: view).map(symbolName)
         let longClick = RenderKit.shared.isLongClick(screen: model.vm, view: view)
-        let run = { if !longClick { model.vm.onAction(action: view.action, data: data) } }
+        let run = { if !longClick { RenderKit.shared.onAction(screen: model.vm, action: view.action, data: data) } }
         Group {
             if let symbol, RenderKit.shared.isIconOnly(view: view) {
                 let spoken = RenderKit.shared.fill(text: view.label, data: data)
@@ -30,9 +30,13 @@ struct RenderButton: View {
                 .controlSize(.large)
             }
         }
+        .task {
+            // `-tapButton Credits`: presses the button with that title once, so a screenshot can show what it opens.
+            if UserDefaults.standard.string(forKey: "tapButton") == title { run() }
+        }
         .simultaneousGesture(
             LongPressGesture().onEnded { _ in
-                if longClick { model.vm.onAction(action: view.action, data: data) }
+                if longClick { RenderKit.shared.onAction(screen: model.vm, action: view.action, data: data) }
             }
         )
     }

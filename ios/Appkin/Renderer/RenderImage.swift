@@ -5,7 +5,7 @@ import SwiftUI
 struct RenderImage: View {
     @EnvironmentObject private var model: ScreenModel
     let view: ImageView
-    let data: JSONObject?
+    let data: ItemData
     /// In a list card, a picture runs to the card's edges and its corners are the card's.
     var edgeToEdge = false
     /// Height from the parent instead of the view's size.

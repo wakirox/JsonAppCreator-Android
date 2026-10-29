@@ -10,9 +10,9 @@ struct RenderList: View {
     @EnvironmentObject private var screen: ScreenModel
     @StateObject private var list: ListModel
     let view: ListView
-    let data: JSONObject?
+    let data: ItemData
 
-    init(view: ListView, data: JSONObject?, screen: ScreenViewModel) {
+    init(view: ListView, data: ItemData, screen: ScreenViewModel) {
         _list = StateObject(wrappedValue: ListModel(screen: screen, view: view, data: data))
         self.view = view
         self.data = data
@@ -20,12 +20,13 @@ struct RenderList: View {
 
     var body: some View {
         let content = list.content
+        let items = RenderKit.shared.items(content: content)
         VStack(alignment: .leading, spacing: 10) {
             if content.waiting {
                 ProgressView().frame(maxWidth: .infinity)
             } else if let message = content.errorMessage {
                 LoadError(message: message, retry: list.retry)
-            } else if content.items.isEmpty {
+            } else if items.isEmpty {
                 Text(emptyText)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -37,7 +38,11 @@ struct RenderList: View {
             } else {
                 rows(content)
             }
-            if !RenderKit.shared.isHorizontalList(view: view), !content.items.isEmpty {
+            if let first = items.first, UserDefaults.standard.bool(forKey: "tapFirstItem"), screen.tapOnce(view) {
+                // `-tapFirstItem YES`: opens the first item of the first list, so a screenshot can show its screen.
+                Color.clear.frame(height: 0).task { RenderKit.shared.onAction(screen: screen.vm, action: view.action, data: first) }
+            }
+            if !RenderKit.shared.isHorizontalList(view: view), !items.isEmpty {
                 MoreItems(content: content, list: list, automatic: false)
             }
         }
@@ -53,8 +58,8 @@ struct RenderList: View {
         return width >= 0 ? CGFloat(width) + cardChrome : defaultCardWidth
     }
 
-    private func horizontal(_ content: ListsStateContent) -> some View {
-        let items = content.items
+    private func horizontal(_ content: ListsState.Content) -> some View {
+        let items = RenderKit.shared.items(content: content)
         return ScrollView(.horizontal, showsIndicators: false) {
             if items.count > 8 || content.canLoadMore {
                 LazyHStack(alignment: .top, spacing: 12) {
@@ -78,10 +83,11 @@ struct RenderList: View {
         .contentMargins(.horizontal, 16, for: .scrollContent)
     }
 
-    private func grid(_ content: ListsStateContent) -> some View {
+    private func grid(_ content: ListsState.Content) -> some View {
         let columns = Int(view.columnCount)
-        let rows = stride(from: 0, to: content.items.count, by: columns).map {
-            Array(content.items[$0..<min($0 + columns, content.items.count)])
+        let items = RenderKit.shared.items(content: content)
+        let rows = stride(from: 0, to: items.count, by: columns).map {
+            Array(items[$0..<min($0 + columns, items.count)])
         }
         return VStack(spacing: 10) {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
@@ -97,19 +103,20 @@ struct RenderList: View {
     }
 
     /// One group, as an iOS list: the rows share a background and are told apart by dividers.
-    private func rows(_ content: ListsStateContent) -> some View {
-        VStack(spacing: 0) {
-            ForEach(Array(content.items.enumerated()), id: \.offset) { index, item in
+    private func rows(_ content: ListsState.Content) -> some View {
+        let items = RenderKit.shared.items(content: content)
+        return VStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 ListCardContent(itemView: view.itemView, item: item, preview: view.action == nil)
                     .actionable(view.action, item)
-                if index < content.items.count - 1 { Divider().padding(.leading, 14) }
+                if index < items.count - 1 { Divider().padding(.leading, 14) }
             }
         }
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func card(_ item: JSONObject) -> some View {
+    private func card(_ item: ItemData) -> some View {
         ListCardContent(itemView: view.itemView, item: item, preview: view.action == nil)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
@@ -120,7 +127,7 @@ struct RenderList: View {
 
 /// The end of a list with more pages: it fetches the next one when it comes into view, or a button does.
 private struct MoreItems: View {
-    let content: ListsStateContent
+    let content: ListsState.Content
     let list: ListModel
     let automatic: Bool
 
@@ -160,7 +167,7 @@ private struct LoadError: View {
 struct ListCardContent: View {
     @EnvironmentObject private var model: ScreenModel
     let itemView: MView
-    let item: JSONObject
+    let item: ItemData
     let preview: Bool
 
     var body: some View {
