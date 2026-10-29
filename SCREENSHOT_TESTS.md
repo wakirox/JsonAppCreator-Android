@@ -87,3 +87,22 @@ at 448 x 900, compared exactly (any changed pixel fails):
 
 Failures write the actual and diff images to
 `app/build/outputs/app-ideas-screenshots/`.
+
+# Masterpieces screenshot tests
+
+`MasterpiecesScreenshotTest` opens the Masterpieces example (`res/raw/v3_masterpieces.json`) at 448 x 900,
+compared exactly (any changed pixel fails). Its Wikimedia Commons image URLs are rewritten to a MockWebServer,
+which draws a small picture for each requested file, so no network or image files are needed:
+
+- `masterpieces_home` / `masterpieces_home_dark`: the first screen, rows of artwork cards
+- `masterpieces_artwork` / `masterpieces_artwork_dark`: the Mona Lisa's detail screen
+- `masterpieces_favourites` / `masterpieces_favourites_dark`: Favourites after tapping Favourite on the Mona Lisa
+- `masterpieces_credits` / `masterpieces_credits_dark`: the Credits list
+
+```sh
+./gradlew testDebugUnitTest --tests '*MasterpiecesScreenshotTest'
+./gradlew testDebugUnitTest --tests '*MasterpiecesScreenshotTest' -PrecordScreenshots=true
+```
+
+Failures write the actual and diff images to
+`app/build/outputs/masterpieces-screenshots/`.
