@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Signs and publishes an Appkin release on the owner's machine, where the signing key stays:
 #
-#   tools/release.sh v1.2.0            # build, sign, check, tag and publish the GitHub Release
-#   tools/release.sh v1.2.0 --dry-run  # build, sign and check only: nothing is tagged or published
+#   tools/release.sh v2.0              # build, sign, check, tag and publish the GitHub Release (v2.0.1 for a patch)
+#   tools/release.sh v2.0 --dry-run    # build, sign and check only: nothing is tagged or published
 #
 # Only from a clean checkout of origin/master, on a commit CI passed. It builds the minified APK and the AAB for Google
 # Play, signed with the key in $APPKIN_KEYSTORE_PROPERTIES (storeFile, storePassword, keyAlias, keyPassword; never
@@ -14,8 +14,8 @@ set -euo pipefail
 tag="${1:-}"
 dry_run=false
 [ "${2:-}" = "--dry-run" ] && dry_run=true
-[[ "$tag" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || { echo "Usage: $0 vMAJOR.MINOR.PATCH [--dry-run]" >&2; exit 2; }
-major=$((10#${BASH_REMATCH[1]})); minor=$((10#${BASH_REMATCH[2]})); patch=$((10#${BASH_REMATCH[3]}))
+[[ "$tag" =~ ^v([0-9]+)\.([0-9]+)(\.([0-9]+))?$ ]] || { echo "Usage: $0 vMAJOR.MINOR[.PATCH] [--dry-run]" >&2; exit 2; }
+major=$((10#${BASH_REMATCH[1]})); minor=$((10#${BASH_REMATCH[2]})); patch=$((10#${BASH_REMATCH[4]:-0}))
 (( minor <= 999 && patch <= 999 )) || { echo "Minor and patch must be 0 to 999" >&2; exit 2; }
 version_code=$((major * 1000000 + minor * 1000 + patch))
 

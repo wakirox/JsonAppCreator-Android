@@ -19,8 +19,8 @@ is signed and published there by `tools/release.sh`, from the same commit CI tes
 ```sh
 git fetch origin
 git switch --detach origin/master
-tools/release.sh v1.2.0 --dry-run   # build, sign and check; nothing published
-tools/release.sh v1.2.0             # the same, then tag and publish
+tools/release.sh v2.0 --dry-run     # build, sign and check; nothing published
+tools/release.sh v2.0               # the same, then tag and publish
 ```
 
 The script refuses when the checkout has changes, when `HEAD` isn't `origin/master`, when
@@ -32,8 +32,9 @@ the machine's Gradle properties (`configApiKeysFile`), as in any local build.
 
 ## Version and tag strategy
 
-Release tags must use `vMAJOR.MINOR.PATCH`, for example `v1.2.0`. The `versionName` is
-the tag without its `v`, and the `versionCode` is:
+Release tags are `vMAJOR.MINOR` or `vMAJOR.MINOR.PATCH`, for example `v2.0` or `v2.0.1`.
+The `versionName` is the tag without its `v` (`2.0`), and the `versionCode` is (a missing
+patch counts as 0):
 
 ```text
 MAJOR * 1,000,000 + MINOR * 1,000 + PATCH
@@ -48,8 +49,8 @@ and keeps version order. Local builds default to `versionName` `1.0` and `versio
 Download the APK and its `.sha256` file from the same GitHub Release, then run:
 
 ```sh
-sha256sum --check Appkin-v1.2.0.apk.sha256
-apksigner verify --verbose --print-certs Appkin-v1.2.0.apk
+sha256sum --check Appkin-v2.0.apk.sha256
+apksigner verify --verbose --print-certs Appkin-v2.0.apk
 ```
 
 Compare the certificate digest with a separately recorded trusted digest from a
