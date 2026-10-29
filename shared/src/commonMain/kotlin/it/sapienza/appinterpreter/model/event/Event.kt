@@ -154,18 +154,47 @@ class CopyText(
  */
 @Serializable
 class PdfItems(
-    val collection: String,
-    val where: JsonObject? = null,
-    @Serializable(with = StoredSortsSerializer::class) val sort: List<StoredSort>? = null,
-    val title: String? = null,
-    val text: String,
-    val photos: String? = null,
-    val emptyText: String? = null,
+    override val collection: String,
+    override val where: JsonObject? = null,
+    @Serializable(with = StoredSortsSerializer::class) override val sort: List<StoredSort>? = null,
+    override val title: String? = null,
+    override val text: String,
+    override val photos: String? = null,
+    override val emptyText: String? = null,
     /** One page as tall as everything, as a phone shows it best, instead of A4 pages. */
     val pageless: Boolean = false,
     override val mapping: String? = null,
     override val data: JsonObject? = null
-) : Event()
+) : Event(), ItemsExport
+
+/**
+ * Makes a TextPack (a zipped TextBundle: Markdown with its files) of the saved objects, picked and written as a
+ * [PdfItems] event's are: [text] for each object, its [photos] as files in the pack's assets/, linked from the text.
+ * Markdown apps and editors open it; the share sheet opens on it.
+ */
+@Serializable
+class TextPackItems(
+    override val collection: String,
+    override val where: JsonObject? = null,
+    @Serializable(with = StoredSortsSerializer::class) override val sort: List<StoredSort>? = null,
+    override val title: String? = null,
+    override val text: String,
+    override val photos: String? = null,
+    override val emptyText: String? = null,
+    override val mapping: String? = null,
+    override val data: JsonObject? = null
+) : Event(), ItemsExport
+
+/** What an event that writes out saved objects ([PdfItems], [TextPackItems]) says about which, and how. */
+interface ItemsExport {
+    val collection: String
+    val where: JsonObject?
+    val sort: List<StoredSort>?
+    val title: String?
+    val text: String
+    val photos: String?
+    val emptyText: String?
+}
 
 /** Closes the current screen and goes back to the one that opened it, as the phone's Back does. */
 @Serializable
@@ -197,7 +226,8 @@ object EventSerializer : TypedSerializer<Event>(
         TypedSerializer.Type("delete", DeleteData.serializer()) { it is DeleteData },
         TypedSerializer.Type("back", GoBack.serializer()) { it is GoBack },
         TypedSerializer.Type("copy", CopyText.serializer()) { it is CopyText },
-        TypedSerializer.Type("pdf", PdfItems.serializer()) { it is PdfItems }
+        TypedSerializer.Type("pdf", PdfItems.serializer()) { it is PdfItems },
+        TypedSerializer.Type("textpack", TextPackItems.serializer()) { it is TextPackItems }
     )
 )
 

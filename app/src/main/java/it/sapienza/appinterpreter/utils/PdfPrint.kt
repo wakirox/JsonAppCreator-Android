@@ -1,8 +1,6 @@
 package it.sapienza.appinterpreter.utils
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ComponentName
 import android.content.Intent
 import android.print.PdfFileWriter
 import android.print.PrintAttributes
@@ -10,8 +8,6 @@ import android.print.PrintManager
 import android.util.Base64
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.core.content.FileProvider
-import it.sapienza.appinterpreter.activity.EditorActivity
 import it.sapienza.appinterpreter.runtime.usecase.PdfPageUseCase
 import java.io.File
 
@@ -62,18 +58,8 @@ class PdfPrint(private val activity: Activity, private val shareTitle: String) {
     }
 
     /** The share sheet on the PDF [file], readable by the app the user picks. */
-    internal fun shareIntent(file: File, name: String): Intent {
-        val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.files", file)
-        val send = Intent(Intent.ACTION_SEND).setType("application/pdf")
-            .putExtra(Intent.EXTRA_STREAM, uri)
-            .putExtra(Intent.EXTRA_TITLE, name)
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        send.clipData = ClipData.newRawUri(name, uri)
-        return Intent.createChooser(send, shareTitle)
-            .putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(ComponentName(activity, EditorActivity::class.java)))
-            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            .apply { clipData = send.clipData }
-    }
+    internal fun shareIntent(file: File, name: String): Intent =
+        ExternalApps.shareFile(activity, file, "application/pdf", name, shareTitle)
 
     companion object {
         private val A4_MEDIA = PrintAttributes.MediaSize.ISO_A4

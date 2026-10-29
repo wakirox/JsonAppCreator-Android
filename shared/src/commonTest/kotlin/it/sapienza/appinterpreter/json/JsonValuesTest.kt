@@ -131,5 +131,7 @@ class JsonValuesTest {
         assertEquals("Fixed line\nTile", "Fixed line\n${'$'}{title}".filledLines(data), "lines without placeholders stay")
         assertEquals("Tile and", "${'$'}{title} and ${'$'}{missing}".filledLines(data), "a line with some values keeps them")
         assertEquals("", "${'$'}{missing}".filledLines(data))
+        val idea = JsonText.parse("""{ "title": "Tile", "bug": "" }""") as JsonObject
+        assertEquals("Tile", "${'$'}{title}\n🐞 ${'$'}{bug}".filledLines(idea), "an empty value, as an unchosen option, is no value")
     }
 }

@@ -503,6 +503,20 @@ Makes a PDF of saved objects, such as the ideas not done yet: a title, then each
 - `mapping`: text. Path of the part of the current data to use
 - `data`: an object with any data
 
+#### `textpack`
+
+Makes a TextPack of saved objects: one Markdown text (a title, then each object's text) with their photos as files beside it, zipped (textbundle.org), for notes apps and Markdown editors. The share sheet opens on it.
+
+- `collection` **(required)**: text (not empty). The collection whose objects it shows
+- `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { "appId": "${id}", "done": false }
+- `sort`: a sort, `{ "by": "field" }` (see Order of a stored list), or a list of sorts. The order, as a stored list's sort
+- `title`: text. The heading at the top and the pack's name; may use ${field} placeholders from the current data. The app's name by default
+- `text` **(required)**: text (not empty). Each object's part, as Markdown with ${field} placeholders from the object, such as "## ${title}\n${description}"; a line whose placeholders all have no value is left out
+- `photos`: text. Path of each object's photos (a photos field's list): kept ones go in the pack as files, linked below its text
+- `emptyText`: text. What an alert says when no object matches, instead of an empty pack; may use ${field} placeholders
+- `mapping`: text. Path of the part of the current data to use
+- `data`: an object with any data
+
 ### Actions and references
 
 Where an action is expected, write an action definition or `{ "ref": "id" }` referencing one in the root `actions`.

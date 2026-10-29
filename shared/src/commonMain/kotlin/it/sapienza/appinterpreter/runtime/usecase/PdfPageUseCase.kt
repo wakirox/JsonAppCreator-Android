@@ -4,6 +4,7 @@ import it.sapienza.appinterpreter.json.filledLines
 import it.sapienza.appinterpreter.json.matchReplace
 import it.sapienza.appinterpreter.json.valueAt
 import it.sapienza.appinterpreter.markdown.Markdown
+import it.sapienza.appinterpreter.model.event.ItemsExport
 import it.sapienza.appinterpreter.model.event.PdfItems
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.serialization.json.JsonArray
@@ -23,7 +24,7 @@ class PdfPageUseCase {
      */
     class Page(val title: String, val html: String, val photos: List<String>, val pageless: Boolean = false)
 
-    operator fun invoke(event: PdfItems, items: List<JsonObject>, data: JsonObject?, fallbackTitle: String): Page {
+    operator fun invoke(event: ItemsExport, items: List<JsonObject>, data: JsonObject?, fallbackTitle: String): Page {
         val title = event.title?.matchReplace(data)?.trim()?.takeIf { it.isNotEmpty() } ?: fallbackTitle
         val photos = mutableListOf<String>()
         val body = StringBuilder("<h1>${escape(title)}</h1>\n")
@@ -43,14 +44,9 @@ class PdfPageUseCase {
         }
         val html = "<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\"><title>${escape(title)}</title>" +
             "<style>$STYLE</style></head>\n<body><main>\n$body</main></body></html>\n"
-        return Page(title, html, photos.distinct(), event.pageless)
+        return Page(title, html, photos.distinct(), (event as? PdfItems)?.pageless == true)
     }
 
-    private fun photosAt(item: JsonObject, path: String): List<String> = when (val value = item.valueAt(path)) {
-        is JsonArray -> value.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
-        is JsonPrimitive -> listOfNotNull(value.contentOrNull)
-        else -> emptyList()
-    }.filter { Photos.isPhoto(it) || it.startsWith("https://") }
 
     /** [blocks] as HTML; list items in a row share one list, a deeper one indented. */
     private fun html(blocks: List<Markdown.Block>): String = buildString {
@@ -95,6 +91,13 @@ class PdfPageUseCase {
     }
 
     companion object {
+        /** An object's photos at [path] (a list, or one): kept ones and web addresses. */
+        fun photosAt(item: JsonObject, path: String): List<String> = when (val value = item.valueAt(path)) {
+            is JsonArray -> value.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+            is JsonPrimitive -> listOfNotNull(value.contentOrNull)
+            else -> emptyList()
+        }.filter { Photos.isPhoto(it) || it.startsWith("https://") }
+
         private val LINK_SCHEMES = listOf("https://", "http://", "mailto:")
 
         /** An A4 page's width less its side margins: the width the content is laid out at. */
