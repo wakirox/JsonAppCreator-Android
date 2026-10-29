@@ -14,15 +14,16 @@ class UpdateItemUseCase(private val appData: AppData, private val repository: Ap
 
     /**
      * The object whose id the event names (filled from [context], then [values]) takes [values] (the part the mapping
-     * selects) and the event's fields. Throws when no such object is saved.
+     * selects) and the event's fields; its [cleared] fields (a form's, emptied by the user) go. Throws when no such
+     * object is saved.
      */
-    operator fun invoke(event: UpdateData, values: JsonObject?, context: JsonObject?): JsonObject {
+    operator fun invoke(event: UpdateData, values: JsonObject?, context: JsonObject?, cleared: Set<String> = emptySet()): JsonObject {
         val id = event.id.matchReplace(context).matchReplace(values)
         val changes = event.mapping?.let { values?.getObject(it) } ?: values ?: JsonObject(emptyMap())
         val fields = event.fields.orEmpty().mapValues { (_, value) ->
             if (value is JsonPrimitive && value.isString) JsonPrimitive(value.content.matchReplace(context).matchReplace(values)) else value
         }
-        return appData.update(AppLibrary.idOf(repository.current().name), event.collection, id, JsonObject(changes + fields))
+        return appData.update(AppLibrary.idOf(repository.current().name), event.collection, id, JsonObject(changes + fields), cleared - fields.keys)
             ?: throw NoSuchElementException("Nothing to change: this item is no longer saved")
     }
 }
