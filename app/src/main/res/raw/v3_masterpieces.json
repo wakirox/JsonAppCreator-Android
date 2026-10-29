@@ -648,7 +648,8 @@
           "url": "${image}",
           "size": {
             "height": 360
-          }
+          },
+          "scale": "fit"
         },
         {
           "type": "text",
