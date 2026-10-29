@@ -100,7 +100,7 @@ class ScreenViewModel(
         class OpenUrl(val url: String, val scheme: String) : Effect
         /** Open the share sheet on [text], with the kept [photos] (references) attached. */
         class Share(val text: String, val photos: List<String> = emptyList()) : Effect
-        /** Open the print screen on [page], to save it as a PDF or print it. */
+        /** Make a PDF of [page] and open the share sheet on it (sending, saving or printing it). */
         class Pdf(val page: PdfPageUseCase.Page) : Effect
     }
 

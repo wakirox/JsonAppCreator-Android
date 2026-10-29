@@ -707,7 +707,7 @@
     },
     "pdfEvent": {
       "type": "object",
-      "description": "Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The phone's print screen opens on it, to save it as a PDF, share or print it.",
+      "description": "Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The share sheet opens on the PDF, to send, save or print it.",
       "required": ["type", "collection", "text"],
       "properties": {
         "type": { "const": "pdf" },

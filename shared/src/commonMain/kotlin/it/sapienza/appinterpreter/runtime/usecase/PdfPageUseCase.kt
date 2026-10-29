@@ -111,8 +111,8 @@ class PdfPageUseCase {
             code, pre { font-family: monospace; background: #f3f3f3; }
             pre { padding: 2mm; white-space: pre-wrap; }
             a { color: #2a5bd7; }
-            .photos { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 2mm; }
-            .photos img { height: 55mm; max-width: 100%; object-fit: contain; border-radius: 1.5mm; }
+            .photos { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2mm; margin-top: 2mm; }
+            .photos img { max-height: 110mm; max-width: 100%; object-fit: contain; border-radius: 1.5mm; }
             .empty { color: #666; }
         """.trimIndent().replace("\n", " ")
     }

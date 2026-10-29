@@ -487,7 +487,7 @@ Copies a text to the clipboard, to paste anywhere (a chat, a note); the phone co
 
 #### `pdf`
 
-Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The phone's print screen opens on it, to save it as a PDF, share or print it.
+Makes a PDF of saved objects, such as the ideas not done yet: a title, then each object's text as Markdown with its photos below. The share sheet opens on the PDF, to send, save or print it.
 
 - `collection` **(required)**: text (not empty). The collection whose objects it shows
 - `where`: an object. Only the objects whose fields have these values; values may use ${field} placeholders from the current data, such as { "appId": "${id}", "done": false }

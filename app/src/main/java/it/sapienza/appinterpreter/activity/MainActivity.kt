@@ -159,7 +159,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    private val pdfPrint = PdfPrint(this)
+    private val pdfPrint by lazy { PdfPrint(this, getString(R.string.share_title)) }
 
     private suspend fun handle(effect: ScreenViewModel.Effect) = when (effect) {
         is ScreenViewModel.Effect.OpenScreen -> spawnInstance(this, effect.view, effect.payload, effect.title)
@@ -175,7 +175,7 @@ class MainActivity : ComponentActivity() {
             val photos = effect.photos.mapNotNull { store.shareable(it) }
             startActivity(ExternalApps.share(this, effect.text, getString(R.string.share_title), photos))
         }
-        is ScreenViewModel.Effect.Pdf -> pdfPrint.print(effect.page)
+        is ScreenViewModel.Effect.Pdf -> pdfPrint.share(effect.page)
         ScreenViewModel.Effect.Close -> finish()
         // Android 13 and up (the app's minimum) shows its own "Copied" confirmation.
         is ScreenViewModel.Effect.Copy ->
