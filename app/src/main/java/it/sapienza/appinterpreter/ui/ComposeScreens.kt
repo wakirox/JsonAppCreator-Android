@@ -37,6 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -70,9 +72,11 @@ fun AppTheme(
 fun PhotoScreen(url: String?, onBack: () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+    var size by remember { mutableStateOf(IntSize.Zero) }
     val transform = rememberTransformableState { zoom, pan, _ ->
-        scale = (scale * zoom).coerceIn(1f, 6f)
-        offset += pan
+        val (nextScale, nextOffset) = PhotoZoom.next(scale, offset, zoom, pan, size)
+        scale = nextScale
+        offset = nextOffset
     }
     var loaded by remember { mutableStateOf(false) }
     // The photo fills the whole screen, under the see-through top bar.
@@ -82,12 +86,13 @@ fun PhotoScreen(url: String?, onBack: () -> Unit) {
             contentDescription = null,
             contentScale = ContentScale.Fit,
             alignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize().graphicsLayer {
+            // The gestures are read outside the zoomed layer, so a drag moves the photo as far as the finger goes.
+            modifier = Modifier.fillMaxSize().onSizeChanged { size = it }.transformable(transform).graphicsLayer {
                 scaleX = scale
                 scaleY = scale
                 translationX = offset.x
                 translationY = offset.y
-            }.transformable(transform).then(if (loaded) Modifier.testTag("photo-loaded") else Modifier),
+            }.then(if (loaded) Modifier.testTag("photo-loaded") else Modifier),
             // The tag marks a loaded photo, which tests wait for.
             onSuccess = { loaded = true },
             loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() } },
@@ -108,5 +113,22 @@ fun PhotoScreen(url: String?, onBack: () -> Unit) {
                 scrolledContainerColor = androidx.compose.ui.graphics.Color.Transparent
             )
         )
+    }
+}
+
+/** Pinching and dragging a full-screen photo. */
+internal object PhotoZoom {
+    const val MAX_SCALE = 6f
+
+    /**
+     * The scale and offset after a gesture of [zoom] and [pan] (screen pixels) on a photo shown in [size]: the photo
+     * moves with the finger, and never so far that the screen shows past its edge; back at full size it is centred.
+     */
+    fun next(scale: Float, offset: Offset, zoom: Float, pan: Offset, size: IntSize): Pair<Float, Offset> {
+        val nextScale = (scale * zoom).coerceIn(1f, MAX_SCALE)
+        val maxX = size.width * (nextScale - 1) / 2
+        val maxY = size.height * (nextScale - 1) / 2
+        val moved = offset + pan
+        return nextScale to Offset(moved.x.coerceIn(-maxX, maxX), moved.y.coerceIn(-maxY, maxY))
     }
 }
