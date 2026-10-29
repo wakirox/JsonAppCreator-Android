@@ -2,14 +2,17 @@
 // `code` shows a JSON excerpt beside the phone; `prompt` puts a chat bubble above it.
 const CAPTIONS = {
   en: {
-    home: { kicker: "Your apps", headline: "All in one place, ready to open" },
-    ai: { kicker: "With your AI app", headline: "Describe it here, your AI app makes it" },
-    gallery: { kicker: "Appkin", headline: "Make your own little apps, like this gallery" },
-    detail: { kicker: "Every item", headline: "Tap one to see it up close" },
+    gallery: {
+      kicker: "How Appkin works", headline: "A JSON file in, ready screens out", split: "gallery",
+      note: "Appkin draws the file with its own built-in screens. Nothing in it runs as code.",
+    },
+    detail: { kicker: "Lists and pages", headline: "Tap an item to see its own page" },
     ideas: { kicker: "Saved on your phone", headline: "Notes with photos, tags and files" },
+    ai: { kicker: "With your AI app", headline: "Describe it, your AI app writes the JSON" },
+    home: { kicker: "Your files", headline: "Every JSON you open, kept in one place" },
     form: { kicker: "Forms", headline: "Sign-ups that check every field" },
-    shortcut: { kicker: "On your home screen", headline: "Each app gets its own icon" },
-    editor: { kicker: "For the curious", headline: "Every app is one file you can change" },
+    shortcut: { kicker: "On your home screen", headline: "Pin any of them as its own icon" },
+    editor: { kicker: "No code inside", headline: "Just JSON you can read and change" },
   },
 };
 
@@ -19,22 +22,35 @@ const CODE = {
   "name": "Masterpieces",
   "mainView": {
     "type": "layout",
-    "views": [{
-      "type": "list",
-      "mapping": "artworks",
-      "action": { "ref": "open_artwork" },
-      "itemView": {
-        "type": "layout",
+    "views": [
+      { "type": "text",
+        "label": "Renaissance" },
+      { "type": "list",
         "orientation": "horizontal",
-        "views": [
-          { "type": "image",
-            "url": "\${thumb}" },
-          { "type": "text",
-            "label": "\${title}",
-            "title": "\${artist}" }
-        ]
+        "mapping": "renaissance",
+        "itemView": {
+          "type": "layout",
+          "views": [
+            { "type": "image",
+              "url": "\${thumb}" },
+            { "type": "text",
+              "title": "\${title}" },
+            { "type": "text",
+              "title": "\${artist}" }
+          ]
+        }
       }
-    }]
+    ],
+    "data": {
+      "renaissance": [
+        { "title": "Mona Lisa",
+          "artist": "Leonardo da Vinci",
+          "thumb": "https://…" },
+        { "title": "The Birth of Venus",
+          "artist": "Sandro Botticelli",
+          "thumb": "https://…" }
+      ]
+    }
   }
 }`,
   form: `{
