@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 3,
+  "name": "Reading list",
+  "author": "Appkin",
+  "version": "1.0.0",
+  "mainView": {
+    "type": "layout",
+    "data": {
+      "books": [
+        {
+          "title": "Pride and Prejudice",
+          "author": "Jane Austen",
+          "month": "Reading now"
+        },
+        {
+          "title": "Moby-Dick",
+          "author": "Herman Melville",
+          "month": "Next"
+        }
+      ]
+    },
+    "views": [
+      {
+        "type": "text",
+        "title": "Books to read",
+        "textStyle": "bold",
+        "textSize": 22
+      },
+      {
+        "type": "list",
+        "mapping": "books",
+        "itemView": {
+          "type": "layout",
+          "views": [
+            {
+              "type": "text",
+              "mapping": "title",
+              "textStyle": "bold"
+            },
+            {
+              "type": "text",
+              "mapping": "author"
+            },
+            {
+              "type": "text",
+              "mapping": "month"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "icon": "📚"
+}
