@@ -22,6 +22,7 @@ struct SketchRoot: View {
         case "form": NavigationStack { SummerRunScreen() }
         case "editor": NavigationStack { EditorScreen() }
         case "ai": HomeScreen(showsAskAI: true)
+        case "engine": EngineCheck()
         default: HomeScreen(selection: open)
         }
     }

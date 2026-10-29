@@ -7,7 +7,20 @@ targets:
   Appkin:
     type: application
     platform: iOS
-    sources: [Appkin]
+    sources:
+      - path: Appkin
+      # The bundled examples, the same files the Android app ships.
+      - path: ../app/src/main/res/raw
+        includes: ["*.json"]
+        buildPhase: resources
+    preBuildScripts:
+      # The shared Kotlin engine, built for the SDK and architecture being built and placed where the app links it.
+      - name: Build the shared engine
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$SRCROOT/.."
+          export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.wakirox.appkin
@@ -19,3 +32,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Appkin
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGNING_ALLOWED: NO
+        FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+        OTHER_LDFLAGS: "$(inherited) -framework AppkinShared"
+        # Gradle reads and writes the repository outside the sandbox of script phases.
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
