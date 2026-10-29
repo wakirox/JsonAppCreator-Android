@@ -53,6 +53,13 @@ class PdfPageUseCaseTest {
     }
 
     @Test
+    fun attachedFilesAreListedByNameAndSize() {
+        val withFiles = event("""{ "type": "pdf", "collection": "c", "text": "x", "files": "files" }""")
+        val page = PdfPageUseCase()(withFiles, listOf(obj("""{ "files": [ { "name": "<plan>.pdf", "size": 2430000, "uri": "content://a" } ] }""")), null, "A")
+        assertTrue("<ul class=\"files\"><li>📎 &lt;plan&gt;.pdf · 2.4 MB</li></ul>" in page.html)
+    }
+
+    @Test
     fun savedTextCantAddHtml() {
         val page = PdfPageUseCase()(pdf, listOf(obj("""{ "title": "<script>x</script>", "description": "a & \"b\"" }""")), app, "App ideas")
         assertFalse("<script>" in page.html)

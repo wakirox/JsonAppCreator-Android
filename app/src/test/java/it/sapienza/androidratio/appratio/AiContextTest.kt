@@ -129,8 +129,8 @@ class AiContextTest {
     @Test
     fun theShortVersionLinksEveryPartToTheFullReference() {
         val anchors = Regex("""\(\[details]\(https://example\.com/page#([a-z0-9_-]+)\)\)""").findAll(short).map { it.groupValues[1] }.toList()
-        // The root, 7 views, 8 form fields, 13 events and 5 nested parts, each with its own anchor.
-        assertEquals(34, anchors.size)
+        // The root, 8 views, 9 form fields, 13 events and 5 nested parts, each with its own anchor.
+        assertEquals(36, anchors.size)
         assertEquals(anchors.size, anchors.toSet().size)
         listOf("list", "text", "text-1", "save", "order-of-a-stored-list-sort", "root-object").forEach { assertTrue(it, it in anchors) }
         // Each anchor is a heading of the full context (GitHub's anchor for it).

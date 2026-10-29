@@ -19,6 +19,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
+import it.sapienza.appinterpreter.utils.FileAttachments
+import it.sapienza.appinterpreter.storage.Files
+import it.sapienza.appinterpreter.model.view_model.form_model.FilesInput
+import it.sapienza.appinterpreter.model.view_model.FilesView
 import it.sapienza.appinterpreter.runtime.TagSuggestions
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.FilterChip
@@ -327,6 +331,40 @@ private fun RenderNode(
         is ListView -> RenderList(resolved, data, modifier)
         is FormView -> RenderForm(resolved, data, modifier)
         is CheckView -> RenderCheck(resolved, data, modifier)
+        is FilesView -> RenderFiles(resolved, data, modifier)
+    }
+}
+
+/** An object's attached files, a chip each: a tap opens the file in an app that reads it. */
+@Composable
+private fun RenderFiles(view: FilesView, data: JsonObject?, modifier: Modifier) {
+    val files = Files.of(data?.valueAt(view.mapping))
+    if (files.isEmpty()) return
+    FileChips(files, modifier)
+}
+
+@Composable
+private fun FileChips(files: List<Files.Attached>, modifier: Modifier = Modifier, onRemove: ((Files.Attached) -> Unit)? = null) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        files.forEach { file ->
+            InputChip(
+                selected = false,
+                onClick = { scope.launch { FileAttachments.open(context, file) } },
+                label = { Text("📎 " + file.name + file.size?.let { " · " + Files.sizeText(it) }.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                trailingIcon = onRemove?.let { remove ->
+                    {
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = "Remove ${file.name}",
+                            modifier = Modifier.size(InputChipDefaults.IconSize).clickable { remove(file) }
+                        )
+                    }
+                },
+                modifier = Modifier.testTag("file-${file.name}")
+            )
+        }
     }
 }
 
@@ -1007,6 +1045,7 @@ private fun RenderForm(view: FormView, data: JsonObject?, modifier: Modifier) {
                 is DateInput -> DateField(item, values[item.mapping] as? String, onChange)
                 is Selector -> SelectorField(item, values[item.mapping] as? String, onChange)
                 is PhotosInput -> PhotosField(item, values[item.mapping] as? JsonArray, onChange)
+                is FilesInput -> FilesField(item, values[item.mapping] as? JsonArray, onChange)
                 is TagsInput -> TagsField(item, values[item.mapping] as? JsonArray, remember(view, item) { screen.knownTags(view, item) }, onChange)
                 is TimeInput -> TimeField(item, values[item.mapping] as? String, onChange)
                 // A hidden field only sends its value.
@@ -1312,6 +1351,43 @@ private fun TagsField(item: TagsInput, tags: JsonArray?, known: List<String>, on
                 }
             }
         }
+    }
+}
+
+/**
+ * Files of any kind from Android's file picker (no permission needed): linked, not copied, each a chip that opens it
+ * and can be removed; the field's value is the list of the files (see Files).
+ */
+@Composable
+private fun FilesField(item: FilesInput, value: JsonArray?, onChange: (Any?) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val attachments = remember(context) { FileAttachments(context) }
+    val current = Files.of(value)
+    val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        scope.launch {
+            val known = current.map { it.uri }.toSet()
+            val added = uris.filter { it.toString() !in known }.take(item.limit - current.size)
+                .mapNotNull { uri -> runCatching { attachments.add(uri) }.getOrNull() }
+            if (added.isNotEmpty()) onChange(JsonArray((current + added).map { it.toJson() }))
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FieldTitle(item.title)
+        if (current.isNotEmpty()) {
+            FileChips(current) { removed -> onChange(JsonArray((current - removed).map { it.toJson() }).takeIf { it.isNotEmpty() }) }
+        }
+        FilledTonalButton(
+            onClick = { pick.launch(arrayOf("*/*")) },
+            shapes = ButtonDefaults.shapes(),
+            enabled = current.size < item.limit,
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(if (current.isEmpty()) "Attach files" else "Attach more")
+        }
+        Description(item.description)
     }
 }
 

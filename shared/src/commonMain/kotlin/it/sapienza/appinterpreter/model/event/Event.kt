@@ -160,6 +160,7 @@ class PdfItems(
     override val title: String? = null,
     override val text: String,
     override val photos: String? = null,
+    override val files: String? = null,
     override val emptyText: String? = null,
     /** One page as tall as everything, as a phone shows it best, instead of A4 pages. */
     val pageless: Boolean = false,
@@ -180,6 +181,7 @@ class TextPackItems(
     override val title: String? = null,
     override val text: String,
     override val photos: String? = null,
+    override val files: String? = null,
     override val emptyText: String? = null,
     override val mapping: String? = null,
     override val data: JsonObject? = null
@@ -193,6 +195,8 @@ interface ItemsExport {
     val title: String?
     val text: String
     val photos: String?
+    /** Where each object keeps its attached files (a files field's list): listed in a PDF, packed in a TextPack. */
+    val files: String?
     val emptyText: String?
 }
 

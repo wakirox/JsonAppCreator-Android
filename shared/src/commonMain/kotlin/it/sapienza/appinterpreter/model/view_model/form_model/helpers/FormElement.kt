@@ -4,6 +4,7 @@ import it.sapienza.appinterpreter.model.TypedSerializer
 import it.sapienza.appinterpreter.model.view_model.form_model.CheckBox
 import it.sapienza.appinterpreter.model.view_model.form_model.DateInput
 import it.sapienza.appinterpreter.model.view_model.form_model.HiddenInput
+import it.sapienza.appinterpreter.model.view_model.form_model.FilesInput
 import it.sapienza.appinterpreter.model.view_model.form_model.PhotosInput
 import it.sapienza.appinterpreter.model.view_model.form_model.Selector
 import it.sapienza.appinterpreter.model.view_model.form_model.TagsInput
@@ -21,6 +22,7 @@ object FormElementSerializer : TypedSerializer<FormElementImpl>(
         Type("time", TimeInput.serializer()) { it is TimeInput },
         Type("hidden", HiddenInput.serializer()) { it is HiddenInput },
         Type("photos", PhotosInput.serializer()) { it is PhotosInput },
+        Type("files", FilesInput.serializer()) { it is FilesInput },
         Type("tags", TagsInput.serializer()) { it is TagsInput }
     )
 )

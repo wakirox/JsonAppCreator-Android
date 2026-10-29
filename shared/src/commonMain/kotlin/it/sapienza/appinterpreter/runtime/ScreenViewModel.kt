@@ -108,7 +108,7 @@ class ScreenViewModel(
         class Share(val text: String, val photos: List<String> = emptyList()) : Effect
         /** Make a PDF of [page] and open the share sheet on it (sending, saving or printing it). */
         class Pdf(val page: PdfPageUseCase.Page) : Effect
-        /** Zip [pack] as a .textpack and open the share sheet on it. */
+        /** Zip [pack] (a TextPack, named .zip so phones open it) and open the share sheet on it. */
         class TextPack(val pack: TextPackUseCase.Pack) : Effect
     }
 

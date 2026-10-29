@@ -302,6 +302,16 @@ A tick box, ticked when the data's true/false value at mapping is true. Ticking 
 - `visibleIf`: text
 - `title`: text. The text beside the box; may use ${field} placeholders
 
+#### `files`
+
+The files attached with a files field: a chip each, with its name and size; a tap opens the file in an app on the phone that reads it.
+
+- `id`: text (not empty)
+- `action`: an action (or `{ "ref": "id" }`)
+- `mapping` **(required)**: text (not empty). The files field's list, such as "files"
+- `data`: an object with any data
+- `visibleIf`: text
+
 ### Form fields
 
 The items of a form's `formElements`.
@@ -370,6 +380,16 @@ Photos picked from the phone's gallery, kept on the phone with the app. It submi
 - `description`: text
 - `mandatory`: `true` or `false`. At least one photo is needed
 - `max`: a whole number (at least 1). How many photos it takes; 10 by default
+
+#### `files`
+
+Files of any kind picked on the phone (a PDF, a document, a recording), linked rather than copied, so they open later. It submits a list of the files (name, type, size and link); a files view shows them.
+
+- `mapping` **(required)**: text (not empty). Where the list of files goes, such as "files"
+- `title` **(required)**: text (not empty)
+- `description`: text
+- `mandatory`: `true` or `false`. At least one file is needed
+- `max`: a whole number (at least 1). How many files it takes; 10 by default
 
 #### `tags`
 
@@ -498,6 +518,7 @@ Makes a PDF of saved objects, such as the ideas not done yet: a title, then each
 - `title`: text. The heading at the top and the file's name; may use ${field} placeholders from the current data. The app's name by default
 - `text` **(required)**: text (not empty). Each object's part, as Markdown with ${field} placeholders from the object, such as "## ${title}\n${description}"; a line whose placeholders all have no value is left out
 - `photos`: text. Path of each object's photos (a photos field's list) to show below its text
+- `files`: text. Path of each object's attached files (a files field's list), listed by name below it
 - `emptyText`: text. What an alert says when no object matches, instead of an empty PDF; may use ${field} placeholders
 - `pageless`: `true` or `false`. true: one page as tall as everything, best read on a phone; false (default): A4 pages, for printing
 - `mapping`: text. Path of the part of the current data to use
@@ -513,6 +534,7 @@ Makes a TextPack of saved objects: one Markdown text (a title, then each object'
 - `title`: text. The heading at the top and the pack's name; may use ${field} placeholders from the current data. The app's name by default
 - `text` **(required)**: text (not empty). Each object's part, as Markdown with ${field} placeholders from the object, such as "## ${title}\n${description}"; a line whose placeholders all have no value is left out
 - `photos`: text. Path of each object's photos (a photos field's list): kept ones go in the pack as files, linked below its text
+- `files`: text. Path of each object's attached files (a files field's list): they go in the pack, linked below its text
 - `emptyText`: text. What an alert says when no object matches, instead of an empty pack; may use ${field} placeholders
 - `mapping`: text. Path of the part of the current data to use
 - `data`: an object with any data

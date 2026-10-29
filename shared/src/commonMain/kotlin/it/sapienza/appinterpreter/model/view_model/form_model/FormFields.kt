@@ -4,6 +4,7 @@ import it.sapienza.appinterpreter.model.view_model.form_model.helpers.FormElemen
 import it.sapienza.appinterpreter.model.view_model.form_model.helpers.TextType
 import it.sapienza.appinterpreter.utils.FormDates
 import kotlinx.serialization.Serializable
+import it.sapienza.appinterpreter.storage.Files
 import it.sapienza.appinterpreter.storage.Photos
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -114,6 +115,25 @@ class PhotosInput(
 ) : FormElementImpl() {
     /** How many photos the field takes: [max], 10 by default. */
     val limit: Int get() = (max ?: Photos.DEFAULT_MAX).coerceAtLeast(1)
+
+    override fun isSet(value: Any?): Boolean = !isRequired || !(value as? JsonArray).isNullOrEmpty()
+    override fun defaultValue(): Any? = null
+}
+
+/**
+ * Files of any kind picked on the phone, up to [max]: linked, not copied, and submitted as a list of objects (see
+ * Files) that a files view shows.
+ */
+@Serializable
+class FilesInput(
+    val max: Int? = null,
+    override val mandatory: Boolean? = null,
+    override val title: String,
+    override val description: String? = null,
+    override val mapping: String
+) : FormElementImpl() {
+    /** How many files the field takes: [max], 10 by default. */
+    val limit: Int get() = (max ?: Files.DEFAULT_MAX).coerceAtLeast(1)
 
     override fun isSet(value: Any?): Boolean = !isRequired || !(value as? JsonArray).isNullOrEmpty()
     override fun defaultValue(): Any? = null

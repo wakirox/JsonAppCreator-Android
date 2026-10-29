@@ -62,6 +62,18 @@ class TextPackUseCaseTest {
     }
 
     @Test
+    fun attachedFilesGoInTheAssetsLinkedByName() {
+        val withFiles = assertIs<TextPackItems>(
+            Json.decodeFromString<Event>(EventSerializer, """{ "type": "textpack", "collection": "c", "text": "## ${'$'}{title}", "files": "files" }""")
+        )
+        val item = obj("""{ "title": "Dark mode", "files": [ { "name": "Spec v2.pdf", "uri": "content://a" }, { "name": "Spec v2.pdf", "uri": "content://b" } ] }""")
+        val pack = TextPackUseCase()(withFiles, listOf(item), null, "Ideas")
+        assertEquals(listOf("assets/dark-mode-Spec-v2.pdf" to "content://a", "assets/dark-mode-Spec-v2-2.pdf" to "content://b"), pack.assets.map { it.path to it.reference })
+        assertEquals(listOf(false, false), pack.assets.map { it.isPhoto })
+        assertEquals("# Ideas\n\n## Dark mode\n\n📎 [Spec v2.pdf](assets/dark-mode-Spec-v2.pdf)\n📎 [Spec v2.pdf](assets/dark-mode-Spec-v2-2.pdf)\n", pack.markdown)
+    }
+
+    @Test
     fun withoutObjectsTheEmptyTextAndTheAppsNameWithoutATitle() {
         val untitled = assertIs<TextPackItems>(Json.decodeFromString<Event>(EventSerializer, """{ "type": "textpack", "collection": "c", "text": "x", "emptyText": "Nothing yet" }"""))
         val pack = TextPackUseCase()(untitled, emptyList(), null, "App ideas")
