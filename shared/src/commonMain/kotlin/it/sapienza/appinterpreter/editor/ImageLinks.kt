@@ -61,7 +61,7 @@ object ImageLinks {
             EditorIssue(
                 ConfigurationChecker.offsetOf(path, offsets),
                 path,
-                "This image doesn't load ($why): $url. Use an address you opened and saw show the picture, or leave it out"
+                "This image doesn't load ($why): $url. Check the address, or use another picture"
             )
         }
     }

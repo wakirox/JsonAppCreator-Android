@@ -89,6 +89,8 @@ fun EditorScreen(
     initialText: String,
     /** Where the text came from when it isn't saved anywhere yet ("Shared from your AI app"), or null. */
     unsavedSource: String?,
+    /** The text is an AI app's answer (shared, pasted or a chat link): problems are offered back to it first. */
+    fromAiApp: Boolean,
     check: suspend (String) -> List<EditorIssue>,
     /** The HTTP status of a web image the text shows (null: no answer), to say which don't load. */
     imageStatus: suspend (String) -> Int?,
@@ -221,8 +223,8 @@ fun EditorScreen(
             if (unsavedSource != null) {
                 Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
                     Text(
-                        "$unsavedSource, not saved yet. ▶ runs it; problems can go back to your AI app " +
-                            "from the bar below.",
+                        "$unsavedSource, not saved yet. ▶ runs it" +
+                            if (fromAiApp) "; problems can go back to your AI app from the bar below." else ".",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
@@ -265,6 +267,7 @@ fun EditorScreen(
                 text = value.text,
                 onToggle = { issuesOpen = !issuesOpen },
                 onIssue = { issue -> issue.offset?.let(::jumpTo) },
+                fromAiApp = fromAiApp,
                 onSendToAi = { found -> AskAi.shareToAiApp(context, AskAi.fixRequest(context, value.text, found)) }
             )
         }
@@ -346,6 +349,8 @@ private fun IssueBar(
     text: String,
     onToggle: () -> Unit,
     onIssue: (EditorIssue) -> Unit,
+    /** An AI app's answer gets a red button to send the problems back; one's own JSON, a quieter link. */
+    fromAiApp: Boolean,
     onSendToAi: (List<EditorIssue>) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -382,13 +387,19 @@ private fun IssueBar(
                 }
             }
             if (open && !issues.isNullOrEmpty()) {
-                Button(
-                    shapes = ButtonDefaults.shapes(),
-                    onClick = { onSendToAi(issues) },
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = colors.onError),
-                    modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
-                ) {
-                    Text("Send problems to your AI app…")
+                if (fromAiApp) {
+                    Button(
+                        shapes = ButtonDefaults.shapes(),
+                        onClick = { onSendToAi(issues) },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = colors.onError),
+                        modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                    ) {
+                        Text("Send problems to your AI app…")
+                    }
+                } else {
+                    TextButton(shapes = ButtonDefaults.shapes(), onClick = { onSendToAi(issues) }, modifier = Modifier.padding(start = 4.dp)) {
+                        Text("Ask an AI app to fix them…")
+                    }
                 }
                 LazyColumn(Modifier.heightIn(max = 220.dp)) {
                     items(issues) { issue ->

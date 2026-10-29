@@ -119,6 +119,7 @@ class EditorActivity : AppCompatActivity() {
                         newApp -> Snippets.newApp.replaceFirst("\"My app\"", "\"${AppLibrary.of(this).freeName("My app")}\"")
                         else -> prettyJson(DomainController.jsonFile(this))
                     },
+                    fromAiApp = received != null && !fromFile,
                     unsavedSource = when {
                         received == null -> null
                         fromFile -> "Opened from a file"
