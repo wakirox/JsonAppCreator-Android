@@ -35,6 +35,12 @@ final class ShellFlowTests: XCTestCase {
         return try String(contentsOf: root.appending(path: "app/src/main/res/raw/\(name).json"), encoding: .utf8)
     }
 
+    /// The system asks before an app reads text another app copied: allow it.
+    private func allowPaste() {
+        let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow Paste"]
+        if allow.waitForExistence(timeout: 5) { allow.tap() }
+    }
+
     private func menu(_ item: String) {
         app.buttons["Menu"].firstMatch.tap()
         let entry = app.buttons[item].firstMatch
@@ -75,6 +81,7 @@ final class ShellFlowTests: XCTestCase {
         // Paste an AI answer: it opens in the editor with no problems, and Open keeps it in Your apps.
         UIPasteboard.general.string = "Here is your app:\n```json\n" + (try raw("v3_race_signup")) + "\n```"
         app.buttons["Paste answer from your AI app"].tap()
+        allowPaste()
         XCTAssertTrue(app.navigationBars["From your AI app"].waitForExistence(timeout: 10))
         XCTAssertTrue(text("No problems: ready to open").waitForExistence(timeout: 15))
         shot("shell-editor-ok")
@@ -99,9 +106,8 @@ final class ShellFlowTests: XCTestCase {
         app.launch()
         UIPasteboard.general.string = try String(contentsOfFile: file, encoding: .utf8)
         menu("Paste answer from your AI app")
+        allowPaste()
         XCTAssertTrue(app.navigationBars["From your AI app"].waitForExistence(timeout: 10))
-        sleep(20)
-        shot("shell-debug")
         XCTAssertTrue(text("5 problems").waitForExistence(timeout: 40))
         XCTAssertTrue(app.buttons["Send problems to your AI app…"].exists)
         shot("shell-editor-problems")
