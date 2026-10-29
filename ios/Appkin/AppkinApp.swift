@@ -4,8 +4,17 @@ import SwiftUI
 struct AppkinApp: App {
     var body: some Scene {
         WindowGroup {
-            SketchRoot(screen: UserDefaults.standard.string(forKey: "screen") ?? "home",
-                       open: UserDefaults.standard.string(forKey: "open"))
+            Group {
+                if UserDefaults.standard.string(forKey: "screen") == "run" {
+                    // `-screen run -example v3_masterpieces`: a bundled example, drawn by the shared engine.
+                    BundledExample(name: UserDefaults.standard.string(forKey: "example") ?? "v3_masterpieces")
+                } else {
+                    SketchRoot(screen: UserDefaults.standard.string(forKey: "screen") ?? "home",
+                               open: UserDefaults.standard.string(forKey: "open"))
+                }
+            }
+            // Buttons, icons and links in the text's own colour, black in light and white in dark, not system blue.
+            .tint(.primary)
         }
     }
 }
