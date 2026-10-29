@@ -453,7 +453,7 @@ Saves the current data (a form's submitted values) on the phone as a new object 
 
 #### `update`
 
-Changes a saved object: the current data (a form's submitted values, or a ticked check's item) and fields replace its values. Its id and createdAt never change.
+Changes a saved object: the current data (a form's submitted values, or a ticked check's item) and fields replace its values; a form's field left empty is removed from it. Its id and createdAt never change.
 
 - `collection` **(required)**: text (not empty). The collection the object is in
 - `id`: text (not empty). The id of the object to change; "${id}" (the current data's id) by default
