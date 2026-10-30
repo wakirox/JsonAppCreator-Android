@@ -86,6 +86,8 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Appkin
         # Add to Calendar: the system's event editor saves what the user confirms; the app only prepares the event.
         INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription: Appkin adds the events you choose to your calendar.
+        # Only standard HTTPS: no export compliance documents needed.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         TARGETED_DEVICE_FAMILY: "1,2"
         # The simulator build is signed ad hoc: without a signature the Keychain refuses every write (-34018).
         # Devices are signed with the owner's team when archiving.
@@ -96,6 +98,14 @@ targets:
         OTHER_LDFLAGS: "$(inherited) -framework AppkinShared"
         # Gradle reads and writes the repository outside the sandbox of script phases.
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+      configs:
+        # App Store builds: the team's Apple Distribution certificate and the "Appkin App Store" profile.
+        Release:
+          DEVELOPMENT_TEAM: 793Z38F3BF
+          CODE_SIGN_STYLE: Manual
+          "CODE_SIGN_IDENTITY[sdk=iphoneos*]": Apple Distribution
+          "CODE_SIGNING_REQUIRED[sdk=iphoneos*]": YES
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Appkin App Store
   AppkinUITests:
     type: bundle.ui-testing
     platform: iOS
