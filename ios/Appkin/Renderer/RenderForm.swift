@@ -93,7 +93,9 @@ private struct FormContent: View {
                 Text(error).font(.subheadline).foregroundStyle(.red)
             }
             Button(action: model.submit) {
+                // The fill is the tint (.primary: white in dark mode), so the text takes the screen's colour.
                 Text(model.form.buttonTitle ?? "Submit").frame(maxWidth: .infinity)
+                    .foregroundStyle(Color(.systemBackground))
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -138,7 +140,9 @@ struct FieldBox<Content: View>: View {
                 content
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                    // Outlined on the screen's own colour: a grey fill with no edge reads as a disabled field.
+                    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color(.systemGray3)))
             } else {
                 content
             }
