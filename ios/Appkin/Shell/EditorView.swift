@@ -183,7 +183,9 @@ struct EditorView: View {
             }
             if seed.fromAIApp {
                 Button { sendToAI(issues) } label: {
-                    Label("Send problems to your AI app…", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                    Label("Send problems to your AI app…", systemImage: "square.and.arrow.up")
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
