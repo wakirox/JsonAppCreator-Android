@@ -69,7 +69,7 @@ final class ShellFlowTests: XCTestCase {
         XCTAssertTrue(request.waitForExistence(timeout: 5))
         request.tap()
         request.typeText("A list of my favourite books")
-        app.swipeUp()
+        app.keyboards.buttons["Done"].tap()
         app.buttons["Copy"].tap()
         XCTAssertTrue(contains("Copied").waitForExistence(timeout: 5))
         shot("shell-ask-ai")

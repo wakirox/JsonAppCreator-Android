@@ -13,6 +13,7 @@ struct AskAIView: View {
     @State private var previewing = false
     @State private var copied = false
     @State private var baseTokens = 0
+    @FocusState private var typing: Bool
 
     private struct Idea: Identifiable {
         let id: String
@@ -42,6 +43,7 @@ struct AskAIView: View {
                 TextField(changing ? "Add a screen with the opening hours" : "A list of my favourite books, with a screen for each",
                           text: $request, axis: .vertical)
                     .lineLimit(3...8)
+                    .focused($typing)
                     .accessibilityIdentifier("ask-request")
                 if !changing {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -113,6 +115,12 @@ struct AskAIView: View {
         .onChange(of: short) { _, value in shell.kit.shortInstructions = value }
         .onChange(of: request) { copied = false }
         .task(id: "\(changing)-\(short)") { baseTokens = Int(shell.kit.tokens(text: build(request: nil))) }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { typing = false }
+            }
+        }
         .sheet(isPresented: $previewing) { preview }
     }
 
