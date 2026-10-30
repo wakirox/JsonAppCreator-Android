@@ -40,7 +40,7 @@
       {
         "type": "text",
         "label": "Popular movies",
-        "title": "click for detail",
+        "title": "Tap one for details",
         "action": {
           "id": "show_featured_movies"
         }

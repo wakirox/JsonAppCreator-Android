@@ -406,12 +406,12 @@
         }
       }
     },
-    "Change an example with Edit this app in its ⋮ menu, and your version is kept under Your apps.": {
+    "Change an example with Edit this app in its ••• menu, and your version is kept under Your apps.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Change an example with Edit this app in its ⋮ menu, and your version is kept under Your apps."
+            "value": "Change an example with Edit this app in its ••• menu, and your version is kept under Your apps."
           }
         }
       }
@@ -746,12 +746,12 @@
         }
       }
     },
-    "Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, share it, or come back here.": {
+    "Inside an app, its ••• menu lets you edit it, ask your AI app to change it, share it, or come back here.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, share it, or come back here."
+            "value": "Inside an app, its ••• menu lets you edit it, ask your AI app to change it, share it, or come back here."
           }
         }
       }

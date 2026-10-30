@@ -65,7 +65,7 @@ struct HomeView: View {
             } header: {
                 Text("Examples")
             } footer: {
-                Text("Change an example with Edit this app in its ⋮ menu, and your version is kept under Your apps.")
+                Text("Change an example with Edit this app in its ••• menu, and your version is kept under Your apps.")
             }
         }
         .navigationTitle("Appkin")
@@ -148,7 +148,7 @@ private struct HowItWorks: View {
                          "Try an example below, open a file someone sent you, write one in the built-in editor, or ask the AI app you already use (ChatGPT, Gemini, Claude…) to make one for you.")
                     step(4, "Keep the ones you like",
                          "Every app you open is kept under Your apps, so you can come back to it here.")
-                    Text("Inside an app, its ⋮ menu lets you edit it, ask your AI app to change it, share it, or come back here.")
+                    Text("Inside an app, its ••• menu lets you edit it, ask your AI app to change it, share it, or come back here.")
                         .font(.footnote)
                     Link("Write one yourself: read the JSON format guide", destination: Links.formatGuide)
                         .font(.footnote)
