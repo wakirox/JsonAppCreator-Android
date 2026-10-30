@@ -69,7 +69,7 @@ final class ShellFlowTests: XCTestCase {
         XCTAssertTrue(request.waitForExistence(timeout: 5))
         request.tap()
         request.typeText("A list of my favourite books")
-        app.keyboards.buttons["Done"].tap()
+        app.buttons["Done"].firstMatch.tap()
         sleep(1)
         shot("shell-debug1")
         app.buttons["Copy"].tap()
