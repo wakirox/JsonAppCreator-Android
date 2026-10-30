@@ -136,17 +136,19 @@ final class ShellFlowTests: XCTestCase {
         XCTAssertGreaterThan(app.images.count + app.staticTexts.count, 5)
     }
 
-    private static let keyTestApp = """
-    {"schemaVersion":3,"name":"Key Test","icon":"🔑","version":"1","author":"Test","mainView":{"id":"l0","type":"layout","views":[
+    /// The keys are kept per file content, and the simulator's Keychain outlives the app: each run has its own app.
+    private static func keyTestApp(_ name: String) -> String { """
+    {"schemaVersion":3,"name":"\(name)","icon":"🔑","version":"1","author":"Test","mainView":{"id":"l0","type":"layout","views":[
     {"type":"text","label":"Key test app"},
     {"type":"form","buttonTitle":"Go","formElements":[{"type":"text","mapping":"q","title":"Q"}],
     "action":{"id":"a1","type":"click","event":{"type":"rest","url":"https://httpbin.org/get?key=__TEST_API_KEY__","method":"get"}}}]}}
-    """
+    """ }
 
     /// A typed API key is kept in the Keychain: after the app is relaunched it isn't asked for again.
     func testApiKeyIsAskedOnceAndRemembered() throws {
         let file = NSTemporaryDirectory() + "key-test-\(UUID().uuidString).json"
-        try Self.keyTestApp.write(toFile: file, atomically: true, encoding: .utf8)
+        let name = "Key Test \(UUID().uuidString.prefix(6))"
+        try Self.keyTestApp(name).write(toFile: file, atomically: true, encoding: .utf8)
         app.launchArguments = ["-openFile", file]
         app.launch()
         app.buttons["Open"].tap()
@@ -157,7 +159,7 @@ final class ShellFlowTests: XCTestCase {
         field.typeText("fake-test-value")
         shot("shell-api-key")
         app.buttons["Load app"].tap()
-        XCTAssertTrue(app.navigationBars["Key Test"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars[name].waitForExistence(timeout: 10))
         menu("Home")
         XCTAssertTrue(app.navigationBars["Appkin"].waitForExistence(timeout: 5))
         app.terminate()
@@ -165,9 +167,9 @@ final class ShellFlowTests: XCTestCase {
         app.launchArguments = []
         app.launch()
         XCTAssertTrue(app.navigationBars["Appkin"].waitForExistence(timeout: 10))
-        text("Key Test").tap()
+        text(name).tap()
         XCTAssertFalse(app.navigationBars["API keys"].waitForExistence(timeout: 3), "read from the Keychain")
-        XCTAssertTrue(app.navigationBars["Key Test"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars[name].waitForExistence(timeout: 10))
     }
 
     /// "Open in Appkin": a .appkin.json file in Files (On My iPhone), shared to Appkin from its share sheet.
