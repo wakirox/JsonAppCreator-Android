@@ -23,11 +23,8 @@ struct HomeView: View {
         List {
             HowItWorks(expanded: $explained)
             Section {
-                // Side by side when both titles fit whole; else one above the other, so neither is cut.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 12) { startButtons }
-                    VStack(spacing: 8) { startButtons }
-                }
+                // One above the other: side by side, a phone's width cuts "Ask your AI app".
+                VStack(spacing: 8) { startButtons }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .lineLimit(1)
