@@ -409,7 +409,7 @@ class HomeActivity : AppCompatActivity() {
 
     companion object {
         private const val EXPLAINED_KEY = "how_it_works_open"
-        private const val GITHUB = "https://github.com/wakirox/JsonAppCreator-Android"
+        private const val GITHUB = "https://github.com/wakirox/JsonAppCreator"
         private const val CONTACT = "info@wakirox.app"
 
         /** The format reference written for people; docs/LLM_GUIDE.md is the one for AI apps. */

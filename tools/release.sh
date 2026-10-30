@@ -20,7 +20,7 @@ major=$((10#${BASH_REMATCH[1]})); minor=$((10#${BASH_REMATCH[2]})); patch=$((10#
 version_code=$((major * 1000000 + minor * 1000 + patch))
 
 cd "$(git rev-parse --show-toplevel)"
-repo=wakirox/JsonAppCreator-Android
+repo=wakirox/JsonAppCreator
 properties="${APPKIN_KEYSTORE_PROPERTIES:-$HOME/.android/keys/rainy-keystore.properties}"
 export PATH="$HOME/.local/bin:$PATH"
 
