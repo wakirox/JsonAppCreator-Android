@@ -87,7 +87,11 @@ targets:
         # Add to Calendar: the system's event editor saves what the user confirms; the app only prepares the event.
         INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription: Appkin adds the events you choose to your calendar.
         TARGETED_DEVICE_FAMILY: "1,2"
-        CODE_SIGNING_ALLOWED: NO
+        # The simulator build is signed ad hoc: without a signature the Keychain refuses every write (-34018).
+        # Devices are signed with the owner's team when archiving.
+        CODE_SIGNING_ALLOWED: YES
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGN_IDENTITY: "-"
         FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
         OTHER_LDFLAGS: "$(inherited) -framework AppkinShared"
         # Gradle reads and writes the repository outside the sandbox of script phases.

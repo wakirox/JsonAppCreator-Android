@@ -74,7 +74,6 @@ final class ShellFlowTests: XCTestCase {
 
         // Paste an AI answer: it opens in the editor with no problems, and Open keeps it in Your apps.
         UIPasteboard.general.string = "Here is your app:\n```json\n" + (try raw("v3_race_signup")) + "\n```"
-        app.buttons["Ask your AI app"].firstMatch.tap()
         app.swipeUp()
         XCTAssertTrue(contains("Got your AI app's answer").waitForExistence(timeout: 5))
         shot("shell-paste")
@@ -169,5 +168,30 @@ final class ShellFlowTests: XCTestCase {
         text("Key Test").tap()
         XCTAssertFalse(app.navigationBars["API keys"].waitForExistence(timeout: 3), "read from the Keychain")
         XCTAssertTrue(app.navigationBars["Key Test"].waitForExistence(timeout: 10))
+    }
+
+    /// "Open in Appkin": a .appkin.json file in Files (On My iPhone), shared to Appkin from its share sheet.
+    /// The file is put in Files' local storage by the script that runs the tests (tools/files-fixture.sh).
+    func testOpenInAppkinFromFiles() throws {
+        let files = XCUIApplication(bundleIdentifier: "com.apple.DocumentsApp")
+        files.launch()
+        files.tabBars.buttons["Browse"].tap()
+        let onPhone = files.cells["On My iPhone"].firstMatch.exists ? files.cells["On My iPhone"].firstMatch : files.staticTexts["On My iPhone"].firstMatch
+        XCTAssertTrue(onPhone.waitForExistence(timeout: 10))
+        onPhone.tap()
+        let file = files.cells.matching(NSPredicate(format: "label CONTAINS 'hello'")).firstMatch
+        try XCTSkipUnless(file.waitForExistence(timeout: 10), "run ios/tools/files-fixture.sh first")
+        shot("files-2")
+        file.press(forDuration: 1.2)
+        shot("files-3")
+        files.buttons["Share"].firstMatch.tap()
+        shot("files-4")
+        let target = files.cells["Appkin"].firstMatch.exists ? files.cells["Appkin"].firstMatch : files.buttons["Appkin"].firstMatch
+        XCTAssertTrue(target.waitForExistence(timeout: 10), "Appkin in the share sheet")
+        target.tap()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15))
+        XCTAssertTrue(app.staticTexts["Opened From Files"].waitForExistence(timeout: 10)
+                      || app.navigationBars["Opened From Files"].waitForExistence(timeout: 5))
+        shot("shell-open-in")
     }
 }
