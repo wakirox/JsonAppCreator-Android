@@ -70,8 +70,6 @@ final class ShellFlowTests: XCTestCase {
         request.tap()
         request.typeText("A list of my favourite books")
         app.buttons["Done"].firstMatch.tap()
-        sleep(1)
-        shot("shell-debug1")
         app.buttons["Copy"].tap()
         XCTAssertTrue(contains("Copied").waitForExistence(timeout: 5))
         shot("shell-ask-ai")
@@ -82,6 +80,7 @@ final class ShellFlowTests: XCTestCase {
 
         // Paste an AI answer: it opens in the editor with no problems, and Open keeps it in Your apps.
         UIPasteboard.general.string = "Here is your app:\n```json\n" + (try raw("v3_race_signup")) + "\n```"
+        app.swipeUp()
         app.buttons["Paste answer from your AI app"].tap()
         allowPaste()
         XCTAssertTrue(app.navigationBars["From your AI app"].waitForExistence(timeout: 10))
