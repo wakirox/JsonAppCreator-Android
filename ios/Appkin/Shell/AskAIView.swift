@@ -106,7 +106,7 @@ struct AskAIView: View {
                 Text("Then")
             }
         }
-        .scrollDismissesKeyboard(.interactively)
+        .scrollDismissesKeyboard(.immediately)
         .navigationTitle("Ask your AI app")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { short = shell.kit.shortInstructions }
