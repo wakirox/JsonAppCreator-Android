@@ -88,6 +88,11 @@ targets:
         INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription: Appkin adds the events you choose to your calendar.
         # Only standard HTTPS: no export compliance documents needed.
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        # Turns with the phone (the iPhone Duo is used sideways); every way on iPad, which multitasking needs.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        # Files are read where they are, with security-scoped access, not copied into the app.
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         TARGETED_DEVICE_FAMILY: "1,2"
         # The simulator build is signed ad hoc: without a signature the Keychain refuses every write (-34018).
         # Devices are signed with the owner's team when archiving.
