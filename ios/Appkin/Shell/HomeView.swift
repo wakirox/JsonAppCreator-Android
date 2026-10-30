@@ -10,22 +10,27 @@ struct HomeView: View {
     @State private var deleting: AppLibrary.SavedApp?
     @State private var importing = false
 
+    @ViewBuilder private var startButtons: some View {
+        Button { shell.newApp() } label: {
+            Label("New app", systemImage: "plus").frame(maxWidth: .infinity)
+        }
+        Button { shell.askAI() } label: {
+            Label("Ask your AI app", systemImage: "sparkles").frame(maxWidth: .infinity)
+        }
+    }
+
     var body: some View {
         List {
             HowItWorks(expanded: $explained)
             Section {
-                HStack(spacing: 12) {
-                    Button { shell.newApp() } label: {
-                        Label("New app", systemImage: "plus").frame(maxWidth: .infinity)
-                    }
-                    Button { shell.askAI() } label: {
-                        Label("Ask your AI app", systemImage: "sparkles").frame(maxWidth: .infinity)
-                    }
+                // Side by side when both titles fit whole; else one above the other, so neither is cut.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 12) { startButtons }
+                    VStack(spacing: 8) { startButtons }
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .lineLimit(1)
-                .font(.subheadline)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             }
