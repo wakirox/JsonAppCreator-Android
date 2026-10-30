@@ -32,6 +32,11 @@ struct EditorView: View {
                 .keyboardType(.asciiCapable)
                 .focused($focused)
                 .accessibilityIdentifier("editor-text")
+                // The keyboard's smart punctuation turns a typed " into “ or ”, which breaks the JSON: what was just
+                // typed gets a straight quote back. Pasted text keeps its own quotes.
+                .onChange(of: text) { old, new in
+                    if let straight = straightenTyped(old: old, new: new) { text = straight }
+                }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { problemBar }
         .overlay(alignment: .bottom) {
@@ -282,4 +287,17 @@ struct EditorView: View {
         focused = true
         selection = TextSelection(insertionPoint: index(start + addition.utf16.count))
     }
+}
+
+/// [new] with the curly double quotes just typed (a short insertion into [old]) made straight; nil when there were none.
+func straightenTyped(old: String, new: String) -> String? {
+    let added = new.count - old.count
+    guard (1...2).contains(added) else { return nil }
+    let start = zip(old, new).prefix { $0 == $1 }.count
+    let from = new.index(new.startIndex, offsetBy: start)
+    let to = new.index(from, offsetBy: added)
+    let typed = new[from..<to]
+    guard typed.contains(where: { $0 == "\u{201C}" || $0 == "\u{201D}" }) else { return nil }
+    let fixed = typed.replacingOccurrences(of: "\u{201C}", with: "\"").replacingOccurrences(of: "\u{201D}", with: "\"")
+    return String(new[..<from]) + fixed + String(new[to...])
 }

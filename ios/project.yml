@@ -81,6 +81,20 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
         SWIFT_VERSION: "6.0"
+  AppkinTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AppkinTests
+    dependencies:
+      - target: Appkin
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
+        SWIFT_VERSION: "6.0"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Appkin.app/Appkin"
+        BUNDLE_LOADER: "$(TEST_HOST)"
 schemes:
   Appkin:
     build:
@@ -91,4 +105,5 @@ schemes:
     test:
       config: Debug
       targets:
+        - AppkinTests
         - AppkinUITests

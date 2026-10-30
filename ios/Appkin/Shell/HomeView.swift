@@ -24,6 +24,8 @@ struct HomeView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
+                .lineLimit(1)
+                .font(.subheadline)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             }
@@ -174,6 +176,6 @@ private struct HowItWorks: View {
 enum Links {
     static let site = URL(string: "https://wakirox.app")!
     /// The format reference written for people (a link target; the repository is the project's home).
-    static let formatGuide = URL(string: "https://github.com/wakirox/JsonAppCreator-Android/blob/master/docs/CONFIGURATION_V3.md")!
+    static let formatGuide = URL(string: "https://github.com/wakirox/JsonAppCreator/blob/master/docs/CONFIGURATION_V3.md")!
     static let contact = "info@wakirox.app"
 }

@@ -154,8 +154,8 @@ class ShellKit(private val secrets: SecretStore) {
     private companion object {
         const val DOCS = "docs/AI_CONTEXT.md"
         val AI_LINKS = AiContext.Links(
-            page = "https://github.com/wakirox/JsonAppCreator-Android/blob/master/$DOCS",
-            raw = "https://raw.githubusercontent.com/wakirox/JsonAppCreator-Android/master/$DOCS"
+            page = "https://github.com/wakirox/JsonAppCreator/blob/master/$DOCS",
+            raw = "https://raw.githubusercontent.com/wakirox/JsonAppCreator/master/$DOCS"
         )
     }
 }
