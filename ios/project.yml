@@ -49,6 +49,29 @@ targets:
           cd "$SRCROOT/.."
           export JAVA_HOME="${JAVA_HOME:-/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
           ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+    postCompileScripts:
+      # The bundled examples' API keys, from the build machine's private key file (the one the Android build reads),
+      # into the app as Base64 JSON. Never printed or committed; without the file the examples ask for their keys.
+      - name: Bundle the examples' API keys
+        basedOnDependencyAnalysis: false
+        script: |
+          keys="${APPKIN_CONFIG_KEYS_FILE:-$HOME/.config/appkin/config-api-keys.properties}"
+          out="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/bundled-api-keys.b64"
+          rm -f "$out"
+          [ -r "$keys" ] || exit 0
+          /usr/bin/python3 - "$keys" "$out" <<'PY'
+          import base64, json, sys
+          values = {}
+          for line in open(sys.argv[1], encoding="utf-8"):
+              line = line.strip()
+              if not line or line.startswith("#") or "=" not in line:
+                  continue
+              key, value = line.split("=", 1)
+              resource, _, name = key.strip().partition(".")
+              if name:
+                  values.setdefault(resource, {})[name] = value.strip()
+          open(sys.argv[2], "w").write(base64.b64encode(json.dumps(values).encode()).decode())
+          PY
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.wakirox.appkin

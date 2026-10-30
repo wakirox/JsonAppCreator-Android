@@ -48,7 +48,9 @@ class MissingKeys(val names: List<String>, val saved: List<String>)
  * What the iPhone app's own screens (Home, the editor, Ask your AI app) take from the shared engine, in shapes Swift
  * calls without coroutines: the same checks, library, AI instructions and file handling Android uses.
  */
-class ShellKit(private val secrets: SecretStore) {
+class ShellKit(private val secrets: SecretStore, bundledKeys: String = "") {
+    private val bundled = ConfigurationKeys.decodeBundledValues(bundledKeys)
+
     val library = AppLibrary(UserDefaultsAppStore(prefix = "appkin.library."))
     private val instructions = AiInstructionsChoice(UserDefaultsAppStore(prefix = "appkin.askai."))
     private val checker by lazy { ConfigurationChecker(SharedValidator.validator) }
@@ -105,13 +107,13 @@ class ShellKit(private val secrets: SecretStore) {
 
     /** The keys [json] needs that the Keychain doesn't have yet under [configurationId]; null when it has them all. */
     fun missingKeys(json: String, configurationId: String): MissingKeys? {
-        val keys = ConfigurationKeys(secrets, emptyMap()) { configurationId }
+        val keys = ConfigurationKeys(secrets, bundled) { configurationId }
         val missing = FindMissingApiKeysUseCase(CurrentConfiguration { json }, keys)() ?: return null
         return MissingKeys(missing.names.toList(), missing.savedNames.toList())
     }
 
     fun saveKeys(json: String, configurationId: String, values: Map<String, String>) =
-        ConfigurationKeys(secrets, emptyMap()) { configurationId }.saveForCurrentConfiguration(json, values)
+        ConfigurationKeys(secrets, bundled) { configurationId }.saveForCurrentConfiguration(json, values)
 
     // Ask your AI app
 

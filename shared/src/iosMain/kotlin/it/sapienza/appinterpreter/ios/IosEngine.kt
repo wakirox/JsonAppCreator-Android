@@ -44,6 +44,8 @@ class IosEngine(
     /** Where the user's API keys are kept (the Keychain), under [configurationId]: the app's identity for them. */
     secrets: SecretStore,
     private val configurationId: String,
+    /** The build's keys for the bundled examples: Base64 of {"v3_the_movie_db": {"TMDB_API_KEY": "…"}}, or empty. */
+    bundledKeys: String = "",
     /** The JPEG bytes of a kept photo by its "appkin-photo:" reference (null: none), for requests that send photos. */
     photoData: (String) -> NSData?
 ) {
@@ -53,7 +55,7 @@ class IosEngine(
     private val strings = EnglishRuntimeStrings
     private val current = CurrentConfiguration { json }
     private val repository = AppRepository(current, ValidatedConfigurationParser(SharedValidator.validator))
-    private val keys = ConfigurationKeys(secrets, emptyMap()) { configurationId }
+    private val keys = ConfigurationKeys(secrets, ConfigurationKeys.decodeBundledValues(bundledKeys)) { configurationId }
     private val httpClient = JsonHttpClient(
         Darwin.create(),
         userAgent,

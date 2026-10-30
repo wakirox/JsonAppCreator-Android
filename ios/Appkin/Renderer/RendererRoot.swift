@@ -20,7 +20,8 @@ final class AppSession: Hashable {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
         engine = IosEngine(
             json: json, versionName: version, platform: "iOS \(UIDevice.current.systemVersion)",
-            secrets: secrets, configurationId: configurationId, photoData: { PhotoStore.data($0) }
+            secrets: secrets, configurationId: configurationId, bundledKeys: BundledKeys.encoded,
+            photoData: { PhotoStore.data($0) }
         )
         ImageLoader.userAgent = engine.userAgent
     }

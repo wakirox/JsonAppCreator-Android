@@ -86,7 +86,7 @@ final class Shell: ObservableObject {
     @Published var notice: Notice?
 
     init() {
-        kit = ShellKit(secrets: secrets)
+        kit = ShellKit(secrets: secrets, bundledKeys: BundledKeys.encoded)
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
         ImageLoader.userAgent = JsonHttpClient.companion.userAgent(versionName: version, platform: "iOS \(UIDevice.current.systemVersion)")
     }
