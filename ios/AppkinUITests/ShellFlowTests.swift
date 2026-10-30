@@ -18,6 +18,13 @@ final class ShellFlowTests: XCTestCase {
         app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", part)).firstMatch
     }
 
+    /// A row on Home, scrolled to: each run of the key test adds an app above the examples, and How it works may be open.
+    private func onHome(_ name: String) -> XCUIElement {
+        let row = text(name)
+        for _ in 0..<8 where !(row.exists && row.isHittable) { app.swipeUp() }
+        return row
+    }
+
     private func shot(_ name: String) {
         try? XCUIScreen.main.screenshot().pngRepresentation.write(to: URL(fileURLWithPath: "/tmp/appkin-shots/\(name).png"))
     }
@@ -48,12 +55,12 @@ final class ShellFlowTests: XCTestCase {
         shot("shell-home")
 
         // Examples open in the renderer.
-        text("Masterpieces").tap()
+        onHome("Masterpieces").tap()
         XCTAssertTrue(app.navigationBars["Masterpieces"].waitForExistence(timeout: 10))
         shot("shell-masterpieces")
         menu("Home")
         XCTAssertTrue(app.navigationBars["Appkin"].waitForExistence(timeout: 5))
-        text("App ideas").tap()
+        onHome("App ideas").tap()
         XCTAssertTrue(app.navigationBars["App ideas"].waitForExistence(timeout: 10))
         menu("Home")
 
@@ -126,7 +133,7 @@ final class ShellFlowTests: XCTestCase {
 
     func testMoviesUsesTheBundledKey() throws {
         app.launch()
-        text("Movies").tap()
+        onHome("Movies").tap()
         XCTAssertFalse(app.navigationBars["API keys"].waitForExistence(timeout: 3), "the build's key is bundled")
         XCTAssertTrue(app.navigationBars["Movies"].waitForExistence(timeout: 10))
         // Films from TMDB (network needed): a poster title in the popular list.
@@ -167,7 +174,7 @@ final class ShellFlowTests: XCTestCase {
         app.launchArguments = []
         app.launch()
         XCTAssertTrue(app.navigationBars["Appkin"].waitForExistence(timeout: 10))
-        text(name).tap()
+        onHome(name).tap()
         XCTAssertFalse(app.navigationBars["API keys"].waitForExistence(timeout: 3), "read from the Keychain")
         XCTAssertTrue(app.navigationBars[name].waitForExistence(timeout: 10))
     }
