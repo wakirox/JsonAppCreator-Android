@@ -20,6 +20,13 @@ enum Exporter {
         present(items)
     }
 
+    /// An app as its JSON file, `<Name>.appkin.json`, in the share sheet: that is all another iPhone needs to show it.
+    static func shareApp(name: String, json: String, fileName: String) {
+        let file = freshFolder("app").appending(path: fileName)
+        guard (try? Data(json.utf8).write(to: file)) != nil else { return }
+        present([file])
+    }
+
     /// The PDF of `page`, in the share sheet.
     static func sharePDF(_ page: PdfPageUseCase.Page) async {
         var html = page.html
@@ -82,7 +89,7 @@ enum Exporter {
 
     // MARK: Presenting
 
-    private static func present(_ items: [Any]) {
+    static func present(_ items: [Any]) {
         guard !items.isEmpty, let top = Presenter.top else { return }
         let sheet = UIActivityViewController(activityItems: items, applicationActivities: nil)
         sheet.popoverPresentationController?.sourceView = top.view

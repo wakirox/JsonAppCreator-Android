@@ -1,49 +1,42 @@
 import AppkinShared
 import SwiftUI
 
-/// Runs a JSON app: its main view in a navigation stack, every opened screen pushed on it.
-struct RendererRoot: View {
-    private let engine: IosEngine
-    @StateObject private var navigator = Navigator()
-    private let root = ScreenRoute(viewId: nil, payload: nil, title: nil)
+/// A JSON app being shown: its engine and how it is kept. The shell's navigation stack holds its screens.
+@MainActor
+final class AppSession: Hashable {
+    let json: String
+    let name: String
+    let configurationId: String
+    let isExample: Bool
+    let engine: IosEngine
+    let navigator = Navigator()
+    let root = ScreenRoute(viewId: nil, payload: nil, title: nil)
 
-    init(json: String) {
+    init(json: String, name: String, configurationId: String, isExample: Bool, secrets: SecretStore) {
+        self.json = json
+        self.name = name
+        self.configurationId = configurationId
+        self.isExample = isExample
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-        engine = IosEngine(json: json, versionName: version, platform: "iOS \(UIDevice.current.systemVersion)", photoData: { PhotoStore.data($0) })
+        engine = IosEngine(
+            json: json, versionName: version, platform: "iOS \(UIDevice.current.systemVersion)",
+            secrets: secrets, configurationId: configurationId, bundledKeys: BundledKeys.encoded,
+            photoData: { PhotoStore.data($0) }
+        )
         ImageLoader.userAgent = engine.userAgent
     }
 
-    var body: some View {
-        NavigationStack(path: $navigator.path) {
-            ScreenHost(engine: engine, navigator: navigator, route: root, isRoot: true)
-                .navigationDestination(for: ScreenRoute.self) { route in
-                    ScreenHost(engine: engine, navigator: navigator, route: route, isRoot: false)
-                }
-        }
-    }
+    nonisolated static func == (a: AppSession, b: AppSession) -> Bool { a === b }
+    nonisolated func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
-/// Opens a bundled example by its resource name (`v3_masterpieces`).
-struct BundledExample: View {
-    let name: String
-
-    var body: some View {
-        if let url = Bundle.main.url(forResource: name, withExtension: "json"),
-           let json = try? String(contentsOf: url, encoding: .utf8) {
-            RendererRoot(json: json)
-        } else {
-            ContentUnavailableView("No example named \(name)", systemImage: "questionmark.folder")
-        }
-    }
-}
-
-/// One screen on the stack, with its title, alert and wait.
-private struct ScreenHost: View {
+/// One screen of an app on the stack, with its title, alert and wait.
+struct ScreenHost: View {
     @StateObject private var model: ScreenModel
     let isRoot: Bool
 
-    init(engine: IosEngine, navigator: Navigator, route: ScreenRoute, isRoot: Bool) {
-        _model = StateObject(wrappedValue: ScreenModel(engine: engine, navigator: navigator, route: route))
+    init(session: AppSession, route: ScreenRoute, isRoot: Bool) {
+        _model = StateObject(wrappedValue: ScreenModel(engine: session.engine, navigator: session.navigator, route: route))
         self.isRoot = isRoot
     }
 

@@ -10,10 +10,12 @@ struct ScreenRoute: Hashable {
     var title: String?
 }
 
-/// The screens pushed on the app's navigation stack.
+/// Pushes and pops the screens of an app on the shell's navigation stack.
 @MainActor
-final class Navigator: ObservableObject {
-    @Published var path: [ScreenRoute] = []
+final class Navigator {
+    var push: (ScreenRoute) -> Void = { _ in }
+    /// Goes back from the screen with this id, if it is the one on top.
+    var popIfTop: (UUID) -> Void = { _ in }
 }
 
 /// A screen's state for SwiftUI: it watches the shared `ScreenViewModel`'s flows and carries out its effects.
@@ -75,10 +77,10 @@ final class ScreenModel: ObservableObject {
     private func handle(_ effect: ScreenEffect) {
         switch effect.kind {
         case "openScreen":
-            navigator.path.append(ScreenRoute(viewId: effect.view?.id, payload: effect.payload, title: effect.title))
+            navigator.push(ScreenRoute(viewId: effect.view?.id, payload: effect.payload, title: effect.title))
         case "close":
             // Only the screen on top goes back.
-            if navigator.path.last?.id == route.id { navigator.path.removeLast() }
+            navigator.popIfTop(route.id)
         case "openUrl":
             if let url = effect.url.flatMap(Self.systemURL) { UIApplication.shared.open(url) }
         case "copy":
