@@ -13,6 +13,7 @@ struct EditorView: View {
     @State private var selection: TextSelection?
     @State private var confirmDiscard = false
     @State private var pasted: String?
+    @State private var pasting = false
     @State private var toast: String?
     @State private var checks = Checks()
     @FocusState private var focused: Bool
@@ -58,6 +59,10 @@ struct EditorView: View {
             if Task.isCancelled { return }
             issues = await checks.run(kit: Unchecked(value: shell.kit), json: text).value
         }
+        .sheet(isPresented: $pasting) {
+            Form { PasteRow { paste($0) } }
+                .presentationDetents([.height(220)])
+        }
         .alert("Use the answer from your AI app?", isPresented: Binding(get: { pasted != nil }, set: { if !$0 { pasted = nil } })) {
             Button("Replace") {
                 if let pasted { text = shell.kit.prettyPrinted(json: pasted) }
@@ -97,7 +102,7 @@ struct EditorView: View {
                 Button("Save as a file…", systemImage: "square.and.arrow.down") { saveAsFile() }
                 Divider()
                 Button("Send to your AI app…", systemImage: "sparkles") { shell.askAI(currentApp: text, changeCurrent: true) }
-                Button("Paste answer from your AI app", systemImage: "doc.on.clipboard") { paste() }
+                Button("Paste answer from your AI app", systemImage: "doc.on.clipboard") { pasting = true }
             } label: {
                 Image(systemName: "ellipsis").accessibilityLabel("More")
             }
@@ -259,8 +264,9 @@ struct EditorView: View {
         Exporter.shareApp(name: name, json: text, fileName: shell.kit.fileName(name: name))
     }
 
-    private func paste() {
-        guard let answer = UIPasteboard.general.string, let json = shell.kit.extractJson(answer: answer) else {
+    private func paste(_ answer: String?) {
+        pasting = false
+        guard let answer, let json = shell.kit.extractJson(answer: answer) else {
             show(String(localized: "No JSON in the clipboard: copy the AI's answer first"))
             return
         }

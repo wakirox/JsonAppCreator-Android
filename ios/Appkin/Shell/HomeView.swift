@@ -72,9 +72,6 @@ struct HomeView: View {
                 Menu {
                     Button("New app", systemImage: "square.and.pencil") { shell.newApp() }
                     Button("Ask your AI app…", systemImage: "sparkles") { shell.askAI() }
-                    Button("Paste answer from your AI app", systemImage: "doc.on.clipboard") {
-                        shell.receiveAnswer(UIPasteboard.general.string)
-                    }
                     Divider()
                     Button("Open a file…", systemImage: "folder") { importing = true }
                     Link(destination: Links.formatGuide) { Label("JSON format guide", systemImage: "book") }

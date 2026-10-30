@@ -52,7 +52,6 @@ struct ShellRoot: View {
         case "about": shell.path.append(.about)
         case "ask": shell.askAI()
         case "editor": shell.newApp()
-        case "paste": shell.receiveAnswer(UIPasteboard.general.string)
         default: break
         }
     }

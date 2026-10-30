@@ -376,12 +376,12 @@
         }
       }
     },
-    "Bring it back: copy the answer and paste it here, or open the file it makes. Appkin checks it and opens it.": {
+    "Bring it back: copy the answer, or open the file it makes. Appkin checks it and opens it.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bring it back: copy the answer and paste it here, or open the file it makes. Appkin checks it and opens it."
+            "value": "Bring it back: copy the answer, or open the file it makes. Appkin checks it and opens it."
           }
         }
       }
@@ -692,6 +692,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Get files your way"
+          }
+        }
+      }
+    },
+    "Got your AI app's answer? Copy it there, then": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got your AI app's answer? Copy it there, then"
           }
         }
       }

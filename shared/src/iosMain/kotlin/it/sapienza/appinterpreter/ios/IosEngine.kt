@@ -55,7 +55,8 @@ class IosEngine(
     private val strings = EnglishRuntimeStrings
     private val current = CurrentConfiguration { json }
     private val repository = AppRepository(current, ValidatedConfigurationParser(SharedValidator.validator))
-    private val keys = ConfigurationKeys(secrets, ConfigurationKeys.decodeBundledValues(bundledKeys)) { configurationId }
+    private val keys =
+        ConfigurationKeys(secrets, ConfigurationKeys.decodeBundledValues(bundledKeys)) { configurationId }
     private val httpClient = JsonHttpClient(
         Darwin.create(),
         userAgent,

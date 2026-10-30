@@ -8,13 +8,6 @@ final class ShellFlowTests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = false
-        addUIInterruptionMonitor(withDescription: "Paste") { alert in
-            for label in ["Allow Paste", "Allow"] where alert.buttons[label].exists {
-                alert.buttons[label].tap()
-                return true
-            }
-            return false
-        }
     }
 
     private func text(_ label: String) -> XCUIElement {
@@ -35,10 +28,11 @@ final class ShellFlowTests: XCTestCase {
         return try String(contentsOf: root.appending(path: "app/src/main/res/raw/\(name).json"), encoding: .utf8)
     }
 
-    /// The system asks before an app reads text another app copied: allow it.
-    private func allowPaste() {
-        let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow Paste"]
-        if allow.waitForExistence(timeout: 5) { allow.tap() }
+    /// The system's Paste button reads the clipboard only when tapped, with no question asked.
+    private func tapPaste() {
+        let paste = app.buttons["Paste"].firstMatch
+        XCTAssertTrue(paste.waitForExistence(timeout: 5), "Paste button")
+        paste.tap()
     }
 
     private func menu(_ item: String) {
@@ -80,9 +74,11 @@ final class ShellFlowTests: XCTestCase {
 
         // Paste an AI answer: it opens in the editor with no problems, and Open keeps it in Your apps.
         UIPasteboard.general.string = "Here is your app:\n```json\n" + (try raw("v3_race_signup")) + "\n```"
+        app.buttons["Ask your AI app"].firstMatch.tap()
         app.swipeUp()
-        app.buttons["Paste answer from your AI app"].tap()
-        allowPaste()
+        XCTAssertTrue(contains("Got your AI app's answer").waitForExistence(timeout: 5))
+        shot("shell-paste")
+        tapPaste()
         XCTAssertTrue(app.navigationBars["From your AI app"].waitForExistence(timeout: 10))
         XCTAssertTrue(text("No problems: ready to open").waitForExistence(timeout: 15))
         shot("shell-editor-ok")
@@ -106,8 +102,9 @@ final class ShellFlowTests: XCTestCase {
         try XCTSkipUnless(FileManager.default.fileExists(atPath: file))
         app.launch()
         UIPasteboard.general.string = try String(contentsOfFile: file, encoding: .utf8)
-        menu("Paste answer from your AI app")
-        allowPaste()
+        app.buttons["Ask your AI app"].firstMatch.tap()
+        app.swipeUp()
+        tapPaste()
         XCTAssertTrue(app.navigationBars["From your AI app"].waitForExistence(timeout: 10))
         XCTAssertTrue(text("5 problems").waitForExistence(timeout: 40))
         XCTAssertTrue(app.buttons["Send problems to your AI app…"].exists)
@@ -128,10 +125,49 @@ final class ShellFlowTests: XCTestCase {
         shot("shell-opened-file")
     }
 
-    func testMoviesAsksForKey() throws {
+    func testMoviesUsesTheBundledKey() throws {
         app.launch()
         text("Movies").tap()
+        XCTAssertFalse(app.navigationBars["API keys"].waitForExistence(timeout: 3), "the build's key is bundled")
+        XCTAssertTrue(app.navigationBars["Movies"].waitForExistence(timeout: 10))
+        // Films from TMDB (network needed): a poster title in the popular list.
+        XCTAssertTrue(contains("Popular movies").waitForExistence(timeout: 20))
+        sleep(6)
+        shot("shell-movies")
+        XCTAssertGreaterThan(app.images.count + app.staticTexts.count, 5)
+    }
+
+    private static let keyTestApp = """
+    {"schemaVersion":3,"name":"Key Test","icon":"🔑","version":"1","author":"Test","mainView":{"id":"l0","type":"layout","views":[
+    {"type":"text","label":"Key test app"},
+    {"type":"form","buttonTitle":"Go","formElements":[{"type":"text","mapping":"q","title":"Q"}],
+    "action":{"id":"a1","type":"click","event":{"type":"rest","url":"https://httpbin.org/get?key=__TEST_API_KEY__","method":"get"}}}]}}
+    """
+
+    /// A typed API key is kept in the Keychain: after the app is relaunched it isn't asked for again.
+    func testApiKeyIsAskedOnceAndRemembered() throws {
+        let file = NSTemporaryDirectory() + "key-test-\(UUID().uuidString).json"
+        try Self.keyTestApp.write(toFile: file, atomically: true, encoding: .utf8)
+        app.launchArguments = ["-openFile", file]
+        app.launch()
+        app.buttons["Open"].tap()
         XCTAssertTrue(app.navigationBars["API keys"].waitForExistence(timeout: 10))
+        XCTAssertTrue(text("TEST_API_KEY").exists)
+        let field = app.secureTextFields.firstMatch
+        field.tap()
+        field.typeText("fake-test-value")
         shot("shell-api-key")
+        app.buttons["Load app"].tap()
+        XCTAssertTrue(app.navigationBars["Key Test"].waitForExistence(timeout: 10))
+        menu("Home")
+        XCTAssertTrue(app.navigationBars["Appkin"].waitForExistence(timeout: 5))
+        app.terminate()
+
+        app.launchArguments = []
+        app.launch()
+        XCTAssertTrue(app.navigationBars["Appkin"].waitForExistence(timeout: 10))
+        text("Key Test").tap()
+        XCTAssertFalse(app.navigationBars["API keys"].waitForExistence(timeout: 3), "read from the Keychain")
+        XCTAssertTrue(app.navigationBars["Key Test"].waitForExistence(timeout: 10))
     }
 }

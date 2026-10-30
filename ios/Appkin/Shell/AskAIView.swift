@@ -99,11 +99,9 @@ struct AskAIView: View {
 
             Section {
                 Text("Chat there until you like the result.")
-                Text("Bring it back: copy the answer and paste it here, or open the file it makes. Appkin checks it and opens it.")
+                Text("Bring it back: copy the answer, or open the file it makes. Appkin checks it and opens it.")
                     .foregroundStyle(.secondary)
-                Button { shell.receiveAnswer(UIPasteboard.general.string) } label: {
-                    Label("Paste answer from your AI app", systemImage: "doc.on.clipboard")
-                }
+                PasteRow { shell.receiveAnswer($0) }
             } header: {
                 Text("Then")
             }
