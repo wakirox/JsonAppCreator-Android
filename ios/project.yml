@@ -79,14 +79,21 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: YES
         LOCALIZATION_PREFERS_STRING_CATALOGS: YES
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        CURRENT_PROJECT_VERSION: "2"
         SWIFT_VERSION: "6.0"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: Appkin
         # Add to Calendar: the system's event editor saves what the user confirms; the app only prepares the event.
         INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription: Appkin adds the events you choose to your calendar.
-        TARGETED_DEVICE_FAMILY: "1,2"
+        # Only standard HTTPS: no export compliance documents needed.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        # Turns with the phone: the iPhone Duo is used sideways.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        # Files are read where they are, with security-scoped access, not copied into the app.
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        # iPhone only (iPad runs it in iPhone mode): no iPad layouts or store screenshots to keep.
+        TARGETED_DEVICE_FAMILY: "1"
         # The simulator build is signed ad hoc: without a signature the Keychain refuses every write (-34018).
         # Devices are signed with the owner's team when archiving.
         CODE_SIGNING_ALLOWED: YES
@@ -96,6 +103,14 @@ targets:
         OTHER_LDFLAGS: "$(inherited) -framework AppkinShared"
         # Gradle reads and writes the repository outside the sandbox of script phases.
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+      configs:
+        # App Store builds: the team's Apple Distribution certificate and the "Appkin App Store" profile.
+        Release:
+          DEVELOPMENT_TEAM: 793Z38F3BF
+          CODE_SIGN_STYLE: Manual
+          "CODE_SIGN_IDENTITY[sdk=iphoneos*]": Apple Distribution
+          "CODE_SIGNING_REQUIRED[sdk=iphoneos*]": YES
+          "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": Appkin App Store
   AppkinUITests:
     type: bundle.ui-testing
     platform: iOS
